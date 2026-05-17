@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>МЕДИА.СТРАЖ — Рейтинг российских СМИ</title>
+  <meta name="description" content="Первый независимый рейтинг российских СМИ по уровню манипулятивности. Алгоритм отслеживает заголовки и тексты 24/7." />
+  <meta property="og:title" content="МЕДИА.СТРАЖ — Рейтинг российских СМИ" />
+  <meta property="og:description" content="Первый независимый рейтинг российских СМИ по уровню манипулятивности." />
+  <meta property="og:type" content="website" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -86,6 +90,7 @@
     }
 
     .brand-title span { color: var(--accent-blue); }
+
     .header-glow {
       height: 2px;
       background: radial-gradient(circle at center, rgba(34,211,238,.75), transparent 70%);
@@ -195,6 +200,7 @@
 
     main { padding-top: 18px; }
 
+    /* ── HERO ── */
     .hero {
       display: grid;
       grid-template-columns: 1fr;
@@ -254,6 +260,41 @@
       gap: 8px;
     }
 
+    /* FIX 8: счётчик виден на мобиле — компактная строка */
+    .hero-counter-mobile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(31,41,55,.9);
+      background: linear-gradient(180deg, rgba(12,18,32,.92), rgba(6,10,18,.92));
+      box-shadow: var(--shadow-card);
+      margin-top: 10px;
+    }
+
+    .hero-counter-mobile .counter-value-sm {
+      font-family: "Montserrat", sans-serif;
+      font-weight: 900;
+      font-size: 1.6rem;
+      color: var(--accent-red);
+      text-shadow: 0 0 14px rgba(248,113,113,.55);
+      line-height: 1;
+    }
+
+    .hero-counter-mobile .counter-label-sm {
+      font-size: .74rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      line-height: 1.4;
+    }
+
+    .hero-counter-mobile .counter-label-sm span {
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+
     .counter-label {
       position: relative;
       z-index: 1;
@@ -279,6 +320,17 @@
       line-height: 1;
       color: var(--accent-red);
       text-shadow: 0 0 18px rgba(248,113,113,.65);
+    }
+
+    /* FIX 2: демо-плашка под счётчиком */
+    .counter-demo-note {
+      position: relative;
+      z-index: 1;
+      font-size: .7rem;
+      color: rgba(139,141,150,.7);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 4px;
     }
 
     .section-divider {
@@ -308,9 +360,16 @@
       color: var(--text-muted);
     }
 
+    /* FIX 7: кнопки управления списком */
+    .list-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
     .full-list-button {
       min-height: 46px;
-      width: 100%;
       padding: 0 16px;
       border-radius: 14px;
       border: 1px solid rgba(148,163,184,.55);
@@ -320,16 +379,16 @@
       text-transform: uppercase;
       letter-spacing: .12em;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .full-list-button-mobile {
       display: none;
       margin-top: 14px;
+      width: 100%;
     }
 
-    .media-stage {
-      position: relative;
-    }
+    .media-stage { position: relative; }
 
     .media-grid {
       display: grid;
@@ -337,6 +396,7 @@
       gap: 14px;
     }
 
+    /* ── MEDIA CARD ── */
     .media-card {
       position: relative;
       background:
@@ -374,15 +434,24 @@
       flex: 1;
     }
 
+    /* FIX 6: инициалы вместо пустого блока */
     .logo-icon {
       width: 40px;
       height: 40px;
       flex: 0 0 40px;
       border-radius: 12px;
-      display: block;
-      background: rgba(255,255,255,.02);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Montserrat", sans-serif;
+      font-weight: 900;
+      font-size: .72rem;
+      letter-spacing: .04em;
+      color: rgba(229,231,235,.85);
+      background: rgba(255,255,255,.04);
       border: 1px solid rgba(148,163,184,.22);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      user-select: none;
     }
 
     .media-name {
@@ -406,9 +475,9 @@
       flex-shrink: 0;
     }
 
-    .red-score { color: var(--accent-red); text-shadow: 0 0 12px rgba(248,113,113,.75); }
+    .red-score    { color: var(--accent-red);    text-shadow: 0 0 12px rgba(248,113,113,.75); }
     .yellow-score { color: var(--accent-yellow); text-shadow: 0 0 12px rgba(234,179,8,.55); }
-    .green-score { color: var(--accent-green); text-shadow: 0 0 12px rgba(74,222,128,.55); }
+    .green-score  { color: var(--accent-green);  text-shadow: 0 0 12px rgba(74,222,128,.55); }
 
     .media-meta {
       display: grid;
@@ -425,24 +494,20 @@
       color: #c3c7d0;
     }
 
+    /* FIX 5: SVG-график уникален для каждой карточки */
     .small-graph {
       width: 100%;
-      height: 28px;
+      height: 36px;
       margin-top: 10px;
       border-radius: 10px;
       background: linear-gradient(to top, #020617, #0b1220);
-      position: relative;
       overflow: hidden;
     }
 
-    .small-graph::before {
-      content: "";
-      position: absolute;
-      inset: auto -5% -6px;
-      height: 150%;
-      background: linear-gradient(to top, rgba(34,211,238,.58), transparent);
-      clip-path: polygon(0% 90%, 15% 70%, 30% 80%, 45% 40%, 60% 65%, 75% 55%, 90% 75%, 100% 65%, 100% 100%, 0 100%);
-      opacity: .85;
+    .small-graph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .media-footer {
@@ -471,7 +536,7 @@
     }
 
     .badge-yellow { border-color: var(--accent-yellow); color: var(--accent-yellow); }
-    .badge-green { border-color: var(--accent-green); color: var(--accent-green); }
+    .badge-green  { border-color: var(--accent-green);  color: var(--accent-green);  }
 
     .link-button {
       appearance: none;
@@ -487,6 +552,7 @@
       text-align: center;
     }
 
+    /* ── DOTS ── */
     .media-dots {
       display: none;
       justify-content: center;
@@ -520,6 +586,7 @@
       margin-top: 32px;
     }
 
+    /* ── MODAL ── */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -554,6 +621,7 @@
       gap: 12px;
       padding: 14px 16px;
       border-bottom: 1px solid rgba(51,65,85,.9);
+      flex-shrink: 0;
     }
 
     .modal-header h3 {
@@ -579,9 +647,59 @@
       flex-shrink: 0;
     }
 
+    /* FIX 7: поиск и сортировка в модалке */
+    .modal-controls {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(31,41,55,.8);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .modal-search {
+      flex: 1;
+      min-width: 140px;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(51,65,85,.9);
+      background: rgba(15,23,42,.85);
+      color: #e5e7eb;
+      font-size: .84rem;
+      font-family: "Roboto", sans-serif;
+      outline: none;
+    }
+
+    .modal-search::placeholder { color: var(--text-muted); }
+    .modal-search:focus { border-color: rgba(34,211,238,.5); }
+
+    .modal-sort {
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(51,65,85,.9);
+      background: rgba(15,23,42,.85);
+      color: #e5e7eb;
+      font-size: .82rem;
+      font-family: "Roboto", sans-serif;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .modal-sort:focus { border-color: rgba(34,211,238,.5); }
+
     .modal-body {
       overflow-y: auto;
-      padding: 8px 16px 20px;
+      padding: 4px 16px 20px;
+      flex: 1;
+    }
+
+    .modal-empty {
+      padding: 24px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .88rem;
     }
 
     .full-list-row {
@@ -630,27 +748,20 @@
       letter-spacing: .08em;
     }
 
-    .full-list-rating.red { color: var(--accent-red); }
-    .full-list-rating.yellow { color: var(--accent-yellow); }
+    .full-list-rating.red   { color: var(--accent-red); }
+    .full-list-rating.yellow{ color: var(--accent-yellow); }
     .full-list-rating.green { color: var(--accent-green); }
-    .full-list-badge.red { border-color: var(--accent-red); color: var(--accent-red); }
+    .full-list-badge.red    { border-color: var(--accent-red);    color: var(--accent-red); }
     .full-list-badge.yellow { border-color: var(--accent-yellow); color: var(--accent-yellow); }
-    .full-list-badge.green { border-color: var(--accent-green); color: var(--accent-green); }
+    .full-list-badge.green  { border-color: var(--accent-green);  color: var(--accent-green); }
 
+    /* ── RESPONSIVE ── */
     @media (max-width: 767px) {
-      .hero {
-        gap: 0;
-        padding-bottom: 6px;
-      }
-
-      .hero-text,
-      .hero-counter {
-        backdrop-filter: blur(12px);
-      }
-
-      .hero-counter {
-        display: none;
-      }
+      .hero { gap: 0; padding-bottom: 6px; }
+      .hero-text, .hero-counter { backdrop-filter: blur(12px); }
+      /* FIX 8: скрываем большой блок, показываем компактную строку */
+      .hero-counter { display: none; }
+      .hero-counter-mobile { display: flex; }
 
       .current-rating-section {
         display: flex;
@@ -663,22 +774,15 @@
         order: 1;
       }
 
-      .rating-header h2 {
-        display: none;
-      }
-
-      .full-list-button-desktop {
-        display: none;
-      }
+      .rating-header h2 { display: none; }
+      .full-list-button-desktop { display: none; }
 
       .full-list-button-mobile {
         display: block;
         order: 3;
       }
 
-      .media-stage {
-        order: 2;
-      }
+      .media-stage { order: 2; }
 
       .media-grid.is-mobile-slider {
         position: relative;
@@ -702,6 +806,7 @@
       }
 
       .media-grid.is-mobile-slider .media-card.is-exit-left {
+        opacity: 0;
         transform: translateX(-18px) scale(.98);
       }
 
@@ -713,6 +818,7 @@
       .navbar { padding: 12px 20px; }
       .brand-title { max-width: none; font-size: 1.02rem; }
       .hero { grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
+      .hero-counter-mobile { display: none; }
       .rating-header {
         flex-direction: row;
         justify-content: space-between;
@@ -752,8 +858,7 @@
         box-shadow: none;
         backdrop-filter: none;
       }
-      .nav-link,
-      .support-button-mobile {
+      .nav-link, .support-button-mobile {
         min-height: 40px;
         padding: 8px 14px;
         border-radius: 999px;
@@ -761,16 +866,6 @@
       .nav-link { background: transparent; }
       .support-button-mobile { display: none; }
       .support-button-desktop { display: inline-flex; }
-      .hero h1::after {
-        content: "";
-        position: absolute;
-        inset: -8px -12px;
-        border-radius: 10px;
-        pointer-events: none;
-        background: repeating-linear-gradient(180deg, rgba(255,255,255,.07) 0px, rgba(255,255,255,.07) 1px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 6px);
-        opacity: .22;
-        mix-blend-mode: soft-light;
-      }
       .media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
       .media-card {
         transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
@@ -798,7 +893,8 @@
         <div class="brand-title">МЕДИА.<span>СТРАЖ</span></div>
 
         <nav class="site-nav" aria-label="Навигация">
-          <button class="burger" id="burgerBtn" aria-label="Открыть меню" aria-expanded="false" aria-controls="navLinks">
+          <button class="burger" id="burgerBtn"
+            aria-label="Открыть меню" aria-expanded="false" aria-controls="navLinks">
             <span></span><span></span><span></span>
           </button>
 
@@ -823,18 +919,36 @@
         <h1>Первый независимый рейтинг российских СМИ</h1>
       </div>
 
+      <!-- Полный блок: планшет + десктоп -->
       <aside class="hero-counter" aria-label="Счётчик за 24 часа">
-        <div class="counter-label">Манипулятивных сообщений за последние <span>24 часа</span></div>
+        <div class="counter-label">
+          Манипулятивных сообщений за последние <span>24 часа</span>
+        </div>
+        <!-- FIX 2: статичное число + подпись «демо» -->
         <div class="counter-value" id="dailyCounterValue">0</div>
+        <div class="counter-demo-note">демо-данные · обновляется при подключении API</div>
       </aside>
     </section>
+
+    <!-- FIX 8: компактная строка счётчика на мобиле -->
+    <div class="hero-counter-mobile" aria-label="Манипулятивных сообщений за 24 часа">
+      <div class="counter-value-sm" id="dailyCounterMobile">0</div>
+      <div class="counter-label-sm">
+        манипуляций<br>за <span>24 часа</span>
+        <div style="color:rgba(139,141,150,.6);font-size:.65rem;margin-top:2px;">демо-данные</div>
+      </div>
+    </div>
 
     <div class="section-divider" aria-hidden="true"></div>
 
     <section class="current-rating-section">
       <div class="rating-header">
         <h2>Рейтинг в реальном времени</h2>
-        <button class="full-list-button full-list-button-desktop show-full-list-trigger" type="button">Показать полный список</button>
+        <div class="list-controls">
+          <button class="full-list-button full-list-button-desktop show-full-list-trigger" type="button">
+            Показать полный список
+          </button>
+        </div>
       </div>
 
       <div class="media-stage">
@@ -842,62 +956,155 @@
         <div class="media-dots" id="mediaDots" aria-label="Переключение карточек"></div>
       </div>
 
-      <button class="full-list-button full-list-button-mobile show-full-list-trigger" type="button">Показать полный список</button>
+      <button class="full-list-button full-list-button-mobile show-full-list-trigger" type="button">
+        Показать полный список
+      </button>
     </section>
   </main>
 
   <footer>© 2025 Проект «МЕДИА.СТРАЖ»</footer>
 
+  <!-- MODAL -->
   <div class="modal-overlay" id="fullListModal" aria-hidden="true">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fullListTitle">
       <div class="modal-header">
         <h3 id="fullListTitle">Полный список <span>СМИ</span></h3>
         <button class="modal-close" id="fullListCloseBtn" type="button" aria-label="Закрыть окно">×</button>
       </div>
+
+      <!-- FIX 7: поиск + сортировка -->
+      <div class="modal-controls">
+        <input
+          class="modal-search"
+          id="modalSearch"
+          type="search"
+          placeholder="Поиск по названию..."
+          aria-label="Поиск по названию СМИ"
+        />
+        <select class="modal-sort" id="modalSort" aria-label="Сортировка">
+          <option value="rating-desc">По рейтингу ↓</option>
+          <option value="rating-asc">По рейтингу ↑</option>
+          <option value="name-asc">По алфавиту А→Я</option>
+          <option value="name-desc">По алфавиту Я→А</option>
+          <option value="level-red">Сначала высокий риск</option>
+          <option value="level-green">Сначала низкий риск</option>
+        </select>
+      </div>
+
       <div class="modal-body" id="fullListContainer"></div>
     </div>
   </div>
 
   <script>
+    /* ─────────────────────────────────────────
+       ДАННЫЕ
+    ───────────────────────────────────────── */
     const mediaData = [
-      { name: "Горизонт 24", type: "ТВ / Онлайн", audience: "Аудитория: 7,3 млн", posts: 142, manipulative: 113, rating: 78, level: "red" },
-      { name: "Северный эфир", type: "ТВ", audience: "Аудитория: 9,1 млн", posts: 135, manipulative: 92, rating: 76, level: "red" },
-      { name: "Вектор 1", type: "ТВ", audience: "Аудитория: 8,4 млн", posts: 128, manipulative: 95, rating: 72, level: "red" },
-      { name: "Сфера Новости", type: "Информагентство", audience: "Аудитория: 6,2 млн", posts: 120, manipulative: 70, rating: 44, level: "yellow" },
-      { name: "Народный Курьер", type: "Газета", audience: "Аудитория: 5,1 млн", posts: 110, manipulative: 40, rating: 42, level: "yellow" },
-      { name: "Pulse Daily", type: "Онлайн", audience: "Аудитория: 1,9 млн", posts: 64, manipulative: 30, rating: 27, level: "green" },
-      { name: "Фокус Медиа", type: "ТВ / Онлайн", audience: "Аудитория: 2,7 млн", posts: 82, manipulative: 32, rating: 25, level: "green" },
-      { name: "Свободная Линия", type: "Газета", audience: "Аудитория: 1,1 млн", posts: 54, manipulative: 10, rating: 13, level: "green" },
-      { name: "Агентство Орбита", type: "Информагентство", audience: "Аудитория: 4,5 млн", posts: 96, manipulative: 18, rating: 15, level: "green" }
+      { name: "Горизонт 24",        type: "ТВ / Онлайн",       audience: "Аудитория: 7,3 млн", posts: 142, manipulative: 113, rating: 78, level: "red"    },
+      { name: "Северный эфир",      type: "ТВ",                 audience: "Аудитория: 9,1 млн", posts: 135, manipulative: 92,  rating: 76, level: "red"    },
+      { name: "Вектор 1",           type: "ТВ",                 audience: "Аудитория: 8,4 млн", posts: 128, manipulative: 95,  rating: 72, level: "red"    },
+      { name: "Сфера Новости",      type: "Информагентство",    audience: "Аудитория: 6,2 млн", posts: 120, manipulative: 70,  rating: 44, level: "yellow" },
+      { name: "Народный Курьер",    type: "Газета",             audience: "Аудитория: 5,1 млн", posts: 110, manipulative: 40,  rating: 42, level: "yellow" },
+      { name: "Pulse Daily",        type: "Онлайн",             audience: "Аудитория: 1,9 млн", posts: 64,  manipulative: 30,  rating: 27, level: "green"  },
+      { name: "Фокус Медиа",        type: "ТВ / Онлайн",       audience: "Аудитория: 2,7 млн", posts: 82,  manipulative: 32,  rating: 25, level: "green"  },
+      { name: "Свободная Линия",    type: "Газета",             audience: "Аудитория: 1,1 млн", posts: 54,  manipulative: 10,  rating: 13, level: "green"  },
+      { name: "Агентство Орбита",   type: "Информагентство",    audience: "Аудитория: 4,5 млн", posts: 96,  manipulative: 18,  rating: 15, level: "green"  },
     ];
 
-    const mediaGrid = document.getElementById("mediaGrid");
-    const mediaDots = document.getElementById("mediaDots");
-    const fullListModal = document.getElementById("fullListModal");
+    /* ─────────────────────────────────────────
+       FIX 6: Инициалы из названия
+    ───────────────────────────────────────── */
+    function getInitials(name) {
+      const words = name.trim().split(/\s+/);
+      if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+
+    /* ─────────────────────────────────────────
+       FIX 5: Уникальный SVG-график из данных
+       Генерируем псевдо-историю по рейтингу:
+       чем выше рейтинг — тем «выше» кривая.
+    ───────────────────────────────────────── */
+    function buildSparkline(rating, level) {
+      const W = 200, H = 36;
+      const points = 10;
+      // базовая линия зависит от рейтинга (0→100 → y 80%→20% от высоты)
+      const base = H * (1 - rating / 100 * 0.75 - 0.1);
+      // Псевдо-случайные отклонения, детерминированные по рейтингу
+      const seed = rating * 13 + level.charCodeAt(0);
+      const rng = (i) => {
+        const x = Math.sin(seed + i * 7.3) * 43758.5453;
+        return x - Math.floor(x);
+      };
+
+      const yValues = Array.from({ length: points }, (_, i) => {
+        const variance = H * 0.18;
+        return Math.max(2, Math.min(H - 2, base + (rng(i) - 0.5) * variance * 2));
+      });
+
+      const xStep = W / (points - 1);
+      const pts = yValues.map((y, i) => `${(i * xStep).toFixed(1)},${y.toFixed(1)}`).join(' ');
+      const areaBottom = `${((points - 1) * xStep).toFixed(1)},${H} 0,${H}`;
+
+      const colors = { red: '#ef4444', yellow: '#eab308', green: '#22c55e' };
+      const stroke = colors[level] || '#22d3ee';
+      const fill = stroke;
+
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="sg${rating}${level}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${fill}" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="${fill}" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${pts} ${areaBottom}" fill="url(#sg${rating}${level})"/>
+        <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+      </svg>`;
+    }
+
+    /* ─────────────────────────────────────────
+       ЭЛЕМЕНТЫ
+    ───────────────────────────────────────── */
+    const mediaGrid         = document.getElementById("mediaGrid");
+    const mediaDots         = document.getElementById("mediaDots");
+    const fullListModal     = document.getElementById("fullListModal");
     const fullListContainer = document.getElementById("fullListContainer");
-    const showFullListBtns = document.querySelectorAll(".show-full-list-trigger");
-    const fullListCloseBtn = document.getElementById("fullListCloseBtn");
-    const burgerBtn = document.getElementById("burgerBtn");
-    const navLinks = document.getElementById("navLinks");
+    const showFullListBtns  = document.querySelectorAll(".show-full-list-trigger");
+    const fullListCloseBtn  = document.getElementById("fullListCloseBtn");
+    const burgerBtn         = document.getElementById("burgerBtn");
+    const navLinks          = document.getElementById("navLinks");
+    const modalSearch       = document.getElementById("modalSearch");
+    const modalSort         = document.getElementById("modalSort");
 
+    /* ─────────────────────────────────────────
+       BREAKPOINTS
+    ───────────────────────────────────────── */
     const isDesktop = () => window.matchMedia("(min-width: 1024px)").matches;
-    const isTablet = () => window.matchMedia("(min-width: 768px)").matches && !isDesktop();
-    const isMobile = () => window.matchMedia("(max-width: 767px)").matches;
+    const isTablet  = () => window.matchMedia("(min-width: 768px)").matches && !isDesktop();
+    const isMobile  = () => window.matchMedia("(max-width: 767px)").matches;
 
-    let cardsCount = isDesktop() ? 3 : isTablet() ? 4 : mediaData.length;
-    let offset = 0;
+    let cardsCount  = 3;
+    let offset      = 0;
     let mobileIndex = 0;
-    let cycleTimer = null;
+    let cycleTimer  = null;
+    // FIX 3: запоминаем последнюю известную ширину
+    let lastWidth   = window.innerWidth;
 
     function getBadgeText(level) {
-      if (level === "red") return "Высокий уровень манипуляций";
+      if (level === "red")    return "Высокий уровень манипуляций";
       if (level === "yellow") return "Средний уровень манипуляций";
       return "Низкий уровень манипуляций";
     }
 
+    /* ─────────────────────────────────────────
+       КАРТОЧКИ
+    ───────────────────────────────────────── */
     function initCards() {
       mediaGrid.innerHTML = "";
-      cardsCount = isDesktop() ? 3 : isTablet() ? 4 : mediaData.length;
+      // FIX 1: cardsCount не превышает длину массива
+      const raw = isDesktop() ? 3 : isTablet() ? 4 : mediaData.length;
+      cardsCount = Math.min(raw, mediaData.length);
+
       for (let i = 0; i < cardsCount; i++) {
         const card = document.createElement("article");
         card.className = "media-card";
@@ -912,25 +1119,21 @@
             </div>
             <div class="rating-score"></div>
           </header>
-
           <div class="media-meta">
             <div class="media-audience"></div>
             <div class="media-posts"></div>
           </div>
-
           <div class="media-details">
             <span class="media-manipulative"></span>
           </div>
-
-          <div class="small-graph" aria-hidden="true"></div>
-
+          <div class="small-graph"></div>
           <footer class="media-footer">
             <span class="badge"></span>
             <button class="link-button" type="button" data-archive-link>Смотреть примеры</button>
-          </footer>
-        `;
+          </footer>`;
         mediaGrid.appendChild(card);
       }
+
       updateCards();
       updateMobileSliderState();
       renderDots();
@@ -940,15 +1143,15 @@
       const cards = mediaGrid.querySelectorAll(".media-card");
       cards.forEach((card, i) => {
         const media = mediaData[(offset + i) % mediaData.length];
+
+        // FIX 6: инициалы
+        card.querySelector(".logo-icon").textContent = getInitials(media.name);
         card.querySelector(".media-name").textContent = media.name;
-
-        const icon = card.querySelector(".logo-icon");
-        icon.textContent = "";
-
         card.querySelector(".media-type").textContent = media.type;
         card.querySelector(".media-audience").textContent = media.audience;
         card.querySelector(".media-posts").textContent = `Публикаций: ${media.posts}`;
-        card.querySelector(".media-manipulative").textContent = `Манипулятивных сообщений: ${media.manipulative}`;
+        card.querySelector(".media-manipulative").textContent =
+          `Манипулятивных сообщений: ${media.manipulative}`;
 
         const scoreEl = card.querySelector(".rating-score");
         scoreEl.textContent = `${media.rating}%`;
@@ -957,15 +1160,23 @@
         const badge = card.querySelector(".badge");
         badge.className = "badge";
         if (media.level === "yellow") badge.classList.add("badge-yellow");
-        if (media.level === "green") badge.classList.add("badge-green");
+        if (media.level === "green")  badge.classList.add("badge-green");
         badge.textContent = getBadgeText(media.level);
+
+        // FIX 5: уникальный график
+        card.querySelector(".small-graph").innerHTML = buildSparkline(media.rating, media.level);
       });
     }
 
+    /* ─────────────────────────────────────────
+       МОБИЛЬНЫЙ СЛАЙДЕР
+    ───────────────────────────────────────── */
     function updateMobileSliderState(prevIndex = null) {
       const cards = mediaGrid.querySelectorAll(".media-card");
-      mediaGrid.classList.toggle("is-mobile-slider", isMobile());
-      if (!isMobile()) {
+      const mobile = isMobile();
+      mediaGrid.classList.toggle("is-mobile-slider", mobile);
+
+      if (!mobile) {
         cards.forEach(card => card.classList.remove("is-active", "is-exit-left"));
         return;
       }
@@ -974,11 +1185,12 @@
         card.classList.remove("is-active", "is-exit-left");
         if (prevIndex !== null && i === prevIndex && i !== mobileIndex) {
           card.classList.add("is-exit-left");
+          // FIX 4: снимаем класс after-animation
+          setTimeout(() => card.classList.remove("is-exit-left"), 500);
         }
-        if (i === mobileIndex) {
-          card.classList.add("is-active");
-        }
+        if (i === mobileIndex) card.classList.add("is-active");
       });
+
       updateDots();
     }
 
@@ -986,6 +1198,7 @@
       if (!mediaDots) return;
       mediaDots.innerHTML = "";
       if (!isMobile()) return;
+
       mediaData.forEach((_, index) => {
         const dot = document.createElement("button");
         dot.type = "button";
@@ -1028,36 +1241,73 @@
       cycleTimer = setInterval(cycleCards, isMobile() ? 4200 : 5000);
     }
 
-    function restartCycle() {
-      startCycle();
-    }
+    function restartCycle() { startCycle(); }
 
+    /* ─────────────────────────────────────────
+       FIX 2: Счётчик — статичное число + анимация
+    ───────────────────────────────────────── */
     function initDailyCounter() {
-      const totalManipulative = mediaData.reduce((sum, m) => sum + m.manipulative, 0);
-      const counterEl = document.getElementById("dailyCounterValue");
-      if (!counterEl) return;
-
-      let current = 0;
+      const total = mediaData.reduce((sum, m) => sum + m.manipulative, 0);
+      const ids = ["dailyCounterValue", "dailyCounterMobile"];
       const duration = 1200;
       const startTime = performance.now();
 
       function animate(now) {
         const progress = Math.min((now - startTime) / duration, 1);
-        const value = Math.floor(totalManipulative * progress);
-        if (value !== current) {
-          current = value;
-          counterEl.textContent = current.toLocaleString("ru-RU");
-        }
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(total * eased);
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value.toLocaleString("ru-RU");
+        });
         if (progress < 1) requestAnimationFrame(animate);
       }
 
       requestAnimationFrame(animate);
     }
 
+    /* ─────────────────────────────────────────
+       FIX 7: Полный список с поиском и сортировкой
+    ───────────────────────────────────────── */
+    function getSortedFiltered() {
+      const query = (modalSearch ? modalSearch.value : "").trim().toLowerCase();
+      const sort  = modalSort ? modalSort.value : "rating-desc";
+
+      let list = query
+        ? mediaData.filter(m => m.name.toLowerCase().includes(query))
+        : [...mediaData];
+
+      list.sort((a, b) => {
+        switch (sort) {
+          case "rating-asc":   return a.rating - b.rating;
+          case "rating-desc":  return b.rating - a.rating;
+          case "name-asc":     return a.name.localeCompare(b.name, "ru");
+          case "name-desc":    return b.name.localeCompare(a.name, "ru");
+          case "level-red": {
+            const o = { red: 0, yellow: 1, green: 2 };
+            return o[a.level] - o[b.level];
+          }
+          case "level-green": {
+            const o = { green: 0, yellow: 1, red: 2 };
+            return o[a.level] - o[b.level];
+          }
+          default: return b.rating - a.rating;
+        }
+      });
+
+      return list;
+    }
+
     function renderFullList() {
-      const sorted = [...mediaData].sort((a, b) => b.rating - a.rating);
+      const list = getSortedFiltered();
       fullListContainer.innerHTML = "";
-      sorted.forEach(media => {
+
+      if (!list.length) {
+        fullListContainer.innerHTML = `<div class="modal-empty">Ничего не найдено</div>`;
+        return;
+      }
+
+      list.forEach(media => {
         const row = document.createElement("div");
         row.className = "full-list-row";
         row.innerHTML = `
@@ -1066,17 +1316,27 @@
             <span class="type">${media.type}</span>
           </div>
           <div class="full-list-rating ${media.level}">${media.rating}%</div>
-          <div class="full-list-badge ${media.level}">${media.level === "red" ? "высокий риск" : media.level === "yellow" ? "средний риск" : "низкий риск"}</div>
-        `;
+          <div class="full-list-badge ${media.level}">
+            ${media.level === "red" ? "высокий риск" : media.level === "yellow" ? "средний риск" : "низкий риск"}
+          </div>`;
         fullListContainer.appendChild(row);
       });
     }
 
+    if (modalSearch) modalSearch.addEventListener("input",  renderFullList);
+    if (modalSort)   modalSort.addEventListener("change", renderFullList);
+
+    /* ─────────────────────────────────────────
+       МОДАЛКА
+    ───────────────────────────────────────── */
     function openModal() {
+      if (modalSearch) modalSearch.value = "";
+      if (modalSort)   modalSort.value   = "rating-desc";
       renderFullList();
       fullListModal.classList.add("open");
       fullListModal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+      setTimeout(() => modalSearch && modalSearch.focus(), 80);
     }
 
     function closeModal() {
@@ -1087,10 +1347,11 @@
 
     showFullListBtns.forEach(btn => btn.addEventListener("click", openModal));
     fullListCloseBtn.addEventListener("click", closeModal);
-    fullListModal.addEventListener("click", (e) => {
-      if (e.target === fullListModal) closeModal();
-    });
+    fullListModal.addEventListener("click", e => { if (e.target === fullListModal) closeModal(); });
 
+    /* ─────────────────────────────────────────
+       БУРГЕР
+    ───────────────────────────────────────── */
     if (burgerBtn && navLinks) {
       burgerBtn.addEventListener("click", () => {
         const isOpen = navLinks.classList.toggle("open");
@@ -1104,45 +1365,57 @@
         });
       });
 
-      document.addEventListener("click", (e) => {
-        const target = e.target;
-        if (!navLinks.contains(target) && !burgerBtn.contains(target)) {
+      document.addEventListener("click", e => {
+        if (!navLinks.contains(e.target) && !burgerBtn.contains(e.target)) {
           navLinks.classList.remove("open");
           burgerBtn.setAttribute("aria-expanded", "false");
         }
       });
     }
 
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", e => {
       if (e.key === "Escape") {
         closeModal();
-        navLinks.classList.remove("open");
-        burgerBtn.setAttribute("aria-expanded", "false");
+        if (navLinks) navLinks.classList.remove("open");
+        if (burgerBtn) burgerBtn.setAttribute("aria-expanded", "false");
       }
     });
 
-    document.addEventListener("click", (e) => {
-      const target = e.target;
-      if (target && target.matches("[data-archive-link]")) {
+    document.addEventListener("click", e => {
+      if (e.target && e.target.matches("[data-archive-link]")) {
         window.location.href = "archive.html";
       }
     });
 
+    /* ─────────────────────────────────────────
+       FIX 3: Resize — debounce + только по ширине
+    ───────────────────────────────────────── */
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const newWidth = window.innerWidth;
+        // игнорируем изменения только высоты (iOS-адресная строка)
+        if (newWidth === lastWidth) return;
+        lastWidth = newWidth;
+
+        const wasMobile = mediaGrid.classList.contains("is-mobile-slider");
+        const nowMobile = isMobile();
+        if (wasMobile !== nowMobile || isDesktop() || isTablet()) {
+          if (nowMobile) mobileIndex = offset % mediaData.length;
+          initCards();
+          startCycle();
+        }
+      }, 150);
+    });
+
+    /* ─────────────────────────────────────────
+       СТАРТ
+    ───────────────────────────────────────── */
     initCards();
     initDailyCounter();
     startCycle();
-
-    window.addEventListener("resize", () => {
-      const wasMobile = mediaGrid.classList.contains("is-mobile-slider");
-      const nowMobile = isMobile();
-      if (wasMobile !== nowMobile || isDesktop() || isTablet()) {
-        if (nowMobile) {
-          mobileIndex = offset % mediaData.length;
-        }
-        initCards();
-        startCycle();
-      }
-    });
   </script>
 </body>
 </html>
