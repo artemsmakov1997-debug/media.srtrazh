@@ -636,65 +636,75 @@
     @media (max-width: 767px) {
       .container { padding: 16px 14px 60px; }
 
-      /* Манифест: карта скрыта,
-         заголовок и подпись — две колонки */
+      /* ── Манифест: две колонки
+         Левая: карта + счётчик
+         Правая: заголовок + подпись  */
       .manifest-section { margin-bottom: 28px; }
       .manifest-inner {
-        grid-template-columns: 1fr;
-        padding: 18px 16px;
-        border-radius: 18px;
-        gap: 0;
-      }
-      .manifest-visual { display: none; }
-      .manifest-kicker { display: none; }
-
-      .manifest-text {
-        display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0 16px;
+        padding: 16px;
+        border-radius: 18px;
+        gap: 14px;
         align-items: start;
       }
+      .manifest-kicker { display: none; }
+
+      /* Карта — левая колонка, идёт первой */
+      .manifest-visual {
+        order: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .map-wrap { height: 140px; border-radius: 12px; }
+      .map-caption {
+        justify-content: flex-start;
+        padding: 7px 10px;
+        border-radius: 10px;
+        gap: 6px;
+      }
+      .cap-label { font-size: 9px; letter-spacing: 0.1em; }
+      .cap-value { font-size: 15px; min-width: auto; text-align: left; }
+      .cap-unit  { font-size: 9px; }
+      .cap-demo-note { display: none; }
+
+      /* Текст — правая колонка */
+      .manifest-text {
+        order: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
       .manifest-title {
-        grid-column: 1;
-        font-size: clamp(17px, 5.5vw, 22px);
+        font-size: clamp(15px, 4.5vw, 19px);
         line-height: 1.1;
-        margin-bottom: 0;
+        margin: 0;
         letter-spacing: 0.02em;
       }
       .manifest-subtitle {
-        grid-column: 2;
-        font-size: 12px;
+        font-size: 11.5px;
         line-height: 1.6;
-        margin-bottom: 0;
+        margin: 0;
         color: var(--text-muted);
       }
 
-      /* Принципы: убираем сетку,
-         карточки в столбик, компактнее */
-      .values-grid { gap: 10px; }
-      .value-card {
-        grid-template-columns: 40px 1fr;
-        gap: 0 14px;
-        padding: 16px 16px 16px 18px;
-        border-radius: 14px;
+      /* ── Принципы: один столбик, текст не режется ── */
+      .values-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
       }
-      .value-icon {
-        width: 36px; height: 36px;
-        border-radius: 10px;
-        font-size: 17px;
-      }
-      .value-title-row h3 { font-size: 14px; }
+      .value-card { padding: 18px 16px; border-radius: 14px; }
+      .value-num { font-size: 10px; margin-bottom: 6px; }
+      .value-title-row h3 { font-size: 15px; }
       .value-card p {
-        font-size: 12.5px;
-        line-height: 1.6;
-        margin-bottom: 10px;
-        /* Обрезаем до 3 строк — достаточно для понимания */
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 13px;
+        line-height: 1.65;
+        margin-bottom: 12px;
+        display: block;
+        overflow: visible;
       }
-      .value-link { font-size: 10.5px; }
+      .value-link { font-size: 11px; }
 
       /* Секция "кто стоит за проектом" */
       .section-title { font-size: 17px; margin-bottom: 10px; }
