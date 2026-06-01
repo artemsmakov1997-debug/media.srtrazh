@@ -31,6 +31,7 @@
 
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -104,6 +105,7 @@
       margin-left: auto;
     }
 
+    /* Исправлено: бургер как в референсном коде */
     .burger {
       width: 44px;
       height: 44px;
@@ -111,26 +113,26 @@
       border: 1px solid rgba(148,163,184,.35);
       background: rgba(15,23,42,.65);
       display: inline-flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 5px;
       padding: 10px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0,0,0,.4);
     }
 
     .burger span {
       display: block;
       width: 100%;
       height: 2px;
-      margin: 3px 0;
       background: rgba(229,231,235,.95);
       border-radius: 999px;
       transition: .2s ease;
     }
 
-    .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-    .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
     .nav-links {
       position: absolute;
@@ -260,12 +262,14 @@
       gap: 8px;
     }
 
-    /* FIX 8: счётчик виден на мобиле — компактная строка */
+    /* Мобильный счётчик: вариант 1 — число как главный герой */
     .hero-counter-mobile {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
+      column-gap: 14px;
+      min-height: 88px;
+      padding: 14px 18px;
       border-radius: var(--radius-sm);
       border: 1px solid rgba(31,41,55,.9);
       background: linear-gradient(180deg, rgba(12,18,32,.92), rgba(6,10,18,.92));
@@ -276,23 +280,34 @@
     .hero-counter-mobile .counter-value-sm {
       font-family: "Montserrat", sans-serif;
       font-weight: 900;
-      font-size: 1.6rem;
+      font-size: clamp(2.7rem, 15vw, 4.1rem);
       color: var(--accent-red);
-      text-shadow: 0 0 14px rgba(248,113,113,.55);
-      line-height: 1;
+      text-shadow: 0 0 16px rgba(248,113,113,.62);
+      line-height: .88;
+      letter-spacing: -.06em;
+      min-width: 116px;
     }
 
     .hero-counter-mobile .counter-label-sm {
-      font-size: .74rem;
+      justify-self: start;
+      max-width: 190px;
+      font-size: .78rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: .1em;
-      line-height: 1.4;
+      letter-spacing: .11em;
+      line-height: 1.35;
     }
 
     .hero-counter-mobile .counter-label-sm span {
       color: var(--accent-blue);
       font-weight: 700;
+    }
+
+    .counter-demo-sm {
+      color: rgba(139,141,150,.6);
+      font-size: .65rem;
+      margin-top: 3px;
+      letter-spacing: .08em;
     }
 
     .counter-label {
@@ -322,7 +337,6 @@
       text-shadow: 0 0 18px rgba(248,113,113,.65);
     }
 
-    /* FIX 2: демо-плашка под счётчиком */
     .counter-demo-note {
       position: relative;
       z-index: 1;
@@ -360,7 +374,6 @@
       color: var(--text-muted);
     }
 
-    /* FIX 7: кнопки управления списком */
     .list-controls {
       display: flex;
       flex-wrap: wrap;
@@ -434,7 +447,6 @@
       flex: 1;
     }
 
-    /* FIX 6: инициалы вместо пустого блока */
     .logo-icon {
       width: 40px;
       height: 40px;
@@ -494,7 +506,6 @@
       color: #c3c7d0;
     }
 
-    /* FIX 5: SVG-график уникален для каждой карточки */
     .small-graph {
       width: 100%;
       height: 36px;
@@ -647,7 +658,6 @@
       flex-shrink: 0;
     }
 
-    /* FIX 7: поиск и сортировка в модалке */
     .modal-controls {
       display: flex;
       gap: 8px;
@@ -759,9 +769,12 @@
     @media (max-width: 767px) {
       .hero { gap: 0; padding-bottom: 6px; }
       .hero-text, .hero-counter { backdrop-filter: blur(12px); }
-      /* FIX 8: скрываем большой блок, показываем компактную строку */
+
       .hero-counter { display: none; }
-      .hero-counter-mobile { display: flex; }
+
+      .hero-counter-mobile {
+        display: grid;
+      }
 
       .current-rating-section {
         display: flex;
@@ -813,31 +826,56 @@
       .media-dots { display: flex; }
     }
 
+    @media (max-width: 360px) {
+      .hero-counter-mobile {
+        column-gap: 11px;
+        min-height: 82px;
+        padding: 12px 14px;
+      }
+
+      .hero-counter-mobile .counter-value-sm {
+        min-width: 98px;
+        font-size: clamp(2.35rem, 14vw, 3.2rem);
+      }
+
+      .hero-counter-mobile .counter-label-sm {
+        font-size: .7rem;
+        letter-spacing: .09em;
+      }
+    }
+
     @media (min-width: 768px) {
       .container { padding: 32px 20px 80px; }
       .navbar { padding: 12px 20px; }
       .brand-title { max-width: none; font-size: 1.02rem; }
       .hero { grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
       .hero-counter-mobile { display: none; }
+
       .rating-header {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
       }
+
       .full-list-button { width: auto; }
       .media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .media-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
       .media-footer {
         grid-template-columns: 1fr auto;
         align-items: center;
       }
+
       .link-button { width: auto; padding: 0 16px; }
+
       .modal-overlay { align-items: center; padding: 20px; }
       .modal-dialog { border-radius: 20px; }
+
       .full-list-row {
         grid-template-columns: minmax(0, 1.8fr) 80px 140px;
         align-items: center;
       }
+
       .full-list-badge {
         grid-column: auto;
         justify-self: end;
@@ -846,7 +884,12 @@
 
     @media (min-width: 1024px) {
       .burger { display: none; }
-      .site-nav { flex: 1; justify-content: center; }
+
+      .site-nav {
+        flex: 1;
+        justify-content: center;
+      }
+
       .nav-links {
         position: static;
         display: inline-flex !important;
@@ -858,18 +901,26 @@
         box-shadow: none;
         backdrop-filter: none;
       }
+
       .nav-link, .support-button-mobile {
         min-height: 40px;
         padding: 8px 14px;
         border-radius: 999px;
       }
+
       .nav-link { background: transparent; }
       .support-button-mobile { display: none; }
       .support-button-desktop { display: inline-flex; }
-      .media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+
+      .media-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
       .media-card {
         transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
       }
+
       .media-card:hover {
         transform: translateY(-3px);
         border-color: rgba(56,189,248,.9);
@@ -919,23 +970,20 @@
         <h1>Первый независимый рейтинг российских СМИ</h1>
       </div>
 
-      <!-- Полный блок: планшет + десктоп -->
       <aside class="hero-counter" aria-label="Счётчик за 24 часа">
         <div class="counter-label">
           Манипулятивных сообщений за последние <span>24 часа</span>
         </div>
-        <!-- FIX 2: статичное число + подпись «демо» -->
         <div class="counter-value" id="dailyCounterValue">0</div>
         <div class="counter-demo-note">демо-данные · обновляется при подключении API</div>
       </aside>
     </section>
 
-    <!-- FIX 8: компактная строка счётчика на мобиле -->
     <div class="hero-counter-mobile" aria-label="Манипулятивных сообщений за 24 часа">
       <div class="counter-value-sm" id="dailyCounterMobile">0</div>
       <div class="counter-label-sm">
         манипуляций<br>за <span>24 часа</span>
-        <div style="color:rgba(139,141,150,.6);font-size:.65rem;margin-top:2px;">демо-данные</div>
+        <div class="counter-demo-sm">демо-данные</div>
       </div>
     </div>
 
@@ -964,7 +1012,6 @@
 
   <footer>© 2025 Проект «МЕДИА.СТРАЖ»</footer>
 
-  <!-- MODAL -->
   <div class="modal-overlay" id="fullListModal" aria-hidden="true">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fullListTitle">
       <div class="modal-header">
@@ -972,7 +1019,6 @@
         <button class="modal-close" id="fullListCloseBtn" type="button" aria-label="Закрыть окно">×</button>
       </div>
 
-      <!-- FIX 7: поиск + сортировка -->
       <div class="modal-controls">
         <input
           class="modal-search"
@@ -996,9 +1042,6 @@
   </div>
 
   <script>
-    /* ─────────────────────────────────────────
-       ДАННЫЕ
-    ───────────────────────────────────────── */
     const mediaData = [
       { name: "Горизонт 24",        type: "ТВ / Онлайн",       audience: "Аудитория: 7,3 млн", posts: 142, manipulative: 113, rating: 78, level: "red"    },
       { name: "Северный эфир",      type: "ТВ",                 audience: "Аудитория: 9,1 млн", posts: 135, manipulative: 92,  rating: 76, level: "red"    },
@@ -1006,32 +1049,23 @@
       { name: "Сфера Новости",      type: "Информагентство",    audience: "Аудитория: 6,2 млн", posts: 120, manipulative: 70,  rating: 44, level: "yellow" },
       { name: "Народный Курьер",    type: "Газета",             audience: "Аудитория: 5,1 млн", posts: 110, manipulative: 40,  rating: 42, level: "yellow" },
       { name: "Pulse Daily",        type: "Онлайн",             audience: "Аудитория: 1,9 млн", posts: 64,  manipulative: 30,  rating: 27, level: "green"  },
-      { name: "Фокус Медиа",        type: "ТВ / Онлайн",       audience: "Аудитория: 2,7 млн", posts: 82,  manipulative: 32,  rating: 25, level: "green"  },
+      { name: "Фокус Медиа",        type: "ТВ / Онлайн",        audience: "Аудитория: 2,7 млн", posts: 82,  manipulative: 32,  rating: 25, level: "green"  },
       { name: "Свободная Линия",    type: "Газета",             audience: "Аудитория: 1,1 млн", posts: 54,  manipulative: 10,  rating: 13, level: "green"  },
       { name: "Агентство Орбита",   type: "Информагентство",    audience: "Аудитория: 4,5 млн", posts: 96,  manipulative: 18,  rating: 15, level: "green"  },
     ];
 
-    /* ─────────────────────────────────────────
-       FIX 6: Инициалы из названия
-    ───────────────────────────────────────── */
     function getInitials(name) {
       const words = name.trim().split(/\s+/);
       if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
       return (words[0][0] + words[1][0]).toUpperCase();
     }
 
-    /* ─────────────────────────────────────────
-       FIX 5: Уникальный SVG-график из данных
-       Генерируем псевдо-историю по рейтингу:
-       чем выше рейтинг — тем «выше» кривая.
-    ───────────────────────────────────────── */
     function buildSparkline(rating, level) {
       const W = 200, H = 36;
       const points = 10;
-      // базовая линия зависит от рейтинга (0→100 → y 80%→20% от высоты)
       const base = H * (1 - rating / 100 * 0.75 - 0.1);
-      // Псевдо-случайные отклонения, детерминированные по рейтингу
       const seed = rating * 13 + level.charCodeAt(0);
+
       const rng = (i) => {
         const x = Math.sin(seed + i * 7.3) * 43758.5453;
         return x - Math.floor(x);
@@ -1062,9 +1096,6 @@
       </svg>`;
     }
 
-    /* ─────────────────────────────────────────
-       ЭЛЕМЕНТЫ
-    ───────────────────────────────────────── */
     const mediaGrid         = document.getElementById("mediaGrid");
     const mediaDots         = document.getElementById("mediaDots");
     const fullListModal     = document.getElementById("fullListModal");
@@ -1076,9 +1107,6 @@
     const modalSearch       = document.getElementById("modalSearch");
     const modalSort         = document.getElementById("modalSort");
 
-    /* ─────────────────────────────────────────
-       BREAKPOINTS
-    ───────────────────────────────────────── */
     const isDesktop = () => window.matchMedia("(min-width: 1024px)").matches;
     const isTablet  = () => window.matchMedia("(min-width: 768px)").matches && !isDesktop();
     const isMobile  = () => window.matchMedia("(max-width: 767px)").matches;
@@ -1087,7 +1115,6 @@
     let offset      = 0;
     let mobileIndex = 0;
     let cycleTimer  = null;
-    // FIX 3: запоминаем последнюю известную ширину
     let lastWidth   = window.innerWidth;
 
     function getBadgeText(level) {
@@ -1096,12 +1123,9 @@
       return "Низкий уровень манипуляций";
     }
 
-    /* ─────────────────────────────────────────
-       КАРТОЧКИ
-    ───────────────────────────────────────── */
     function initCards() {
       mediaGrid.innerHTML = "";
-      // FIX 1: cardsCount не превышает длину массива
+
       const raw = isDesktop() ? 3 : isTablet() ? 4 : mediaData.length;
       cardsCount = Math.min(raw, mediaData.length);
 
@@ -1141,10 +1165,10 @@
 
     function updateCards() {
       const cards = mediaGrid.querySelectorAll(".media-card");
+
       cards.forEach((card, i) => {
         const media = mediaData[(offset + i) % mediaData.length];
 
-        // FIX 6: инициалы
         card.querySelector(".logo-icon").textContent = getInitials(media.name);
         card.querySelector(".media-name").textContent = media.name;
         card.querySelector(".media-type").textContent = media.type;
@@ -1163,17 +1187,14 @@
         if (media.level === "green")  badge.classList.add("badge-green");
         badge.textContent = getBadgeText(media.level);
 
-        // FIX 5: уникальный график
         card.querySelector(".small-graph").innerHTML = buildSparkline(media.rating, media.level);
       });
     }
 
-    /* ─────────────────────────────────────────
-       МОБИЛЬНЫЙ СЛАЙДЕР
-    ───────────────────────────────────────── */
     function updateMobileSliderState(prevIndex = null) {
       const cards = mediaGrid.querySelectorAll(".media-card");
       const mobile = isMobile();
+
       mediaGrid.classList.toggle("is-mobile-slider", mobile);
 
       if (!mobile) {
@@ -1183,11 +1204,12 @@
 
       cards.forEach((card, i) => {
         card.classList.remove("is-active", "is-exit-left");
+
         if (prevIndex !== null && i === prevIndex && i !== mobileIndex) {
           card.classList.add("is-exit-left");
-          // FIX 4: снимаем класс after-animation
           setTimeout(() => card.classList.remove("is-exit-left"), 500);
         }
+
         if (i === mobileIndex) card.classList.add("is-active");
       });
 
@@ -1196,6 +1218,7 @@
 
     function renderDots() {
       if (!mediaDots) return;
+
       mediaDots.innerHTML = "";
       if (!isMobile()) return;
 
@@ -1204,6 +1227,7 @@
         dot.type = "button";
         dot.className = "media-dot" + (index === mobileIndex ? " active" : "");
         dot.setAttribute("aria-label", `Показать карточку ${index + 1}`);
+
         dot.addEventListener("click", () => {
           const prev = mobileIndex;
           mobileIndex = index;
@@ -1212,12 +1236,14 @@
           updateMobileSliderState(prev);
           restartCycle();
         });
+
         mediaDots.appendChild(dot);
       });
     }
 
     function updateDots() {
       if (!mediaDots) return;
+
       [...mediaDots.children].forEach((dot, index) => {
         dot.classList.toggle("active", index === mobileIndex);
       });
@@ -1232,6 +1258,7 @@
         updateMobileSliderState(prev);
         return;
       }
+
       offset = (offset + cardsCount) % mediaData.length;
       updateCards();
     }
@@ -1241,11 +1268,10 @@
       cycleTimer = setInterval(cycleCards, isMobile() ? 4200 : 5000);
     }
 
-    function restartCycle() { startCycle(); }
+    function restartCycle() {
+      startCycle();
+    }
 
-    /* ─────────────────────────────────────────
-       FIX 2: Счётчик — статичное число + анимация
-    ───────────────────────────────────────── */
     function initDailyCounter() {
       const total = mediaData.reduce((sum, m) => sum + m.manipulative, 0);
       const ids = ["dailyCounterValue", "dailyCounterMobile"];
@@ -1256,19 +1282,18 @@
         const progress = Math.min((now - startTime) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
         const value = Math.round(total * eased);
+
         ids.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.textContent = value.toLocaleString("ru-RU");
         });
+
         if (progress < 1) requestAnimationFrame(animate);
       }
 
       requestAnimationFrame(animate);
     }
 
-    /* ─────────────────────────────────────────
-       FIX 7: Полный список с поиском и сортировкой
-    ───────────────────────────────────────── */
     function getSortedFiltered() {
       const query = (modalSearch ? modalSearch.value : "").trim().toLowerCase();
       const sort  = modalSort ? modalSort.value : "rating-desc";
@@ -1279,19 +1304,30 @@
 
       list.sort((a, b) => {
         switch (sort) {
-          case "rating-asc":   return a.rating - b.rating;
-          case "rating-desc":  return b.rating - a.rating;
-          case "name-asc":     return a.name.localeCompare(b.name, "ru");
-          case "name-desc":    return b.name.localeCompare(a.name, "ru");
+          case "rating-asc":
+            return a.rating - b.rating;
+
+          case "rating-desc":
+            return b.rating - a.rating;
+
+          case "name-asc":
+            return a.name.localeCompare(b.name, "ru");
+
+          case "name-desc":
+            return b.name.localeCompare(a.name, "ru");
+
           case "level-red": {
             const o = { red: 0, yellow: 1, green: 2 };
             return o[a.level] - o[b.level];
           }
+
           case "level-green": {
             const o = { green: 0, yellow: 1, red: 2 };
             return o[a.level] - o[b.level];
           }
-          default: return b.rating - a.rating;
+
+          default:
+            return b.rating - a.rating;
         }
       });
 
@@ -1323,18 +1359,18 @@
       });
     }
 
-    if (modalSearch) modalSearch.addEventListener("input",  renderFullList);
+    if (modalSearch) modalSearch.addEventListener("input", renderFullList);
     if (modalSort)   modalSort.addEventListener("change", renderFullList);
 
-    /* ─────────────────────────────────────────
-       МОДАЛКА
-    ───────────────────────────────────────── */
     function openModal() {
       if (modalSearch) modalSearch.value = "";
       if (modalSort)   modalSort.value   = "rating-desc";
+
       renderFullList();
       fullListModal.classList.add("open");
       fullListModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "";
+
       document.body.style.overflow = "hidden";
       setTimeout(() => modalSearch && modalSearch.focus(), 80);
     }
@@ -1346,12 +1382,13 @@
     }
 
     showFullListBtns.forEach(btn => btn.addEventListener("click", openModal));
-    fullListCloseBtn.addEventListener("click", closeModal);
-    fullListModal.addEventListener("click", e => { if (e.target === fullListModal) closeModal(); });
 
-    /* ─────────────────────────────────────────
-       БУРГЕР
-    ───────────────────────────────────────── */
+    fullListCloseBtn.addEventListener("click", closeModal);
+
+    fullListModal.addEventListener("click", e => {
+      if (e.target === fullListModal) closeModal();
+    });
+
     if (burgerBtn && navLinks) {
       burgerBtn.addEventListener("click", () => {
         const isOpen = navLinks.classList.toggle("open");
@@ -1376,6 +1413,7 @@
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") {
         closeModal();
+
         if (navLinks) navLinks.classList.remove("open");
         if (burgerBtn) burgerBtn.setAttribute("aria-expanded", "false");
       }
@@ -1387,21 +1425,20 @@
       }
     });
 
-    /* ─────────────────────────────────────────
-       FIX 3: Resize — debounce + только по ширине
-    ───────────────────────────────────────── */
     let resizeTimer = null;
 
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
+
       resizeTimer = setTimeout(() => {
         const newWidth = window.innerWidth;
-        // игнорируем изменения только высоты (iOS-адресная строка)
+
         if (newWidth === lastWidth) return;
         lastWidth = newWidth;
 
         const wasMobile = mediaGrid.classList.contains("is-mobile-slider");
         const nowMobile = isMobile();
+
         if (wasMobile !== nowMobile || isDesktop() || isTablet()) {
           if (nowMobile) mobileIndex = offset % mediaData.length;
           initCards();
@@ -1410,9 +1447,6 @@
       }, 150);
     });
 
-    /* ─────────────────────────────────────────
-       СТАРТ
-    ───────────────────────────────────────── */
     initCards();
     initDailyCounter();
     startCycle();
