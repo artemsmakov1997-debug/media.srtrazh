@@ -676,7 +676,51 @@
         gap: 8px;
         margin-top: 14px;
       }
-      .map-wrap { height: 180px; border-radius: 12px; }
+
+      .map-wrap {
+        height: 180px;
+        border-radius: 12px;
+      }
+
+      /* Уменьшенные всплывающие блоки на карте для мобильных */
+      .map-tooltip {
+        padding: 6px 7px;
+        border-radius: 10px;
+        max-width: 54%;
+        border-color: rgba(148,163,184,0.42);
+        background: rgba(15,23,42,0.82);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.72);
+      }
+
+      .tip-top {
+        gap: 4px;
+        margin-bottom: 3px;
+      }
+
+      .tip-title {
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        max-width: 78px;
+      }
+
+      .tip-time {
+        font-size: 8px;
+        letter-spacing: 0.08em;
+      }
+
+      .tip-line {
+        font-size: 9px;
+        line-height: 1.28;
+      }
+
+      .tip-tag {
+        gap: 3px;
+        padding: 2px 5px;
+        margin-top: 4px;
+        font-size: 7px;
+        letter-spacing: 0.08em;
+      }
+
       .map-caption {
         justify-content: flex-start;
         padding: 7px 10px;
@@ -817,7 +861,7 @@
           <span class="map-dot" data-dot="6"></span>
           <div class="map-tooltip" id="mapTip">
             <div class="tip-top">
-              <div class="tip-title" id="tipTitle">РИА НОВОСТИ</div>
+              <div class="tip-title" id="tipTitle">ОРБИТА НЬЮС</div>
               <div class="tip-time"  id="tipTime">12:41</div>
             </div>
             <div class="tip-line" id="tipLine">фиксируем заголовок + текст, выделяем приёмы</div>
@@ -932,13 +976,13 @@
   const BASE_PER_DAY = 42518;
 
   const sources = [
-    { name: 'РИА НОВОСТИ',          x: 28, y: 45, tag: 'ПРИЁМ: ПСЕВДОСТАТИСТИКА',      line: 'фиксируем «большинство» без методики + оценочные маркеры' },
-    { name: 'ПЕРВЫЙ КАНАЛ',         x: 44, y: 33, tag: 'ПРИЁМ: ФРЕЙМИНГ',              line: 'вырезан контекст → событие подано как «угроза»' },
-    { name: 'ТАСС',                 x: 56, y: 41, tag: 'СИГНАЛ: ССЫЛКА НА ИСТОЧНИК',   line: 'проверяемость повышена: документ + методика' },
-    { name: 'РОССИЯ 1',             x: 40, y: 58, tag: 'ПРИЁМ: ДАВЛЕНИЕ СТРАХОМ',      line: 'катастрофизация + тайм-прессинг в заголовке' },
-    { name: 'РБК',                  x: 62, y: 29, tag: 'СИГНАЛ: НЕЙТРАЛЬНО',           line: 'факт без оценки, низкая плотность триггеров' },
-    { name: 'RT',                   x: 73, y: 46, tag: 'ПРИЁМ: ОБРАЗ ВРАГА',           line: 'обобщение + противопоставление «мы/они»' },
-    { name: 'КОМСОМОЛЬСКАЯ ПРАВДА', x: 67, y: 62, tag: 'ПРИЁМ: ЭМОЦИОНАЛЬНАЯ ПОДМЕНА', line: 'оценка вместо факта, усилители эмоций' },
+    { name: 'ОРБИТА НЬЮС',        x: 28, y: 45, tag: 'ПРИЁМ: ПСЕВДОСТАТИСТИКА',      line: 'фиксируем «большинство» без методики + оценочные маркеры' },
+    { name: 'СЕВЕРНЫЙ ПУЛЬС',     x: 44, y: 33, tag: 'ПРИЁМ: ФРЕЙМИНГ',              line: 'вырезан контекст → событие подано как «угроза»' },
+    { name: 'ИНФОЛУЧ',            x: 56, y: 41, tag: 'СИГНАЛ: ССЫЛКА НА ИСТОЧНИК',   line: 'проверяемость повышена: документ + методика' },
+    { name: 'ГРАДУС ДНЯ',         x: 40, y: 58, tag: 'ПРИЁМ: ДАВЛЕНИЕ СТРАХОМ',      line: 'катастрофизация + тайм-прессинг в заголовке' },
+    { name: 'ДЕЛОВОЙ МЕРИДИАН',   x: 62, y: 29, tag: 'СИГНАЛ: НЕЙТРАЛЬНО',           line: 'факт без оценки, низкая плотность триггеров' },
+    { name: 'СИГНАЛ НОВА',        x: 73, y: 46, tag: 'ПРИЁМ: ОБРАЗ ВРАГА',           line: 'обобщение + противопоставление «мы/они»' },
+    { name: 'КОМПАС ВЕСТЕЙ',      x: 67, y: 62, tag: 'ПРИЁМ: ЭМОЦИОНАЛЬНАЯ ПОДМЕНА', line: 'оценка вместо факта, усилители эмоций' },
   ];
 
   function placeDots() {
@@ -971,18 +1015,29 @@
   }
 
   function positionTooltip(s) {
-    const wr    = mapWrap.getBoundingClientRect();
-    const x     = (s.x / 100) * wr.width;
-    const y     = (s.y / 100) * wr.height;
-    const TIP_W = Math.min(wr.width * 0.72, 280);
-    const TIP_H = 90;
+    const wr = mapWrap.getBoundingClientRect();
+    const x  = (s.x / 100) * wr.width;
+    const y  = (s.y / 100) * wr.height;
+
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+
+    const TIP_W = isMobile
+      ? Math.min(wr.width * 0.52, 160)
+      : Math.min(wr.width * 0.72, 280);
+
+    const TIP_H = isMobile ? 58 : 90;
+
     tip.style.maxWidth = TIP_W + 'px';
+
     const flipX = x > wr.width / 2;
     const flipY = y > wr.height * 0.62;
-    let left = flipX ? x - TIP_W - 10 : x + 14;
-    let top  = flipY ? y - TIP_H - 8  : y - 18;
-    left = clamp(left, 10, wr.width  - TIP_W - 10);
-    top  = clamp(top,  10, wr.height - TIP_H - 10);
+
+    let left = flipX ? x - TIP_W - 8 : x + 10;
+    let top  = flipY ? y - TIP_H - 6  : y - 14;
+
+    left = clamp(left, 8, wr.width  - TIP_W - 8);
+    top  = clamp(top,  8, wr.height - TIP_H - 8);
+
     tip.style.left = left + 'px';
     tip.style.top  = top + 'px';
   }
@@ -1063,6 +1118,13 @@
     if (e.key === 'Escape') {
       if (navLinks)  navLinks.classList.remove('open');
       if (burgerBtn) burgerBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const currentSource = sources[(dotIndex - 1 + sources.length) % sources.length];
+    if (currentSource && tip.classList.contains('show')) {
+      positionTooltip(currentSource);
     }
   });
 </script>
