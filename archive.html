@@ -907,9 +907,15 @@
 
       .archive-top-row {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 0;
         margin-bottom: 14px;
+        text-align: center;
+      }
+
+      .section-title {
+        width: 100%;
+        text-align: center;
       }
 
       .manip-counter {
@@ -933,14 +939,33 @@
 
       .archive-search {
         flex: 0 0 auto;
-        height: 58px;
-        min-height: 58px;
-        border-radius: 18px;
-        padding-left: 50px;
+        height: 50px;
+        min-height: 50px;
+        border-radius: 15px;
+        padding: 0 12px 0 42px;
+      }
+
+      .archive-search::before {
+        left: 15px;
+        width: 13px;
+        height: 13px;
+      }
+
+      .archive-search::after {
+        left: 27px;
+        width: 7px;
       }
 
       .archive-search input {
-        font-size: .94rem;
+        font-size: .86rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .archive-search input::placeholder {
+        font-size: .82rem;
+        letter-spacing: 0;
       }
 
       .status-chips-wrapper {
@@ -1348,6 +1373,18 @@
 
   const archiveList = document.getElementById("archiveList");
   const searchInput = document.getElementById("searchInput");
+  const SEARCH_PLACEHOLDER_DESKTOP = "Найти по СМИ, заголовку или типу манипуляции";
+  const SEARCH_PLACEHOLDER_MOBILE = "Поиск: СМИ, заголовок, приём";
+
+  function syncSearchPlaceholder() {
+    if (!searchInput) return;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    searchInput.placeholder = isMobile ? SEARCH_PLACEHOLDER_MOBILE : SEARCH_PLACEHOLDER_DESKTOP;
+  }
+
+  syncSearchPlaceholder();
+  window.addEventListener("resize", syncSearchPlaceholder, { passive: true });
+
   const chips = document.querySelectorAll(".chip");
   const rtText = document.getElementById("rtText");
   const manipCounterEl = document.getElementById("manipCounter");
