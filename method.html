@@ -425,19 +425,11 @@
       transform: translateY(-1px);
     }
     .live-next-btn:active { transform: translateY(0); }
-    .live-next-counter {
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(34,211,238,.12);
-      border: 1px solid rgba(34,211,238,.25);
-      font-size: 10px;
-      color: rgba(34,211,238,.8);
-      letter-spacing: .1em;
-    }
     .live-next-arrow { font-size: 13px; opacity: .7; }
 
     @media (max-width: 767px) {
       .live-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .live-triggers-row { display: none; }
       .live-next-btn { width: 100%; justify-content: center; }
     }
 
@@ -921,7 +913,6 @@
         </div>
         <button class="live-next-btn" id="liveNextBtn" type="button">
           <span>Следующий пример</span>
-          <span class="live-next-counter" id="liveCounter">1&nbsp;/&nbsp;4</span>
           <span class="live-next-arrow">→</span>
         </button>
       </div>
@@ -1224,9 +1215,6 @@
 
     const tagsEl = document.getElementById('liveTags');
     tagsEl.innerHTML = h.tags.map(t => `<span class="trigger-tag">${escHtml(t)}</span>`).join('');
-
-    document.getElementById('liveCounter').textContent =
-      (liveIdx + 1) + ' / ' + headlines.length;
   }
 
   updateLive();
