@@ -51,9 +51,6 @@
       padding: 40px 20px 80px;
     }
 
-    /* ══════════════════════════════════
-       HEADER
-    ══════════════════════════════════ */
     header { position: sticky; top: 0; z-index: 20; }
 
     .header-inner {
@@ -199,9 +196,6 @@
       .support-button-desktop { display: inline-flex; }
     }
 
-    /* ══════════════════════════════════
-       TYPOGRAPHY
-    ══════════════════════════════════ */
     .section-title {
       font-family: 'Montserrat', sans-serif;
       font-weight: 900;
@@ -219,9 +213,6 @@
       max-width: 760px;
     }
 
-    /* ══════════════════════════════════
-       MANIFEST
-    ══════════════════════════════════ */
     .manifest-section { margin-bottom: 54px; }
 
     .manifest-inner {
@@ -300,7 +291,6 @@
       gap: 14px;
     }
 
-    /* MAP */
     .map-wrap {
       width: 100%; height: 260px;
       border-radius: 22px;
@@ -468,9 +458,6 @@
     .cap-unit { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(148,163,184,0.9); }
     .cap-demo-note { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(139,141,150,0.6); }
 
-    /* ══════════════════════════════════
-       VALUES
-    ══════════════════════════════════ */
     .values-section { margin-bottom: 50px; }
 
     .values-grid {
@@ -555,9 +542,6 @@
     }
     .value-link:hover { opacity: 1; }
 
-    /* ══════════════════════════════════
-       AUTHOR
-    ══════════════════════════════════ */
     .author-section { max-width: var(--container); margin: 0 auto; }
     .author-label {
       text-transform: uppercase; letter-spacing: 0.14em;
@@ -619,9 +603,6 @@
       transform: translateY(-1px);
     }
 
-    /* ══════════════════════════════════
-       FOOTER
-    ══════════════════════════════════ */
     footer {
       border-top: 1px solid rgba(31,41,55,0.9);
       padding: 20px 0;
@@ -631,9 +612,6 @@
       margin-top: 44px;
     }
 
-    /* ══════════════════════════════════
-       MOBILE — исправленная адаптация
-    ══════════════════════════════════ */
     @media (max-width: 767px) {
       .container { padding: 16px 14px 60px; }
 
@@ -682,7 +660,6 @@
         border-radius: 12px;
       }
 
-      /* Уменьшенные всплывающие блоки на карте для мобильных */
       .map-tooltip {
         padding: 6px 7px;
         border-radius: 10px;
@@ -780,7 +757,6 @@
       .author-link { font-size: 10px; padding: 6px 10px; }
     }
 
-    /* Планшет: карта чуть ниже */
     @media (min-width: 768px) and (max-width: 1023px) {
       .manifest-inner {
         grid-template-columns: 1fr;
@@ -827,7 +803,6 @@
 
 <div class="container">
 
-  <!-- МАНИФЕСТ -->
   <section class="manifest-section" id="manifestSection">
     <div class="manifest-inner">
       <div class="manifest-text">
@@ -879,7 +854,6 @@
     </div>
   </section>
 
-  <!-- ПРИНЦИПЫ -->
   <section class="values-section">
     <div class="values-grid">
 
@@ -900,7 +874,7 @@
           Проект не связан с медиахолдингами, государственными структурами или коммерческими заказчиками.
           Задача — измерять манипуляции, а не обслуживать чьи-то интересы.
         </p>
-        <a href="about.html" class="value-link">Узнать больше →</a>
+        <a href="http://media-straj.ru/help" class="value-link">Поддержать проект →</a>
       </article>
 
       <article class="value-card" data-n="3">
@@ -916,7 +890,6 @@
     </div>
   </section>
 
-  <!-- АВТОР -->
   <section class="author-section">
     <h2 class="section-title">Кто стоит за проектом</h2>
     <p class="section-subtitle">
@@ -932,8 +905,8 @@
           Журналист, исследователь манипуляций в медиа.
         </p>
         <div class="author-links">
-          <a class="author-link" href="#" onclick="return false;">Telegram</a>
-          <a class="author-link" href="#" onclick="return false;">Email</a>
+          <a class="author-link" href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer">Telegram</a>
+          <a class="author-link" href="mailto:artem_shmakow@vk.com">Email</a>
         </div>
       </div>
     </article>
@@ -1090,7 +1063,6 @@
     startManifestFX();
   }
 
-  /* Burger */
   const burgerBtn = document.getElementById('burgerBtn');
   const navLinks  = document.getElementById('navLinks');
 
