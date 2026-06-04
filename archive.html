@@ -723,7 +723,7 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .modal-meta-card {
@@ -756,19 +756,16 @@
       font-size: 1.15rem;
     }
 
-    .message-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
     .message-section {
       margin-bottom: 16px;
       padding: 14px;
       border-radius: 16px;
       border: 1px solid rgba(51,65,85,.72);
       background: rgba(15,23,42,.45);
+    }
+
+    .message-section:last-child {
+      margin-bottom: 0;
     }
 
     .message-section-title {
@@ -793,40 +790,6 @@
       font-size: .9rem;
       line-height: 1.7;
       color: #d1d5db;
-    }
-
-    .message-extra {
-      margin: 0;
-      font-size: .84rem;
-      line-height: 1.65;
-      color: var(--text-muted);
-    }
-
-    .tag-pill {
-      display: inline-flex;
-      align-items: center;
-      width: fit-content;
-      max-width: 100%;
-      min-height: 28px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background-color: rgba(15,23,42,.95);
-      border: 1px solid rgba(75,85,99,.9);
-      color: #d1d5db;
-      font-size: .68rem;
-      line-height: 1.25;
-      white-space: normal;
-      word-break: break-word;
-    }
-
-    .tag-pill.alert {
-      border-color: rgba(239,68,68,.9);
-      color: #fecaca;
-    }
-
-    .tag-pill.soft {
-      border-color: rgba(56,189,248,.7);
-      color: #e0f2fe;
     }
 
     .highlight-word {
@@ -1064,10 +1027,6 @@
         grid-template-columns: 1fr;
       }
 
-      .message-tags {
-        gap: 6px;
-      }
-
       .message-full-text {
         font-size: .92rem;
         line-height: 1.7;
@@ -1206,13 +1165,18 @@
   <div class="message-modal" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
     <div class="message-modal-header">
       <div class="message-modal-title-wrap">
-        <span class="message-modal-label">Полный текст сообщения</span>
-        <h3 class="message-modal-title" id="messageModalTitle"></h3>
+        <span class="message-modal-label">Подробнее</span>
+        <h3 class="message-modal-title" id="messageModalTitle">Детали сообщения</h3>
       </div>
       <button class="message-close" id="messageCloseBtn" type="button" aria-label="Закрыть окно">×</button>
     </div>
 
     <div class="message-modal-body">
+      <section class="message-section">
+        <h4 class="message-section-title">Полное сообщение</h4>
+        <p class="message-full-text" id="modalFullText"></p>
+      </section>
+
       <div class="modal-meta-grid">
         <div class="modal-meta-card">
           <span class="modal-meta-label">СМИ</span>
@@ -1235,21 +1199,9 @@
         </div>
       </div>
 
-      <div class="message-tags" id="modalTags"></div>
-
-      <section class="message-section">
-        <h4 class="message-section-title">Полное сообщение</h4>
-        <p class="message-full-text" id="modalFullText"></p>
-      </section>
-
       <section class="message-section">
         <h4 class="message-section-title">Почему система пометила текст</h4>
         <p class="message-explain" id="modalExplain"></p>
-      </section>
-
-      <section class="message-section">
-        <h4 class="message-section-title">Дополнительно</h4>
-        <p class="message-extra" id="modalMeta"></p>
       </section>
     </div>
   </div>
@@ -1390,15 +1342,12 @@
   const manipCounterEl = document.getElementById("manipCounter");
 
   const modalOverlay = document.getElementById("messageModalOverlay");
-  const modalTitle = document.getElementById("messageModalTitle");
   const modalMedia = document.getElementById("modalMedia");
   const modalTime = document.getElementById("modalTime");
   const modalIndex = document.getElementById("modalIndex");
   const modalCategory = document.getElementById("modalCategory");
-  const modalTags = document.getElementById("modalTags");
   const modalFullText = document.getElementById("modalFullText");
   const modalExplain = document.getElementById("modalExplain");
-  const modalMeta = document.getElementById("modalMeta");
   const messageCloseBtn = document.getElementById("messageCloseBtn");
 
   const burgerBtn = document.getElementById("burgerBtn");
@@ -1452,20 +1401,15 @@
   }
 
   function openMessageModal(msg) {
-    modalTitle.textContent = msg.title;
+    modalFullText.innerHTML = highlightManipulativeWords(msg.fullText, msg.manipulativeWords, msg.status);
+
     modalMedia.textContent = msg.media;
     modalTime.textContent = msg.time;
     modalIndex.textContent = msg.index;
     modalIndex.className = `modal-meta-value score ${msg.indexClass}`;
     modalCategory.textContent = msg.category;
 
-    modalTags.innerHTML = msg.tags.map(tag => `
-      <span class="tag-pill ${msg.status === "danger" ? "alert" : "soft"}">${escapeHtml(tag)}</span>
-    `).join("");
-
-    modalFullText.innerHTML = highlightManipulativeWords(msg.fullText, msg.manipulativeWords, msg.status);
     modalExplain.textContent = msg.explain;
-    modalMeta.textContent = msg.meta;
 
     modalOverlay.classList.add("open");
     modalOverlay.setAttribute("aria-hidden", "false");
