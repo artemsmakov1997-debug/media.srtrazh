@@ -775,6 +775,222 @@
       .cap-value { text-align: left; }
     }
 
+
+
+    .mission-section {
+      margin: -20px 0 42px;
+    }
+
+    .mission-lens {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1.2fr) minmax(280px, 0.85fr);
+      gap: 26px;
+      align-items: center;
+      padding: 26px 30px;
+      border-radius: 24px;
+      border: 1px solid rgba(55,65,81,0.82);
+      background:
+        linear-gradient(90deg, rgba(34,211,238,0.08), transparent 38%),
+        radial-gradient(circle at 12% 50%, rgba(34,211,238,0.18), transparent 34%),
+        linear-gradient(145deg, rgba(5,8,22,0.96), rgba(2,6,23,0.98));
+      box-shadow:
+        0 22px 70px rgba(0,0,0,0.78),
+        inset 0 1px 0 rgba(255,255,255,0.035);
+      overflow: hidden;
+    }
+
+    .mission-lens::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34,211,238,0.75), transparent);
+      opacity: 0.7;
+    }
+
+    .mission-lens::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,0.018) 0px,
+          rgba(255,255,255,0.018) 1px,
+          transparent 1px,
+          transparent 22px
+        );
+      opacity: 0.22;
+      pointer-events: none;
+    }
+
+    .mission-orbit {
+      position: relative;
+      z-index: 1;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 1px solid rgba(34,211,238,0.42);
+      background:
+        radial-gradient(circle, rgba(34,211,238,0.22), transparent 58%),
+        rgba(15,23,42,0.58);
+      box-shadow:
+        0 0 28px rgba(34,211,238,0.18),
+        inset 0 0 24px rgba(34,211,238,0.08);
+    }
+
+    .mission-orbit::before,
+    .mission-orbit::after {
+      content: "";
+      position: absolute;
+      inset: 13px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,0.22);
+    }
+
+    .mission-orbit::after {
+      inset: 28px;
+      background: rgba(34,211,238,0.9);
+      border: none;
+      box-shadow: 0 0 18px rgba(34,211,238,0.8);
+    }
+
+    .mission-orbit span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 62px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34,211,238,0.9), transparent);
+      transform: translate(-50%, -50%) rotate(-24deg);
+      opacity: 0.75;
+    }
+
+    .mission-copy,
+    .mission-outcomes {
+      position: relative;
+      z-index: 1;
+    }
+
+    .mission-kicker {
+      margin-bottom: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: rgba(148,163,184,0.86);
+    }
+
+    .mission-title {
+      margin: 0 0 10px 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .mission-text {
+      margin: 0;
+      max-width: 650px;
+      color: rgba(203,213,225,0.82);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .mission-outcomes {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mission-outcome {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.20);
+      background: rgba(15,23,42,0.58);
+    }
+
+    .mission-outcome-label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.17em;
+      color: var(--accent-blue);
+    }
+
+    .mission-outcome p {
+      margin: 0;
+      color: rgba(229,231,235,0.86);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 767px) {
+      .mission-section {
+        margin: -10px 0 28px;
+      }
+
+      .mission-lens {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .mission-orbit {
+        width: 52px;
+        height: 52px;
+      }
+
+      .mission-orbit::before {
+        inset: 9px;
+      }
+
+      .mission-orbit::after {
+        inset: 20px;
+      }
+
+      .mission-orbit span {
+        width: 44px;
+      }
+
+      .mission-title {
+        font-size: 17px;
+        line-height: 1.25;
+      }
+
+      .mission-text {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .mission-outcome {
+        padding: 12px 13px;
+        border-radius: 14px;
+      }
+
+      .mission-outcome p {
+        font-size: 12px;
+        line-height: 1.5;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .mission-lens {
+        grid-template-columns: auto 1fr;
+      }
+
+      .mission-outcomes {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
@@ -856,6 +1072,36 @@
           <span class="cap-value" id="scanCounter">0</span>
           <span class="cap-unit">сообщ./сутки</span>
           <span class="cap-demo-note">демо</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="mission-section" aria-labelledby="missionTitle">
+    <div class="mission-lens">
+      <div class="mission-orbit" aria-hidden="true">
+        <span></span>
+      </div>
+
+      <div class="mission-copy">
+        <div class="mission-kicker">Миссия проекта</div>
+        <h2 class="mission-title" id="missionTitle">Сделать манипуляции видимыми</h2>
+        <p class="mission-text">
+          Мы помогаем читателю замечать, где новость давит на эмоции,
+          подменяет факт оценкой или прячет важный контекст — и не поддаваться этим приёмам.
+        </p>
+      </div>
+
+      <div class="mission-outcomes">
+        <div class="mission-outcome">
+          <span class="mission-outcome-label">Для читателя</span>
+          <p>больше ясности, меньше чужих эмоций под видом фактов</p>
+        </div>
+
+        <div class="mission-outcome">
+          <span class="mission-outcome-label">Для СМИ</span>
+          <p>когда приёмы видны всем, честность становится выгоднее манипуляции</p>
         </div>
       </div>
     </div>
