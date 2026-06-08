@@ -932,51 +932,51 @@
 
     @media (max-width: 767px) {
       .mission-section {
-        margin: -10px 0 28px;
+        margin: -8px 0 24px;
       }
 
       .mission-lens {
         grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 18px;
+        gap: 12px;
+        padding: 16px;
         border-radius: 18px;
       }
 
-      .mission-orbit {
-        width: 52px;
-        height: 52px;
+      .mission-orbit,
+      .mission-text {
+        display: none;
       }
 
-      .mission-orbit::before {
-        inset: 9px;
-      }
-
-      .mission-orbit::after {
-        inset: 20px;
-      }
-
-      .mission-orbit span {
-        width: 44px;
+      .mission-kicker {
+        margin-bottom: 8px;
+        font-size: 9px;
+        letter-spacing: 0.2em;
       }
 
       .mission-title {
+        margin-bottom: 2px;
         font-size: 17px;
-        line-height: 1.25;
+        line-height: 1.18;
       }
 
-      .mission-text {
-        font-size: 13px;
-        line-height: 1.6;
+      .mission-outcomes {
+        gap: 8px;
       }
 
       .mission-outcome {
-        padding: 12px 13px;
+        padding: 11px 13px;
         border-radius: 14px;
+      }
+
+      .mission-outcome-label {
+        margin-bottom: 4px;
+        font-size: 9px;
+        letter-spacing: 0.16em;
       }
 
       .mission-outcome p {
         font-size: 12px;
-        line-height: 1.5;
+        line-height: 1.45;
       }
     }
 
