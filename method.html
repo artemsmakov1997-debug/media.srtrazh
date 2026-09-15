@@ -12,7 +12,7 @@
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#00c7df">
   <meta name="description" content="Методика «МЕДИА.СТРАЖ»: как ИИ анализирует заголовки и тексты российских СМИ и формирует рейтинг манипулятивности." />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -33,7 +33,7 @@
 
     body {
       margin: 0; padding: 0;
-      font-family: 'Roboto', sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
         radial-gradient(circle at top, rgba(15,23,42,.6), transparent 60%),
         radial-gradient(circle at bottom, rgba(15,23,42,.7), transparent 60%),
@@ -864,6 +864,281 @@
       *, *::before, *::after { animation: none !important; transition: none !important; }
       .hero-canvas-section { display: none; }
     }
+
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY / READABILITY UPGRADE
+       Единый стандарт с главной страницей
+       ═══════════════════════════════════════ */
+    :root {
+      --text-main: #f4f7fb;
+      --text-muted: #a8b0bd;
+      --text-secondary: #cbd2dc;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: -0.006em;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input, select, textarea { font-family: inherit; }
+
+    .brand-title,
+    .section-title,
+    .pipe-title,
+    .pipe-num,
+    .live-next-btn,
+    .manip-num,
+    .manip-title,
+    .modal-title,
+    .flow-num,
+    .scale-item span {
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .nav-link,
+    .support-button-mobile,
+    .support-button-desktop {
+      font-size: .84rem;
+      line-height: 1.35;
+      letter-spacing: .065em;
+    }
+
+    .section-kicker {
+      font-size: .78rem;
+      line-height: 1.45;
+      letter-spacing: .10em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      line-height: 1.2;
+      letter-spacing: .025em;
+    }
+
+    .pipe-step {
+      font-size: .76rem;
+      line-height: 1.4;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .pipe-title {
+      font-size: 1rem;
+      line-height: 1.4;
+      letter-spacing: -.01em;
+      color: #f7f9fc;
+    }
+
+    .pipe-text {
+      font-size: .9rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .pipe-num {
+      font-size: 1.15rem;
+      line-height: 1.15;
+    }
+
+    .pipe-more {
+      font-size: .78rem;
+      line-height: 1.35;
+      letter-spacing: .035em;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .live-source-badge {
+      font-size: .86rem;
+      line-height: 1.4;
+      color: #eef2f7;
+    }
+
+    .live-time {
+      font-size: .78rem;
+      line-height: 1.4;
+      letter-spacing: .035em;
+      color: var(--text-muted);
+    }
+
+    .live-body-text {
+      font-size: .98rem;
+      line-height: 1.7;
+      color: var(--text-main);
+    }
+
+    .trigger {
+      line-height: inherit;
+    }
+
+    .live-next-btn {
+      font-size: .84rem;
+      line-height: 1.35;
+      letter-spacing: .055em;
+    }
+
+    .live-next-counter {
+      font-size: .76rem;
+      line-height: 1.3;
+      letter-spacing: .035em;
+    }
+
+    .live-next-arrow { font-size: 1rem; }
+
+    .tt-type,
+    .live-triggers-label,
+    .trigger-tag {
+      font-size: .76rem;
+      line-height: 1.4;
+    }
+
+    .tt-type {
+      letter-spacing: .07em;
+    }
+
+    .tt-desc {
+      font-size: .86rem;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+
+    .live-triggers-label {
+      letter-spacing: .055em;
+      color: var(--text-muted);
+    }
+
+    .trigger-tag {
+      letter-spacing: .035em;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .manip-label {
+      font-size: .76rem;
+      line-height: 1.4;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .manip-title {
+      font-size: 1rem;
+      line-height: 1.4;
+      letter-spacing: -.01em;
+      color: #f7f9fc;
+    }
+
+    .manip-preview {
+      font-size: .9rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .manip-arrow {
+      font-size: .95rem;
+      color: var(--text-muted);
+    }
+
+    .modal-type-label,
+    .modal-signs-title,
+    .modal-example-label {
+      font-size: .76rem;
+      line-height: 1.4;
+      letter-spacing: .07em;
+      font-weight: 600;
+    }
+
+    .modal-title {
+      font-size: clamp(1.1rem, 3vw, 1.3rem);
+      line-height: 1.35;
+      letter-spacing: -.01em;
+      color: #f7f9fc;
+    }
+
+    .modal-desc {
+      font-size: .95rem;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    .modal-signs li,
+    .modal-example {
+      font-size: .9rem;
+      line-height: 1.6;
+      color: #e7ebf1;
+    }
+
+    .flow-title {
+      font-size: .98rem;
+      line-height: 1.4;
+      font-weight: 700;
+      color: #f3f5f8;
+    }
+
+    .flow-text {
+      font-size: .9rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .scale-item {
+      font-size: .8rem;
+      line-height: 1.35;
+      letter-spacing: .045em;
+    }
+
+    footer {
+      opacity: 1;
+      color: var(--text-muted);
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 767px) {
+      body { font-size: 16px; }
+
+      .section-kicker { font-size: .76rem; }
+
+      .section-title {
+        font-size: clamp(1.35rem, 6.5vw, 1.75rem);
+        line-height: 1.22;
+      }
+
+      .pipeline-card { padding: 13px 14px; }
+      .pipe-step { font-size: .74rem; }
+      .pipe-title { font-size: .94rem; line-height: 1.35; }
+      .pipe-more { font-size: .76rem; padding: 6px 10px; }
+
+      .live-source-badge { font-size: .82rem; }
+      .live-time { font-size: .74rem; }
+      .live-body-text { font-size: .94rem; line-height: 1.7; }
+      .live-next-btn { font-size: .82rem; }
+
+      .manip-card-inner { padding: 16px; }
+      .manip-num { font-size: 1.2rem; }
+      .manip-label { font-size: .74rem; }
+      .manip-title { font-size: .96rem; line-height: 1.4; }
+      .manip-preview { font-size: .9rem; line-height: 1.58; }
+
+      .modal-header { padding: 18px 18px 14px; }
+      .modal-body { padding: 18px 18px 24px; }
+      .modal-desc { font-size: .94rem; }
+      .modal-signs li,
+      .modal-example { font-size: .9rem; }
+      .flow-text { font-size: .9rem; }
+      .scale-item { font-size: .82rem; }
+    }
+
   </style>
 </head>
 
@@ -1628,7 +1903,7 @@
       if (!isLabelNode(index, p)) return;
 
       var text = p.isMobile ? nd.shortLabel : compactLabel(nd.label, p.labelMaxChars);
-      ctx.font = '700 ' + p.labelFont + 'px Montserrat, Roboto, sans-serif';
+      ctx.font = '700 ' + p.labelFont + 'px Montserrat, Inter, sans-serif';
 
       var tw = ctx.measureText(text).width;
       var bw = Math.ceil(tw + p.labelPadX * 2);
@@ -1690,7 +1965,7 @@
       ctx.textBaseline = 'middle';
 
       while (fontSize > 6) {
-        ctx.font = '900 ' + fontSize.toFixed(2) + 'px Montserrat, Roboto, sans-serif';
+        ctx.font = '900 ' + fontSize.toFixed(2) + 'px Montserrat, Inter, sans-serif';
         if (ctx.measureText(label).width <= maxWidth) break;
         fontSize -= 0.35;
       }
