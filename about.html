@@ -15,7 +15,7 @@
   <meta property="og:title" content="МЕДИА.СТРАЖ — О проекте" />
   <meta property="og:description" content="Алгоритм 24/7 отслеживает манипуляции в российских СМИ. Прозрачная методика, независимость, открытый архив." />
   <meta property="og:type" content="website" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -666,6 +666,348 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY / READABILITY UPGRADE
+       Эталон: главная страница МЕДИА.СТРАЖ
+       ═══════════════════════════════════════ */
+    :root {
+      --text-main: #f4f7fb;
+      --text-muted: #a8b0bd;
+      --text-secondary: #cbd2dc;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: -0.006em;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .brand-title,
+    .section-title,
+    .manifest-title,
+    .tip-title,
+    .cap-value,
+    .value-num,
+    .value-title-row h3,
+    .author-avatar,
+    .author-name,
+    .mission-title {
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .brand-title {
+      font-size: .95rem;
+      letter-spacing: .12em;
+    }
+
+    .nav-link,
+    .support-button-mobile,
+    .support-button-desktop {
+      font-size: .84rem;
+      line-height: 1.35;
+      letter-spacing: .065em;
+    }
+
+    .section-title {
+      font-size: clamp(1.35rem, 2.4vw, 1.65rem);
+      line-height: 1.2;
+      letter-spacing: .045em;
+    }
+
+    .section-subtitle {
+      font-size: .95rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    .manifest-kicker {
+      font-size: .78rem;
+      line-height: 1.4;
+      letter-spacing: .10em;
+    }
+
+    .manifest-title {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      line-height: 1.1;
+      letter-spacing: .015em;
+    }
+
+    .manifest-subtitle {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    .tip-title {
+      font-size: .8rem;
+      line-height: 1.35;
+      letter-spacing: .055em;
+    }
+
+    .tip-time {
+      font-size: .74rem;
+      line-height: 1.35;
+      letter-spacing: .045em;
+    }
+
+    .tip-line {
+      font-size: .82rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
+    .tip-tag {
+      font-size: .72rem;
+      line-height: 1.3;
+      letter-spacing: .035em;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .cap-label,
+    .cap-unit {
+      font-size: .76rem;
+      line-height: 1.35;
+      letter-spacing: .055em;
+    }
+
+    .cap-value {
+      font-size: 1.5rem;
+      line-height: 1.1;
+    }
+
+    .cap-demo-note {
+      font-size: .72rem;
+      line-height: 1.35;
+      letter-spacing: .035em;
+    }
+
+    .value-num {
+      font-size: .76rem;
+      line-height: 1.35;
+      letter-spacing: .075em;
+    }
+
+    .value-title-row h3 {
+      font-size: 1.08rem;
+      line-height: 1.35;
+      letter-spacing: -.01em;
+    }
+
+    .value-card p {
+      font-size: .94rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    .value-link {
+      font-size: .82rem;
+      line-height: 1.35;
+      letter-spacing: .035em;
+      text-transform: none;
+    }
+
+    .author-label {
+      font-size: .78rem;
+      line-height: 1.4;
+      letter-spacing: .065em;
+    }
+
+    .author-name {
+      font-size: 1.25rem;
+      line-height: 1.3;
+      letter-spacing: -.01em;
+    }
+
+    .author-role {
+      font-size: .92rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .author-link {
+      font-size: .8rem;
+      line-height: 1.35;
+      letter-spacing: .045em;
+      text-transform: none;
+    }
+
+    .mission-kicker {
+      font-size: .76rem;
+      line-height: 1.4;
+      letter-spacing: .08em;
+    }
+
+    .mission-title {
+      font-size: 1.45rem;
+      line-height: 1.18;
+      letter-spacing: .015em;
+    }
+
+    .mission-text {
+      font-size: .95rem;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    .mission-outcome-label {
+      font-size: .76rem;
+      line-height: 1.35;
+      letter-spacing: .055em;
+    }
+
+    .mission-outcome p {
+      font-size: .9rem;
+      line-height: 1.55;
+      color: #d5dae2;
+    }
+
+    footer {
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 767px) {
+      body { font-size: 16px; }
+
+      .manifest-title {
+        font-size: clamp(1.65rem, 7vw, 2rem);
+        line-height: 1.12;
+      }
+
+      .manifest-subtitle {
+        font-size: .94rem;
+        line-height: 1.6;
+        max-width: 100%;
+      }
+
+      .map-tooltip {
+        max-width: 68%;
+        padding: 8px 9px;
+      }
+
+      .tip-title {
+        font-size: .68rem;
+        line-height: 1.3;
+        letter-spacing: .035em;
+        max-width: 105px;
+      }
+
+      .tip-time {
+        font-size: .65rem;
+        line-height: 1.3;
+        letter-spacing: .025em;
+      }
+
+      .tip-line {
+        font-size: .72rem;
+        line-height: 1.4;
+      }
+
+      .tip-tag {
+        font-size: .64rem;
+        line-height: 1.3;
+        padding: 3px 6px;
+        margin-top: 5px;
+      }
+
+      .map-caption {
+        padding: 8px 10px;
+        gap: 7px;
+      }
+
+      .cap-label,
+      .cap-unit {
+        font-size: .68rem;
+        line-height: 1.3;
+        letter-spacing: .035em;
+      }
+
+      .cap-value {
+        font-size: 1.05rem;
+      }
+
+      .value-num {
+        font-size: .72rem;
+        margin-bottom: 7px;
+      }
+
+      .value-title-row h3 {
+        font-size: 1.04rem;
+      }
+
+      .value-card p {
+        font-size: .92rem;
+        line-height: 1.62;
+      }
+
+      .value-link {
+        font-size: .8rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        line-height: 1.25;
+        letter-spacing: .03em;
+      }
+
+      .section-subtitle {
+        font-size: .92rem;
+        line-height: 1.6;
+      }
+
+      .author-label {
+        font-size: .72rem;
+      }
+
+      .author-name {
+        font-size: 1.08rem;
+      }
+
+      .author-role {
+        font-size: .88rem;
+        line-height: 1.55;
+      }
+
+      .author-link {
+        font-size: .76rem;
+        padding: 7px 11px;
+      }
+
+      .mission-kicker {
+        font-size: .68rem;
+        letter-spacing: .055em;
+      }
+
+      .mission-title {
+        font-size: 1rem;
+        line-height: 1.25;
+      }
+
+      .mission-outcome-label {
+        font-size: .68rem;
+        letter-spacing: .045em;
+      }
+
+      .mission-outcome p {
+        font-size: .84rem;
+        line-height: 1.5;
+      }
+    }
+
   </style>
 </head>
 
