@@ -367,6 +367,195 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
     }
+
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY / READABILITY UPGRADE
+       ═══════════════════════════════════════ */
+    :root {
+      --text-main: #f4f7fb;
+      --text-muted: #a8b0bd;
+      --text-secondary: #cbd2dc;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: -0.006em;
+    }
+
+    .brand-title,
+    .hero h1,
+    .counter-value,
+    .counter-value-sm,
+    .rating-score,
+    .fli-rating {
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.75rem, 5vw, 2.65rem);
+      line-height: 1.14;
+      letter-spacing: -0.035em;
+      font-weight: 800;
+    }
+
+    .nav-link,
+    .support-button-mobile,
+    .support-button-desktop {
+      font-size: .84rem;
+      line-height: 1.35;
+      letter-spacing: .065em;
+    }
+
+    .counter-label,
+    .counter-label-sm {
+      font-size: .84rem;
+      line-height: 1.5;
+      letter-spacing: .065em;
+    }
+
+    .counter-demo-note,
+    .counter-demo-sm {
+      font-size: .74rem;
+      line-height: 1.45;
+      letter-spacing: .035em;
+      color: #7f8998;
+    }
+
+    .rating-header h2 {
+      font-size: .88rem;
+      line-height: 1.45;
+      letter-spacing: .09em;
+    }
+
+    .media-name {
+      font-size: 1.06rem;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -.012em;
+      color: #f7f9fc;
+    }
+
+    .media-type {
+      font-size: .84rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .media-meta {
+      font-size: .9rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .media-details {
+      font-size: .92rem;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+
+    .rating-score {
+      font-size: 1.55rem;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+    }
+
+    .badge {
+      font-size: .76rem;
+      line-height: 1.35;
+      letter-spacing: .04em;
+      text-transform: none;
+      font-weight: 600;
+      padding: 7px 11px;
+    }
+
+    .link-button,
+    .full-list-button {
+      font-size: .9rem;
+      line-height: 1.35;
+      letter-spacing: .015em;
+      font-weight: 600;
+    }
+
+    .full-list-button { text-transform: none; }
+
+    .modal-header h3 {
+      font-size: 1rem;
+      line-height: 1.4;
+      letter-spacing: .06em;
+    }
+
+    .modal-search,
+    .modal-sort {
+      font-size: .9rem;
+      line-height: 1.4;
+    }
+
+    .fli-name .title {
+      font-size: .98rem;
+      line-height: 1.4;
+      letter-spacing: -.01em;
+    }
+
+    .fli-name .type {
+      font-size: .82rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .fli-rating {
+      font-size: 1.1rem;
+      line-height: 1.2;
+    }
+
+    .fli-badge {
+      font-size: .74rem;
+      line-height: 1.3;
+      letter-spacing: .025em;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .modal-summary-chip {
+      font-size: .78rem;
+      line-height: 1.35;
+      letter-spacing: .025em;
+      text-transform: none;
+      color: #d5dae2;
+    }
+
+    footer {
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 767px) {
+      body { font-size: 16px; }
+
+      .hero h1 {
+        font-size: clamp(1.7rem, 8vw, 2.2rem);
+        line-height: 1.15;
+      }
+
+      .media-card { padding: 18px; }
+      .media-name { font-size: 1.08rem; }
+
+      .media-meta,
+      .media-details { font-size: .92rem; }
+
+      .badge { font-size: .78rem; }
+
+      .full-list-row {
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
+    }
+
   </style>
 </head>
 <body>
