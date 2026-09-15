@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <meta name="theme-color" content="#00c7df">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-body:       #05070b;
@@ -398,6 +398,280 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY / READABILITY UPGRADE
+       ═══════════════════════════════════════ */
+    :root {
+      --text-main: #f4f7fb;
+      --text-muted: #a8b0bd;
+      --text-secondary: #cbd2dc;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: -0.006em;
+      text-rendering: optimizeLegibility;
+    }
+
+    .brand-title,
+    .section-title,
+    .manip-counter-value,
+    .cell-index,
+    .message-modal-title,
+    .modal-meta-value.score,
+    .modal-why-label,
+    .modal-method-title {
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .nav-link,
+    .support-button-mobile,
+    .support-button-desktop {
+      font-size: .84rem;
+      line-height: 1.35;
+      letter-spacing: .065em;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      line-height: 1.15;
+      letter-spacing: -.03em;
+    }
+
+    .section-subtitle {
+      font-size: .98rem;
+      line-height: 1.65;
+      color: var(--text-secondary);
+    }
+
+    .manip-counter-label {
+      font-size: .78rem;
+      line-height: 1.45;
+      letter-spacing: .06em;
+    }
+
+    .manip-counter-value {
+      font-size: 1.65rem;
+    }
+
+    .archive-search input {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .96rem;
+      line-height: 1.4;
+    }
+
+    .chip {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .78rem;
+      line-height: 1.3;
+      letter-spacing: .055em;
+      font-weight: 600;
+      text-transform: none;
+    }
+
+    .archive-header-row {
+      font-size: .78rem;
+      line-height: 1.35;
+      letter-spacing: .07em;
+    }
+
+    .cell-media {
+      font-size: .96rem;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .cell-time {
+      font-size: .86rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+
+    .cell-title {
+      font-size: .96rem;
+      line-height: 1.58;
+      color: #eef2f7;
+    }
+
+    .cell-index {
+      font-size: 1.08rem;
+      line-height: 1.2;
+    }
+
+    .cell-category {
+      font-size: .78rem;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .more-btn {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .78rem;
+      line-height: 1.3;
+      letter-spacing: .04em;
+      font-weight: 600;
+      text-transform: none;
+    }
+
+    .realtime-note {
+      font-size: .84rem;
+      line-height: 1.45;
+    }
+
+    .empty-state {
+      font-size: .96rem;
+      line-height: 1.55;
+    }
+
+    .message-modal-label,
+    .modal-fulltext-label,
+    .modal-meta-label,
+    .modal-why-label,
+    .modal-method-label {
+      font-size: .76rem;
+      line-height: 1.35;
+      letter-spacing: .06em;
+    }
+
+    .message-modal-title {
+      font-size: clamp(1.08rem, 2.4vw, 1.38rem);
+      line-height: 1.4;
+    }
+
+    .modal-fulltext {
+      font-size: 1rem;
+      line-height: 1.75;
+      color: #e7ebf0;
+    }
+
+    .modal-meta-value {
+      font-size: .94rem;
+      line-height: 1.45;
+    }
+
+    .modal-meta-value.score {
+      font-size: 1.16rem;
+    }
+
+    .modal-why-text {
+      font-size: .96rem;
+      line-height: 1.68;
+      color: var(--text-secondary);
+    }
+
+    .modal-method-title {
+      font-size: .96rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .cell-time { font-size: .84rem; }
+    }
+
+    @media (max-width: 767px) {
+      body { font-size: 16px; }
+
+      .archive-shell { padding: 16px; }
+
+      .section-title {
+        font-size: clamp(1.45rem, 7vw, 1.9rem);
+        line-height: 1.18;
+      }
+
+      .archive-search input,
+      .archive-search input::placeholder {
+        font-size: .92rem;
+      }
+
+      .chip {
+        min-height: 44px;
+        font-size: .76rem;
+        letter-spacing: .035em;
+      }
+
+      .archive-summary {
+        padding: 14px;
+        row-gap: 9px;
+      }
+
+      .cell-media {
+        font-size: .94rem;
+      }
+
+      .cell-time {
+        font-size: .8rem;
+      }
+
+      .cell-title {
+        font-size: .94rem;
+        line-height: 1.55;
+      }
+
+      .cell-index {
+        font-size: 1rem;
+      }
+
+      .cell-category {
+        font-size: .76rem;
+        line-height: 1.35;
+        padding: 6px 9px;
+      }
+
+      .more-btn {
+        min-height: 42px;
+        font-size: .78rem;
+        letter-spacing: .03em;
+      }
+
+      .realtime-note {
+        font-size: .82rem;
+        line-height: 1.45;
+      }
+
+      .message-modal-header {
+        padding: 18px 16px 14px;
+      }
+
+      .message-modal-body {
+        padding: 16px 16px 22px;
+      }
+
+      .modal-fulltext-wrap {
+        padding: 16px;
+      }
+
+      .modal-fulltext {
+        font-size: .96rem;
+        line-height: 1.7;
+      }
+
+      .modal-meta-card {
+        padding: 12px;
+      }
+
+      .modal-meta-label {
+        font-size: .72rem;
+      }
+
+      .modal-meta-value {
+        font-size: .9rem;
+      }
+
+      .modal-why-text {
+        font-size: .94rem;
+      }
+
+      .modal-method-title {
+        font-size: .92rem;
+      }
+    }
+
   </style>
 </head>
 <body>
