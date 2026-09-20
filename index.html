@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>МЕДИА.СТРАЖ — Рейтинг российских СМИ</title>
+  <title>МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ</title>
   <link rel="canonical" href="https://media-strazh.ru/">
   <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -11,9 +11,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#00c7df">
-  <meta name="description" content="Первый независимый рейтинг российских СМИ по уровню манипулятивности. Алгоритм отслеживает заголовки и тексты 24/7." />
-  <meta property="og:title" content="МЕДИА.СТРАЖ — Рейтинг российских СМИ" />
-  <meta property="og:description" content="Первый независимый рейтинг российских СМИ по уровню манипулятивности." />
+  <meta name="description" content="МЕДИА.СТРАЖ — независимый проект по разработке системы анализа манипулятивных техник в СМИ. Сейчас проект работает в демонстрационном режиме." />
+  <meta property="og:title" content="МЕДИА.СТРАЖ — анализ манипулятивных техник в СМИ" />
+  <meta property="og:description" content="Независимый проект по анализу манипулятивных техник и информационного воздействия в СМИ." />
   <meta property="og:type" content="website" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -126,6 +126,31 @@
       font-family: "Montserrat", sans-serif;
       font-size: clamp(1.55rem, 6vw, 2.4rem); line-height: 1.08;
       letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 0 18px rgba(34,211,238,.12);
+    }
+
+    .hero-subtitle {
+      position: relative; z-index: 1;
+      margin: 12px 0 0;
+      max-width: 760px;
+      color: var(--text-secondary, #cbd2dc);
+      font-size: .95rem;
+      line-height: 1.6;
+    }
+    .hero-subtitle strong { color: var(--accent-blue); }
+
+    .rating-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .rating-caption {
+      max-width: 110px;
+      text-align: right;
+      color: var(--text-muted);
+      font-size: .66rem;
+      line-height: 1.25;
     }
     .hero-counter { display: flex; flex-direction: column; gap: 8px; }
     .counter-label { position: relative; z-index: 1; font-size: .78rem; line-height: 1.45; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); }
@@ -584,20 +609,21 @@
   <main class="container">
     <section class="hero">
       <div class="hero-text">
-        <h1>Первый независимый рейтинг российских СМИ</h1>
+        <h1>МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ</h1>
+        <p class="hero-subtitle">Независимый проект по разработке системы автоматического анализа медиатекстов. Сейчас проект работает в <strong>DEMO-режиме</strong>.</p>
       </div>
-      <aside class="hero-counter" aria-label="Счётчик за 24 часа">
-        <div class="counter-label">Манипулятивных сообщений за последние <span>24 часа</span></div>
+      <aside class="hero-counter" aria-label="Демонстрационный счётчик сигналов за 24 часа">
+        <div class="counter-label">Пример сигналов за последние <span>24 часа</span></div>
         <div class="counter-value" id="dailyCounterValue">0</div>
-        <div class="counter-demo-note">демо-данные · обновляется при подключении API</div>
+        <div class="counter-demo-note">DEMO · число используется для демонстрации интерфейса</div>
       </aside>
     </section>
 
-    <div class="hero-counter-mobile" aria-label="Манипулятивных сообщений за 24 часа">
+    <div class="hero-counter-mobile" aria-label="Демонстрационный счётчик сигналов за 24 часа">
       <div class="counter-value-sm" id="dailyCounterMobile">0</div>
       <div class="counter-label-sm">
-        манипуляций<br>за <span>24 часа</span>
-        <div class="counter-demo-sm">демо-данные</div>
+        пример сигналов<br>за <span>24 часа</span>
+        <div class="counter-demo-sm">DEMO · пример интерфейса</div>
       </div>
     </div>
 
@@ -605,7 +631,7 @@
 
     <section class="current-rating-section">
       <div class="rating-header">
-        <h2>Рейтинг в реальном времени</h2>
+        <h2>Демонстрация будущего рейтинга</h2>
         <div class="list-controls">
           <button class="full-list-button full-list-button-desktop show-full-list-trigger" type="button">Показать полный список</button>
         </div>
@@ -633,8 +659,8 @@
           <option value="rating-asc">По рейтингу ↑</option>
           <option value="name-asc">По алфавиту А→Я</option>
           <option value="name-desc">По алфавиту Я→А</option>
-          <option value="level-red">Сначала высокий риск</option>
-          <option value="level-green">Сначала низкий риск</option>
+          <option value="level-red">Сначала высокий показатель</option>
+          <option value="level-green">Сначала низкий показатель</option>
         </select>
       </div>
       <div class="modal-body" id="fullListContainer"></div>
@@ -735,7 +761,7 @@
     }, 8000);
 
     /* ── Cards ── */
-    function getBadgeText(l) { return l==="red" ? "Высокий уровень манипуляций" : l==="yellow" ? "Средний уровень манипуляций" : "Низкий уровень манипуляций"; }
+    function getBadgeText(l) { return l==="red" ? "Высокая доля выявленных признаков" : l==="yellow" ? "Средняя доля выявленных признаков" : "Низкая доля выявленных признаков"; }
 
     function initCards() {
       mediaGrid.innerHTML = "";
@@ -750,7 +776,10 @@
               <div class="logo-icon" aria-hidden="true"></div>
               <div><div class="media-name"></div><div class="media-type"></div></div>
             </div>
-            <div class="rating-score"></div>
+            <div class="rating-block">
+              <div class="rating-score"></div>
+              <div class="rating-caption">доля публикаций<br>с признаками</div>
+            </div>
           </header>
           <div class="media-meta">
             <div class="media-audience"></div><div class="media-posts"></div>
@@ -774,7 +803,7 @@
         card.querySelector(".media-type").textContent = m.type;
         card.querySelector(".media-audience").textContent = `Аудитория: ${m.audience}`;
         card.querySelector(".media-posts").textContent = `Публикаций: ${m.posts}`;
-        card.querySelector(".media-manipulative").textContent = `Манипулятивных: ${m.manipulative}`;
+        card.querySelector(".media-manipulative").textContent = `С признаками манипуляции: ${m.manipulative}`;
         const sc = card.querySelector(".rating-score");
         sc.textContent = `${m.rating}%`; sc.className = `rating-score ${m.level}-score`;
         const b = card.querySelector(".badge");
@@ -848,7 +877,7 @@
       return list;
     }
 
-    function badgeLabel(l) { return l==="red"?"высокий риск":l==="yellow"?"средний риск":"низкий риск"; }
+    function badgeLabel(l) { return l==="red"?"высокий показатель":l==="yellow"?"средний показатель":"низкий показатель"; }
 
     function renderFullList() {
       const list = getSortedFiltered();
@@ -879,9 +908,9 @@
       const summary = document.createElement("div");
       summary.className = "modal-summary";
       summary.innerHTML = `
-        <div class="modal-summary-chip"><span class="chip-dot" style="background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.6)"></span>${red} с высоким риском</div>
-        <div class="modal-summary-chip"><span class="chip-dot" style="background:#eab308;box-shadow:0 0 8px rgba(234,179,8,.5)"></span>${yellow} со средним риском</div>
-        <div class="modal-summary-chip"><span class="chip-dot" style="background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.5)"></span>${green} с низким риском</div>`;
+        <div class="modal-summary-chip"><span class="chip-dot" style="background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.6)"></span>${red} с высоким показателем</div>
+        <div class="modal-summary-chip"><span class="chip-dot" style="background:#eab308;box-shadow:0 0 8px rgba(234,179,8,.5)"></span>${yellow} со средним показателем</div>
+        <div class="modal-summary-chip"><span class="chip-dot" style="background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.5)"></span>${green} с низким показателем</div>`;
       fullListContainer.appendChild(summary);
     }
 
