@@ -114,11 +114,7 @@
 
     .brand-title span { color: var(--accent-blue); }
 
-    .header-glow {
-      height: 2px;
-      background: radial-gradient(circle at center, rgba(34,211,238,.75), transparent 70%);
-      opacity: .45;
-    }
+    .header-glow { display: none; }
 
     .site-nav {
       display: flex;
@@ -223,7 +219,7 @@
         flex-direction: row;
         gap: 4px;
         padding: 4px 8px;
-        background: radial-gradient(circle at top, rgba(31,41,55,.9), transparent 70%);
+        background: transparent;
         border: none; box-shadow: none; backdrop-filter: none;
       }
       .nav-link, .support-button-mobile {
@@ -258,34 +254,13 @@
 
     .section-rule {
       height: 1px;
-      background: linear-gradient(90deg, rgba(34,211,238,.55), rgba(34,211,238,.08), transparent);
-      border-radius: 999px;
+      background: rgba(51,65,85,.75);
       margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .section-rule::after {
-      content: "";
-      position: absolute;
-      top: -8px; left: -20%;
-      width: 40%; height: 18px;
-      background: radial-gradient(circle, rgba(34,211,238,.25), transparent 70%);
-      filter: blur(2px);
-      animation: ruleSweep 3.6s ease-in-out infinite;
-      opacity: .55;
-    }
-
-    @keyframes ruleSweep {
-      0%   { transform: translateX(0); opacity: 0; }
-      20%  { opacity: .6; }
-      60%  { opacity: .35; }
-      100% { transform: translateX(220%); opacity: 0; }
     }
 
     .pipeline-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0,1fr));
+      grid-template-columns: repeat(3, minmax(0,1fr));
       gap: 14px;
     }
 
@@ -293,9 +268,7 @@
       position: relative;
       border-radius: 20px;
       padding: 18px 16px 20px;
-      background:
-        radial-gradient(circle at bottom, rgba(34,211,238,.22), transparent 60%),
-        linear-gradient(145deg, #050816, #050b13);
+      background: linear-gradient(145deg, #080b12, #05070c);
       border: 1px solid rgba(31,41,55,.9);
       box-shadow: 0 20px 50px rgba(0,0,0,.85);
       overflow: hidden;
@@ -305,7 +278,7 @@
     .pipeline-card::before {
       content: '';
       position: absolute; inset: 0;
-      background: radial-gradient(circle at top, rgba(148,163,184,.3), transparent 70%);
+      background: rgba(255,255,255,.025);
       opacity: 0;
       transition: opacity .22s ease;
       pointer-events: none;
@@ -314,7 +287,7 @@
     .pipeline-card.is-active, .pipeline-card:hover {
       transform: translateY(-3px);
       border-color: rgba(56,189,248,.85);
-      box-shadow: 0 28px 70px rgba(0,0,0,1), 0 0 32px rgba(56,189,248,.55);
+      box-shadow: 0 24px 54px rgba(0,0,0,.72);
     }
 
     .pipeline-card.is-active::before, .pipeline-card:hover::before { opacity: .4; }
@@ -363,7 +336,7 @@
 
     .pipe-more:hover {
       border-color: rgba(34,211,238,.9);
-      box-shadow: 0 0 16px rgba(34,211,238,.3);
+      box-shadow: none;
       transform: translateY(-1px);
     }
 
@@ -371,10 +344,7 @@
       position: relative;
       border-radius: 22px;
       padding: 24px 28px 26px;
-      background:
-        radial-gradient(circle at top left, rgba(34,211,238,.14), transparent 45%),
-        radial-gradient(circle at bottom right, rgba(99,102,241,.10), transparent 45%),
-        linear-gradient(145deg, #020617, #020617);
+      background: linear-gradient(145deg, #070a10, #04060a);
       border: 1px solid rgba(55,65,81,.85);
       box-shadow: 0 34px 90px rgba(0,0,0,.92);
       overflow: hidden;
@@ -418,7 +388,7 @@
       width: 7px; height: 7px;
       border-radius: 999px;
       background: var(--accent-green);
-      box-shadow: 0 0 10px rgba(34,197,94,.8);
+      box-shadow: none;
     }
 
     .live-time { font-size: 11px; color: var(--text-muted); letter-spacing: .1em; }
@@ -442,7 +412,7 @@
       background: rgba(34,211,238,.14);
       border: 1px solid rgba(34,211,238,.55);
       color: #f1f5f9;
-      box-shadow: 0 0 12px rgba(34,211,238,.3);
+      box-shadow: none;
       cursor: pointer;
       position: relative;
       white-space: nowrap;
@@ -451,7 +421,7 @@
 
     .trigger:hover {
       background: rgba(34,211,238,.24);
-      box-shadow: 0 0 20px rgba(34,211,238,.55);
+      box-shadow: none;
     }
 
     .live-footer {
@@ -481,7 +451,7 @@
 
     .live-next-btn:hover {
       border-color: rgba(34,211,238,.8);
-      box-shadow: 0 0 20px rgba(34,211,238,.2);
+      box-shadow: none;
       transform: translateY(-1px);
     }
 
@@ -519,7 +489,7 @@
       border-radius: 14px;
       border: 1px solid rgba(34,211,238,.55);
       background: rgba(5,8,18,.96);
-      box-shadow: 0 16px 48px rgba(0,0,0,.85), 0 0 24px rgba(34,211,238,.18);
+      box-shadow: 0 16px 40px rgba(0,0,0,.72);
       max-width: 260px; min-width: 180px;
     }
 
@@ -549,7 +519,7 @@
       width: 6px; height: 6px;
       border-radius: 999px;
       background: var(--accent-blue);
-      box-shadow: 0 0 8px rgba(34,211,238,.7);
+      box-shadow: none;
     }
 
     .manip-grid {
@@ -569,7 +539,7 @@
 
     .manip-card:hover {
       border-color: rgba(56,189,248,.55);
-      box-shadow: 0 16px 48px rgba(0,0,0,.85), 0 0 24px rgba(56,189,248,.2);
+      box-shadow: 0 16px 40px rgba(0,0,0,.72);
       transform: translateY(-2px);
     }
 
@@ -648,9 +618,7 @@
       overflow: hidden; display: flex; flex-direction: column;
       border-radius: 24px 24px 0 0;
       border: 1px solid rgba(51,65,85,.9);
-      background:
-        radial-gradient(circle at top, rgba(34,211,238,.12), transparent 40%),
-        linear-gradient(180deg, rgba(8,14,26,.98), rgba(3,6,14,.98));
+      background: linear-gradient(180deg, rgba(10,13,20,.99), rgba(4,6,10,.99));
       box-shadow: 0 -20px 60px rgba(0,0,0,.8);
     }
 
@@ -718,7 +686,7 @@
       border-radius: 999px;
       background: var(--accent-blue);
       flex-shrink: 0; margin-top: .35em;
-      box-shadow: 0 0 8px rgba(34,211,238,.65);
+      box-shadow: none;
     }
 
     .modal-example-label {
@@ -751,9 +719,7 @@
       overflow: hidden; display: flex; flex-direction: column;
       border-radius: 24px;
       border: 1px solid rgba(51,65,85,.9);
-      background:
-        radial-gradient(circle at top, rgba(34,211,238,.12), transparent 40%),
-        linear-gradient(180deg, rgba(8,14,26,.98), rgba(3,6,14,.98));
+      background: linear-gradient(180deg, rgba(10,13,20,.99), rgba(4,6,10,.99));
       box-shadow: 0 30px 90px rgba(0,0,0,.9);
     }
 
@@ -1177,55 +1143,37 @@
   </section>
 
   <section class="section">
-    <div class="section-kicker">Конвейер</div>
     <h2 class="section-title">КОНВЕЙЕР АНАЛИЗА <span class="accent">НОВОСТИ</span></h2>
     <div class="section-rule"></div>
 
     <div class="pipeline-grid" id="pipelineGrid">
       <article class="pipeline-card" data-step="0">
         <div class="pipe-step">шаг 01</div>
-        <div class="pipe-title">Сбор новостей</div>
-        <p class="pipe-text">RSS-ленты, открытые API и парсинг сайтов ведущих российских СМИ.</p>
+        <div class="pipe-title">Сбор и подготовка</div>
+        <p class="pipe-text">Система получает публикации из открытых источников, очищает текст и приводит материалы к единому формату.</p>
         <div class="pipe-num">/01</div>
         <button class="pipe-more" data-pipeline-id="0" type="button">Подробнее</button>
       </article>
 
       <article class="pipeline-card" data-step="1">
         <div class="pipe-step">шаг 02</div>
-        <div class="pipe-title">Предобработка текста</div>
-        <p class="pipe-text">Очистка, нормализация, токенизация, выделение заголовка и подзаголовка.</p>
+        <div class="pipe-title">Анализ и оценка</div>
+        <p class="pipe-text">ИИ ищет манипулятивные маркеры с учётом контекста и рассчитывает итоговые индексы публикации.</p>
         <div class="pipe-num">/02</div>
         <button class="pipe-more" data-pipeline-id="1" type="button">Подробнее</button>
       </article>
 
       <article class="pipeline-card" data-step="2">
         <div class="pipe-step">шаг 03</div>
-        <div class="pipe-title">Поиск триггеров</div>
-        <p class="pipe-text">NLP-модели и словари манипуляций отмечают эмоциональные и фреймовые маркеры.</p>
+        <div class="pipe-title">Рейтинг и архив</div>
+        <p class="pipe-text">Результаты агрегируются по СМИ и времени, обновляя рейтинг, динамику показателей и архив материалов.</p>
         <div class="pipe-num">/03</div>
         <button class="pipe-more" data-pipeline-id="2" type="button">Подробнее</button>
-      </article>
-
-      <article class="pipeline-card" data-step="3">
-        <div class="pipe-step">шаг 04</div>
-        <div class="pipe-title">Расчёт индексов</div>
-        <p class="pipe-text">Индексы манипулятивности, эмоционального накала, опоры на факты.</p>
-        <div class="pipe-num">/04</div>
-        <button class="pipe-more" data-pipeline-id="3" type="button">Подробнее</button>
-      </article>
-
-      <article class="pipeline-card" data-step="4">
-        <div class="pipe-step">шаг 05</div>
-        <div class="pipe-title">Обновление рейтинга</div>
-        <p class="pipe-text">Индексы агрегируются по изданиям и времени, формируя живой рейтинг и архив.</p>
-        <div class="pipe-num">/05</div>
-        <button class="pipe-more" data-pipeline-id="4" type="button">Подробнее</button>
       </article>
     </div>
   </section>
 
   <section class="section">
-    <div class="section-kicker">Живой пример</div>
     <h2 class="section-title">КАК ИИ РАЗБИРАЕТ <span class="accent">СООБЩЕНИЕ</span></h2>
     <div class="section-rule"></div>
 
@@ -1263,7 +1211,6 @@
   </section>
 
   <section class="section">
-    <div class="section-kicker">Техники</div>
     <h2 class="section-title">ЧТО ИМЕННО ИЩЕТ <span class="accent">ИИ</span></h2>
     <div class="section-rule"></div>
 
@@ -1496,21 +1443,38 @@
     tooltipTarget = el;
     ttType.textContent = el.dataset.type || '';
     ttDesc.textContent = el.dataset.desc || '';
-    tooltip.classList.remove('show');
-    void tooltip.offsetWidth;
+
     var r = el.getBoundingClientRect();
-    var tw = 270, th = 80;
-    var left = r.left + r.width/2 - tw/2;
-    var top  = r.top - th - 10 + window.scrollY;
-    left = Math.max(10, Math.min(left, window.innerWidth - tw - 10));
-    if (top < window.scrollY + 10) top = r.bottom + 10 + window.scrollY;
-    tooltip.style.left  = left + 'px';
-    tooltip.style.top   = top  + 'px';
-    tooltip.style.width = tw   + 'px';
+    var gap = 10;
+    var edge = 10;
+    var tw = Math.min(270, window.innerWidth - edge * 2);
+
+    tooltip.style.width = tw + 'px';
+    tooltip.style.left = '0px';
+    tooltip.style.top = '0px';
+    tooltip.style.visibility = 'hidden';
     tooltip.classList.add('show');
+
+    var th = tooltip.offsetHeight;
+    var left = r.left + r.width / 2 - tw / 2;
+    var top = r.top - th - gap;
+
+    left = Math.max(edge, Math.min(left, window.innerWidth - tw - edge));
+
+    // Tooltip использует position: fixed, поэтому координаты должны быть
+    // относительно viewport — без window.scrollY. Если сверху не хватает
+    // места, показываем подсказку под выделенным триггером.
+    if (top < edge) top = r.bottom + gap;
+    if (top + th > window.innerHeight - edge) {
+      top = Math.max(edge, window.innerHeight - th - edge);
+    }
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+    tooltip.style.visibility = 'visible';
   }
 
-  function hideTooltip() { tooltip.classList.remove('show'); tooltipTarget = null; }
+  function hideTooltip() { tooltip.classList.remove('show'); tooltip.style.visibility = ''; tooltipTarget = null; }
 
   document.addEventListener('mouseover', function (e) {
     var t = e.target.closest('.trigger');
@@ -1592,22 +1556,16 @@
 
   /* ── Pipeline modal ── */
   var pipelineDetails = [
-    { label:'шаг 01', title:'Сбор новостей',
-      desc:'Система собирает публикации из подключённых источников и готовит поток материалов для последующего анализа.',
-      flow:[{title:'Источники данных',text:'Используются RSS-ленты, открытые API и парсинг страниц СМИ, где это технически возможно.'},{title:'Единый формат',text:'Каждая публикация приводится к общей структуре: источник, время, заголовок, текст и ссылка.'},{title:'Фильтрация дублей',text:'Повторяющиеся материалы и технический мусор отсеиваются до этапа анализа.'}] },
-    { label:'шаг 02', title:'Предобработка текста',
-      desc:'Текст очищается и нормализуется, чтобы модель анализировала смысл сообщения, а не технические артефакты страницы.',
-      flow:[{title:'Очистка',text:'Удаляются лишняя разметка, рекламные вставки, технические подписи и повторяющиеся элементы.'},{title:'Нормализация',text:'Текст приводится к аккуратному виду: заголовок, подзаголовок и основной фрагмент отделяются друг от друга.'},{title:'Подготовка к NLP',text:'Система выделяет слова, устойчивые выражения, эмоциональные маркеры и смысловые конструкции.'}] },
-    { label:'шаг 03', title:'Поиск триггеров',
-      desc:'ИИ ищет в тексте признаки манипулятивной подачи: страх, давление срочностью, обобщения, фрейминг и псевдостатистику.',
-      flow:[{title:'Эмоциональные маркеры',text:'Отмечаются слова и обороты вроде «катастрофа», «в панике», «срочно», «уже завтра».'},{title:'Смысловые приёмы',text:'Система ищет не только отдельные слова, но и конструкции: ложную причинность, ярлыки, анонимные ссылки, навязанный вывод.'},{title:'Контекстная проверка',text:'Один и тот же термин может быть нейтральным или манипулятивным — модель учитывает соседние фразы и общий тон сообщения.'}] },
-    { label:'шаг 04', title:'Расчёт индексов',
-      desc:'После поиска признаков система рассчитывает индексы манипулятивности, эмоционального накала и опоры на факты.',
-      flow:[{title:'Все публикации за сутки',text:'ИИ анализирует каждое текстовое сообщение, которое СМИ публикует в течение дня — без ручной выборки.'},{title:'Подсчёт манипуляций',text:'Для каждого сообщения определяется наличие манипулятивных приёмов и считается доля таких публикаций от общего числа.'},{title:'Итоговый цветовой рейтинг',text:'По итогам суток изданию присваивается цветовой уровень, отражающий общий уровень манипулятивности.'}],
-      scale:[{color:'green',range:'0–25%',label:'Низкий уровень'},{color:'yellow',range:'25–50%',label:'Средний уровень'},{color:'red',range:'50%+',label:'Высокий уровень'}] },
-    { label:'шаг 05', title:'Обновление рейтинга',
-      desc:'Результаты анализа агрегируются по изданиям и времени, после чего обновляются рейтинг, архив и динамика показателей.',
-      flow:[{title:'Агрегация',text:'Индексы отдельных сообщений собираются в показатели по СМИ, категориям и временным периодам.'},{title:'Архив',text:'Каждое сообщение сохраняется в архиве, чтобы можно было открыть текст и увидеть, почему система его пометила.'},{title:'Обновление витрины',text:'Рейтинг и визуальные статусы пересчитываются после поступления новых публикаций.'}] },
+    { label:'шаг 01', title:'Сбор и подготовка',
+      desc:'Система собирает публикации из подключённых источников, очищает их и приводит к единому формату перед анализом.',
+      flow:[{title:'Получение материалов',text:'Используются RSS-ленты, открытые API и парсинг страниц СМИ, где это технически возможно.'},{title:'Очистка и структура',text:'Удаляются техническая разметка и лишние элементы; отдельно фиксируются источник, время, заголовок, текст и ссылка.'},{title:'Подготовка данных',text:'Дубли и технический мусор отсеиваются, а текст нормализуется для последующего NLP-анализа.'}] },
+    { label:'шаг 02', title:'Анализ и оценка',
+      desc:'ИИ ищет признаки манипулятивной подачи с учётом контекста, а затем рассчитывает показатели каждой публикации.',
+      flow:[{title:'Поиск маркеров',text:'Система отмечает эмоциональные слова, давление срочностью, обобщения, фрейминг, анонимные ссылки и псевдостатистику.'},{title:'Контекстная проверка',text:'Один и тот же термин может быть нейтральным или манипулятивным — модель учитывает соседние фразы и общий тон сообщения.'},{title:'Расчёт индексов',text:'Система анализирует все материалы издания, вышедшие за последние 24 часа: они принимаются за 100%. Затем рассчитывается доля публикаций, в которых выявлены признаки манипулятивной подачи. По этой доле определяется цвет рейтинга.'}],
+      scale:[{color:'green',range:'< 25%',label:'Зелёный рейтинг'},{color:'yellow',range:'25–50%',label:'Жёлтый рейтинг'},{color:'red',range:'> 50%',label:'Красный рейтинг'}] },
+    { label:'шаг 03', title:'Рейтинг и архив',
+      desc:'Показатели отдельных публикаций агрегируются по изданиям и времени, после чего обновляются рейтинг и архив проекта.',
+      flow:[{title:'Агрегация',text:'Результаты публикаций собираются в показатели по СМИ и временным периодам.'},{title:'Обновление рейтинга',text:'По итогам расчётов изданию присваивается актуальный уровень манипулятивности и обновляется динамика показателей.'},{title:'Архив материалов',text:'Сообщения сохраняются в архиве, чтобы можно было открыть текст и увидеть основания для оценки.'}] },
   ];
 
   var ratingModal      = document.getElementById('ratingModal');
