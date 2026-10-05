@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <meta name="theme-color" content="#00c7df">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-body:       #05070b;
@@ -673,6 +673,617 @@
     }
 
   </style>
+
+<style id="archive-cleanup-overrides">
+  :root {
+    --shadow-card: 0 14px 32px rgba(0,0,0,.34);
+  }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg-body);
+    color: #f3f6fa;
+    line-height: 1.62;
+    letter-spacing: -0.004em;
+  }
+
+  .brand-title { font-family: "Montserrat", sans-serif; }
+  .section-title,
+  .manip-counter-value,
+  .message-modal-title,
+  .modal-why-label,
+  .modal-method-title {
+    font-family: "Manrope", sans-serif;
+  }
+
+  .section-title { font-weight: 800; letter-spacing: -.025em; }
+  .cell-title { line-height: 1.62; }
+  .section-subtitle,
+  .modal-fulltext,
+  .modal-why-text { color: #c9d0da; }
+
+  /* Remove cyan/neon glow while retaining depth */
+  .header-glow,
+  .archive-shell::before { display: none !important; }
+
+  .manip-counter-value { text-shadow: none !important; }
+
+  .archive-shell {
+    background: linear-gradient(180deg, rgba(12,18,32,.94), rgba(7,11,19,.94));
+    box-shadow: var(--shadow-card);
+  }
+
+  .archive-search {
+    background: rgba(15,23,42,.96);
+    border-color: rgba(71,85,105,.72);
+    box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  }
+  .archive-search::before { box-shadow: none; }
+  .archive-search:focus-within {
+    border-color: rgba(34,211,238,.62);
+    box-shadow: 0 0 0 1px rgba(34,211,238,.08);
+  }
+
+  .chip-active {
+    background: rgba(34,211,238,.09);
+    border-color: rgba(56,189,248,.62);
+    box-shadow: none;
+  }
+
+  .archive-item {
+    background: var(--bg-panel-soft);
+    box-shadow: 0 12px 28px rgba(0,0,0,.30);
+  }
+  .archive-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(56,189,248,.48);
+    box-shadow: 0 18px 38px rgba(0,0,0,.40);
+  }
+
+  .rt-dot { box-shadow: none; }
+
+  .message-modal {
+    background: linear-gradient(180deg, rgba(10,16,30,.99), rgba(3,6,14,.99));
+    border-color: rgba(71,85,105,.78);
+    box-shadow: 0 28px 80px rgba(0,0,0,.68);
+  }
+  .message-modal-header {
+    border-bottom-color: rgba(71,85,105,.44);
+    background: rgba(15,23,42,.28);
+  }
+  .message-close:hover {
+    border-color: rgba(34,211,238,.55);
+    box-shadow: none;
+    background: rgba(34,211,238,.05);
+  }
+  .modal-fulltext-wrap {
+    background: rgba(8,14,26,.72);
+  }
+  .modal-method-link {
+    background: rgba(15,23,42,.75);
+  }
+  .modal-method-link:hover {
+    box-shadow: 0 12px 26px rgba(0,0,0,.22);
+  }
+
+  /* Five-column archive layout: index removed */
+  .archive-header-row,
+  .archive-summary {
+    grid-template-columns: 1.05fr .85fr minmax(0,2.9fr) minmax(155px,.95fr) .8fr;
+    gap: 14px;
+  }
+
+  .archive-summary {
+    padding: 16px 18px;
+    min-height: 78px;
+    align-items: center;
+  }
+
+  .cell-category {
+    min-height: 36px;
+    padding: 7px 12px;
+    margin: 2px 0;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.35;
+  }
+
+  .cell-button { align-self: center; }
+
+  /* Three meta cards in modal: index removed */
+  .modal-meta-row {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  /* Disable stale index rules */
+  .cell-index { display: none !important; }
+
+  @media (max-width: 900px) {
+    .archive-summary {
+      grid-template-columns: minmax(0,1fr) auto;
+      grid-template-areas:
+        "media time"
+        "title title"
+        "category category"
+        "button button";
+      row-gap: 10px;
+    }
+    .cell-media { grid-area: media; }
+    .cell-time { grid-area: time; }
+    .cell-title { grid-area: title; }
+    .cell-category {
+      grid-area: category;
+      justify-self: start;
+      margin: 4px 0 2px;
+    }
+    .cell-button { grid-area: button; }
+    .modal-meta-row { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  }
+
+  @media (max-width: 767px) {
+    .archive-summary {
+      padding: 14px;
+      row-gap: 10px;
+    }
+    .cell-category {
+      min-height: 34px;
+      padding: 6px 10px;
+      margin: 4px 0 3px;
+    }
+    .modal-meta-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+
+
+
+<style>
+  /* Final compact archive row layout */
+  .archive-header-row,
+  .archive-summary {
+    grid-template-columns: minmax(120px,1.05fr) minmax(110px,.85fr) minmax(0,3fr) 188px 112px;
+    gap: 14px;
+  }
+
+  .archive-summary {
+    min-height: 64px;
+    padding: 11px 16px;
+    align-items: center;
+  }
+
+  .cell-category {
+    width: auto;
+    min-width: 150px;
+    max-width: 180px;
+    height: 34px;
+    min-height: 34px;
+    margin: 0;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    justify-self: start;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: .72rem;
+    border-radius: 999px;
+  }
+
+  .cell-category.danger { font-size: .69rem; }
+  .cell-button { align-self: center; }
+  .more-btn { min-height: 36px; }
+
+  @media (max-width: 900px) {
+    .archive-summary {
+      grid-template-columns: minmax(0,1fr) auto;
+      grid-template-areas:
+        "media time"
+        "title title"
+        "category category"
+        "button button";
+      min-height: 0;
+      padding: 14px;
+      row-gap: 10px;
+    }
+    .cell-category {
+      grid-area: category;
+      justify-self: start;
+      margin: 2px 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .cell-category {
+      min-width: 0;
+      max-width: 100%;
+      height: 34px;
+      padding: 0 11px;
+      font-size: .72rem;
+    }
+    .cell-category.danger { font-size: .69rem; }
+  }
+</style>
+
+
+<style id="balanced-visual-pass">
+  /* ===== Balanced visual direction: tech, but not "AI UI" ===== */
+
+  :root {
+    --bg-body: #0a0d12;
+    --bg-panel: #11151c;
+    --bg-panel-soft: #141922;
+    --text-main: #f4f6f8;
+    --text-muted: #949ca8;
+    --text-secondary: #c5cbd3;
+    --accent-blue: #39c3d6;
+    --radius-lg: 14px;
+    --shadow-card: 0 10px 28px rgba(0,0,0,.28);
+  }
+
+  body {
+    background: #0a0d12 !important;
+    color: var(--text-main);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0;
+  }
+
+  /* Header */
+  .header-inner {
+    background: rgba(10,13,18,.96);
+    border-bottom: 1px solid #222832;
+    box-shadow: 0 6px 18px rgba(0,0,0,.22);
+    backdrop-filter: blur(10px);
+  }
+
+  .header-glow { display: none !important; }
+
+  .brand-title {
+    font-family: "Montserrat", sans-serif;
+    letter-spacing: .08em;
+  }
+
+  .nav-links {
+    background: #11151c;
+    border-color: #29313d;
+    box-shadow: 0 16px 36px rgba(0,0,0,.32);
+  }
+
+  @media (min-width: 1024px) {
+    .nav-links {
+      background: transparent !important;
+    }
+  }
+
+  .nav-link {
+    color: #8f98a5;
+  }
+
+  .nav-link.nav-active {
+    color: #f5f7f9;
+    border-color: #34414d;
+    background: #171d25;
+    box-shadow: none;
+  }
+
+  /* Main shell */
+  .archive-shell {
+    background: #10151c !important;
+    border: 1px solid #242b35;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(0,0,0,.24) !important;
+    padding: 20px;
+  }
+
+  .archive-shell::before { display: none !important; }
+
+  .section-title {
+    font-family: "Manrope", "Inter", sans-serif;
+    font-weight: 800;
+    letter-spacing: -.03em;
+  }
+
+  .section-ai {
+    color: #77d3df;
+  }
+
+  .section-subtitle {
+    color: #aeb5bf;
+  }
+
+  .manip-counter-value {
+    color: #d7e4e7;
+    text-shadow: none !important;
+  }
+
+  /* Search */
+  .archive-search {
+    background: #151b23 !important;
+    border: 1px solid #303946 !important;
+    border-radius: 10px;
+    box-shadow: none !important;
+  }
+
+  .archive-search::before {
+    border-color: #8293a3;
+    box-shadow: none !important;
+  }
+
+  .archive-search::after {
+    background: #8293a3;
+  }
+
+  .archive-search:focus-within {
+    border-color: #4d6b73 !important;
+    box-shadow: 0 0 0 2px rgba(57,195,214,.08) !important;
+  }
+
+  .archive-search input {
+    color: #eef2f5;
+    font-weight: 400;
+  }
+
+  .archive-search input::placeholder {
+    color: #77818d;
+  }
+
+  /* Filters: still buttons, but less pill-like */
+  .status-chips {
+    gap: 8px;
+  }
+
+  .chip {
+    min-height: 38px;
+    border-radius: 9px;
+    padding: 0 13px;
+    border: 1px solid #303844;
+    background: #151a21;
+    color: #9aa3ae;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: none;
+  }
+
+  .chip:hover {
+    border-color: #44505e;
+    color: #e1e6eb;
+  }
+
+  .chip-active {
+    background: #1b252c !important;
+    border-color: #48626a !important;
+    color: #e9f7f9 !important;
+    box-shadow: none !important;
+  }
+
+  /* Header row */
+  .archive-header-row {
+    padding: 9px 16px 8px;
+    border-bottom: 1px solid #2a3039;
+    color: #7f8996;
+    font-size: .74rem;
+    letter-spacing: .055em;
+  }
+
+  /* Archive cards */
+  .archive-list {
+    gap: 8px;
+  }
+
+  .archive-item {
+    background: #151a22 !important;
+    border: 1px solid #262e39;
+    border-radius: 11px;
+    box-shadow: none !important;
+  }
+
+  .archive-item:hover {
+    transform: none !important;
+    background: #181e27 !important;
+    border-color: #36424f !important;
+    box-shadow: none !important;
+  }
+
+  .archive-summary {
+    min-height: 66px;
+    padding: 12px 16px;
+    gap: 14px;
+  }
+
+  .cell-media {
+    color: #edf0f3;
+    font-weight: 600;
+  }
+
+  .cell-time {
+    color: #7f8996;
+  }
+
+  .cell-title {
+    color: #dfe4e9;
+    line-height: 1.5;
+  }
+
+  /* Category labels: compact "labels", not capsules */
+  .cell-category {
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    border-radius: 7px !important;
+    background: transparent !important;
+    border: 1px solid #38414c !important;
+    font-size: .72rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    justify-self: start;
+  }
+
+  .cell-category.danger {
+    color: #efb2b2 !important;
+    border-color: rgba(201,88,88,.58) !important;
+  }
+
+  .cell-category.risky {
+    color: #dcc88b !important;
+    border-color: rgba(180,150,69,.58) !important;
+  }
+
+  .cell-category.neutral {
+    color: #a8cfb4 !important;
+    border-color: rgba(78,145,99,.58) !important;
+  }
+
+  /* Button */
+  .more-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid #353f4b;
+    background: #171d25;
+    color: #c8cfd7;
+    letter-spacing: 0;
+    font-weight: 600;
+    text-transform: none;
+    box-shadow: none;
+  }
+
+  .more-btn:hover {
+    border-color: #4b5967;
+    color: #f0f3f6;
+    background: #1a222b;
+  }
+
+  .rt-dot {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  /* Modal */
+  .message-modal-overlay {
+    background: rgba(5,8,12,.78);
+    backdrop-filter: blur(8px);
+  }
+
+  .message-modal {
+    border-radius: 14px;
+    border: 1px solid #303844 !important;
+    background: #11161d !important;
+    box-shadow: 0 24px 70px rgba(0,0,0,.56) !important;
+  }
+
+  .message-modal::before {
+    display: none !important;
+  }
+
+  .message-modal-header {
+    background: #131922 !important;
+    border-bottom: 1px solid #2a323d !important;
+  }
+
+  .message-modal-label,
+  .modal-fulltext-label,
+  .modal-meta-label,
+  .modal-why-label,
+  .modal-method-label {
+    letter-spacing: .04em;
+  }
+
+  .message-modal-label,
+  .modal-fulltext-label {
+    color: #91a8ad;
+  }
+
+  .message-modal-title {
+    font-family: "Manrope", "Inter", sans-serif;
+    letter-spacing: -.015em;
+  }
+
+  .message-close {
+    border-radius: 8px;
+    border-color: #36404c;
+    background: #171d25;
+  }
+
+  .message-close:hover {
+    background: #1c242e;
+    box-shadow: none !important;
+  }
+
+  .modal-fulltext-wrap,
+  .modal-why-wrap,
+  .modal-meta-card {
+    border-radius: 10px;
+    background: #151b23 !important;
+    border-color: #2c3540 !important;
+  }
+
+  .modal-fulltext-wrap::before {
+    display: none;
+  }
+
+  .modal-method-link {
+    border-radius: 10px;
+    background: #151b23 !important;
+    border-color: #303a46 !important;
+    box-shadow: none !important;
+  }
+
+  .modal-method-link:hover {
+    border-color: #465563 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .modal-method-arrow {
+    background: #1a222b;
+    border-color: #3b4652;
+    color: #a8c8cd;
+  }
+
+  .highlight-word,
+  .highlight-word.soft {
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  /* Mobile: keep hierarchy compact */
+  @media (max-width: 900px) {
+    .archive-summary {
+      row-gap: 9px;
+    }
+
+    .cell-category {
+      width: fit-content !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .archive-shell {
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .chip {
+      min-height: 40px;
+      border-radius: 8px;
+    }
+
+    .archive-item {
+      border-radius: 10px;
+    }
+
+    .archive-summary {
+      padding: 13px;
+    }
+  }
+</style>
+
 </head>
 <body>
 
@@ -704,7 +1315,7 @@
       <div class="archive-top-row">
         <h2 class="section-title">Архив сообщений <span class="section-ai">СМИ</span></h2>
         <div class="manip-counter">
-          <span class="manip-counter-label">Манипулятивных сообщений в выборке</span>
+          <span class="manip-counter-label">Спорных и смешанных сообщений</span>
           <span class="manip-counter-value" id="manipCounter">0</span>
         </div>
       </div>
@@ -716,15 +1327,15 @@
         <div class="status-chips-wrapper">
           <div class="status-chips">
             <button class="chip chip-active" data-status="all"     type="button">Все</button>
-            <button class="chip"             data-status="danger"  type="button">Опасные</button>
-            <button class="chip"             data-status="risky"   type="button">Спорные</button>
+            <button class="chip"             data-status="danger"  type="button">Спорные</button>
+            <button class="chip"             data-status="risky"   type="button">Смешанные</button>
             <button class="chip"             data-status="neutral" type="button">Нейтральные</button>
           </div>
         </div>
       </div>
       <div class="archive-header-row">
         <div>СМИ</div><div>Время</div><div>Сообщение</div>
-        <div>Индекс</div><div>Категория</div><div></div>
+        <div>Категория</div><div></div>
       </div>
       <div class="archive-list" id="archiveList"></div>
       <div class="realtime-note">
@@ -755,7 +1366,7 @@
         <p class="modal-fulltext" id="modalFullText"></p>
       </div>
 
-      <!-- 2. Мета: СМИ, время, индекс, категория -->
+      <!-- 2. Мета: СМИ, время, категория -->
       <div class="modal-meta-row">
         <div class="modal-meta-card">
           <span class="modal-meta-label">СМИ</span>
@@ -764,10 +1375,6 @@
         <div class="modal-meta-card">
           <span class="modal-meta-label">Время</span>
           <div class="modal-meta-value" id="modalTime"></div>
-        </div>
-        <div class="modal-meta-card">
-          <span class="modal-meta-label">Индекс</span>
-          <div class="modal-meta-value score" id="modalIndex"></div>
         </div>
         <div class="modal-meta-card">
           <span class="modal-meta-label">Категория</span>
@@ -801,7 +1408,7 @@
       title: "«Власти в панике: эксперты предупреждают о катастрофе уже завтра»",
       fullText: "Власти в панике: эксперты предупреждают о катастрофе уже завтра. По словам собеседников канала, ситуация якобы выходит из-под контроля, а последствия могут оказаться необратимыми уже в ближайшие часы. Авторы материала не приводят проверяемых данных, но усиливают тревожный эффект через срочные формулировки и эмоциональные оценки.",
       manipulativeWords: ["в панике","катастрофе","уже завтра","выходит из-под контроля","необратимыми","в ближайшие часы"],
-      index: 82, indexClass: "index-red", category: "Опасное сообщение", status: "danger",
+      category: "Спорное сообщение", status: "danger",
       tags: ["давление страхом","апокалиптический тон","отсутствие фактов"],
       explain: "Модель фиксирует сочетание гипербол и срочного тайм-прессинга, при этом в тексте нет конкретных данных и ссылок на источники.",
     },
@@ -810,7 +1417,7 @@
       title: "«Экономика рухнула: цены взлетели до небес из-за нового решения»",
       fullText: "Экономика рухнула: цены взлетели до небес из-за нового решения. В публикации утверждается, что именно новое решение стало главным триггером происходящего, хотя конкретные расчёты и сопоставление факторов не приводятся. Вместо этого читателю предлагается эмоциональная картина резкого обвала и тотальной ценовой паники.",
       manipulativeWords: ["рухнула","взлетели до небес","из-за нового решения","главным триггером","резкого обвала","ценовой паники"],
-      index: 76, indexClass: "index-red", category: "Опасное сообщение", status: "danger",
+      category: "Спорное сообщение", status: "danger",
       tags: ["гиперболы","поиск виноватых","оценочная лексика"],
       explain: "Слова «рухнула» и «взлетели до небес» отмечены как гиперболы. Причина названа категорично, но без разбора альтернативных факторов и без цифр.",
     },
@@ -819,7 +1426,7 @@
       title: "«По данным опроса, большинство горожан счастливы»",
       fullText: "По данным опроса, большинство горожан счастливы. Материал ссылается на исследование без описания выборки, формулировок вопросов и даты проведения. Формула «большинство горожан» создаёт впечатление полной репрезентативности, хотя источник не раскрывает методологию.",
       manipulativeWords: ["большинство горожан","счастливы","без описания выборки","полной репрезентативности"],
-      index: 48, indexClass: "index-yellow", category: "Спорное сообщение", status: "risky",
+      category: "Смешанное сообщение", status: "risky",
       tags: ["обобщение","неполная ссылка на источник"],
       explain: "Упоминается опрос, но нет информации о методике и выборке. Формулировка «большинство горожан» помечается как потенциальное обобщение.",
     },
@@ -828,7 +1435,7 @@
       title: "«Минфин опубликовал отчёт о росте доходов бюджета за год»",
       fullText: "Минфин опубликовал отчёт о росте доходов бюджета за год. В тексте описывается факт публикации документа и перечисляются основные показатели без эмоциональных оценок, давления на читателя или попытки навязать вывод.",
       manipulativeWords: [],
-      index: 18, indexClass: "index-green", category: "Нейтральное сообщение", status: "neutral",
+      category: "Нейтральное сообщение", status: "neutral",
       tags: ["официальный источник","описание факта"],
       explain: "В заголовке нет оценочной лексики, эмоциональных триггеров и скрытой причинности. Описывается факт публикации отчёта.",
     },
@@ -837,7 +1444,7 @@
       title: "«Паникёры снова пытаются сорвать стабильность в стране»",
       fullText: "Паникёры снова пытаются сорвать стабильность в стране. Авторы текста используют ярлык по отношению к неназванной группе и создают ощущение постоянной угрозы, не уточняя, кто именно имеется в виду и какие действия считаются попыткой срыва стабильности.",
       manipulativeWords: ["Паникёры","снова","сорвать стабильность","постоянной угрозы"],
-      index: 84, indexClass: "index-red", category: "Опасное сообщение", status: "danger",
+      category: "Спорное сообщение", status: "danger",
       tags: ["образ врага","ярлык «паникёры»","поляризация"],
       explain: "Текст строит разделение «мы — они», использует ярлык и не уточняет, о ком именно идёт речь.",
     },
@@ -846,7 +1453,7 @@
       title: "«После нового закона люди массово беднеют»",
       fullText: "После нового закона люди массово беднеют. Сообщение выстраивает прямую причинно-следственную связь между законом и ухудшением положения людей, хотя статистических данных, сравнения периодов и анализа сопутствующих причин в тексте нет.",
       manipulativeWords: ["После нового закона","массово беднеют","прямую причинно-следственную связь"],
-      index: 61, indexClass: "index-yellow", category: "Спорное сообщение", status: "risky",
+      category: "Смешанное сообщение", status: "risky",
       tags: ["ложная причинность","обобщение"],
       explain: "Фраза подаётся как доказанная причинность, но без статистики и анализа альтернативных факторов.",
     },
@@ -855,7 +1462,7 @@
       title: "«90% жителей поддержали реформу, показал опрос»",
       fullText: "90% жителей поддержали реформу, показал опрос. Текст опирается на очень конкретную цифру, но не раскрывает источник, заказчика исследования, размер выборки и формулировку вопроса. За счёт этого создаётся эффект неопровержимого консенсуса.",
       manipulativeWords: ["90% жителей","поддержали реформу","не раскрывает источник","неопровержимого консенсуса"],
-      index: 54, indexClass: "index-yellow", category: "Спорное сообщение", status: "risky",
+      category: "Смешанное сообщение", status: "risky",
       tags: ["псевдостатистика","нет источника"],
       explain: "Указана точная цифра поддержки, но отсутствует ссылка на исследование и методику опроса.",
     },
@@ -864,7 +1471,7 @@
       title: "«Минфин опубликовал подробную расшифровку расходов бюджета»",
       fullText: "Минфин опубликовал подробную расшифровку расходов бюджета. Сообщение фиксирует факт и перечисляет документальные детали без эмоциональной окраски, ярлыков или подталкивания читателя к заранее заданному выводу.",
       manipulativeWords: [],
-      index: 22, indexClass: "index-green", category: "Нейтральное сообщение", status: "neutral",
+      category: "Нейтральное сообщение", status: "neutral",
       tags: ["конкретное действие","отсутствие оценки"],
       explain: "Сообщение фиксирует факт и не делает дополнительных оценочных выводов.",
     },
@@ -880,7 +1487,6 @@
   const modalTitle      = document.getElementById("messageModalTitle");
   const modalMedia      = document.getElementById("modalMedia");
   const modalTime       = document.getElementById("modalTime");
-  const modalIndex      = document.getElementById("modalIndex");
   const modalCategory   = document.getElementById("modalCategory");
   const modalFullText   = document.getElementById("modalFullText");
   const modalExplain    = document.getElementById("modalExplain");
@@ -914,8 +1520,6 @@
     modalFullText.innerHTML   = highlight(msg.fullText, msg.manipulativeWords, msg.status);
     modalMedia.textContent    = msg.media;
     modalTime.textContent     = msg.time;
-    modalIndex.textContent    = msg.index;
-    modalIndex.className      = `modal-meta-value score ${msg.indexClass}`;
     modalCategory.textContent = msg.category;
     modalExplain.textContent  = msg.explain;
     modalOverlay.classList.add("open");
@@ -938,7 +1542,6 @@
         <div class="cell-media">${esc(msg.media)}</div>
         <div class="cell-time">${esc(msg.time)}</div>
         <div class="cell-title">${esc(msg.title)}</div>
-        <div class="cell-index ${msg.indexClass}">${msg.index}</div>
         <div class="cell-category ${getStatusClass(msg.status)}">${esc(msg.category)}</div>
         <div class="cell-button"><button class="more-btn" type="button">Подробнее</button></div>
       </div>`;
