@@ -427,57 +427,38 @@
       pointer-events: none;
     }
 
-    /* ── Анимированный радар (десктоп) ── */
+    /* ── Символ миссии ── */
     .mission-radar {
       position: relative;
       z-index: 1;
       width: 84px;
       height: 84px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .radar-svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-    }
-
-    /* Луч вращается */
-    .radar-sweep {
-      transform-origin: 42px 42px;
-      animation: radarSpin 3s linear infinite;
-    }
-    @keyframes radarSpin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    /* Пульсирующие кольца при обнаружении */
-    .radar-ping {
-      transform-origin: 42px 42px;
-      animation: radarPing 3s ease-out infinite;
-    }
-    .radar-ping-2 {
-      transform-origin: 42px 42px;
-      animation: radarPing 3s ease-out 1.5s infinite;
-    }
-    @keyframes radarPing {
-      0%   { r: 10; opacity: 0.7; stroke-width: 1.5; }
-      80%  { r: 40; opacity: 0;   stroke-width: 0.5; }
-      100% { r: 40; opacity: 0; }
-    }
-
-    /* Блипы — цели на радаре */
-    .radar-blip {
-      animation: blipBeat 3s ease-in-out infinite;
-    }
-    .radar-blip:nth-child(1) { animation-delay: 0.5s; }
-    .radar-blip:nth-child(2) { animation-delay: 1.4s; }
-    .radar-blip:nth-child(3) { animation-delay: 2.2s; }
-    @keyframes blipBeat {
-      0%,100% { opacity: 0;    r: 1.5; }
-      30%     { opacity: 1;    r: 2.5; }
-      65%     { opacity: 0.4;  r: 1.8; }
+    .mission-symbol {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(34,211,238,0.45);
+      background:
+        radial-gradient(circle at center, rgba(34,211,238,0.10), transparent 62%),
+        rgba(2,6,23,0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 42px;
+      line-height: 1;
+      font-weight: 800;
+      color: rgba(34,211,238,0.95);
+      text-shadow: 0 0 12px rgba(34,211,238,0.32);
+      box-shadow:
+        inset 0 0 0 1px rgba(34,211,238,0.06),
+        0 0 20px rgba(34,211,238,0.10);
     }
 
     /* ── Текст и карточки ── */
@@ -567,7 +548,15 @@
         display: flex; align-items: center; justify-content: center;
       }
 
-      .mission-copy-icon svg { width: 22px; height: 22px; }
+      .mission-symbol-mobile {
+        width: auto;
+        height: auto;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        text-shadow: 0 0 8px rgba(34,211,238,0.26);
+        font-size: 24px;
+      }
 
       .mission-copy-texts { flex: 1; min-width: 0; }
 
@@ -1095,92 +1084,16 @@
   <section class="mission-section" aria-labelledby="missionTitle">
     <div class="mission-lens">
 
-      <!-- Анимированный радар (виден только на десктопе/планшете) -->
+      <!-- Символ миссии -->
       <div class="mission-radar" aria-hidden="true">
-        <svg class="radar-svg" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <!-- Градиент луча-сектора: от прозрачного у оси к яркому на краю -->
-            <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(34,211,238,0)"    />
-              <stop offset="100%" stop-color="rgba(34,211,238,0.38)" />
-            </linearGradient>
-            <!-- Маска-круг, чтобы луч не вылезал за пределы радара -->
-            <clipPath id="radarClip">
-              <circle cx="42" cy="42" r="39" />
-            </clipPath>
-          </defs>
-
-          <!-- Фон -->
-          <circle cx="42" cy="42" r="41"
-            fill="rgba(2,6,23,0.78)"
-            stroke="rgba(34,211,238,0.45)" stroke-width="1.5" />
-
-          <!-- Концентрические кольца -->
-          <circle cx="42" cy="42" r="12" fill="none" stroke="rgba(34,211,238,0.15)" stroke-width="1" />
-          <circle cx="42" cy="42" r="24" fill="none" stroke="rgba(34,211,238,0.20)" stroke-width="1" />
-          <circle cx="42" cy="42" r="36" fill="none" stroke="rgba(34,211,238,0.15)" stroke-width="1" />
-
-          <!-- Перекрестье -->
-          <line x1="42" y1="4"  x2="42" y2="80" stroke="rgba(34,211,238,0.14)" stroke-width="1" />
-          <line x1="4"  y1="42" x2="80" y2="42" stroke="rgba(34,211,238,0.14)" stroke-width="1" />
-          <!-- Диагонали (для вида пеленгатора) -->
-          <line x1="14" y1="14" x2="70" y2="70" stroke="rgba(34,211,238,0.08)" stroke-width="1" />
-          <line x1="70" y1="14" x2="14" y2="70" stroke="rgba(34,211,238,0.08)" stroke-width="1" />
-
-          <!-- Вращающийся луч — сектор ~70° -->
-          <g class="radar-sweep" clip-path="url(#radarClip)">
-            <path
-              d="M42,42 L81,28 A39,39 0 0,0 69,8 Z"
-              fill="url(#sweepGrad)"
-              opacity="0.9"
-            />
-            <!-- Ведущий луч (передняя кромка сектора) -->
-            <line
-              x1="42" y1="42" x2="81" y2="26"
-              stroke="rgba(34,211,238,0.75)" stroke-width="1.5" stroke-linecap="round"
-            />
-          </g>
-
-          <!-- Пульсирующие кольца ("обнаружение") -->
-          <circle class="radar-ping"   cx="42" cy="42" r="10" fill="none" stroke="rgba(34,211,238,0.6)" />
-          <circle class="radar-ping-2" cx="42" cy="42" r="10" fill="none" stroke="rgba(34,211,238,0.35)" />
-
-          <!-- Блипы — "цели" -->
-          <circle class="radar-blip" cx="54" cy="27" r="2.2"
-            fill="rgba(34,211,238,0.95)"
-            style="filter:drop-shadow(0 0 3px rgba(34,211,238,0.8))" />
-          <circle class="radar-blip" cx="28" cy="52" r="1.8"
-            fill="rgba(34,211,238,0.9)"
-            style="filter:drop-shadow(0 0 3px rgba(34,211,238,0.7))" />
-          <circle class="radar-blip" cx="60" cy="48" r="2.0"
-            fill="rgba(34,211,238,0.9)"
-            style="filter:drop-shadow(0 0 3px rgba(34,211,238,0.7))" />
-
-          <!-- Центральная точка -->
-          <circle cx="42" cy="42" r="4.5"
-            fill="none"
-            stroke="rgba(34,211,238,0.5)" stroke-width="1" />
-          <circle cx="42" cy="42" r="2.5"
-            fill="rgba(34,211,238,1)"
-            style="filter:drop-shadow(0 0 5px rgba(34,211,238,0.9))" />
-        </svg>
+        <div class="mission-symbol">!</div>
       </div>
 
       <!-- Текст миссии -->
       <div class="mission-copy">
         <!-- Мини-иконка (только мобайл) -->
         <div class="mission-copy-icon" aria-hidden="true">
-          <!-- Упрощённый статический радар для мобайла -->
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="rgba(34,211,238,0.65)" stroke-width="1.5"/>
-            <circle cx="12" cy="12" r="5"  stroke="rgba(34,211,238,0.4)"  stroke-width="1"/>
-            <circle cx="12" cy="12" r="2"  fill="rgba(34,211,238,0.95)"/>
-            <line x1="12" y1="2" x2="12" y2="22" stroke="rgba(34,211,238,0.22)" stroke-width="1"/>
-            <line x1="2"  y1="12" x2="22" y2="12" stroke="rgba(34,211,238,0.22)" stroke-width="1"/>
-            <!-- Луч -->
-            <line x1="12" y1="12" x2="20.5" y2="7.5"
-              stroke="rgba(34,211,238,0.8)" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
+          <span class="mission-symbol mission-symbol-mobile">!</span>
         </div>
 
         <!-- Обёртка для заголовочных текстов (нужна для flex на мобайле) -->
