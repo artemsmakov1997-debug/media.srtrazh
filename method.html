@@ -51,32 +51,6 @@
       padding: 0 20px 80px;
     }
 
-    /* ── HERO CANVAS ── */
-    .hero-canvas-section {
-      width: calc(100% + 40px);
-      margin: 0 -20px 52px;
-      height: 230px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-canvas-section::after {
-      content: "";
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 80px;
-      background: linear-gradient(to bottom, transparent, var(--bg-body));
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    #heroCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
     header {
       position: sticky;
       top: 0;
@@ -770,11 +744,6 @@
 
     /* ── MOBILE ── */
     @media (max-width: 767px) {
-      .hero-canvas-section {
-        width: calc(100% + 28px);
-        margin: 0 -14px 32px;
-        height: 170px;
-      }
 
       .container { padding: 0 14px 60px; }
       .section { margin-bottom: 40px; }
@@ -828,7 +797,6 @@
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
-      .hero-canvas-section { display: none; }
     }
 
 
@@ -1105,6 +1073,59 @@
       .scale-item { font-size: .82rem; }
     }
 
+  
+    /* Страница теперь начинается сразу с конвейера */
+    .container { padding-top: 34px; }
+
+    @media (max-width: 767px) {
+      .container { padding-top: 22px; }
+    }
+
+  
+    /* Расширенная библиотека приёмов */
+    .manip-grid {
+      gap: 11px;
+    }
+
+    .manip-card {
+      box-shadow: none;
+    }
+
+    .manip-card:hover {
+      box-shadow: none;
+    }
+
+    .manip-card-inner {
+      min-height: 132px;
+      padding: 16px 18px;
+    }
+
+    .manip-title {
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 767px) {
+      .manip-grid { gap: 8px; }
+      .manip-card-inner {
+        min-height: 0;
+        padding: 14px 14px;
+      }
+      .manip-preview {
+        line-height: 1.5;
+      }
+    }
+
+  
+    /* Пошаговая загрузка типов манипуляций */
+    .manip-card-hidden { display: none !important; }
+    .manip-load-more-wrap { display:flex; justify-content:center; margin-top:16px; }
+    .manip-load-more { min-height:42px; padding:0 18px; border-radius:999px; border:1px solid rgba(34,211,238,.36); background:rgba(15,23,42,.88); color:#dffbff; font-family:"Inter",sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:background .18s ease,border-color .18s ease; }
+    .manip-load-more:hover { border-color:rgba(34,211,238,.68); background:rgba(34,211,238,.08); }
+    .manip-load-more[hidden] { display:none !important; }
+    .modal-example-source { display:inline-flex; align-items:center; margin-bottom:8px; padding:5px 9px; border-radius:999px; border:1px solid rgba(51,65,85,.9); background:rgba(15,23,42,.85); color:#cbd5e1; font-size:.78rem; line-height:1.35; font-weight:600; }
+    .manip-card[role="button"]:focus-visible { outline:2px solid rgba(34,211,238,.72); outline-offset:2px; }
+    @media (max-width:767px) { .manip-load-more{width:100%;} .modal-example-source{font-size:.76rem;} }
+
   </style>
 </head>
 
@@ -1136,13 +1157,7 @@
 </header>
 
 <div class="container">
-
-  <!-- ── HERO CANVAS ── -->
-  <section class="hero-canvas-section" aria-hidden="true">
-    <canvas id="heroCanvas"></canvas>
-  </section>
-
-  <section class="section">
+<section class="section">
     <h2 class="section-title">КОНВЕЙЕР АНАЛИЗА <span class="accent">НОВОСТИ</span></h2>
     <div class="section-rule"></div>
 
@@ -1215,53 +1230,153 @@
     <div class="section-rule"></div>
 
     <div class="manip-grid" id="manipGrid">
-      <article class="manip-card" data-color="red" data-id="0">
+      <article class="manip-card" data-color="red" data-id="0" role="button" tabindex="0">
         <div class="manip-card-inner">
           <div class="manip-num">01</div>
           <div class="manip-info">
             <div class="manip-label">тип манипуляции</div>
-            <div class="manip-title">Страх, паника и ощущение неминуемой угрозы</div>
-            <div class="manip-preview">Слова «катастрофа», «обвалится всё», «уже завтра» усиливают тревогу и отключают рациональность.</div>
+            <div class="manip-title">Запугивание</div>
+            <div class="manip-preview">Текст усиливает страх, панику или ощущение неминуемой угрозы.</div>
           </div>
           <div class="manip-arrow">→</div>
         </div>
       </article>
 
-      <article class="manip-card" data-color="yellow" data-id="1">
+      <article class="manip-card" data-color="yellow" data-id="1" role="button" tabindex="0">
         <div class="manip-card-inner">
           <div class="manip-num">02</div>
           <div class="manip-info">
             <div class="manip-label">тип манипуляции</div>
-            <div class="manip-title">Эмоциональная подмена фактов</div>
-            <div class="manip-preview">Вместо факта — оценка. Мнение маскируется под очевидную истину.</div>
+            <div class="manip-title">Эмоциональная оценка</div>
+            <div class="manip-preview">Вместо нейтрального описания читателю сразу предлагают готовую эмоциональную оценку.</div>
           </div>
           <div class="manip-arrow">→</div>
         </div>
       </article>
 
-      <article class="manip-card" data-color="blue" data-id="2">
+      <article class="manip-card" data-color="red" data-id="2" role="button" tabindex="0">
         <div class="manip-card-inner">
           <div class="manip-num">03</div>
           <div class="manip-info">
             <div class="manip-label">тип манипуляции</div>
-            <div class="manip-title">Фрейминг и навязанная повестка</div>
-            <div class="manip-preview">Один и тот же факт подают как «успех», «провал» или «угрозу» — всё зависит от ракурса.</div>
+            <div class="manip-title">Образ врага</div>
+            <div class="manip-preview">Человека или группу представляют как источник угрозы и противопоставляют «нормальным» людям.</div>
           </div>
           <div class="manip-arrow">→</div>
         </div>
       </article>
 
-      <article class="manip-card" data-color="cyan" data-id="3">
+      <article class="manip-card" data-color="yellow" data-id="3" role="button" tabindex="0">
         <div class="manip-card-inner">
           <div class="manip-num">04</div>
           <div class="manip-info">
             <div class="manip-label">тип манипуляции</div>
-            <div class="manip-title">Псевдостатистика и «опросы без опросов»</div>
-            <div class="manip-preview">Цифры есть, но проверить их нельзя: нет методики, выборки, источника.</div>
+            <div class="manip-title">Преувеличение</div>
+            <div class="manip-preview">Масштаб события делают намного больше или меньше, чем позволяют факты.</div>
           </div>
           <div class="manip-arrow">→</div>
         </div>
       </article>
+
+      <article class="manip-card manip-card-hidden" data-color="cyan" data-id="4" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">05</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Обобщение</div>
+            <div class="manip-preview">Частный случай или мнение небольшой группы распространяют на «всех», «народ» или «большинство».</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="blue" data-id="5" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">06</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Ссылка на авторитет</div>
+            <div class="manip-preview">Статус известного человека используют вместо доказательств.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="cyan" data-id="6" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">07</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Размытый источник</div>
+            <div class="manip-preview">Сильное утверждение приписывают неназванным «экспертам», «источникам» или «аналитикам».</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="blue" data-id="7" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">08</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Выборочный контекст</div>
+            <div class="manip-preview">Показывают только удобные факты и ракурс, а важные детали оставляют за пределами материала.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="red" data-id="8" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">09</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Упрощение</div>
+            <div class="manip-preview">Сложную проблему объясняют одной причиной, одним виновником или слишком простой схемой.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="cyan" data-id="9" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">10</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Псевдостатистика</div>
+            <div class="manip-preview">Цифры и опросы создают впечатление точности, но проверить их происхождение невозможно.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="red" data-id="10" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">11</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Кликбейт</div>
+            <div class="manip-preview">Заголовок обещает сенсацию, угрозу или однозначный вывод, которого сам текст не подтверждает.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+
+      <article class="manip-card manip-card-hidden" data-color="yellow" data-id="11" role="button" tabindex="0">
+        <div class="manip-card-inner">
+          <div class="manip-num">12</div>
+          <div class="manip-info">
+            <div class="manip-label">тип манипуляции</div>
+            <div class="manip-title">Намёк без доказательств</div>
+            <div class="manip-preview">Подозрение создают вопросом или намёком, хотя прямых подтверждений в материале нет.</div>
+          </div>
+          <div class="manip-arrow">→</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="manip-load-more-wrap">
+      <button class="manip-load-more" id="manipLoadMore" type="button">Показать больше</button>
     </div>
   </section>
 
@@ -1283,7 +1398,8 @@
       <p class="modal-desc" id="manipModalDesc"></p>
       <div class="modal-signs-title">Признаки в тексте</div>
       <ul class="modal-signs" id="manipModalSigns"></ul>
-      <div class="modal-example-label">Пример заголовка</div>
+      <div class="modal-example-label">Пример сообщения</div>
+      <div class="modal-example-source" id="manipModalSource"></div>
       <div class="modal-example" id="manipModalExample"></div>
     </div>
   </div>
@@ -1507,22 +1623,66 @@
 
   /* ── Manip cards & modal ── */
   var manipData = [
-    { id:0, label:'тип 01', title:'Страх, паника и ощущение неминуемой угрозы',
-      desc:'Фокус — не на фактах, а на ощущении немедленной опасности. Такие тексты блокируют критическое мышление, включая инстинктивную реакцию.',
-      signs:['Гиперболы катастрофы — «обрушится», «рухнет», «конец близко»','Тайм-прессинг — «уже завтра», «прямо сейчас», «в любую минуту»','Обобщённая угроза — «все останутся без…», «страна на грани…»'],
-      example:'«Экономика рушится: эксперты предупреждают о коллапсе уже завтра»' },
-    { id:1, label:'тип 02', title:'Эмоциональная подмена фактов',
-      desc:'Мнение маскируется под факт через яркие прилагательные и моральные приговоры. Реальность подменяется авторской оценкой, упакованной как очевидная истина.',
-      signs:['Оценочные прилагательные — «позорный закон», «гениальное решение»','Скрытый субъект оценки — «все знают», «никого не удивляет»','Моральный приговор — «предатель», «герой» без контекста'],
-      example:'«Власти снова приняли позорный закон против обычных людей»' },
-    { id:2, label:'тип 03', title:'Фрейминг и навязанная повестка',
-      desc:'Выбор ракурса задаёт эмоцию и повестку вокруг события. Один и тот же факт можно подать как «успех», «провал» или «угрозу».',
-      signs:['Выбор выгодного ракурса — акцент только на удобных последствиях','Подмена темы — обсуждаются эмоции и конфликты вместо сути','Отбор акторов — одни герои звучат постоянно, другие исчезают'],
-      example:'«Жители возмущены…» вместо «10% опрошенных недовольны новым тарифом»' },
-    { id:3, label:'тип 04', title:'Псевдостатистика и «опросы без опросов»',
-      desc:'Цифры есть, но проверить их нельзя: нет методики, выборки, источника данных. Такой текст выглядит как доказательство, но им не является.',
-      signs:['«Большинство» без числа — «большинство россиян…», «почти все эксперты…»','Точные цифры без источника — «92% поддержали» без ссылки','Нечестные сравнения — несопоставимые периоды или выборки'],
-      example:'«90% жителей поддержали реформу, показал опрос» — без указания, кто и как опрашивал' },
+    { id:0, label:'тип 01', title:'Запугивание',
+      desc:'Запугивание строится на тревоге: событие подаётся так, будто опасность огромна, близка и требует немедленной реакции. Сам по себе тревожный факт не является манипуляцией — важна несоразмерность эмоционального давления реальным данным.',
+      signs:['Катастрофические формулировки без достаточных оснований','Искусственная срочность: «уже завтра», «немедленно», «пока не поздно»','Приписывание паники или страха большим группам людей'],
+      source:'«Городской вестник»',
+      example:'Жители в панике: город уже завтра может столкнуться с настоящей катастрофой. Эксперты предупреждают, что времени почти не осталось.' },
+    { id:1, label:'тип 02', title:'Эмоциональная оценка',
+      desc:'Здесь манипулятивность создают не страх или угроза, а оценочные слова, которые заранее задают отношение к событию. Факт и мнение смешиваются так, что авторская оценка начинает выглядеть как объективное описание.',
+      signs:['«Позорный», «гениальный», «чудовищный», «скандальный» без объяснения','Мнение автора подаётся как очевидный факт','Эмоциональная характеристика заменяет конкретное описание события'],
+      source:'«Новости сегодня»',
+      example:'Власти приняли очередное позорное решение, которое окончательно показало неспособность чиновников услышать людей.' },
+    { id:2, label:'тип 03', title:'Образ врага',
+      desc:'Образ врага упрощает конфликт до схемы «мы против них». Группе приписываются единые намерения, опасные качества или ответственность за проблему, а различия внутри неё исчезают.',
+      signs:['Группа описывается как единый источник опасности','Используются уничижительные или обвиняющие ярлыки','Ответственность отдельных людей переносится на всю группу'],
+      source:'«Северная лента»',
+      example:'Паникёры снова пытаются раскачать ситуацию и лишить обычных граждан чувства безопасности.' },
+    { id:3, label:'тип 04', title:'Преувеличение',
+      desc:'Преувеличение меняет ощущение масштаба события. Небольшое изменение может называться «крахом», отдельный случай — «массовым явлением», а серьёзная проблема, наоборот, уменьшаться до «незначительного эпизода».',
+      signs:['Сильные слова не соответствуют приведённым данным','Единичный случай превращается в массовую тенденцию','Последствия описываются значительно сильнее, чем подтверждают факты'],
+      source:'«Факт 24»',
+      example:'Рынок полностью обвалился после нового решения. При этом в самом материале говорится о снижении показателя на несколько процентов.' },
+    { id:4, label:'тип 05', title:'Обобщение',
+      desc:'Обобщение создаёт впечатление широкой поддержки, недовольства или единого мнения там, где данных для такого вывода недостаточно.',
+      signs:['«Все знают», «никто не сомневается», «народ требует»','«Большинство» без понятного источника или числа','Вывод о большой группе делается по нескольким примерам'],
+      source:'«Город Online»',
+      example:'Горожане отвергли новую транспортную схему и требуют вернуть прежние правила. В материале приведены мнения трёх жителей.' },
+    { id:5, label:'тип 06', title:'Ссылка на авторитет',
+      desc:'Авторитетный источник может быть полезен, если говорит в своей области и приводит основания. Манипуляция возникает, когда имя или статус должны сами по себе убедить читателя.',
+      signs:['Известность человека подменяет аргументы','Спикер выступает за пределами своей компетенции','Вывод объявляется верным только потому, что его поддержал авторитет'],
+      source:'«Панорама дня»',
+      example:'Известный телеведущий подтвердил, что новая медицинская методика действительно эффективна, поэтому сомневаться в ней больше не приходится.' },
+    { id:6, label:'тип 07', title:'Размытый источник',
+      desc:'Анонимные источники сами по себе не делают материал манипулятивным. Система отмечает ситуацию, когда важный вывод опирается на источник, о котором читателю почти ничего не известно и чью компетентность нельзя оценить.',
+      signs:['«Эксперты считают» без имён и организаций','«Источник сообщил» без объяснения его связи с темой','Непонятно, где заканчиваются слова источника и начинается вывод автора'],
+      source:'«Деловой сигнал»',
+      example:'Эксперты предупреждают о скором кризисе в отрасли. По словам источников, последствия могут оказаться серьёзнее, чем принято считать.' },
+    { id:7, label:'тип 08', title:'Выборочный контекст',
+      desc:'Даже достоверные факты могут создавать искажённую картину, если выбрать только часть данных. Этот тип объединяет выборочный отбор фактов и навязанный ракурс: система ищет случаи, когда вывод сильно зависит от того, что показали, а что не показали.',
+      signs:['Приводятся только данные, поддерживающие одну сторону','Важная оговорка или контраргумент отсутствуют либо спрятаны','Заголовок и акценты задают более однозначную картину, чем сам материал'],
+      source:'«Новый ракурс»',
+      example:'Продажи компании выросли второй год подряд, сообщает издание. При этом в публикации не упоминается, что прибыль компании за тот же период заметно снизилась.' },
+    { id:8, label:'тип 09', title:'Упрощение',
+      desc:'Общественные, экономические и политические процессы обычно зависят от нескольких факторов. Упрощение сводит сложное событие к одной причине и создаёт впечатление, что объяснение уже найдено.',
+      signs:['Один фактор объявляется главной причиной без сравнения с другими','После события значит из-за события','Большая проблема объясняется действиями одного человека или одной группы'],
+      source:'«Экономика сейчас»',
+      example:'После принятия нового закона жители начали массово беднеть. Именно это решение стало причиной падения уровня жизни.' },
+    { id:9, label:'тип 10', title:'Псевдостатистика',
+      desc:'Цифры особенно убедительны, поэтому система отдельно проверяет, есть ли источник, выборка, период и база для сравнения. Проблема не в самой статистике, а в том, что она выглядит точной без возможности проверить расчёт.',
+      signs:['Точные проценты без ссылки на исследование','Опрос без размера и состава выборки','Проценты используются без исходного числа или корректной базы сравнения'],
+      source:'«Общественный монитор»',
+      example:'92% жителей полностью поддержали реформу, показал новый опрос. Кто проводил исследование и сколько человек участвовало, не уточняется.' },
+    { id:10, label:'тип 11', title:'Кликбейт',
+      desc:'Кликбейт рассчитан прежде всего на открытие материала. Система сравнивает силу утверждения в заголовке с тем, что действительно говорится в тексте.',
+      signs:['Заголовок значительно категоричнее содержания','Вопрос в заголовке намекает на обвинение без доказательств','Ключевая оговорка появляется только внутри текста'],
+      source:'«Мегаполис News»',
+      example:'Учёные доказали: популярный продукт разрушает здоровье. В тексте уточняется, что исследование обнаружило лишь возможную связь на небольшой выборке.' },
+    { id:11, label:'тип 12', title:'Намёк без доказательств',
+      desc:'Иногда автору не нужно делать прямое обвинение: достаточно сформулировать подозрение так, чтобы оно осталось у читателя. Система отмечает вопросы и намёки, которые создают сильный вывод без фактической основы.',
+      signs:['«Неужели им есть что скрывать?»','«Совпадение?» после двух событий без доказанной связи','Обвинительный смысл передаётся вопросом вместо проверяемого утверждения'],
+      source:'«Вечерний обзор»',
+      example:'Почему руководство компании молчит уже третий день? Неужели ему есть что скрывать от клиентов?' }
   ];
 
   var manipModal = document.getElementById('manipModal');
@@ -1534,6 +1694,7 @@
     document.getElementById('manipModalLabel').textContent   = d.label;
     document.getElementById('manipModalTitle').textContent   = d.title;
     document.getElementById('manipModalDesc').textContent    = d.desc;
+    document.getElementById('manipModalSource').textContent  = 'Источник: ' + d.source;
     document.getElementById('manipModalExample').textContent = d.example;
     document.getElementById('manipModalSigns').innerHTML     = d.signs.map(function (s) { return '<li>' + escHtml(s) + '</li>'; }).join('');
     manipModal.classList.add('open');
@@ -1548,9 +1709,33 @@
     document.body.style.overflow = '';
   }
 
-  document.querySelectorAll('.manip-card').forEach(function (card) {
-    card.addEventListener('click', function () { openManipModal(+card.dataset.id); });
+  var manipCards = Array.from(document.querySelectorAll('.manip-card'));
+  var manipLoadMore = document.getElementById('manipLoadMore');
+  var visibleManipCount = 4;
+
+  function syncManipVisibility() {
+    manipCards.forEach(function (card, index) {
+      card.classList.toggle('manip-card-hidden', index >= visibleManipCount);
+    });
+    if (manipLoadMore) manipLoadMore.hidden = visibleManipCount >= manipCards.length;
+  }
+
+  manipCards.forEach(function (card) {
+    function openCard() { openManipModal(+card.dataset.id); }
+    card.addEventListener('click', openCard);
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(); }
+    });
   });
+
+  if (manipLoadMore) {
+    manipLoadMore.addEventListener('click', function () {
+      visibleManipCount = Math.min(visibleManipCount + 4, manipCards.length);
+      syncManipVisibility();
+    });
+  }
+
+  syncManipVisibility();
   mClose.addEventListener('click', closeManipModal);
   manipModal.addEventListener('click', function (e) { if (e.target === manipModal) closeManipModal(); });
 
@@ -1624,458 +1809,6 @@
       }
     }
   });
-
-  /* ══════════════════════════════════════════════
-     HERO CANVAS ANIMATION — stable labels + adaptive hub text
-  ══════════════════════════════════════════════ */
-  (function () {
-    var canvas = document.getElementById('heroCanvas');
-    if (!canvas) return;
-
-    var ctx = canvas.getContext('2d');
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (reduceMotion) return;
-
-    function W() { return canvas.offsetWidth || 1; }
-    function H() { return canvas.offsetHeight || 1; }
-    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-    function lerp(a, b, t) { return a + (b - a) * t; }
-
-    function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width  = Math.max(1, Math.round(W() * dpr));
-      canvas.height = Math.max(1, Math.round(H() * dpr));
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
-    }
-
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(resize).observe(canvas);
-    } else {
-      window.addEventListener('resize', resize);
-    }
-    resize();
-
-    var LABELS = [
-      'КронНьюс','ФорсажТВ','ИнфоЛуч','ГрадусДня','РадарМедиа','ВидеоФакт',
-      'СигналНОВА','КомпасВест','ЭфирПлюс','СеверПульс','НовостьПРО','АтласМедиа',
-      'ПрессОкно','ЛентаПрайм','ЗенитИнфо','ПиксельНЬЮС','ВесторТВ','ПрямойЭфир',
-      'МеридианТВ','ВолнаИнфо','ДаймондТВ','ОрбитаНЬЮС'
-    ];
-
-    var COLORS = [
-      '#ef4444','#eab308','#f97316',
-      '#a855f7','#22c55e','#22d3ee',
-      '#e879f9','#38bdf8','#fb923c'
-    ];
-
-    var HUB = 0;
-    var NODE_COUNT = 22;
-    var nodes = [];
-    var signals = [];
-    var fireTimer = 0;
-    var frame = 0;
-
-    /*
-      Важно: подписи больше НЕ выбираются заново каждый кадр.
-      Именно из-за постоянного пересчёта collision-check они дёргались и мелькали.
-      Теперь есть фиксированный набор подписанных точек для каждого размера экрана.
-    */
-    var LABEL_NODE_SETS = {
-      mobile:  [1, 4, 7, 10, 12],
-      tablet:  [1, 3, 5, 7, 9, 11, 13, 16],
-      desktop: [1, 2, 4, 5, 7, 9, 11, 13, 15, 17, 19, 21]
-    };
-
-    function parseHex(hex) {
-      return [
-        parseInt(hex.slice(1, 3), 16),
-        parseInt(hex.slice(3, 5), 16),
-        parseInt(hex.slice(5, 7), 16)
-      ];
-    }
-
-    function compactLabel(label, maxChars) {
-      label = String(label || '');
-      if (label.length <= maxChars) return label;
-      return label.slice(0, Math.max(1, maxChars - 1)) + '…';
-    }
-
-    function profile() {
-      var w = W();
-      var h = H();
-      var isMobile = w < 520;
-      var isTablet = w >= 520 && w < 900;
-
-      return {
-        mode: isMobile ? 'mobile' : (isTablet ? 'tablet' : 'desktop'),
-        isMobile: isMobile,
-        isTablet: isTablet,
-        activeCount: isMobile ? 13 : (isTablet ? 17 : 22),
-        hubR: isMobile ? clamp(Math.min(w, h) * 0.102, 15, 18) : clamp(Math.min(w, h) * 0.105, 20, 24),
-        grid: isMobile ? 40 : 34,
-        connectDist: isMobile ? 155 : (isTablet ? 235 : 330),
-        labelFont: isMobile ? 8 : 9,
-        labelMaxChars: isMobile ? 8 : (isTablet ? 11 : 13),
-        labelPadX: isMobile ? 5 : 6,
-        labelPadY: isMobile ? 3 : 4,
-        labelGap: isMobile ? 7 : 9,
-        textAlpha: isMobile ? 0.58 : 0.64,
-        labelEase: isMobile ? 0.055 : 0.07
-      };
-    }
-
-    function makeNode(i) {
-      if (i === HUB) {
-        return {
-          x: 0.5, y: 0.5, vx: 0, vy: 0,
-          r: 22, label: 'АНАЛИЗ', shortLabel: 'АНАЛИЗ', color: '#22d3ee',
-          alpha: 1, pulse: 0, pspd: 0.018, firing: false, fireT: 0,
-          labelBox: null
-        };
-      }
-
-      var ring = i % 3;
-      var angle = -Math.PI / 2 + i * 2.399963229728653 + ring * 0.22;
-      var rx = [0.23, 0.34, 0.45][ring] + (Math.random() - 0.5) * 0.025;
-      var ry = [0.19, 0.29, 0.38][ring] + (Math.random() - 0.5) * 0.025;
-      var x = 0.5 + Math.cos(angle) * rx;
-      var y = 0.5 + Math.sin(angle) * ry;
-
-      x = clamp(x, 0.055, 0.945);
-      y = clamp(y, 0.09, 0.90);
-
-      var label = LABELS[(i - 1) % LABELS.length];
-      var labelAngle = Math.atan2(y - 0.5, x - 0.5);
-
-      return {
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 0.000045,
-        vy: (Math.random() - 0.5) * 0.000045,
-        r: 3.8 + Math.random() * 5.2,
-        label: label,
-        shortLabel: compactLabel(label, 8),
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        alpha: 0.48 + Math.random() * 0.42,
-        pulse: Math.random() * Math.PI * 2,
-        pspd: 0.012 + Math.random() * 0.014,
-        firing: false,
-        fireT: 0,
-        labelAngle: labelAngle,
-        labelBox: null
-      };
-    }
-
-    for (var i = 0; i < NODE_COUNT; i++) nodes.push(makeNode(i));
-
-    function getActiveNodeIndex(p) {
-      return 1 + Math.floor(Math.random() * Math.max(1, p.activeCount - 1));
-    }
-
-    function spawnSignal(srcIdx) {
-      var s = nodes[srcIdx];
-      var d = nodes[HUB];
-      if (!s || srcIdx === HUB) return;
-
-      signals.push({
-        x: s.x,
-        y: s.y,
-        tx: d.x,
-        ty: d.y,
-        progress: 0,
-        speed: 0.007 + Math.random() * 0.008,
-        rgb: parseHex(s.color),
-        size: 2 + Math.random() * 2.2
-      });
-
-      s.firing = true;
-      s.fireT = 42;
-    }
-
-    function roundRect(ctx, x, y, w, h, r) {
-      r = Math.min(r, w / 2, h / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
-    }
-
-    function drawGrid(w, h, p) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(34,211,238,0.030)';
-      ctx.lineWidth = 0.5;
-
-      for (var gx = 0; gx < w; gx += p.grid) {
-        ctx.beginPath();
-        ctx.moveTo(gx, 0);
-        ctx.lineTo(gx, h);
-        ctx.stroke();
-      }
-
-      for (var gy = 0; gy < h; gy += p.grid) {
-        ctx.beginPath();
-        ctx.moveTo(0, gy);
-        ctx.lineTo(w, gy);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    function updateNode(nd, p) {
-      nd.x += nd.vx;
-      nd.y += nd.vy;
-
-      var minX = p.isMobile ? 0.06 : 0.035;
-      var maxX = p.isMobile ? 0.94 : 0.965;
-      var minY = p.isMobile ? 0.11 : 0.055;
-      var maxY = p.isMobile ? 0.86 : 0.92;
-
-      if (nd.x < minX || nd.x > maxX) {
-        nd.x = clamp(nd.x, minX, maxX);
-        nd.vx *= -1;
-      }
-
-      if (nd.y < minY || nd.y > maxY) {
-        nd.y = clamp(nd.y, minY, maxY);
-        nd.vy *= -1;
-      }
-
-      nd.pulse += nd.pspd;
-      if (nd.fireT > 0) nd.fireT--;
-      else nd.firing = false;
-    }
-
-    function isLabelNode(index, p) {
-      var set = LABEL_NODE_SETS[p.mode] || LABEL_NODE_SETS.desktop;
-      return set.indexOf(index) !== -1 && index < p.activeCount;
-    }
-
-    function drawStableNodeLabel(nd, index, x, y, cx, cy, p) {
-      if (!isLabelNode(index, p)) return;
-
-      var text = p.isMobile ? nd.shortLabel : compactLabel(nd.label, p.labelMaxChars);
-      ctx.font = '700 ' + p.labelFont + 'px Montserrat, Inter, sans-serif';
-
-      var tw = ctx.measureText(text).width;
-      var bw = Math.ceil(tw + p.labelPadX * 2);
-      var bh = Math.ceil(p.labelFont + p.labelPadY * 2 + 2);
-
-      var dirX = Math.cos(nd.labelAngle);
-      var dirY = Math.sin(nd.labelAngle);
-      var safeHub = p.hubR * (p.isMobile ? 2.95 : 2.28);
-      var distanceFromPoint = nd.r + p.labelGap;
-
-      var tx = x + dirX * (distanceFromPoint + bw * 0.46);
-      var ty = y + dirY * (distanceFromPoint + bh * 0.78);
-
-      /* Если подпись оказалась слишком близко к центру — мягко выталкиваем её наружу. */
-      var fromHub = Math.hypot(tx - cx, ty - cy);
-      if (fromHub < safeHub) {
-        tx = cx + dirX * safeHub;
-        ty = cy + dirY * safeHub;
-      }
-
-      tx = clamp(tx, bw / 2 + 4, W() - bw / 2 - 4);
-      ty = clamp(ty, bh / 2 + 4, H() - bh / 2 - 4);
-
-      if (!nd.labelBox) {
-        nd.labelBox = { x: tx, y: ty, w: bw, h: bh };
-      } else {
-        nd.labelBox.x += (tx - nd.labelBox.x) * p.labelEase;
-        nd.labelBox.y += (ty - nd.labelBox.y) * p.labelEase;
-        nd.labelBox.w += (bw - nd.labelBox.w) * 0.16;
-        nd.labelBox.h += (bh - nd.labelBox.h) * 0.16;
-      }
-
-      var boxX = Math.round(nd.labelBox.x - nd.labelBox.w / 2);
-      var boxY = Math.round(nd.labelBox.y - nd.labelBox.h / 2);
-      var boxW = Math.round(nd.labelBox.w);
-      var boxH = Math.round(nd.labelBox.h);
-
-      ctx.save();
-      roundRect(ctx, boxX, boxY, boxW, boxH, 7);
-      ctx.fillStyle = 'rgba(2,6,23,0.38)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(148,163,184,0.09)';
-      ctx.lineWidth = 0.7;
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(229,231,235,' + p.textAlpha + ')';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, boxX + boxW / 2, boxY + boxH / 2 + 0.4);
-      ctx.restore();
-    }
-
-    function drawHubLabel(label, x, y, radius) {
-      var maxWidth = radius * 1.55;
-      var fontSize = clamp(radius * 0.43, 6.4, 11.2);
-
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      while (fontSize > 6) {
-        ctx.font = '900 ' + fontSize.toFixed(2) + 'px Montserrat, Inter, sans-serif';
-        if (ctx.measureText(label).width <= maxWidth) break;
-        fontSize -= 0.35;
-      }
-
-      ctx.fillStyle = '#021018';
-      ctx.shadowColor = 'rgba(255,255,255,0.22)';
-      ctx.shadowBlur = 2;
-      ctx.fillText(label, x, y + 0.3);
-      ctx.restore();
-    }
-
-    function draw() {
-      var w = W();
-      var h = H();
-      var p = profile();
-      var hub = nodes[HUB];
-      var cx = hub.x * w;
-      var cy = hub.y * h;
-
-      frame++;
-      ctx.clearRect(0, 0, w, h);
-      drawGrid(w, h, p);
-
-      fireTimer++;
-      if (fireTimer % (p.isMobile ? 64 : 52) === 0) {
-        spawnSignal(getActiveNodeIndex(p));
-      }
-
-      /* Рёбра + плавное движение точек. */
-      for (var i = 1; i < p.activeCount; i++) {
-        var n = nodes[i];
-        updateNode(n, p);
-
-        var nx = n.x * w;
-        var ny = n.y * h;
-        var dist = Math.hypot(nx - cx, ny - cy);
-
-        if (dist < p.connectDist) {
-          ctx.save();
-          ctx.strokeStyle = 'rgba(34,211,238,' + (Math.max(0, (1 - dist / p.connectDist)) * 0.095) + ')';
-          ctx.lineWidth = 0.5;
-          ctx.setLineDash([3, 7]);
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(nx, ny);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
-      /* Сигналы к центру. */
-      for (var si = signals.length - 1; si >= 0; si--) {
-        var sg = signals[si];
-        sg.progress = Math.min(1, sg.progress + sg.speed);
-
-        var sx = lerp(sg.x, sg.tx, sg.progress) * w;
-        var sy = lerp(sg.y, sg.ty, sg.progress) * h;
-        var rgb = sg.rgb;
-
-        for (var t = 0; t < 8; t++) {
-          var tp = Math.max(0, sg.progress - t * 0.022);
-          var tx2 = lerp(sg.x, sg.tx, tp) * w;
-          var ty2 = lerp(sg.y, sg.ty, tp) * h;
-
-          ctx.beginPath();
-          ctx.arc(tx2, ty2, sg.size * (1 - t / 8) * 0.85, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.44 * (1 - t / 8)) + ')';
-          ctx.fill();
-        }
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(sx, sy, sg.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',1)';
-        ctx.shadowColor = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.restore();
-
-        if (sg.progress >= 1) signals.splice(si, 1);
-      }
-
-      /* Узлы. */
-      for (var j = 1; j < p.activeCount; j++) {
-        var nd = nodes[j];
-        var ndx = nd.x * w;
-        var ndy = nd.y * h;
-        var rgb2 = parseHex(nd.color);
-        var pa = nd.alpha * (0.62 + 0.38 * Math.sin(nd.pulse));
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(ndx, ndy, nd.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + rgb2[0] + ',' + rgb2[1] + ',' + rgb2[2] + ',' + pa + ')';
-        ctx.shadowColor = nd.color;
-        ctx.shadowBlur = nd.firing ? 15 : 5;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = 'rgba(' + rgb2[0] + ',' + rgb2[1] + ',' + rgb2[2] + ',0.50)';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      /* Центральный хаб. */
-      var ps = 1 + 0.085 * Math.sin(frame * 0.034);
-      var hubR = p.hubR;
-      var hubRgb = parseHex(hub.color);
-      var ringScales = p.isMobile ? [2.55, 1.82, 1.05] : [3.3, 2.16, 1.15];
-      var ringAlphas = [0.08, 0.16, 0.28];
-
-      for (var ri = 0; ri < ringScales.length; ri++) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, hubR * ps * ringScales[ri], 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(' + hubRgb[0] + ',' + hubRgb[1] + ',' + hubRgb[2] + ',' + ringAlphas[ri] + ')';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, hubR * ps, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + hubRgb[0] + ',' + hubRgb[1] + ',' + hubRgb[2] + ',0.95)';
-      ctx.shadowColor = hub.color;
-      ctx.shadowBlur = p.isMobile ? 18 : 22;
-      ctx.fill();
-      ctx.restore();
-
-      drawHubLabel(hub.label, cx, cy, hubR * ps);
-
-      /* Подписи: постоянные, плавно приклеенные к своим точкам. Без мелькания. */
-      for (var li = 1; li < p.activeCount; li++) {
-        var item = nodes[li];
-        drawStableNodeLabel(item, li, item.x * w, item.y * h, cx, cy, p);
-      }
-
-      requestAnimationFrame(draw);
-    }
-
-    setTimeout(function () {
-      for (var k = 0; k < 5; k++) {
-        (function (idx) {
-          setTimeout(function () {
-            spawnSignal(getActiveNodeIndex(profile()));
-          }, idx * 320);
-        })(k);
-      }
-    }, 150);
-
-    requestAnimationFrame(draw);
-  })();
-
 </script>
 
 </body>
