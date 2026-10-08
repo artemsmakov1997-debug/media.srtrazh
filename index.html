@@ -581,6 +581,42 @@
       }
     }
 
+  
+    /* ══ APPEAL STRIP ══ */
+    .rating-appeal-strip {
+      margin-top: 18px;
+      padding: 12px 16px;
+      border: 1px solid rgba(51,65,85,.72);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(12,18,32,.82), rgba(7,12,24,.82));
+      color: var(--text-secondary);
+      font-size: .94rem;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .rating-appeal-strip a {
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(34,211,238,.42);
+      transition: color .15s ease, border-color .15s ease;
+    }
+
+    .rating-appeal-strip a:hover {
+      color: #67e8f9;
+      border-color: rgba(103,232,249,.75);
+    }
+
+    @media (max-width: 767px) {
+      .rating-appeal-strip {
+        margin-top: 14px;
+        padding: 12px 14px;
+        font-size: .9rem;
+        text-align: left;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -642,6 +678,11 @@
       </div>
       <button class="full-list-button full-list-button-mobile show-full-list-trigger" type="button">Показать полный список</button>
     </section>
+
+    <div class="rating-appeal-strip">
+      Если вы представляете издание и не согласны с его позицией в рейтинге,
+      вы можете направить <a href="#appeal" id="appealLink">апелляцию</a>.
+    </div>
   </main>
 
   <footer>© 2025 Проект «МЕДИА.СТРАЖ»</footer>
@@ -932,6 +973,13 @@
     showFullListBtns.forEach(btn => btn.addEventListener("click", openModal));
     fullListCloseBtn.addEventListener("click", closeModal);
     fullListModal.addEventListener("click", e => { if (e.target===fullListModal) closeModal(); });
+
+    const appealLink = document.getElementById("appealLink");
+    if (appealLink) {
+      appealLink.addEventListener("click", (e) => {
+        e.preventDefault();
+      });
+    }
 
     /* ── Burger ── */
     if (burgerBtn && navLinks) {
