@@ -1126,6 +1126,89 @@
     .manip-card[role="button"]:focus-visible { outline:2px solid rgba(34,211,238,.72); outline-offset:2px; }
     @media (max-width:767px) { .manip-load-more{width:100%;} .modal-example-source{font-size:.76rem;} }
 
+  
+    /* ═════════ SECTION BACKGROUNDS — in the visual language of Archive ═════════ */
+    .section {
+      position: relative;
+      margin-bottom: 26px;
+      padding: 22px 22px 24px;
+      border: 1px solid rgba(31,41,55,.90);
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(12,18,32,.92), rgba(6,10,18,.92));
+      box-shadow: 0 14px 34px rgba(0,0,0,.28);
+      overflow: visible;
+    }
+
+    .section-title,
+    .section-rule,
+    .pipeline-grid,
+    .live-card,
+    .manip-grid,
+    .manip-load-more-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      margin-bottom: 10px;
+    }
+
+    .section-rule {
+      margin-bottom: 22px;
+      background: rgba(71,85,105,.52);
+    }
+
+    /* A slightly clearer reading surface inside the analysis example */
+    .live-card {
+      background: linear-gradient(145deg, rgba(9,14,24,.98), rgba(5,9,16,.98));
+      border-color: rgba(51,65,85,.86);
+      box-shadow: 0 16px 36px rgba(0,0,0,.32);
+    }
+
+    .live-body-text {
+      background: rgba(15,23,42,.58);
+      border-color: rgba(51,65,85,.78);
+    }
+
+    /* Keep cards distinct from the section background without extra glow */
+    .pipeline-card,
+    .manip-card {
+      box-shadow: 0 8px 20px rgba(0,0,0,.24);
+    }
+
+    .pipeline-card:hover,
+    .pipeline-card.is-active,
+    .manip-card:hover {
+      box-shadow: 0 10px 24px rgba(0,0,0,.30);
+    }
+
+    @media (max-width: 767px) {
+      .container {
+        padding-top: 16px;
+      }
+
+      .section {
+        margin-bottom: 16px;
+        padding: 16px 14px 17px;
+        border-radius: 18px;
+      }
+
+      .section-title {
+        margin-bottom: 8px;
+      }
+
+      .section-rule {
+        margin-bottom: 16px;
+      }
+
+      .pipeline-card,
+      .manip-card,
+      .live-card {
+        box-shadow: none;
+      }
+    }
+
   </style>
 </head>
 
