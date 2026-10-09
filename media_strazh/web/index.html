@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>МЕДИА.СТРАЖ — Разбор публикации</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0c1422; color: #edf1f7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { max-width: 1000px; margin: auto; padding: 32px 20px; }
+  h1 { font-size: clamp(26px, 5vw, 40px); margin: 12px 0; }
+  h2 { font-size: 23px; }
+  p { line-height: 1.6; }
+  .brand { color: #5cdbed; font-weight: 750; letter-spacing: .06em; }
+  a { color: #5cdbed; }
+  .muted { color: #b1bfd0; }
+  form, .finding, .document { background: #131f31; border: 1px solid #30405a; border-radius: 12px; padding: 20px; margin-top: 20px; }
+  label { display: block; font-weight: 600; margin: 0 0 8px; }
+  input, textarea { width: 100%; color: inherit; background: #0c1422; border: 1px solid #52647d; border-radius: 6px; padding: 12px; font: inherit; margin-bottom: 18px; }
+  textarea { min-height: 230px; resize: vertical; }
+  button { cursor: pointer; border: 0; border-radius: 7px; padding: 12px 20px; font: inherit; font-weight: 650; background: #5cdbed; color: #07151a; }
+  button:disabled { opacity: .5; cursor: wait; }
+  #download { background: #263b55; color: #edf1f7; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  #error { color: #ffb4ad; }
+  .badge { display: inline-block; background: #273951; padding: 4px 9px; border-radius: 5px; font-size: 13px; }
+  .excerpt, .original { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+  mark { background: #f7d684; color: #182032; border-radius: 3px; padding: 1px 2px; }
+  .finding h3 { margin: 8px 0; }
+  details { margin-top: 20px; }
+  summary { cursor: pointer; }
+  :focus-visible { outline: 2px solid #f7d684; outline-offset: 3px; }
+</style>
+<main>
+  <div class="brand">МЕДИА.СТРАЖ</div>
+  <p><a href="/articles">Собранные публикации →</a></p>
+  <h1>Разбор публикации</h1>
+  <p class="muted">Вставьте заголовок и текст русскоязычной новости. Анализатор выделит признаки, которые стоит проверить по контексту и источникам.</p>
+  <form id="form">
+    <label for="title">Заголовок</label>
+    <input id="title" name="title" maxlength="10000" autocomplete="off">
+    <label for="text">Текст публикации</label>
+    <textarea id="text" name="text" required maxlength="190000" placeholder="Вставьте полный текст статьи…"></textarea>
+    <div class="actions"><button id="submit" type="submit">Проанализировать</button><span id="state" role="status" aria-live="polite"></span></div>
+    <p id="error" role="alert" hidden></p>
+  </form>
+  <section id="results" hidden aria-live="polite">
+    <h2>Результат разбора</h2>
+    <p id="publicationInfo" class="muted"></p>
+    <p id="summary"></p>
+    <p class="muted">Каждый результат — повод для проверки, а не доказательство манипуляции. Отсутствие результатов не означает, что статья нейтральна. Числовая оценка манипулятивности пока не рассчитывается.</p>
+    <div class="document"><h3>Заголовок</h3><div id="titleEvidence" class="original"></div><h3>Текст</h3><div id="textEvidence" class="original"></div></div>
+    <div id="findings"></div>
+    <details><summary>Какие приёмы проверены</summary><p id="coverage" class="muted"></p><p class="muted">Правила находят отдельные формулировки. Они не устанавливают ложность сведений, компетенцию источников или факты, пропущенные в статье. Распознавание цитат и отрицаний приблизительное.</p></details>
+    <p><button id="download" type="button">Скачать результат JSON</button></p>
+  </section>
+</main>
+<script>
+  const el = id => document.getElementById(id);
+  const statusLabels = {needs_review: 'Требует проверки', quoted_candidate: 'Цитата или переданная речь — проверьте атрибуцию', context_only: 'Отрицание или обсуждение формулировки'};
+  let currentResult = null;
+  function node(tag, text, className) {
+    const element = document.createElement(tag);
+    element.textContent = text;
+    if (className) element.className = className;
+    return element;
+  }
+  function highlight(container, text, ranges) {
+    // API offsets use Unicode code points; JS string offsets normally use UTF-16.
+    const characters = Array.from(text);
+    container.replaceChildren();
+    const sorted = ranges.map(r => [r.start, r.end]).sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const span of sorted) {
+      const previous = merged[merged.length - 1];
+      if (previous && span[0] <= previous[1]) previous[1] = Math.max(previous[1], span[1]);
+      else merged.push([...span]);
+    }
+    let cursor = 0;
+    for (const [start, end] of merged) {
+      container.append(document.createTextNode(characters.slice(cursor, start).join('')));
+      container.append(node('mark', characters.slice(start, end).join('')));
+      cursor = end;
+    }
+    container.append(document.createTextNode(characters.slice(cursor).join('')));
+  }
+  function render(result) {
+    const counts = result.summary;
+    el('summary').textContent = `Фрагментов для проверки: ${counts.review_fragments ?? counts.review_candidates}. Меток приёмов: ${counts.review_candidates}. В цитатах или переданной речи: ${counts.quoted_candidates}. В отрицании или обсуждении: ${counts.context_only}.` + (counts.findings_truncated ? ' Показаны первые 500 совпадений; сводка неполная.' : '');
+    for (const field of ['title', 'text']) {
+      const ranges = result.findings.flatMap(f => f.evidence.filter(e => e.field === field));
+      highlight(el(field + 'Evidence'), result.document[field], ranges);
+    }
+    el('findings').replaceChildren();
+    for (const finding of result.findings) {
+      const card = node('article', '', 'finding');
+      card.append(node('span', statusLabels[finding.status], 'badge'), node('h3', finding.label), node('p', finding.explanation));
+      for (const evidence of finding.evidence) {
+        card.append(node('p', evidence.field === 'title' ? 'Фрагмент заголовка' : 'Фрагмент текста', 'muted'));
+        const excerpt = node('div', '', 'excerpt');
+        highlight(excerpt, evidence.sentence.text, [{start: evidence.start - evidence.sentence.start, end: evidence.end - evidence.sentence.start}]);
+        card.append(excerpt);
+        if (evidence.sentence.truncated) card.append(node('p', 'Показан ограниченный фрагмент контекста.', 'muted'));
+      }
+      card.append(node('p', finding.review_question));
+      el('findings').append(card);
+    }
+    el('coverage').textContent = result.coverage.map(c => `${c.label}: ${c.coverage === 'candidate_rules' ? 'поиск признаков' : 'не проверяется'}`).join('; ') + '.';
+    el('results').hidden = false;
+  }
+  el('form').addEventListener('submit', async event => {
+    event.preventDefault();
+    el('submit').disabled = true;
+    el('error').hidden = true;
+    el('results').hidden = true;
+    el('publicationInfo').replaceChildren();
+    currentResult = null;
+    el('state').textContent = 'Анализируем…';
+    try {
+      const response = await fetch('/api/v1/analyze', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: el('title').value, text: el('text').value}), signal: AbortSignal.timeout(20000)});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Ошибка анализа.');
+      currentResult = result;
+      render(result);
+      el('state').textContent = 'Готово';
+    } catch (error) {
+      el('error').textContent = error.name === 'TimeoutError' ? 'Ответ не получен вовремя. Проверьте, запущен ли анализатор.' : error.message;
+      el('error').hidden = false;
+      el('state').textContent = '';
+    } finally { el('submit').disabled = false; }
+  });
+  el('download').addEventListener('click', () => {
+    if (!currentResult) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(currentResult, null, 2)], {type: 'application/json;charset=utf-8'}));
+    const anchor = document.createElement('a');
+    anchor.href = url; anchor.download = 'media-strazh-analysis.json'; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  async function loadStoredArticle() {
+    const id = new URLSearchParams(location.search).get('article');
+    if (!id) return;
+    if (!/^\d+$/.test(id)) { el('error').textContent = 'Некорректный идентификатор публикации.'; el('error').hidden = false; return; }
+    el('state').textContent = 'Загружаем публикацию…';
+    try {
+      const response = await fetch('/api/v1/articles/' + id, {signal: AbortSignal.timeout(15000)});
+      const article = await response.json();
+      if (!response.ok) throw new Error(article.error || 'Не удалось загрузить статью.');
+      el('title').value = article.document.title;
+      el('text').value = article.document.text;
+      if (!article.analysis) throw new Error('Для текущей версии алгоритма анализ ещё не сохранён. Текст доступен для разбора.');
+      currentResult = article.analysis;
+      render(currentResult);
+      const date = new Date(article.retrieved_at).toLocaleString('ru-RU', {timeZone: 'Europe/Moscow'});
+      el('publicationInfo').textContent = `${article.document.source} · Получено ${date} МСК · `;
+      const link = node('a', 'Оригинал публикации');
+      link.href = article.document.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      el('publicationInfo').append(link);
+      el('state').textContent = 'Сохранённый результат автоматического анализа';
+    } catch (error) {
+      el('error').textContent = error.message; el('error').hidden = false; el('state').textContent = '';
+    }
+  }
+  loadStoredArticle();
+</script>
+</html>
