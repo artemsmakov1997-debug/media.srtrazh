@@ -7,6 +7,7 @@ import sys
 from .analysis import analyze
 from .evaluation import evaluate
 from .publishing import build_site
+from .browser import DEFAULT_RUNTIME, prepare_runtime
 from .server import serve
 from .collector import collect_once, reanalyze_current, reextract_current, selected_sources, watch
 from .storage import DEFAULT_DB, Store, collection_lock, utcnow
@@ -50,6 +51,10 @@ def main():
     publish.add_argument("--db", type=Path, default=DEFAULT_DB)
     publish.add_argument("--output", type=Path, default=Path("_site"))
     publish.add_argument("--limit", type=int, default=30)
+    publish.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
+    browser = commands.add_parser("prepare-browser", help="Загрузить проверенный движок ручного анализа для сайта")
+    browser.add_argument("--output", type=Path, default=DEFAULT_RUNTIME)
+    browser.add_argument("--archive", type=Path, help="Проверенный архив npm для установки без повторной загрузки")
     reextract = commands.add_parser("reextract", help="Повторно извлечь текст из сохранённых HTML без загрузки сайтов")
     reextract.add_argument("--db", type=Path, default=DEFAULT_DB)
     reextract.add_argument("--source", action="append", choices=["rt", "tass", "ria"])
@@ -90,7 +95,9 @@ def main():
                 result = store.status()
         elif args.command == "build-site":
             with Store(args.db) as store:
-                result = build_site(store, args.output, args.limit)
+                result = build_site(store, args.output, args.limit, args.runtime_dir)
+        elif args.command == "prepare-browser":
+            result = prepare_runtime(args.output, args.archive)
         elif args.command in {"reextract", "reanalyze"}:
             with collection_lock(args.db), Store(args.db) as store:
                 result = (reextract_current if args.command == "reextract" else reanalyze_current)(store, args.source)

@@ -6,6 +6,7 @@ import shutil
 import tempfile
 
 from .analysis import VERSION, taxonomy
+from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
 from .sources import SOURCES, normalize_url
 from .storage import utcnow
 
@@ -67,7 +68,7 @@ def snapshot(store, limit=30):
         store.db.execute("RELEASE public_snapshot")
 
 
-def build_site(store, output, limit=30):
+def build_site(store, output, limit=30, runtime_dir=DEFAULT_RUNTIME):
     """Build only public root assets and selected report fields in a generated directory."""
     destination = Path(output).resolve()
     if destination == ROOT or ROOT.is_relative_to(destination):
@@ -78,7 +79,10 @@ def build_site(store, output, limit=30):
             raise ValueError("Внутри репозитория используйте каталог _site.")
     assets = [path for path in ROOT.iterdir() if path.is_file() and not path.is_symlink()
               and (path.suffix.lower() in STATIC_SUFFIXES or path.name in {"CNAME", "robots.txt"})]
-    allowed = {Path(path.name) for path in assets} | {Path("data/analysis.json")}
+    runtime = runtime_assets(runtime_dir)
+    runtime_paths = {Path("vendor/pyodide") / name for name in runtime}
+    allowed = {Path(path.name) for path in assets} | runtime_paths | {
+        Path("data/analysis.json"), Path("data/manual-engine.json")}
     if destination.exists():
         for path in destination.rglob("*"):
             if path.is_symlink() or (not path.is_dir() and path.relative_to(destination) not in allowed):
@@ -87,7 +91,17 @@ def build_site(store, output, limit=30):
     destination.mkdir(parents=True, exist_ok=True)
     for path in assets:
         shutil.copy2(path, destination / path.name)
-    report_path = destination / "data" / "analysis.json"
+    runtime_destination = destination / "vendor" / "pyodide"
+    runtime_destination.mkdir(parents=True, exist_ok=True)
+    for name, path in runtime.items():
+        shutil.copy2(path, runtime_destination / name)
+    _write_json(destination / "data" / "manual-engine.json", engine_bundle())
+    _write_json(destination / "data" / "analysis.json", report)
+    return {"output": str(destination), "totals": report["totals"],
+            "algorithm_version": report["algorithm_version"], "manual_analysis": True}
+
+
+def _write_json(report_path, report):
     report_path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
@@ -100,5 +114,3 @@ def build_site(store, output, limit=30):
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
-    return {"output": str(destination), "totals": report["totals"],
-            "algorithm_version": report["algorithm_version"]}

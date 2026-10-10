@@ -27,6 +27,8 @@ jobs:
           python-version: '3.12'
       - name: Test application
         run: python3 -m unittest discover -s tests -v
+      - name: Prepare verified browser runtime
+        run: python3 -m media_strazh prepare-browser
       - name: Collect a fresh, bounded sample
         shell: bash
         run: |
@@ -39,6 +41,14 @@ jobs:
           fi
       - name: Build public site
         run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 30
+      - name: Install browser test tools
+        if: github.event_name != 'schedule'
+        run: |
+          python3 -m pip install playwright==1.62.0
+          python3 -m playwright install --with-deps chromium
+      - name: Check browser analysis against Python
+        if: github.event_name != 'schedule'
+        run: python3 tests/browser_manual_check.py --site _site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site

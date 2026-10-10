@@ -1,0 +1,14 @@
+This site redistributes the unmodified Pyodide 0.29.3 browser runtime from
+the official npm package. Pyodide is distributed under MPL-2.0.
+The corresponding source code and notices are available at:
+https://github.com/pyodide/pyodide/tree/0.29.3
+
+Pyodide includes CPython and components with their own notices and licences.
+CPython licence information:
+https://docs.python.org/3.13/license.html
+Pyodide build recipes and dependency notices:
+https://github.com/pyodide/pyodide/tree/0.29.3
+
+Only the JavaScript loader, WebAssembly interpreter, standard library and
+runtime metadata are included. These files are not modified by this project.
+The article-analysis code is maintained separately in this repository.
