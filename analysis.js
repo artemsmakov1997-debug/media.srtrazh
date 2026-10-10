@@ -48,6 +48,19 @@ function excerpt(evidence) {
   return result;
 }
 
+function findingCard(finding) {
+  const card = node('section', '', 'finding');
+  card.append(node('p', statuses[finding.status] || finding.status, 'badge'));
+  card.append(node('h3', finding.label), node('p', finding.explanation));
+  for (const evidence of finding.evidence) {
+    card.append(node('p', evidence.field === 'title' ? 'Фрагмент заголовка' : 'Фрагмент текста', 'muted'));
+    card.append(excerpt(evidence));
+    if (evidence.sentence.truncated) card.append(node('p', 'Показан ограниченный фрагмент контекста.', 'muted'));
+  }
+  card.append(node('p', finding.review_question));
+  return card;
+}
+
 function render() {
   element('articles').replaceChildren();
   const selected = report.articles.filter(item =>
@@ -75,16 +88,7 @@ function render() {
         const details = document.createElement('details');
         details.append(node('summary', 'Посмотреть найденные фрагменты и объяснения'));
         for (const finding of item.findings) {
-          const card = node('section', '', 'finding');
-          card.append(node('p', statuses[finding.status] || finding.status, 'badge'));
-          card.append(node('h3', finding.label), node('p', finding.explanation));
-          for (const evidence of finding.evidence) {
-            card.append(node('p', evidence.field === 'title' ? 'Фрагмент заголовка' : 'Фрагмент текста', 'muted'));
-            card.append(excerpt(evidence));
-            if (evidence.sentence.truncated) card.append(node('p', 'Показан ограниченный фрагмент контекста.', 'muted'));
-          }
-          card.append(node('p', finding.review_question));
-          details.append(card);
+          details.append(findingCard(finding));
         }
         if (item.findings_omitted) details.append(node('p', 'Других меток в результате: ' + item.findings_omitted + '. Подборка ограничена.', 'muted'));
         article.append(details);

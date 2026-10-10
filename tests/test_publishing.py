@@ -11,6 +11,7 @@ from media_strazh.publishing import ROOT, build_site, snapshot
 from media_strazh.sources import SOURCES
 from media_strazh.storage import Store
 from test_collector import BODY, FakeNetwork, NOW, page
+from browser_fixtures import runtime_fixture
 
 
 class PublishingTests(unittest.TestCase):
@@ -20,6 +21,7 @@ class PublishingTests(unittest.TestCase):
         self.database = self.path / "corpus.sqlite3"
         self.store = Store(self.database)
         self.network = FakeNetwork()
+        self.runtime = runtime_fixture(self.path / "runtime")
 
     def tearDown(self):
         self.store.__exit__()
@@ -98,14 +100,14 @@ class PublishingTests(unittest.TestCase):
         previous = target / "data" / "analysis.json"
         previous.write_text('{"previous":"successful"}', encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "Нет публикаций"):
-            build_site(self.store, target)
+            build_site(self.store, target, runtime_dir=self.runtime)
         self.assertEqual(previous.read_text(), '{"previous":"successful"}')
         self.assertFalse((target / "index.html").exists())
 
-    def test_public_build_contains_site_assets_but_no_database_or_python(self):
+    def test_public_build_contains_site_assets_but_no_database_or_server_modules(self):
         self.collect()
         target = self.path / "site"
-        result = build_site(self.store, target)
+        result = build_site(self.store, target, runtime_dir=self.runtime)
         self.assertTrue((target / "analysis.html").is_file())
         self.assertTrue((target / "analysis.js").is_file())
         self.assertTrue((target / "index.html").is_file())
@@ -117,6 +119,19 @@ class PublishingTests(unittest.TestCase):
         self.assertFalse((target / ".git").exists())
         self.assertFalse((target / "exports").exists())
         self.assertFalse((target / "docs").exists())
+        engine = json.loads((target / "data/manual-engine.json").read_text())
+        self.assertEqual(set(engine["files"]), {"__init__.py", "analysis.py", "rules.py"})
+        self.assertEqual(engine["algorithm_version"], VERSION)
+        self.assertTrue((target / "vendor/pyodide/pyodide.asm.wasm").is_file())
+        self.assertTrue((target / "vendor/pyodide/LICENSE.txt").is_file())
+
+    def test_private_file_in_runtime_directory_is_not_copied(self):
+        self.collect()
+        (self.runtime / "corpus.sqlite3").write_text("private corpus")
+        target = self.path / "site"
+        build_site(self.store, target, runtime_dir=self.runtime)
+        self.assertFalse(any(target.rglob("*.sqlite3")))
+        build_site(self.store, target, runtime_dir=self.runtime)
 
     def test_site_builder_rejects_writing_over_repository(self):
         with self.assertRaises(ValueError):
@@ -131,7 +146,7 @@ class PublishingTests(unittest.TestCase):
         private = target / "corpus.sqlite3"
         private.write_text("retained private data")
         with self.assertRaisesRegex(ValueError, "посторонние файлы"):
-            build_site(self.store, target)
+            build_site(self.store, target, runtime_dir=self.runtime)
         self.assertEqual(private.read_text(), "retained private data")
         self.assertFalse((target / "index.html").exists())
 
@@ -143,7 +158,7 @@ class PublishingTests(unittest.TestCase):
         other.mkdir()
         (target / "data").symlink_to(other, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, "посторонние файлы"):
-            build_site(self.store, target)
+            build_site(self.store, target, runtime_dir=self.runtime)
         self.assertEqual(list(other.iterdir()), [])
 
     def test_unsafe_publisher_link_prevents_publication(self):
@@ -156,7 +171,7 @@ class PublishingTests(unittest.TestCase):
     def test_cli_builds_site_and_returns_failure_for_empty_corpus(self):
         self.collect()
         command = [sys.executable, "-m", "media_strazh", "build-site", "--db", str(self.database),
-                   "--output", str(self.path / "site")]
+                   "--output", str(self.path / "site"), "--runtime-dir", str(self.runtime)]
         result = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)["totals"]["analyzed"], 3)

@@ -36,8 +36,22 @@
     mark { color: #07151a; background: #5cdbed; }
     :focus-visible { outline: 2px solid #f7d684; outline-offset: 3px; }
     [hidden] { display: none !important; }
+    .manual { margin: 28px 0 36px; }
+    .manual-form, .manual-document { background: #131f31; border: 1px solid #30405a; border-radius: 12px; padding: 20px; }
+    .manual-form label { display: block; font-weight: 600; margin-bottom: 8px; }
+    .manual-form input, .manual-form textarea { width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid #52647d; border-radius: 6px; background: #0c1422; color: inherit; font: inherit; }
+    .manual-form textarea { min-height: 220px; resize: vertical; }
+    .manual-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .manual button { padding: 12px 18px; border: 1px solid transparent; border-radius: 7px; background: #5cdbed; color: #07151a; font: inherit; font-weight: 650; cursor: pointer; }
+    .manual button:disabled { opacity: .5; cursor: wait; }
+    .manual button.secondary { background: #263b55; color: #edf1f7; border-color: #52647d; }
+    .manual-document { margin: 20px 0; }
+    .manual-document .context { overflow-wrap: anywhere; max-height: 450px; overflow-y: auto; }
+    #manualFindings .finding { overflow-wrap: anywhere; }
+    #manualResultTitle:focus { outline: none; }
   </style>
   <script src="analysis.js" defer></script>
+  <script src="manual-analysis.js" defer></script>
 </head>
 <body>
 <main>
@@ -45,6 +59,39 @@
   <nav aria-label="Навигация"><a href="index.html">Главная</a><a href="method.html">Методика</a></nav>
   <h1>Анализ реальных публикаций</h1>
   <p class="notice">Программа выделяет признаки, которые нужно проверить по контексту и источникам. Находки не доказывают манипуляцию или ложность фактов. Отсутствие находок не означает нейтральность статьи.</p>
+  <section class="manual" aria-labelledby="manualHeading">
+    <h2 id="manualHeading">Анализировать новость вручную</h2>
+    <p class="muted">Вставьте заголовок и полный текст русскоязычной публикации. Анализ выполняется в вашем браузере: введённый текст не отправляется на сервер и не добавляется в общую подборку. Первый запуск может занять немного времени — браузер загрузит анализатор.</p>
+    <noscript><p class="error">Для ручного анализа включите JavaScript в браузере.</p></noscript>
+    <form id="manualForm" class="manual-form" autocomplete="off">
+      <label for="manualTitle">Заголовок — необязательно</label>
+      <input id="manualTitle" maxlength="200000" spellcheck="false">
+      <label for="manualText">Текст публикации</label>
+      <textarea id="manualText" required maxlength="200000" spellcheck="false" placeholder="Вставьте полный текст статьи…"></textarea>
+      <p class="muted">Заголовок и текст вместе — до 200 000 символов.</p>
+      <div class="manual-actions">
+        <button id="manualSubmit" type="submit">Проанализировать</button>
+        <button class="secondary" type="reset">Очистить</button>
+        <span id="manualState" role="status" aria-live="polite"></span>
+      </div>
+      <p id="manualError" class="error" role="alert" hidden></p>
+    </form>
+    <section id="manualResult" hidden aria-labelledby="manualResultTitle">
+      <h2 id="manualResultTitle" tabindex="-1">Результат ручного анализа</h2>
+      <p id="manualVersion" class="muted"></p>
+      <p id="manualSummary"></p>
+      <div id="manualWarnings"></div>
+      <details class="manual-document" open>
+        <summary>Заголовок и текст с выделенными фрагментами</summary>
+        <h3>Заголовок</h3><div id="manualTitleEvidence" class="context"></div>
+        <h3>Текст</h3><div id="manualTextEvidence" class="context"></div>
+      </details>
+      <div id="manualFindings"></div>
+      <details><summary>Охват ручного анализа</summary><p id="manualCoverage" class="muted"></p></details>
+      <p><button id="manualDownload" class="secondary" type="button">Скачать результат JSON</button></p>
+    </section>
+  </section>
+  <h2>Публикации, собранные автоматически</h2>
   <p id="updated" class="muted">Загружаем подборку…</p>
   <p id="totals" role="status" aria-live="polite"></p>
   <p id="error" class="error" role="alert" hidden></p>
