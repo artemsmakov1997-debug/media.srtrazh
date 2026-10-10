@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>МЕДИА.СТРАЖ — Собранные публикации</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0c1422; color: #edf1f7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { max-width: 1000px; margin: auto; padding: 32px 20px; }
+  h1 { font-size: clamp(26px, 5vw, 40px); }
+  p { line-height: 1.6; }
+  a { color: #5cdbed; }
+  .brand { color: #5cdbed; font-weight: 750; letter-spacing: .06em; }
+  .muted { color: #b1bfd0; }
+  .source, article { background: #131f31; border: 1px solid #30405a; border-radius: 12px; padding: 18px; margin: 16px 0; overflow-wrap: anywhere; }
+  .sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .source { margin: 0; }
+  select, button { border-radius: 7px; padding: 11px 16px; font: inherit; }
+  select { color: inherit; background: #0c1422; border: 1px solid #52647d; }
+  button { cursor: pointer; border: 0; background: #5cdbed; color: #07151a; font-weight: 650; }
+  button:disabled { opacity: .5; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0; }
+  .error { color: #ffb4ad; }
+  :focus-visible { outline: 2px solid #f7d684; outline-offset: 3px; }
+</style>
+<main>
+  <div class="brand">МЕДИА.СТРАЖ</div>
+  <p><a href="/">Вставить текст для разбора →</a></p>
+  <h1>Собранные публикации</h1>
+  <p class="muted">Новости RT, ТАСС и РИА Новости, полученные автоматическим сборщиком. Откройте публикацию, чтобы посмотреть найденные фрагменты и объяснения.</p>
+  <p id="totals" role="status" aria-live="polite">Загружаем состояние сбора…</p>
+  <div id="sources" class="sources"></div>
+  <div class="controls">
+    <label for="source">Источник</label>
+    <select id="source"><option value="">Все три</option><option value="rt">RT на русском</option><option value="tass">ТАСС</option><option value="ria">РИА Новости</option></select>
+    <button id="refresh" type="button">Обновить</button>
+  </div>
+  <p id="error" class="error" role="alert" hidden></p>
+  <div id="articles"></div>
+  <div class="controls"><button id="previous" type="button" disabled>Назад</button><span id="page"></span><button id="next" type="button" disabled>Далее</button></div>
+</main>
+<script>
+  const el = id => document.getElementById(id);
+  const labels = {rt: 'RT на русском', tass: 'ТАСС', ria: 'РИА Новости'};
+  const pageSize = 25;
+  let offset = 0;
+  function node(tag, text, className) {
+    const result = document.createElement(tag); result.textContent = text;
+    if (className) result.className = className;
+    return result;
+  }
+  function date(value) {
+    return value ? new Date(value).toLocaleString('ru-RU', {timeZone: 'Europe/Moscow'}) + ' МСК' : 'дата не указана';
+  }
+  async function get(path) {
+    const response = await fetch(path, {signal: AbortSignal.timeout(15000)});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Ошибка загрузки.');
+    return data;
+  }
+  async function refresh() {
+    el('refresh').disabled = true; el('error').hidden = true;
+    try {
+      const source = el('source').value;
+      const [status, listing] = await Promise.all([get('/api/v1/collection/status'), get(`/api/v1/articles?limit=${pageSize}&offset=${offset}` + (source ? '&source=' + source : ''))]);
+      el('totals').textContent = `Собрано публикаций: ${status.articles_collected}. Найдено ссылок: ${status.articles_discovered}. Ожидают получения текста: ${status.pending}.`;
+      el('sources').replaceChildren();
+      for (const [id, label] of Object.entries(labels)) {
+        const saved = status.sources.find(item => item.source_id === id);
+        const card = node('section', '', 'source'); card.append(node('h2', label));
+        card.append(node('p', saved ? 'Последняя проверка: ' + date(saved.last_attempt_at) : 'Лента ещё не проверялась.', 'muted'));
+        if (saved?.last_error) card.append(node('p', saved.last_error, 'error'));
+        if (saved?.next_attempt_at) card.append(node('p', 'Повторная попытка после ' + date(saved.next_attempt_at), 'muted'));
+        el('sources').append(card);
+      }
+      el('articles').replaceChildren();
+      for (const item of listing.items) {
+        const card = node('article', '');
+        const title = node('h2', '');
+        const link = node('a', item.title); link.href = '/?article=' + item.id; title.append(link);
+        card.append(title, node('p', labels[item.source_id] + ' · ' + date(item.published_at || item.retrieved_at), 'muted'));
+        card.append(node('p', item.analysis_summary ? 'Фрагментов для проверки: ' + (item.analysis_summary.review_fragments ?? item.analysis_summary.review_candidates) + (item.analysis_summary.findings_truncated ? ' (неполный результат)' : '') : 'Анализ текущей версией ещё не выполнен.'));
+        if (item.last_error) card.append(node('p', 'Не удалось обновить текст: ' + item.last_error, 'error'));
+        el('articles').append(card);
+      }
+      if (!listing.items.length) el('articles').append(node('p', offset ? 'На этой странице публикаций нет.' : 'Собранных публикаций пока нет.', 'muted'));
+      el('previous').disabled = offset === 0; el('next').disabled = listing.items.length < pageSize;
+      el('page').textContent = 'Страница ' + (offset / pageSize + 1);
+    } catch (error) {
+      el('error').textContent = error.message; el('error').hidden = false;
+      el('totals').textContent = 'Состояние сбора недоступно.';
+    } finally { el('refresh').disabled = false; }
+  }
+  el('refresh').addEventListener('click', refresh);
+  el('source').addEventListener('change', () => {offset = 0; refresh();});
+  el('previous').addEventListener('click', () => {offset = Math.max(0, offset - pageSize); refresh();});
+  el('next').addEventListener('click', () => {offset += pageSize; refresh();});
+  refresh();
+</script>
+</html>
