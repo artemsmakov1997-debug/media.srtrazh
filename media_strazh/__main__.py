@@ -6,6 +6,7 @@ import sys
 
 from .analysis import analyze
 from .evaluation import evaluate
+from .publishing import build_site
 from .server import serve
 from .collector import collect_once, reanalyze_current, reextract_current, selected_sources, watch
 from .storage import DEFAULT_DB, Store, collection_lock, utcnow
@@ -45,6 +46,10 @@ def main():
     export = commands.add_parser("export-corpus", help="Экспортировать собранные статьи для ручной разметки")
     export.add_argument("--db", type=Path, default=DEFAULT_DB)
     export.add_argument("--output", type=Path, help="Новый JSONL-файл; по умолчанию stdout")
+    publish = commands.add_parser("build-site", help="Собрать статический сайт с подборкой реальных результатов")
+    publish.add_argument("--db", type=Path, default=DEFAULT_DB)
+    publish.add_argument("--output", type=Path, default=Path("_site"))
+    publish.add_argument("--limit", type=int, default=30)
     reextract = commands.add_parser("reextract", help="Повторно извлечь текст из сохранённых HTML без загрузки сайтов")
     reextract.add_argument("--db", type=Path, default=DEFAULT_DB)
     reextract.add_argument("--source", action="append", choices=["rt", "tass", "ria"])
@@ -83,6 +88,9 @@ def main():
         elif args.command == "status":
             with Store(args.db) as store:
                 result = store.status()
+        elif args.command == "build-site":
+            with Store(args.db) as store:
+                result = build_site(store, args.output, args.limit)
         elif args.command in {"reextract", "reanalyze"}:
             with collection_lock(args.db), Store(args.db) as store:
                 result = (reextract_current if args.command == "reextract" else reanalyze_current)(store, args.source)

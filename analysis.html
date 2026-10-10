@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Анализ публикаций — МЕДИА.СТРАЖ</title>
+  <meta name="description" content="Реальные публикации СМИ, фрагменты для проверки и объяснения найденных признаков.">
+  <link rel="icon" href="favicon.ico">
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0c1422; color: #edf1f7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1000px; margin: auto; padding: 28px 20px 60px; }
+    h1 { font-size: clamp(28px, 5vw, 42px); }
+    h2 { font-size: 22px; }
+    p { line-height: 1.65; }
+    a { color: #5cdbed; }
+    nav { display: flex; gap: 22px; flex-wrap: wrap; }
+    .brand { color: #5cdbed; font-weight: 750; letter-spacing: .06em; }
+    .muted { color: #b1bfd0; }
+    .notice { padding: 16px; border-left: 3px solid #5cdbed; background: #131f31; }
+    .sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .source, .publication { background: #131f31; border: 1px solid #30405a; border-radius: 12px; padding: 20px; overflow-wrap: anywhere; }
+    .source h2 { margin-top: 0; }
+    .publication { margin: 18px 0; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 28px 0; }
+    select { font: inherit; padding: 10px; color: inherit; background: #131f31; border: 1px solid #52647d; border-radius: 7px; }
+    input { accent-color: #5cdbed; }
+    .error { color: #ffb4ad; }
+    .badge { color: #5cdbed; font-size: 14px; }
+    details { border-top: 1px solid #30405a; padding-top: 16px; margin-top: 16px; }
+    summary { cursor: pointer; line-height: 1.5; }
+    .finding { padding: 18px 0; border-bottom: 1px solid #30405a; }
+    blockquote { margin: 14px 0; padding: 12px 16px; border-left: 3px solid #5cdbed; white-space: pre-wrap; }
+    .context { white-space: pre-wrap; line-height: 1.65; }
+    mark { color: #07151a; background: #5cdbed; }
+    :focus-visible { outline: 2px solid #f7d684; outline-offset: 3px; }
+    [hidden] { display: none !important; }
+  </style>
+  <script src="analysis.js" defer></script>
+</head>
+<body>
+<main>
+  <p class="brand">МЕДИА.СТРАЖ</p>
+  <nav aria-label="Навигация"><a href="index.html">Главная</a><a href="method.html">Методика</a></nav>
+  <h1>Анализ реальных публикаций</h1>
+  <p class="notice">Программа выделяет признаки, которые нужно проверить по контексту и источникам. Находки не доказывают манипуляцию или ложность фактов. Отсутствие находок не означает нейтральность статьи.</p>
+  <p id="updated" class="muted">Загружаем подборку…</p>
+  <p id="totals" role="status" aria-live="polite"></p>
+  <p id="error" class="error" role="alert" hidden></p>
+  <div id="sources" class="sources"></div>
+  <div class="controls" id="controls" hidden>
+    <label for="source">Источник</label>
+    <select id="source"><option value="">Все источники</option><option value="rt">RT на русском</option><option value="tass">ТАСС</option><option value="ria">РИА Новости</option></select>
+    <label><input type="checkbox" id="candidates"> Только с фрагментами для проверки</label>
+  </div>
+  <p id="selection" role="status" aria-live="polite"></p>
+  <div id="articles"></div>
+  <details id="coverageBlock" hidden><summary>Охват анализа</summary><p id="coverage" class="muted"></p></details>
+  <p class="muted">Подборка обновляется по расписанию примерно раз в 30 минут. Возможны задержки. Время указано по Москве. Это ограниченная подборка публикаций из RSS, а не полный архив СМИ.</p>
+</main>
+</body>
+</html>
