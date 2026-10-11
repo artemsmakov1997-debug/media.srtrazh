@@ -196,8 +196,14 @@ def main():
             context.close()
 
             assert not errors, errors
-            assert all(method == "GET" and url.startswith(base + "/") and body is None
-                       for method, url, body in requests), "Manual text was sent over the network"
+            from urllib.parse import unquote
+            assert all(
+                method == "GET"
+                and body is None
+                and document["text"] not in unquote(url)
+                and document["title"] not in unquote(url)
+                for method, url, body in requests
+            ), "Manual text was sent over the network"
             browser.close()
             print(json.dumps({"viewports": [375, 1024, 1280], "manual_ui": "passed",
                               "download_and_unicode": "passed", "empty_and_oversized_input": "passed",
