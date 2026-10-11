@@ -1653,6 +1653,14 @@
   }
 </style>
 
+<style id="archive-pro-cta">
+  .archive-pro-strip { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:18px 0 0; padding:17px 20px; border:1px solid #437e93; border-left:3px solid #22d3ee; border-radius:10px; background:#102633; }
+  .archive-pro-strip .pro-label { display:inline-block; flex-shrink:0; padding:5px 8px; border:1px solid #e8b95d; border-radius:5px; background:#392a13; color:#ffd98b; font:800 .76rem Montserrat,sans-serif; letter-spacing:.07em; }
+  .archive-pro-strip a { display:inline-flex; align-items:center; gap:12px; min-width:0; color:#f2faff; font-weight:700; line-height:1.5; text-decoration:none; overflow-wrap:anywhere; }
+  .archive-pro-strip a:hover { color:#8beaf5; }
+  .archive-pro-strip .pro-arrow { color:#22d3ee; font-size:1.3rem; flex-shrink:0; }
+  @media (max-width:600px) { .archive-pro-strip { padding:15px; } .archive-pro-strip a { align-items:flex-start; } }
+</style>
 </head>
 <body>
 
@@ -1712,7 +1720,14 @@
         <span id="rtText">Поток обновляется в демо-режиме каждые несколько секунд.</span>
       </div>
     </div>
-  </section>
+      <div class="archive-pro-strip">
+      <a href="analysis.html" aria-label="PRO: Показать полный список публикаций и провести самостоятельный анализ">
+        <span class="pro-label">PRO</span>
+        <span>Показать полный список публикаций и провести самостоятельный анализ</span>
+      </a>
+      <span class="pro-arrow" aria-hidden="true">↗</span>
+    </div>
+</section>
 </div>
 
 <!-- MODAL -->
