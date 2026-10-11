@@ -115,9 +115,9 @@ def main():
                   flush=True)
 
             document = {"title": '<img src=x onerror="window.injected=true">',
-                        page.locator('[data-mode="manual"]').click()
                         "text": '😀 Все знают о решении. Автор заявил: «Все знают о решении».'}
             expected = analyze(document)
+            page.locator('[data-mode="manual"]').click()
             for width, height in ((375, 812), (1024, 768), (1280, 900)):
                 page.set_viewport_size({"width": width, "height": height})
                 page.locator("#manualTitle").fill(document["title"])
@@ -148,8 +148,8 @@ def main():
             assert "200 000" in page.locator("#manualError").inner_text()
             page.locator("#manualForm button[type=reset]").click()
 
-            page.select_option("#source", "rt")
             page.locator('[data-mode="automatic"]').click()
+            page.select_option("#source", "rt")
             displayed = json.loads((site / "data/analysis.json").read_text())["articles"]
             assert page.locator(".publication").count() == sum(a["source_id"] == "rt" for a in displayed)
             page.route("**/data/analysis.json", lambda route: route.fulfill(status=503, body="unavailable"))
@@ -180,6 +180,7 @@ def main():
             stalled = []
             failure.route("**/vendor/pyodide/pyodide.js", lambda route: stalled.append(route))
             failure.reload()
+            failure.locator('[data-mode="manual"]').click()
             failure.locator("#manualText").fill(document["text"])
             with failure.expect_request("**/vendor/pyodide/pyodide.js"):
                 failure.locator("#manualSubmit").click()
