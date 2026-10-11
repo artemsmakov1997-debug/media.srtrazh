@@ -258,114 +258,91 @@ function render() {
   for (const item of selected) {
     const article = node('article', '', 'publication');
 
-    const platformLabel =
-      platformOf(item) === 'telegram'
-        ? 'Telegram'
-        : 'Сайт';
-
     article.append(
-      node(
-        'p',
-        item.source +
-          ' · ' +
-          platformLabel +
-          ' · ' +
-          date(item.published_at),
-        'muted'
-      )
+      node('p', item.source, 'publication-meta')
     );
 
     article.append(
       node('h2', item.title)
     );
 
-    const link = original(item);
-
-    if (link) {
-      article.append(link);
-    }
-
     article.append(
       node(
         'p',
-        'Получена: ' + date(item.retrieved_at),
+        'Дата получения: ' + date(item.retrieved_at),
         'muted'
       )
     );
 
-    if (!item.summary) {
-      article.append(
+    const counts = item.summary;
+    const fragmentCount = counts
+      ? counts.review_fragments
+      : 0;
+
+    article.append(
+      node(
+        'p',
+        'Найдено фрагментов для проверки: ' + fragmentCount,
+        'badge'
+      )
+    );
+
+    const details = document.createElement('details');
+    details.append(
+      node('summary', 'Подробнее')
+    );
+
+    if (!counts) {
+      details.append(
+        node('p', 'Анализ текущей версией ещё не сохранён.', 'muted')
+      );
+    } else if (!item.findings.length) {
+      details.append(
         node(
           'p',
-          'Анализ текущей версией ещё не сохранён.',
+          'Совпадений текущих правил не найдено. Это не доказывает нейтральность текста.',
           'muted'
         )
       );
     } else {
-      const counts = item.summary;
-
-      article.append(
-        node(
-          'p',
-          'Фрагментов для проверки: ' +
-            counts.review_fragments +
-            '. Меток приёмов: ' +
-            counts.review_candidates +
-            '. В цитатах или переданной речи: ' +
-            counts.quoted_candidates +
-            '.',
-          'badge'
-        )
-      );
-
-      if (!item.findings.length) {
-        article.append(
-          node(
-            'p',
-            'Совпадений текущих правил не найдено. Это не доказывает нейтральность текста.',
-            'muted'
-          )
-        );
-      } else {
-        const details = document.createElement('details');
-
-        details.append(
-          node(
-            'summary',
-            'Посмотреть найденные фрагменты и объяснения'
-          )
-        );
-
-        for (const finding of item.findings) {
-          details.append(findingCard(finding));
-        }
-
-        if (item.findings_omitted) {
-          details.append(
-            node(
-              'p',
-              'Других меток в результате: ' +
-                item.findings_omitted +
-                '. Подборка ограничена.',
-              'muted'
-            )
-          );
-        }
-
-        article.append(details);
+      for (const finding of item.findings) {
+        details.append(findingCard(finding));
       }
 
-      if (counts.findings_truncated) {
-        article.append(
+      if (item.findings_omitted) {
+        details.append(
           node(
             'p',
-            'Полный результат ограничен первыми 500 совпадениями; сводка неполная.',
+            'Других меток в результате: ' +
+              item.findings_omitted +
+              '. Подборка ограничена.',
             'muted'
           )
         );
       }
     }
 
+    if (counts && counts.findings_truncated) {
+      details.append(
+        node(
+          'p',
+          'Полный результат ограничен первыми 500 совпадениями; сводка неполная.',
+          'muted'
+        )
+      );
+    }
+
+    const actions = node('div', '', 'publication-actions');
+    actions.append(details);
+
+    const link = original(item);
+    if (link) {
+      link.textContent = 'Смотреть источник';
+      link.classList.add('source-link');
+      actions.append(link);
+    }
+
+    article.append(actions);
     articlesContainer.append(article);
   }
 }
