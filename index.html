@@ -301,6 +301,9 @@
     .fli-badge.red    { border-color: rgba(239,68,68,.65);  color: #fecaca; background: rgba(239,68,68,.06); }
     .fli-badge.yellow { border-color: rgba(234,179,8,.65);  color: #fef3c7; background: rgba(234,179,8,.05); }
     .fli-badge.green  { border-color: rgba(34,197,94,.55);  color: #bbf7d0; background: rgba(34,197,94,.05); }
+    /* Метки уровня должны переноситься внутри мобильной сетки. */
+    .full-list-row > * { min-width: 0; }
+    .fli-badge { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; line-height: 1.4; }
 
     /* Переход к анализу из полного списка */
     .modal-footer {
@@ -313,6 +316,22 @@
       max-width: 100%; white-space: normal; text-align: center; text-decoration: none;
     }
 
+    /* Выразительная кнопка платного раздела — без навязчивого свечения. */
+    .modal-analysis-link.pro-action {
+      gap: 11px; min-height: 52px; padding: 12px 20px;
+      border: 1px solid #5c91a6; border-radius: 10px;
+      background: #123041; color: #f4fbff;
+      font-size: .88rem; font-weight: 750; letter-spacing: .015em;
+      line-height: 1.35; text-transform: none;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+    .modal-analysis-link.pro-action:hover { background: #19445a; border-color: #78dfee; transform: translateY(-1px); }
+    .pro-action .pro-label {
+      display: inline-block; flex-shrink: 0; padding: 5px 8px;
+      border: 1px solid #e8b95d; border-radius: 5px;
+      background: #392a13; color: #ffd98b; font-weight: 800;
+      font-size: .76rem; letter-spacing: .07em;
+    }
     /* ══ RESPONSIVE ══ */
     @media (max-width: 767px) {
       .hero { gap: 0; padding-bottom: 6px; }
@@ -331,7 +350,9 @@
       .media-dots { display: flex; }
 
       /* Modal мобиль */
-      .full-list-row { grid-template-columns: minmax(0,1fr) 72px 100px; }
+      .full-list-row { grid-template-columns: minmax(0,1fr) 62px minmax(0,108px); gap: 8px; }
+      .fli-badge { font-size: .63rem; padding: 6px 5px; letter-spacing: .015em; }
+      .modal-analysis-link.pro-action { width: 100%; white-space: normal; }
       .fli-graph { display: none; }
     }
 
@@ -693,7 +714,7 @@
       </div>
       <div class="modal-body" id="fullListContainer"></div>
       <div class="modal-footer">
-        <a href="analysis.html" class="full-list-button modal-analysis-link">Смотреть полный анализ публикаций</a>
+        <a href="analysis.html" class="full-list-button modal-analysis-link pro-action"><span class="pro-label">PRO</span><span>Показать полный список публикаций</span></a>
       </div>
     </div>
   </div>
