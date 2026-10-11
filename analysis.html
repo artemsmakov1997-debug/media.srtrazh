@@ -77,6 +77,8 @@
     #manualFindings .finding { overflow-wrap: anywhere; }
     #manualResultTitle:focus { outline: none; }
     .stats-line { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 12px 0 16px; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line); }
+    /* Сводка по источникам убрана из интерфейса автоматического анализа. */
+    #updated, #totals, #sources, #coverageBlock, #selection { display: none !important; }
     .sources { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin: 18px 0 22px; }
     .source { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #080d13; overflow-wrap: anywhere; }
     .source h3 { margin: 0 0 8px; }
