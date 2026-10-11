@@ -352,7 +352,8 @@
       /* Modal мобиль */
       .full-list-row { grid-template-columns: minmax(0,1fr) 62px minmax(0,108px); gap: 8px; }
       .fli-badge { font-size: .63rem; padding: 6px 5px; letter-spacing: .015em; }
-      .modal-analysis-link.pro-action { width: 100%; white-space: normal; }
+      .modal-analysis-link.pro-action { width: 100%; white-space: normal; font-size: .76rem; line-height: 1.4; padding: 11px 12px; gap: 8px; letter-spacing: 0; }
+      .modal-analysis-link.pro-action .pro-label { font-size: .68rem; padding: 4px 6px; }
       .fli-graph { display: none; }
     }
 
@@ -813,7 +814,7 @@
     }, 8000);
 
     /* ── Cards ── */
-    function getBadgeText(l) { return l==="red" ? "Высокая доля выявленных признаков" : l==="yellow" ? "Средняя доля выявленных признаков" : "Низкая доля выявленных признаков"; }
+    function getBadgeText(l) { return l==="red" ? "Высокий показатель" : l==="yellow" ? "Средний показатель" : "Низкий показатель"; }
 
     function initCards() {
       mediaGrid.innerHTML = "";
