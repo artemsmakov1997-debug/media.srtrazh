@@ -54,8 +54,11 @@
     .muted { color: var(--muted); }
     .analysis-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin: 0 0 18px; }
     .mode-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; text-align: left; min-height: 88px; padding: 18px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel); cursor: pointer; transition: border-color .15s, background .15s; }
-    .mode-card:hover { border-color: #427080; background: #0d1721; }
-    .mode-card.active { border-color: var(--cyan); background: #0b1820; }
+    .mode-card { border-color: #3b5969; background: #101a25; }
+    .mode-card:hover { border-color: #66e4f3; background: #142633; }
+    .mode-card.active { border-color: var(--cyan); background: #102b36; box-shadow: inset 0 0 0 1px rgba(34,211,238,.28); }
+    .mode-card.active strong { color: #e8fbff; }
+    .mode-card:not(.active) strong { color: #c9d8e5; }
     .mode-number { color: var(--cyan); font: 700 12px Montserrat, sans-serif; letter-spacing: .08em; }
     .mode-card strong { margin: 0; font: 700 18px Montserrat, sans-serif; }
     .mode-card .mode-number { display: none; }
@@ -92,6 +95,13 @@
     .publication h2 { margin: 8px 0 12px; font-size: 18px; }
     .publication > p { margin: 8px 0; }
     .publication > p:first-child { font-size: 13px; }
+    .publication-meta { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+    .publication-actions { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-top: 18px; }
+    .publication-actions details { margin: 0; padding: 0; border: 0; }
+    .publication-actions summary { list-style: none; display: inline-flex; align-items: center; padding: 10px 15px; border: 1px solid var(--cyan); border-radius: 6px; color: var(--cyan); font-weight: 700; cursor: pointer; }
+    .publication-actions summary::-webkit-details-marker { display: none; }
+    .publication-actions .source-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 15px; border: 1px solid #405365; border-radius: 6px; color: var(--text); font-weight: 700; text-decoration: none; }
+    .publication-actions .source-link:hover { border-color: var(--cyan); color: var(--cyan); }
     .badge { color: var(--cyan); font-size: 13px; }
     .finding { padding: 18px 0; border-bottom: 1px solid var(--line); }
     details { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
