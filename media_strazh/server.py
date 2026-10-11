@@ -7,7 +7,7 @@ import sqlite3
 from urllib.parse import parse_qs, urlsplit
 
 from .analysis import MAX_CHARS, VERSION, analyze, taxonomy
-from .sources import SOURCES
+from .sources import SOURCES, resolve_source
 from .storage import DEFAULT_DB, Store
 
 MAX_REQUEST_BYTES = MAX_CHARS * 6 + 4096
@@ -35,6 +35,22 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"status": "ok", "algorithm_version": VERSION})
         elif path == "/api/v1/taxonomy":
             self._send(200, {"categories": taxonomy()})
+        elif path == "/api/v1/sources":
+            try:
+                database = getattr(self.server, "db_path", None)
+                saved = {}
+                if database is not None and Path(database).is_file():
+                    with Store(database) as store:
+                        saved = {row["source_id"]: row["feed_url"] for row in store.status()["sources"]}
+                sources = [resolve_source(source, saved.get(source.id)) for source in SOURCES.values()]
+            except sqlite3.Error:
+                self._send(503, {"error": "Не удалось прочитать состояние источников."})
+                return
+            self._send(200, {"sources": [{"id": source.id, "name": source.name,
+                                         "publisher_id": source.publisher, "platform": source.platform,
+                                         "feed_url": source.feed_url, "channel": source.channel,
+                                         "configuration_error": source.configuration_error}
+                                        for source in sources]})
         elif path == "/":
             self._send(200, Path(__file__).with_name("web").joinpath("index.html").read_bytes(),
                        "text/html; charset=utf-8")

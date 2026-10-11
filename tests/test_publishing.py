@@ -1,12 +1,15 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from media_strazh.analysis import VERSION
+from media_strazh.analysis import VERSION, analyze
 from media_strazh.collector import collect_once
+from media_strazh.extraction import FeedEntry
 from media_strazh.publishing import ROOT, build_site, snapshot
 from media_strazh.sources import SOURCES
 from media_strazh.storage import Store
@@ -28,7 +31,20 @@ class PublishingTests(unittest.TestCase):
         self.directory.cleanup()
 
     def collect(self):
-        return collect_once(self.store, client_factory=self.network, now=lambda: NOW)
+        return collect_once(self.store, [SOURCES[name] for name in ("rt", "tass", "ria")],
+                            client_factory=self.network, now=lambda: NOW)
+
+    def save_item(self, source_id, number, published_at=NOW, source=None):
+        source = source or SOURCES[source_id]
+        path = f"/{source.channel}/{number}" if source.platform == "telegram" else f"/news/{number}"
+        url = f"https://{source.host}{path}"
+        document = {"title": "" if source.platform == "telegram" else "Новая библиотека",
+                    "text": BODY, "source": source.name,
+                    "url": url, "published_at": published_at}
+        self.store.discover(source.id, [FeedEntry(url, document["title"], published_at)], NOW)
+        article = next(row for row in self.store.due(source.id, NOW, 100) if row["url"] == url)
+        self.store.save(article, {"document": document, "extractor_version": "fixture",
+                        "extraction_method": "fixture"}, page(source, url), analyze(document), NOW, 3600)
 
     def test_report_contains_real_metadata_without_article_bodies_or_raw_html(self):
         self.collect()
@@ -86,6 +102,25 @@ class PublishingTests(unittest.TestCase):
         self.assertEqual(result["totals"]["analyzed"], 2)
         self.assertEqual(result["totals"]["displayed"], 3)
 
+    def test_current_analysis_is_selected_before_a_newer_unanalyzed_item(self):
+        self.save_item("rt", 1, "2026-10-10T08:00:00+00:00")
+        self.save_item("rt", 2, "2026-10-10T10:00:00+00:00")
+        recent = self.store.articles("rt")[0]
+        with self.store.db:
+            self.store.db.execute("DELETE FROM analyses WHERE revision_id=?", (recent["revision_id"],))
+        result = snapshot(self.store, limit=1)
+        self.assertTrue(result["articles"][0]["url"].endswith("/news/1"))
+        self.assertIsNotNone(result["articles"][0]["summary"])
+
+    def test_unanalyzed_source_cannot_hide_an_available_current_result(self):
+        self.save_item("bbc", 1)
+        self.save_item("rt", 1)
+        bbc = self.store.articles("bbc")[0]
+        with self.store.db:
+            self.store.db.execute("DELETE FROM analyses WHERE revision_id=?", (bbc["revision_id"],))
+        result = snapshot(self.store, limit=1)
+        self.assertEqual(result["articles"][0]["source_id"], "rt")
+
     def test_bounded_selection_counts_only_displayed_articles(self):
         self.collect()
         result = snapshot(self.store, limit=1)
@@ -93,6 +128,107 @@ class PublishingTests(unittest.TestCase):
         self.assertEqual(sum(source["displayed"] for source in result["sources"]), 1)
         with self.assertRaises(ValueError):
             snapshot(self.store, limit=0)
+
+    def test_busy_source_cannot_displace_website_or_telegram_feeds(self):
+        for number in range(1, 8):
+            self.save_item("rt", number, "2026-10-10T10:00:00+00:00")
+        self.save_item("interfax", 1, "2026-10-10T08:00:00+00:00")
+        self.save_item("rt_telegram", 1, "2026-10-10T07:00:00+00:00")
+        result = snapshot(self.store, limit=3)
+        self.assertEqual({row["source_id"] for row in result["articles"]},
+                         {"rt", "interfax", "rt_telegram"})
+        self.assertEqual([row["source_id"] for row in result["articles"]],
+                         ["rt", "interfax", "rt_telegram"])
+
+    def test_every_configured_feed_with_data_can_appear_in_default_pilot_limit(self):
+        configured = [source for source in SOURCES.values() if not source.configuration_error]
+        for source in configured:
+            self.save_item(source.id, 1)
+        result = snapshot(self.store, limit=100)
+        self.assertEqual({item["source_id"] for item in result["articles"]},
+                         {source.id for source in configured})
+        self.assertEqual(len(result["sources"]), len(SOURCES))
+
+    def test_public_registry_groups_platforms_and_exposes_unconfigured_channels(self):
+        self.save_item("rt", 1)
+        self.save_item("rt_telegram", 1)
+        result = snapshot(self.store)
+        telegram = next(row for row in result["sources"] if row["id"] == "rt_telegram")
+        self.assertEqual(telegram["publisher_id"], "rt")
+        self.assertEqual(telegram["platform"], "telegram")
+        self.assertEqual(telegram["allowed_hosts"], ["t.me"])
+        self.assertEqual(telegram["channel"], SOURCES["rt_telegram"].channel)
+        self.assertTrue(all(row["publisher_id"] == "rt" for row in result["articles"]))
+        for source in SOURCES.values():
+            if source.configuration_error:
+                metadata = next(row for row in result["sources"] if row["id"] == source.id)
+                self.assertEqual(metadata["displayed"], 0)
+                self.assertEqual(metadata["configuration_error"], source.configuration_error)
+
+    def test_telegram_url_cannot_point_to_another_channel(self):
+        self.save_item("rt_telegram", 1)
+        with self.store.db:
+            self.store.db.execute("UPDATE revisions SET canonical_url='https://t.me/unrelated_channel/1'")
+        with self.assertRaises(ValueError):
+            snapshot(self.store)
+
+    def test_telegram_preview_is_bounded_without_inventing_a_headline(self):
+        self.save_item("rt_telegram", 1)
+        result = snapshot(self.store)
+        item = result["articles"][0]
+        self.assertEqual(item["title"], "")
+        self.assertGreater(len(item["message_preview"]), 0)
+        self.assertLessEqual(len(item["message_preview"]), 160)
+        self.assertTrue(item["message_preview"].endswith("…"))
+        self.assertEqual(item["summary"]["review_fragments"], 0)
+        self.assertFalse(item["forwarded"])
+        self.assertNotIn(BODY, json.dumps(result, ensure_ascii=False))
+
+    def test_forwarded_telegram_posts_keep_attribution_without_changing_findings(self):
+        self.save_item("rt_telegram", 1)
+        self.save_item("rt_telegram", 2)
+        source = SOURCES["rt_telegram"]
+        with self.store.db:
+            self.store.db.execute("UPDATE revisions SET extraction_method='telegram-web.forwarded' WHERE canonical_url=?",
+                                  (f"https://t.me/{source.channel}/2",))
+        result = snapshot(self.store)
+        ordinary = next(row for row in result["articles"] if row["url"].endswith("/1"))
+        forwarded = next(row for row in result["articles"] if row["url"].endswith("/2"))
+        self.assertFalse(ordinary["forwarded"])
+        self.assertTrue(forwarded["forwarded"])
+        self.assertEqual(forwarded["summary"], ordinary["summary"])
+        self.assertEqual(forwarded["findings"], ordinary["findings"])
+
+    def test_stored_first_party_discovery_resolves_channel_without_a_broad_url_allowance(self):
+        source = replace(SOURCES["interfax_telegram"], channel="", feed_url="",
+                         configuration_error="Официальный канал ещё не подтверждён.")
+        discovered = replace(source, channel="official_fixture_channel",
+                             feed_url="https://t.me/s/official_fixture_channel", configuration_error="")
+        # Only the collector writes this feed URL after first-party confirmation.
+        self.store.source_result(discovered, NOW, True)
+        self.save_item(source.id, 1, source=discovered)
+        with patch.dict(SOURCES, {source.id: source}):
+            result = snapshot(self.store)
+        metadata = next(row for row in result["sources"] if row["id"] == source.id)
+        self.assertEqual(metadata["channel"], discovered.channel)
+        self.assertEqual(metadata["configuration_error"], "")
+        self.assertEqual(result["articles"][0]["url"], "https://t.me/official_fixture_channel/1")
+        with self.store.db:
+            self.store.db.execute("UPDATE revisions SET canonical_url='https://t.me/another_fixture_channel/1'")
+        with patch.dict(SOURCES, {source.id: source}), self.assertRaises(ValueError):
+            snapshot(self.store)
+
+    def test_invalid_stored_discovery_cannot_enable_an_unconfirmed_channel(self):
+        self.save_item("rt", 1)
+        source = replace(SOURCES["interfax_telegram"], channel="", feed_url="",
+                         configuration_error="Официальный канал ещё не подтверждён.")
+        forged = replace(source, feed_url="https://evil.t.me/s/official_fixture_channel")
+        self.store.source_result(forged, NOW, False, "Invalid discovery")
+        with patch.dict(SOURCES, {source.id: source}):
+            result = snapshot(self.store)
+        metadata = next(row for row in result["sources"] if row["id"] == source.id)
+        self.assertEqual(metadata["channel"], "")
+        self.assertTrue(metadata["configuration_error"])
 
     def test_empty_cycle_preserves_previous_output(self):
         target = self.path / "site"

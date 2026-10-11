@@ -1,4 +1,4 @@
-"""Static, bounded reports for a GitHub Pages pilot; no article bodies or database."""
+"""Bounded reports for Pages, with short Telegram previews and no corpus/database."""
 
 import json
 from pathlib import Path
@@ -7,7 +7,7 @@ import tempfile
 
 from .analysis import VERSION, taxonomy
 from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
-from .sources import SOURCES, normalize_url
+from .sources import SOURCES, normalize_url, resolve_source
 from .storage import utcnow
 
 SCHEMA = "public-snapshot-1.0"
@@ -16,17 +16,43 @@ STATIC_SUFFIXES = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif",
                    ".webp", ".svg", ".ico", ".webmanifest", ".xml"}
 
 
-def snapshot(store, limit=30):
+def snapshot(store, limit=100):
     if not 1 <= limit <= 100:
         raise ValueError("Размер подборки должен быть от 1 до 100 публикаций.")
     store.db.execute("SAVEPOINT public_snapshot")
     try:
         status = store.status()
+        status_by_id = {row["source_id"]: row for row in status["sources"]}
+        sources = {source.id: resolve_source(source, status_by_id.get(source.id, {}).get("feed_url", ""))
+                   for source in SOURCES.values()}
         articles = []
-        for row in store.articles(limit=limit):
+        # One busy outlet must not displace every smaller outlet or Telegram feed.
+        # Keep the newest item from each available feed before taking its next item.
+        source_ids = list(sources)
+        placeholders = ",".join("?" for _ in source_ids)
+        # Select identifiers before loading full analyses: an old, large local
+        # corpus should not deserialize limit * source_count complete results.
+        selected = list(store.db.execute("""
+            SELECT id,published_at,retrieved_at FROM (
+                SELECT a.id,a.source_id,r.published_at,r.retrieved_at,
+                       (n.revision_id IS NOT NULL) AS analyzed,
+                       ROW_NUMBER() OVER (PARTITION BY a.source_id ORDER BY
+                           (n.revision_id IS NOT NULL) DESC,
+                           COALESCE(NULLIF(r.published_at,''),r.retrieved_at) DESC,a.id DESC) AS rank
+                FROM articles a JOIN revisions r ON r.id=a.current_revision_id
+                LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=?
+                WHERE a.source_id IN (""" + placeholders + """))
+            ORDER BY analyzed DESC,rank,source_id LIMIT ?
+        """, [VERSION, *source_ids, limit]))
+        selected.sort(key=lambda row: (row["published_at"] or row["retrieved_at"], row["id"]),
+                      reverse=True)
+        for row in selected:
             item = store.article(row["id"])
             document, analysis = item["document"], item["analysis"]
-            source = SOURCES[item["source_id"]]
+            source = sources[item["source_id"]]
+            preview = " ".join(document["text"].split()) if source.platform == "telegram" else ""
+            if len(preview) > 160:
+                preview = preview[:159].rstrip() + "…"
             findings = []
             if analysis:
                 for finding in analysis["findings"][:40]:
@@ -36,7 +62,10 @@ def snapshot(store, limit=30):
                     })
             articles.append({
                 "id": item["id"], "source_id": source.id, "source": source.name,
+                "publisher_id": source.publisher, "platform": source.platform,
+                "forwarded": source.platform == "telegram" and item["extraction_method"].endswith(".forwarded"),
                 "title": document["title"], "url": normalize_url(document["url"], source),
+                "message_preview": preview,
                 "published_at": document["published_at"], "retrieved_at": item["retrieved_at"],
                 "algorithm_version": analysis["algorithm_version"] if analysis else None,
                 "sha256": analysis["document"]["sha256"] if analysis else None,
@@ -56,19 +85,23 @@ def snapshot(store, limit=30):
                        "review_fragments": sum(item["summary"]["review_fragments"] for item in analyzed)},
             "sources": [
                 {"id": source.id, "name": source.name,
+                 "publisher_id": source.publisher, "platform": source.platform,
+                 "allowed_hosts": list(dict.fromkeys((source.host,) + source.allowed_hosts)),
+                 "channel": source.channel,
+                 "configuration_error": source.configuration_error,
                  "displayed": sum(item["source_id"] == source.id for item in articles),
-                 "status": next(({
-                     key: saved[key] for key in
+                 "status": ({
+                     key: status_by_id[source.id][key] for key in
                      ("last_attempt_at", "last_success_at", "last_error", "next_attempt_at")
-                 } for saved in status["sources"] if saved["source_id"] == source.id), None)}
-                for source in SOURCES.values()
+                 } if source.id in status_by_id else None)}
+                for source in sources.values()
             ],
         }
     finally:
         store.db.execute("RELEASE public_snapshot")
 
 
-def build_site(store, output, limit=30, runtime_dir=DEFAULT_RUNTIME):
+def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
     """Build only public root assets and selected report fields in a generated directory."""
     destination = Path(output).resolve()
     if destination == ROOT or ROOT.is_relative_to(destination):

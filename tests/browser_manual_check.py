@@ -5,6 +5,7 @@ Requires Playwright and Chromium; unit tests do not require either or the networ
 
 import argparse
 import copy
+from datetime import datetime, timedelta, timezone
 import functools
 import http.server
 import io
@@ -21,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 from media_strazh.analysis import analyze
 import test_analysis
 import test_rhetoric
+import test_expanded_rhetoric
 
 
 def examples():
@@ -37,11 +39,14 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    originals = test_analysis.analyze, test_rhetoric.analyze
-    test_analysis.analyze = test_rhetoric.analyze = capture
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric)
+    originals = [module.analyze for module in modules]
+    for module in modules:
+        module.analyze = capture
     suite = unittest.TestSuite([
         unittest.defaultTestLoader.loadTestsFromTestCase(test_analysis.AnalysisTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_rhetoric.RhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_expanded_rhetoric.ExpandedRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -49,7 +54,8 @@ def examples():
         if not result.wasSuccessful():
             raise AssertionError(output.getvalue())
     finally:
-        test_analysis.analyze, test_rhetoric.analyze = originals
+        for module, original in zip(modules, originals):
+            module.analyze = original
     return cases, result.testsRun
 
 
@@ -151,7 +157,79 @@ def main():
             page.locator('[data-mode="automatic"]').click()
             page.select_option("#source", "rt")
             displayed = json.loads((site / "data/analysis.json").read_text())["articles"]
-            assert page.locator(".publication").count() == sum(a["source_id"] == "rt" for a in displayed)
+            assert page.locator(".publication").count() == sum(a["publisher_id"] == "rt" for a in displayed)
+
+            # Both platforms belong to one outlet; URL guards use its configured hosts/channel.
+            snapshot = json.loads((site / "data/analysis.json").read_text())
+            fixture = copy.deepcopy(snapshot)
+            fixture["generated_at"] = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+            source_meta = {source["id"]: source for source in fixture["sources"]}
+            sample = copy.deepcopy(displayed[0])
+            fixture["articles"] = []
+            for number, source_id in enumerate(("rt", "rt_telegram", "interfax"), 1):
+                metadata = source_meta[source_id]
+                item = copy.deepcopy(sample)
+                item.update(id=number, source_id=source_id, publisher_id=metadata["publisher_id"],
+                            platform=metadata["platform"], source=metadata["name"])
+                item["url"] = (f'https://t.me/{metadata["channel"]}/123'
+                               if metadata["platform"] == "telegram"
+                               else f'https://{metadata["allowed_hosts"][0]}/news/123')
+                item["summary"]["review_fragments"] = 0
+                if source_id == "rt_telegram":
+                    item["title"] = ""
+                    item["message_preview"] = "Городская библиотека открыла новый читальный зал."
+                    item["findings"] = []
+                    item["forwarded"] = True
+                fixture["articles"].append(item)
+                metadata["displayed"] = 1
+                metadata["status"] = {"last_attempt_at": snapshot["generated_at"],
+                                      "last_success_at": snapshot["generated_at"],
+                                      "last_error": "HTTP 403" if source_id == "interfax" else None,
+                                      "next_attempt_at": None}
+            fixture["totals"].update(displayed=3, analyzed=3, with_review_candidates=0)
+            page.route("**/data/analysis.json", lambda route: route.fulfill(json=fixture))
+            page.reload()
+            page.locator("#collectionState").filter(has_text="с ошибками").wait_for()
+            assert page.locator("#collectionState").is_visible()
+            assert "Подборка давно не обновлялась" in page.locator("#collectionState").inner_text()
+            assert page.locator("#collectionStatus").get_attribute("open") is None
+            assert page.locator("#source option").count() == 17  # All outlets, without duplicate platforms.
+            page.locator("#collectionStatus > summary").click()
+            assert page.locator("#sources").is_visible()
+            assert "HTTP 403" in page.locator("#sources").inner_text()
+            for width, height in ((375, 812), (1024, 768), (1280, 900)):
+                page.set_viewport_size({"width": width, "height": height})
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                page.screenshot(path=f"/tmp/media-strazh-automatic-{width}.png")
+            page.select_option("#source", "rt")
+            assert page.locator(".publication").count() == 2
+            page.select_option("#platform", "telegram")
+            assert page.locator(".publication").count() == 1
+            assert page.locator(".publication h2").inner_text() == fixture["articles"][1]["message_preview"]
+            assert "Это пересланное сообщение" in page.locator(".publication").inner_text()
+            assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][1]["url"]
+            page.locator(".publication summary").click()
+            assert "Совпадений текущих правил не найдено" in page.locator(".publication details").inner_text()
+            page.evaluate("() => { report.articles.find(item => item.platform === 'telegram').summary.review_fragments = 1; render(); }")
+            page.locator("#candidates").check()
+            assert page.locator(".publication").count() == 1
+            page.select_option("#platform", "website")
+            assert page.locator(".publication").count() == 0
+            page.locator("#candidates").uncheck()
+            assert page.locator(".publication").count() == 1
+            page.select_option("#platform", "telegram")
+            for url in ("https://evil.t.me/rt_russian/123", "https://t.me/other_channel/123",
+                        "https://t.me/rt_russian", "https://t.me/rt_russian/123?other=1",
+                        "https://russian.rt.com/news/123"):
+                page.evaluate("url => { report.articles.find(item => item.platform === 'telegram').url = url; render(); }", url)
+                assert page.locator(".publication .source-link").count() == 0, url
+            page.select_option("#platform", "website")
+            page.evaluate("() => { report.articles.find(item => item.source_id === 'rt').url = 'https://evil.russian.rt.com/news/123'; render(); }")
+            assert page.locator(".publication .source-link").count() == 0
+            page.evaluate("() => { report.articles.find(item => item.source_id === 'rt').summary = null; render(); }")
+            assert "Анализ текущей версии отсутствует" in page.locator(".publication > .badge").inner_text()
+            assert "Найдено фрагментов для проверки: 0" not in page.locator(".publication").inner_text()
+            page.unroute("**/data/analysis.json")
             page.route("**/data/analysis.json", lambda route: route.fulfill(status=503, body="unavailable"))
             page.reload()
             page.locator("#error").wait_for(state="visible")

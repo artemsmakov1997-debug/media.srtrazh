@@ -1,11 +1,18 @@
 import json
+from dataclasses import replace
+from pathlib import Path
+import tempfile
 from http.server import ThreadingHTTPServer
 from threading import Thread
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from media_strazh.server import Handler
+from media_strazh.analysis import VERSION
+from media_strazh.sources import SOURCES, resolve_source
+from media_strazh.storage import Store, utcnow
 
 
 class QuietHandler(Handler):
@@ -50,7 +57,7 @@ class ServerTests(unittest.TestCase):
     def test_expanded_rules_available_through_api(self):
         with self.post({"text": "Политики опасны без смирительной рубашки. Война как единственный выход."}) as response:
             result = json.load(response)
-        self.assertEqual(result["algorithm_version"], "rules-0.2.1")
+        self.assertEqual(result["algorithm_version"], VERSION)
         self.assertEqual(set(result["summary"]["by_category"]), {"enemy_image", "euphemism_dysphemism", "oversimplification"})
         self.assertEqual(result["summary"]["review_fragments"], 2)
 
@@ -70,6 +77,35 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 404)
         with urlopen(self.base + "/api/v1/taxonomy") as response:
             self.assertEqual(len(json.load(response)["categories"]), 12)
+
+    def test_source_registry_available_without_collection_database(self):
+        with urlopen(self.base + "/api/v1/sources") as response:
+            entries = json.load(response)["sources"]
+        self.assertEqual({entry["id"] for entry in entries}, set(SOURCES))
+        self.assertEqual({entry["publisher_id"] for entry in entries},
+                         {source.publisher for source in SOURCES.values()})
+        telegram = [entry for entry in entries if entry["platform"] == "telegram"]
+        self.assertTrue(telegram)
+        self.assertTrue(all(entry["id"].endswith("_telegram") for entry in telegram))
+
+    def test_source_registry_reflects_persisted_channel_discovery(self):
+        pending = replace(SOURCES["interfax_telegram"], channel="", feed_url="",
+                          configuration_error="Канал требует подтверждения")
+        with tempfile.TemporaryDirectory() as directory, patch.dict(SOURCES, {pending.id: pending}):
+            path = Path(directory) / "sources.sqlite3"
+            source = resolve_source(SOURCES["interfax_telegram"], "https://t.me/s/fixture_channel")
+            with Store(path) as store:
+                store.source_result(source, utcnow(), True)
+            self.server.db_path = path
+            try:
+                with urlopen(self.base + "/api/v1/sources") as response:
+                    entries = json.load(response)["sources"]
+                entry = next(entry for entry in entries if entry["id"] == source.id)
+                self.assertEqual(entry["channel"], "fixture_channel")
+                self.assertEqual(entry["configuration_error"], "")
+                self.assertEqual(entry["publisher_id"], "interfax")
+            finally:
+                del self.server.db_path
 
 
 if __name__ == "__main__":
