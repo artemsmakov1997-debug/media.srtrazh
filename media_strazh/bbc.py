@@ -33,15 +33,28 @@ def embedded_article(tree, canonical, source):
                 node.attrs.get("type") != "application/json"):
             continue
         try:
-            page = json.loads(node_text(node, clean=False))["props"]["pageProps"]
+            payload = json.loads(node_text(node, clean=False))
+            if not isinstance(payload, dict) or not isinstance(payload.get("props"), dict):
+                continue
+            page = payload["props"].get("pageProps")
+            if not isinstance(page, dict):
+                continue
             if page.get("pageType") != "article" or page.get("service") != "russian" or page.get("status") != 200:
                 continue
-            data = page["pageData"]
+            data = page.get("pageData")
+            if not isinstance(data, dict) or not isinstance(data.get("metadata"), dict):
+                continue
             metadata = data["metadata"]
-            located = normalize_url(metadata["locators"]["canonicalUrl"], source)
+            locators = metadata.get("locators")
+            if not isinstance(locators, dict) or not isinstance(locators.get("canonicalUrl"), str):
+                continue
+            located = normalize_url(locators["canonicalUrl"], source)
             if located != canonical or urlsplit(located).path != page.get("pathname"):
                 continue
-            blocks = data["content"]["model"]["blocks"]
+            content = data.get("content")
+            if not isinstance(content, dict) or not isinstance(content.get("model"), dict):
+                continue
+            blocks = content["model"].get("blocks")
             if not isinstance(blocks, list):
                 continue
             body, title = [], ""

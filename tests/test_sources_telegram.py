@@ -122,6 +122,30 @@ class ExpandedSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             extract_article('<script id="__NEXT_DATA__" type="application/json">' + json.dumps(payload) + '</script>', url, source, FeedEntry(url, ""))
 
+    def test_bbc_malformed_embedded_types_do_not_abort_other_extraction(self):
+        source = SOURCES["bbc"]
+        url = "https://www.bbc.com/russian/articles/a1"
+        valid_page = {"pageType": "article", "service": "russian", "status": 200,
+                      "pathname": "/russian/articles/a1", "pageData": {"metadata": {"locators": {"canonicalUrl": url}},
+                      "content": {"model": {"blocks": []}}}}
+        fixtures = [None, [], "not an object", {"props": None}, {"props": []}]
+        fixtures.extend({"props": {"pageProps": value}} for value in [None, [], "not an object"])
+        for field in ("pageData",):
+            for value in (None, [], "not an object"):
+                page = dict(valid_page, **{field: value})
+                fixtures.append({"props": {"pageProps": page}})
+        for field in ("metadata", "content"):
+            for value in (None, [], "not an object"):
+                data = dict(valid_page["pageData"], **{field: value})
+                fixtures.append({"props": {"pageProps": dict(valid_page, pageData=data)}})
+        for payload in fixtures:
+            html = '<script id="__NEXT_DATA__" type="application/json">' + json.dumps(payload) + '</script>'
+            with self.subTest(payload=payload):
+                with self.assertRaises(ValueError):
+                    extract_article(html, url, source, FeedEntry(url, ""))
+                fallback = html + f'<div data-component="text-block">{BODY}</div>'
+                self.assertEqual(extract_article(fallback, url, source, FeedEntry(url, ""))["document"]["text"], BODY)
+
     def test_live_verified_markup_adapters_and_global_share_style(self):
         # Container names/attributes observed on public publisher pages; text is synthetic.
         fixtures = {"meduza": '<div class="GeneralMaterial-module-article"><p>{}</p></div>',
