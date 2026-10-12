@@ -361,6 +361,16 @@ def main():
             fixture["generated_at"] = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
             source_meta = {source["id"]: source for source in fixture["sources"]}
             sample = copy.deepcopy(displayed[0])
+            # The published feed can contain zero matches; seed a deterministic
+            # finding so filtering and the details dialog can be tested reliably.
+            sample["findings"] = [{
+                "rule_id": "fixture.test_marker",
+                "label": "Тестовый маркер",
+                "status": "needs_review",
+                "explanation": "Тестовое объяснение найденного признака.",
+                "review_question": "Проверен ли источник?",
+                "evidence": [],
+            }]
             fixture["articles"] = []
             for number, source_id in enumerate(("rt", "rt_telegram", "interfax", "oldlentach_telegram"), 1):
                 metadata = source_meta[source_id]
