@@ -54,7 +54,7 @@
     .eyebrow { margin: 0 0 8px; color: var(--cyan); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
     .muted { color: var(--muted); }
     .analysis-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin: 0 0 18px; }
-    .mode-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; text-align: left; min-height: 88px; padding: 18px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel); cursor: pointer; transition: border-color .15s, background .15s; }
+    .mode-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 88px; padding: 18px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel); cursor: pointer; transition: border-color .15s, background .15s; }
     .mode-card { border-color: #3b5969; background: #101a25; }
     .mode-card:hover { border-color: #66e4f3; background: #142633; }
     .mode-card.active { border-color: var(--cyan); background: #102b36; box-shadow: inset 0 0 0 1px rgba(34,211,238,.28); }
@@ -228,7 +228,7 @@
     </button>
     <button class="mode-card" type="button" data-mode="manual" aria-pressed="false">
       <span class="mode-number">02 / САМОСТОЯТЕЛЬНЫЙ</span>
-      <strong>Самостоятельный анализ</strong>
+      <strong>Самостоятельная проверка</strong>
     </button>
   </div>
 
@@ -284,7 +284,7 @@
     <details id="coverageBlock" hidden><summary>Охват анализа</summary><p id="coverage" class="muted"></p></details>
   </section>
 
-  <section id="manualPanel" class="section-panel manual" aria-label="Самостоятельный анализ" hidden>
+  <section id="manualPanel" class="section-panel manual" aria-label="Самостоятельная проверка" hidden>
     <noscript><p class="error">Для ручного анализа включите JavaScript в браузере.</p></noscript>
     <form id="manualForm" class="manual-form" autocomplete="off">
       <label id="manualTitleLabel" for="manualTitle">Заголовок — необязательно</label>
