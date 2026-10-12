@@ -136,12 +136,35 @@
   </style>
   <script src="analysis.js" defer></script>
   <script src="manual-analysis.js?v=inline-comments-1" defer></script>
+<style id="pro-header-unification">
+ .site-header .header-inner { width:100%; max-width:1200px; min-height:76px; padding:12px 20px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; box-sizing:border-box; }
+ .site-header .brand { font:800 1.02rem/1.25 Montserrat,sans-serif; letter-spacing:.04em; color:#e5e7eb; white-space:nowrap; text-decoration:none; }
+ .pro-page-nav { display:inline-flex; align-items:center; gap:4px; margin-left:auto; padding:4px 8px; }
+ .pro-page-nav a { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:8px 12px; border:1px solid transparent; border-radius:999px; font:600 .78rem/1.25 Inter,sans-serif; color:#9ca3af; text-decoration:none; box-sizing:border-box; white-space:nowrap; }
+ .pro-page-nav a:hover { color:#f9fafb; background:#1e293b; }
+ .pro-page-nav a.active { color:#7de4f4; border-color:rgba(34,211,238,.45); font-weight:800; }
+ .pro-page-support { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:0 16px; border-radius:999px; background:linear-gradient(135deg,#facc15,#f97316); color:#020617; font:700 .78rem/1 Inter,sans-serif; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; white-space:nowrap; }
+ @media(max-width:767px) {
+   .site-header .header-inner { min-height:64px; padding:10px 16px; flex-wrap:wrap; gap:8px; }
+   .site-header .brand { font-size:.94rem; }
+   .pro-page-nav { order:3; width:100%; margin:0; padding:0; overflow-x:auto; gap:2px; }
+   .pro-page-nav a { padding:8px 10px; font-size:.72rem; }
+   .pro-page-support { margin-left:auto; min-height:34px; padding:0 10px; font-size:.67rem; }
+ }
+</style>
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <p class="brand">МЕДИА.СТРАЖ <span class="brand-pro">PRO</span></p>
-    <a class="header-back" href="index.html"><span aria-hidden="true">←</span> Вернуться к рейтингу</a>
+    <a class="brand" href="index.html">МЕДИА.СТРАЖ</a>
+    <nav class="pro-page-nav" aria-label="Навигация">
+      <a href="index.html">Рейтинг</a>
+      <a href="about.html">О проекте</a>
+      <a href="method.html">Методика</a>
+      <a href="archive.html">Архив</a>
+      <a href="analysis.html" class="active" aria-current="page">PRO</a>
+    </nav>
+    <a class="pro-page-support" href="help.html">Поддержать</a>
   </div>
 </header>
 <main>
