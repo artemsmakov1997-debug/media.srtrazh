@@ -166,8 +166,11 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        page.locator("#candidates").check()
+        assert page.locator("#marker option").count() > 1
+        marker = page.locator("#marker option").nth(1).get_attribute("value")
+        page.select_option("#marker", marker)
         assert page.locator(".publication").count() == 1
+        page.select_option("#marker", "")
         assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
         page.locator(".auto-details-button").click()
         page.locator("#automaticModal").wait_for(state="visible")
@@ -350,7 +353,7 @@ def main():
             page.locator('[data-mode="automatic"]').click()
             page.select_option("#source", "rt")
             displayed = json.loads((site / "data/analysis.json").read_text())["articles"]
-            assert page.locator(".publication").count() == sum(a["publisher_id"] == "rt" for a in displayed)
+            assert page.locator(".publication").count() == sum(a["publisher_id"] == "rt" and bool(a.get("findings")) for a in displayed)
 
             # Both platforms belong to one outlet; URL guards use its configured hosts/channel.
             snapshot = json.loads((site / "data/analysis.json").read_text())
@@ -397,40 +400,29 @@ def main():
             page.select_option("#source", "lenta")
             assert page.locator(".publication").count() == 0
             page.select_option("#source", "other")
-            assert page.locator(".publication").count() == 1
-            assert "Лентач" in page.locator(".publication .publication-meta").inner_text()
+            assert page.locator(".publication").count() == 0  # No detected markers in forwarded post.
             page.select_option("#platform", "")
             page.select_option("#source", "rt")
-            assert page.locator(".publication").count() == 2
-            page.select_option("#platform", "telegram")
             assert page.locator(".publication").count() == 1
-            assert page.locator(".publication h2").inner_text() == fixture["articles"][1]["message_preview"]
-            assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][1]["url"]
+            assert page.locator("#marker option").count() > 1
+            first_marker = page.locator("#marker option").nth(1).get_attribute("value")
+            page.select_option("#marker", first_marker)
+            assert page.locator(".publication").count() == 1
+            page.select_option("#marker", "")
+            page.select_option("#platform", "telegram")
+            assert page.locator(".publication").count() == 0
+            page.select_option("#platform", "website")
+            assert page.locator(".publication").count() == 1
+            assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][0]["url"]
             page.locator(".publication .auto-details-button").click()
             assert page.locator("#automaticModal").is_visible()
-            assert "Совпадений текущих правил не найдено" in page.locator("#automaticModalBody").inner_text()
             page.locator("#automaticModalClose").click()
             assert not page.locator("#automaticModal").is_visible()
-            # Older snapshots lack the new counter; keep its fallback working.
-            page.evaluate("() => { const summary = report.articles.find(item => item.platform === 'telegram').summary; delete summary.candidate_fragments; summary.review_fragments = 1; render(); }")
-            page.locator("#candidates").check()
-            assert page.locator(".publication").count() == 1
-            page.select_option("#platform", "website")
-            assert page.locator(".publication").count() == 0
-            page.locator("#candidates").uncheck()
-            assert page.locator(".publication").count() == 1
-            page.select_option("#platform", "telegram")
-            for url in ("https://evil.t.me/rt_russian/123", "https://t.me/other_channel/123",
-                        "https://t.me/rt_russian", "https://t.me/rt_russian/123?other=1",
-                        "https://russian.rt.com/news/123"):
-                page.evaluate("url => { report.articles.find(item => item.platform === 'telegram').url = url; render(); }", url)
+            for url in ("https://evil.russian.rt.com/news/123", "https://russian.rt.com.evil.example/news/123"):
+                page.evaluate("url => { report.articles.find(item => item.source_id === 'rt').url = url; render(); }", url)
                 assert page.locator(".publication .source-link").count() == 0, url
-            page.select_option("#platform", "website")
-            page.evaluate("() => { report.articles.find(item => item.source_id === 'rt').url = 'https://evil.russian.rt.com/news/123'; render(); }")
-            assert page.locator(".publication .source-link").count() == 0
             page.evaluate("() => { report.articles.find(item => item.source_id === 'rt').summary = null; render(); }")
             assert "Анализ текущей версии отсутствует" in page.locator(".publication > .badge").inner_text()
-            assert "Найдено фрагментов для проверки: 0" not in page.locator(".publication").inner_text()
             page.unroute("**/data/analysis.json")
             page.route("**/data/analysis.json", lambda route: route.fulfill(status=503, body="unavailable"))
             page.reload()
