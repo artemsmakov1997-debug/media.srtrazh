@@ -144,6 +144,17 @@ class PublishingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             snapshot(self.store, limit=0)
 
+    def test_older_detected_findings_survive_bounded_snapshot(self):
+        source = SOURCES["rt"]
+        url = f"https://{source.host}/news/1"
+        self.network.responses[url] = page(source, url, text=BODY + " Все знают о решении.")
+        collect_once(self.store, [source], client_factory=self.network, now=lambda: NOW)
+        self.save_item("rt", 2, NOW)
+        report = snapshot(self.store, limit=1)
+        self.assertEqual(len(report["articles"]), 1)
+        self.assertTrue(report["articles"][0]["url"].endswith("/news/1"))
+        self.assertTrue(report["articles"][0]["findings"])
+
     def test_busy_source_cannot_displace_website_or_telegram_feeds(self):
         for number in range(1, 8):
             self.save_item("rt", number, "2026-10-10T10:00:00+00:00")
