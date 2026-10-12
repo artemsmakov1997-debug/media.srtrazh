@@ -64,6 +64,86 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def inline_touch_and_overlap(browser, base, errors, requests):
+    def observe(page):
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+
+    context = browser.new_context(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
+    try:
+        page = context.new_page()
+        observe(page)
+        page.goto(base + "/analysis.html")
+        page.locator('[data-mode="manual"]').tap()
+        text = "Политики опасны без смирительной рубашки.\n" + "Открыта библиотека.\n" * 50
+        page.locator("#manualText").fill(text)
+        page.locator("#manualSubmit").tap()
+        page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+        trigger = page.locator("#manualTextEvidence mark").first
+        trigger.tap()
+        page.locator("#manualTooltip").wait_for(state="visible")
+        assert page.locator("#manualTooltip h3").count() == 2
+        box = page.locator("#manualTooltip").bounding_box()
+        assert box["x"] >= 0 and box["x"] + box["width"] <= 376
+        assert box["y"] >= 0 and box["y"] + box["height"] <= 813
+        page.screenshot(path="/tmp/media-strazh-inline-mobile.png")
+        trigger.tap()
+        assert not page.locator("#manualTooltip").is_visible()
+        page.set_viewport_size({"width": 375, "height": 420})
+        trigger.tap()
+        assert page.locator("#manualTooltip").evaluate("element => element.scrollHeight > element.clientHeight")
+        scrolled = page.locator("#manualTooltip").evaluate("""element => {
+            element.scrollTop = 20;
+            return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(element.scrollTop))));
+        }""")
+        assert scrolled > 0 and page.locator("#manualTooltip").is_visible()
+        trigger.tap()
+        assert not page.locator("#manualTooltip").is_visible()
+        page.set_viewport_size({"width": 375, "height": 812})
+        trigger.tap()
+        page.locator("#manualTextEvidence").evaluate("element => { element.scrollTop = 100; }")
+        page.locator("#manualTooltip").wait_for(state="hidden")
+        page.locator("#manualEdit").tap()
+        assert page.locator("#manualText").input_value() == text
+        assert page.locator("#manualText").is_visible()
+    finally:
+        context.close()
+
+    # Renderer-only fixture: partially overlapping evidence and Unicode offsets.
+    # A local worker stub isolates DOM behavior; engine parity is checked separately.
+    document = {"title": "", "text": "😀абвгде"}
+    result = analyze(document)
+    definitions = [(1, 4, "Образ врага", "enemy_image"),
+                   (3, 6, "Эвфемизмы и дисфемизмы", "euphemism_dysphemism"),
+                   (1, 4, "Запугивание", "fear")]
+    result["findings"] = [dict(id=f"f{number}", rule_id=f"renderer.fixture.{number}", category=category,
+                              label=label, status="needs_review", explanation=f"<img src=x> Пояснение {number}.",
+                              review_question="Проверьте контекст.",
+                              evidence=[dict(field="text", start=start, end=end, quote=document["text"][start:end])])
+                          for number, (start, end, label, category) in enumerate(definitions, 1)]
+    context = browser.new_context(viewport={"width": 375, "height": 812})
+    try:
+        page = context.new_page()
+        observe(page)
+        script = "self.onmessage = event => self.postMessage({id:event.data.id,type:'result',result:" + json.dumps(result) + "});"
+        page.route("**/manual-worker.js", lambda route: route.fulfill(body=script, content_type="application/javascript"))
+        page.goto(base + "/analysis.html")
+        page.locator('[data-mode="manual"]').click()
+        page.locator("#manualText").fill(document["text"])
+        page.locator("#manualSubmit").click()
+        page.locator("#manualResult").wait_for(state="visible")
+        assert page.locator("#manualTextEvidence").inner_text() == document["text"]
+        marks = page.locator("#manualTextEvidence mark")
+        assert marks.all_text_contents() == ["аб", "в", "гд"]
+        marks.nth(1).hover()
+        assert set(page.locator("#manualTooltip h3").all_text_contents()) == {entry[2] for entry in definitions}
+        assert page.locator("#manualTooltip img").count() == 0
+        page.locator("#manualForm button[type=reset]").click()
+        assert not page.locator("#manualTooltip").is_visible()
+    finally:
+        context.close()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--site", type=Path, default=ROOT / "_site")
@@ -133,17 +213,69 @@ def main():
                 assert page.locator("#manualTitleEvidence").inner_text() == document["title"]
                 assert page.locator("#manualTextEvidence").inner_text() == document["text"]
                 assert page.locator("#manualTextEvidence mark").all_text_contents() == ["Все знают", "Все знают"]
-                assert page.locator("#manualFindings .finding").count() == len(expected["findings"])
-                assert page.locator("#manualResult img").count() == 0
+                assert not page.locator("#manualText").is_visible()
+                assert page.locator("#manualText").input_value() == document["text"]
+                assert page.locator("#manualFindings").count() == 0
+                assert page.locator("#manualPanel img").count() == 0
+                assert page.locator("#manualWarnings p").all_text_contents() == [
+                    "Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.",
+                    "Отсутствие признаков не означает нейтральность текста.",
+                ]
+                marks = page.locator("#manualTextEvidence mark")
+                marks.first.hover()
+                page.locator("#manualTooltip").wait_for(state="visible")
+                assert page.locator("#manualTooltip h3").all_text_contents() == ["Обобщение"]
+                assert expected["findings"][0]["explanation"] in page.locator("#manualTooltip").inner_text()
+                box = page.locator("#manualTooltip").bounding_box()
+                assert box["x"] >= 0 and box["y"] >= 0
+                assert box["x"] + box["width"] <= width + 1
+                assert box["y"] + box["height"] <= height + 1
+                marks.last.focus()
+                marks.last.press("Enter")
+                assert "Цитата или переданная речь" in page.locator("#manualTooltip").inner_text()
+                marks.last.press("Escape")
+                assert not page.locator("#manualTooltip").is_visible()
+                marks.first.focus()
+                marks.first.press(" ")
+                assert marks.first.get_attribute("aria-expanded") == "true"
                 assert page.evaluate("window.injected") is None
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 with page.expect_download() as download:
                     page.locator("#manualDownload").click()
                 assert json.loads(Path(download.value.path()).read_text()) == expected
                 page.screenshot(path=f"/tmp/media-strazh-manual-{width}.png")
+                page.locator("#manualEdit").click()
+                assert page.locator("#manualText").is_visible()
+                assert page.locator("#manualText").input_value() == document["text"]
+                assert not page.locator("#manualTooltip").is_visible()
+                assert not page.locator("#manualResult").is_visible()
+                edited = document["text"] + "\nПредставители киевского режима покинули встречу."
+                page.locator("#manualText").fill(edited)
+                page.locator("#manualSubmit").click()
+                page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+                assert page.locator("#manualTextEvidence").inner_text() == edited
+                assert "киевского режима" in page.locator("#manualTextEvidence mark").all_text_contents()
                 page.locator("#manualForm button[type=reset]").click()
                 assert not page.locator("#manualResult").is_visible()
                 assert page.locator("#manualText").input_value() == ""
+
+            # One span may carry several techniques; all explanations remain available.
+            overlap_text = "Политики опасны без смирительной рубашки."
+            page.locator("#manualText").fill(overlap_text)
+            page.locator("#manualSubmit").click()
+            page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+            overlap = page.locator("#manualTextEvidence mark")
+            assert overlap.count() == 1
+            overlap.hover()
+            assert set(page.locator("#manualTooltip h3").all_text_contents()) == {"Образ врага", "Эвфемизмы и дисфемизмы"}
+            page.locator("#manualForm button[type=reset]").click()
+            page.locator("#manualText").fill("Открылась городская библиотека.")
+            page.locator("#manualSubmit").click()
+            page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+            assert page.locator("#manualTextEvidence mark").count() == 0
+            assert "Совпадений текущих правил не найдено" in page.locator("#manualState").inner_text()
+            assert page.locator("#manualWarnings p").count() == 2
+            page.locator("#manualForm button[type=reset]").click()
 
             page.locator("#manualText").fill("   ")
             page.locator("#manualSubmit").click()
@@ -242,7 +374,7 @@ def main():
             page.locator("#manualText").fill(document["text"])
             page.locator("#manualSubmit").click()
             page.locator("#manualResult").wait_for(state="visible", timeout=120000)
-            assert page.locator("#manualFindings .finding").count() == len(expected["findings"])
+            assert page.locator("#manualTextEvidence mark").count() == 2
 
             # Runtime failure and recovery in a fresh cache/context.
             context = browser.new_context()
@@ -277,6 +409,7 @@ def main():
             failure.unroute("**/vendor/pyodide/pyodide.js")
             context.close()
 
+            inline_touch_and_overlap(browser, base, errors, requests)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(
@@ -290,7 +423,8 @@ def main():
             print(json.dumps({"viewports": [375, 1024, 1280], "manual_ui": "passed",
                               "download_and_unicode": "passed", "empty_and_oversized_input": "passed",
                               "missing_snapshot": "passed", "runtime_retry_and_reset": "passed",
-                              "automatic_filter": "passed", "only_same_origin_get_requests": True}))
+                              "automatic_filter": "passed", "touch_and_overlapping_evidence": "passed",
+                              "manual_input_not_transmitted": True}))
     finally:
         server.shutdown()
         server.server_close()
