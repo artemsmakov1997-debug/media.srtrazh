@@ -89,6 +89,17 @@ def inline_touch_and_overlap(browser, base, errors, requests):
         page.screenshot(path="/tmp/media-strazh-inline-mobile.png")
         trigger.tap()
         assert not page.locator("#manualTooltip").is_visible()
+        page.set_viewport_size({"width": 375, "height": 420})
+        trigger.tap()
+        assert page.locator("#manualTooltip").evaluate("element => element.scrollHeight > element.clientHeight")
+        scrolled = page.locator("#manualTooltip").evaluate("""element => {
+            element.scrollTop = 20;
+            return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(element.scrollTop))));
+        }""")
+        assert scrolled > 0 and page.locator("#manualTooltip").is_visible()
+        trigger.tap()
+        assert not page.locator("#manualTooltip").is_visible()
+        page.set_viewport_size({"width": 375, "height": 812})
         trigger.tap()
         page.locator("#manualTextEvidence").evaluate("element => { element.scrollTop = 100; }")
         page.locator("#manualTooltip").wait_for(state="hidden")
