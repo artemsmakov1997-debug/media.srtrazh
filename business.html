@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PRO для бизнеса — МЕДИА.СТРАЖ</title>
+  <meta name="description" content="Прототип PRO для бизнеса: упоминания компании, отраслевые медиатренды, PR-возможности и подготовка пресс-релизов. Данные демонстрационные.">
+  <link rel="canonical" href="https://media-strazh.ru/business.html">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <meta name="theme-color" content="#05070b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="business.css">
+  <link rel="stylesheet" href="pro-gateway.css">
+  <script defer src="pro-gateway.js"></script>
+  <script defer src="business.js"></script>
+</head>
+<body>
+  <header class="business-header">
+    <div class="business-header-inner">
+      <a class="business-brand" href="index.html" aria-label="МЕДИА.СТРАЖ — на главную">МЕДИА.<span>СТРАЖ</span><span class="business-pro">PRO</span></a>
+      <nav aria-label="Навигация PRO">
+        <a href="index.html">← На главную</a>
+        <a href="analysis.html" data-pro-gateway class="business-modes">Направления PRO</a>
+        <a href="analysis.html" class="business-research-link">Исследования ↗</a>
+      </nav>
+    </div>
+  </header>
+  <main class="business-shell">
+    <section class="business-intro" aria-labelledby="businessTitle">
+      <div class="business-kicker">МЕДИА.СТРАЖ / PRO ДЛЯ БИЗНЕСА <span>Интерактивный прототип · демонстрационные данные</span></div>
+      <h1 id="businessTitle">Понимайте медиаповестку.<br><em>Находите возможности для роста.</em></h1>
+      <p>Следите за упоминаниями компании, исследуйте отраслевые тренды и превращайте актуальные темы в PR-поводы — в одном рабочем пространстве.</p>
+      <form class="business-profile" id="profileForm">
+        <div class="business-field">
+          <label for="companyName">Название компании</label>
+          <input id="companyName" name="companyName" maxlength="80" value="Демо-компания" placeholder="Например, название вашей компании" autocomplete="organization">
+        </div>
+        <div class="business-field">
+          <label for="industry">Отрасль</label>
+          <select id="industry" name="industry">
+            <option value="medtech">Медицинское оборудование</option>
+            <option value="industry">Промышленность и производство</option>
+            <option value="hospitality">Гостиничный бизнес</option>
+          </select>
+        </div>
+        <button class="business-btn" type="submit">Показать обзор ↗</button>
+      </form>
+      <p class="business-profile-note" id="profileStatus" role="status" aria-live="polite">Подборки ниже — иллюстрация интерфейса. Изменение компании пока не запускает реальный поиск в интернете.</p>
+    </section>
+
+    <nav class="business-tabs" aria-label="Разделы бизнес-панели">
+      <a href="#mentions">Моя компания</a>
+      <a href="#trends">Моя отрасль</a>
+      <a href="#opportunities">PR-возможности</a>
+      <a href="#media">Подбор СМИ</a>
+    </nav>
+
+    <section class="business-section" id="mentions" aria-labelledby="mentionsTitle">
+      <div class="business-section-head">
+        <div>
+          <h2 id="mentionsTitle">Ваша компания в медиаполе</h2>
+          <p>Обзор упоминаний компании <strong id="companyDisplay">«Демо-компания»</strong> и сигналов репутации</p>
+        </div>
+        <span class="business-small-note">Демо · условные показатели за 7 дней</span>
+      </div>
+      <div class="business-overview">
+        <div class="business-panel">
+          <div class="business-stat-row" aria-label="Демонстрационные показатели">
+            <div class="business-stat"><span class="business-stat-value">47</span><span class="business-stat-label">Упоминаний</span></div>
+            <div class="business-stat"><span class="business-stat-value">12</span><span class="business-stat-label">Источников</span></div>
+            <div class="business-stat"><span class="business-stat-value business-stat-value--green">+18%</span><span class="business-stat-label">Изменение к прошлой неделе</span></div>
+          </div>
+          <div class="business-graph" role="img" aria-label="Демонстрационный график количества упоминаний за семь дней: условные значения">
+            <i style="--bar-height:39%"></i><i style="--bar-height:59%"></i><i style="--bar-height:46%"></i>
+            <i style="--bar-height:79%"></i><i style="--bar-height:67%"></i><i style="--bar-height:95%"></i><i style="--bar-height:86%"></i>
+          </div>
+          <div class="business-days" aria-hidden="true"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+        </div>
+        <div class="business-panel business-insights">
+          <h3>На что обратить внимание</h3>
+          <div class="business-insight"><strong>Новые упоминания бренда</strong><p>В примере система группирует публикации по источникам и темам, исключая дубликаты.</p></div>
+          <div class="business-insight"><strong>Репутационный контекст</strong><p>В полной версии здесь появятся потенциально значимые упоминания для проверки PR-командой.</p></div>
+          <a class="business-inline-link" href="#mentionList">К примерам публикаций ↗</a>
+        </div>
+      </div>
+      <div class="business-mentions-list" id="mentionList" aria-label="Примеры упоминаний">
+        <article class="business-mention"><div><h3>Компания рассказала о новом отраслевом проекте</h3><p>Демонстрационный источник · пример публикации</p></div><span class="business-mention-type">СМИ</span></article>
+        <article class="business-mention"><div><h3>Участники рынка обсуждают развитие сервисной инфраструктуры</h3><p>Демонстрационный источник · пример отраслевого обзора</p></div><span class="business-mention-type">Обзор</span></article>
+        <article class="business-mention"><div><h3>Экспертный комментарий о технологических изменениях</h3><p>Демонстрационный источник · пример экспертной публикации</p></div><span class="business-mention-type">Эксперт</span></article>
+        <article class="business-mention" data-extra-mention hidden><div><h3>Отраслевая встреча с участием представителей бизнеса</h3><p>Демонстрационный источник · пример новости</p></div><span class="business-mention-type">СМИ</span></article>
+        <article class="business-mention" data-extra-mention hidden><div><h3>Обзор решений для предприятий</h3><p>Демонстрационный источник · пример обзора рынка</p></div><span class="business-mention-type">Обзор</span></article>
+        <article class="business-mention" data-extra-mention hidden><div><h3>Мнения отраслевых экспертов о перспективах рынка</h3><p>Демонстрационный источник · пример материала</p></div><span class="business-mention-type">Эксперт</span></article>
+        <div class="business-list-footer"><button type="button" class="business-inline-link" id="toggleMentions" aria-expanded="false">Показать ещё 3 примера ↓</button></div>
+      </div>
+    </section>
+
+    <section class="business-section" id="trends" aria-labelledby="trendsTitle">
+      <div class="business-section-head">
+        <div>
+          <h2 id="trendsTitle">Что обсуждают в вашей отрасли</h2>
+          <p>Темы, которые привлекают внимание медиа. Выберите отрасль выше, чтобы увидеть другой демонстрационный набор.</p>
+        </div>
+        <span class="business-small-note">Демо · объёмы и рост условные</span>
+      </div>
+      <div class="business-trends" id="trendsGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="business-section" id="opportunities" aria-labelledby="opportunitiesTitle">
+      <div class="business-section-head">
+        <div>
+          <h2 id="opportunitiesTitle">PR-возможности для вашей компании</h2>
+          <p>Идеи для участия в повестке на основе выбранного отраслевого сценария.</p>
+        </div>
+        <span class="business-small-note">Демо · рекомендации требуют проверки редактором</span>
+      </div>
+      <div class="business-opportunities" id="opportunitiesGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="business-section" id="media" aria-labelledby="mediaTitle">
+      <div class="business-section-head">
+        <div>
+          <h2 id="mediaTitle">Какие редакции могут быть релевантны</h2>
+          <p>В прототипе — типы медиа. В дальнейшем здесь будет проверенный список изданий с публикациями по теме и открытыми редакционными контактами.</p>
+        </div>
+      </div>
+      <div class="business-media">
+        <div class="business-media-item"><strong>Отраслевые издания</strong><p>Специализированные темы, кейсы, экспертные комментарии и технологии.</p></div>
+        <div class="business-media-item"><strong>Деловые СМИ</strong><p>Экономический эффект, инвестиции, результаты компаний и рыночные тенденции.</p></div>
+        <div class="business-media-item"><strong>Профессиональные сообщества</strong><p>Практические разборы, опыт участников рынка и дискуссии специалистов.</p></div>
+      </div>
+    </section>
+
+    <footer class="business-foot">
+      <p><strong>О статусе прототипа.</strong> Все показатели, примеры упоминаний, проценты роста и темы на этой странице демонстрационные. Реальный поиск публикаций, уведомления, подбор контактов СМИ, генерация пресс-релизов с помощью ИИ, платёжная система и подписка пока не подключены. Это интерфейс для продуктового тестирования.</p>
+      <p><a href="analysis.html">Перейти в PRO / Исследования ↗</a> · <a href="index.html">Вернуться к рейтингу</a></p>
+    </footer>
+  </main>
+
+  <div class="business-release-overlay" id="releaseOverlay" hidden>
+    <section class="business-release-dialog" role="dialog" aria-modal="true" aria-labelledby="releaseTitle">
+      <div class="business-release-heading">
+        <h2 id="releaseTitle">Черновик пресс-релиза</h2>
+        <button class="business-close" id="closeRelease" type="button" aria-label="Закрыть черновик">×</button>
+      </div>
+      <p>Демонстрационный редактор. Шаблон заполняется по выбранной PR-идее; ИИ-генерация и отправка в редакции пока не подключены. Заполните фактуру самостоятельно и проверьте все утверждения перед публикацией.</p>
+      <label for="releaseHeadline">Заголовок</label>
+      <input id="releaseHeadline" maxlength="180">
+      <label for="releaseBody">Текст материала</label>
+      <textarea id="releaseBody" rows="8"></textarea>
+      <div class="business-release-actions">
+        <button type="button" class="business-btn" id="copyRelease">Скопировать черновик</button>
+        <button type="button" class="business-btn business-btn--secondary" id="cancelRelease">Закрыть</button>
+      </div>
+    </section>
+  </div>
+  <div class="business-toast" id="businessToast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
