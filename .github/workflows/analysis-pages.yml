@@ -29,6 +29,17 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Prepare verified browser runtime
         run: python3 -m media_strazh prepare-browser
+      # Reuse the private SQLite corpus from the preceding run instead of
+      # starting with an empty /tmp database every half hour.
+      # The cache key is unique per run, so the post-job save creates a new
+      # revision; restore-keys picks the most recent available revision.
+      - name: Restore accumulated news history
+        uses: actions/cache@v4
+        with:
+          path: /tmp/media-strazh-pilot.sqlite3
+          key: media-strazh-corpus-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            media-strazh-corpus-
       - name: Collect a fresh, bounded sample
         shell: bash
         run: |
