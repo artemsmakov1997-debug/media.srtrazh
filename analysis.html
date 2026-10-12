@@ -64,7 +64,7 @@
     .mode-card .mode-number { display: none; }
     .section-panel { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
     .section-panel > .section-head { margin-bottom: 10px; }
-    .manual-form, .manual-document { background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px; padding: 20px; }
+    .manual-form { background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px; padding: 20px; }
     .manual-form label, .field-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
     .manual-form input, .manual-form textarea { width: 100%; padding: 12px 13px; margin-bottom: 18px; border: 1px solid #344658; border-radius: 6px; background: #070c12; color: inherit; font: inherit; }
     .manual-form textarea { min-height: 220px; resize: vertical; }
@@ -75,10 +75,20 @@
     .button.secondary:hover { border-color: var(--cyan); color: var(--cyan); }
     .button:disabled { opacity: .5; cursor: wait; }
     .error { color: #ffaaa5; }
-    .manual-document { margin: 20px 0; }
-    .manual-document .context { overflow-wrap: anywhere; max-height: 450px; overflow-y: auto; }
-    #manualFindings .finding { overflow-wrap: anywhere; }
-    #manualResultTitle:focus { outline: none; }
+    .manual-annotated { padding: 12px 13px; margin-bottom: 18px; border: 1px solid #344658; border-radius: 6px; background: #070c12; color: inherit; font: inherit; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #manualTextEvidence { min-height: 220px; max-height: 60vh; overflow-y: auto; }
+    #manualTitleEvidence { max-height: 160px; overflow-y: auto; }
+    .manual-annotated:focus { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .manual-trigger { display: inline; padding: 1px 4px; border-radius: 999px; border: 1px solid rgba(34,211,238,.55); background: rgba(34,211,238,.14); color: #f1f5f9; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+    .manual-trigger:hover, .manual-trigger:focus, .manual-trigger[aria-expanded="true"] { background: rgba(34,211,238,.24); outline: 2px solid var(--cyan); outline-offset: 1px; }
+    .manual-trigger[data-status="quoted_candidate"] { border-style: dotted; }
+    .manual-trigger[data-status="context_only"] { border-style: dashed; border-color: #8194a8; background: rgba(148,163,184,.12); }
+    .manual-tooltip { position: fixed; z-index: 400; padding: 12px 14px; border: 1px solid rgba(34,211,238,.55); border-radius: 14px; background: rgba(5,8,18,.98); color: #e5e7eb; box-shadow: 0 16px 40px rgba(0,0,0,.6); overflow-y: auto; overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }
+    .manual-tooltip section + section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .manual-tooltip h3 { margin: 0 0 5px; color: var(--cyan); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .manual-tooltip p { margin: 5px 0 0; }
+    #manualResult { margin-top: 18px; font-size: 13px; line-height: 1.7; }
+    #manualNotice { margin-bottom: 0; }
     .stats-line { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 12px 0 16px; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line); }
     /* Сводка по источникам убрана из интерфейса автоматического анализа. */
     #updated, #totals, #sources, #coverageBlock, #selection { display: none !important; }
@@ -124,7 +134,7 @@
     }
   </style>
   <script src="analysis.js" defer></script>
-  <script src="manual-analysis.js" defer></script>
+  <script src="manual-analysis.js?v=inline-comments-1" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -196,34 +206,32 @@
   <section id="manualPanel" class="section-panel manual" aria-label="Самостоятельный анализ" hidden>
     <noscript><p class="error">Для ручного анализа включите JavaScript в браузере.</p></noscript>
     <form id="manualForm" class="manual-form" autocomplete="off">
-      <label for="manualTitle">Заголовок — необязательно</label>
+      <label id="manualTitleLabel" for="manualTitle">Заголовок — необязательно</label>
       <input id="manualTitle" maxlength="200000" spellcheck="false">
-      <label for="manualText">Текст публикации</label>
+      <div id="manualTitleEvidence" class="manual-annotated" role="region" aria-labelledby="manualTitleLabel" tabindex="0" hidden></div>
+      <label id="manualTextLabel" for="manualText">Текст публикации</label>
       <textarea id="manualText" required maxlength="200000" spellcheck="false" placeholder="Вставьте полный текст статьи…"></textarea>
+      <div id="manualTextEvidence" class="manual-annotated" role="region" aria-labelledby="manualTextLabel" tabindex="0" hidden></div>
       <p class="muted">Заголовок и текст вместе — до 200 000 символов.</p>
       <div class="manual-actions">
         <button class="button" id="manualSubmit" type="submit">Проанализировать</button>
+        <button class="button secondary" id="manualEdit" type="button" hidden>Редактировать</button>
         <button class="button secondary" type="reset">Очистить</button>
+        <button id="manualDownload" class="button secondary" type="button" hidden>Скачать результат JSON</button>
         <span id="manualState" role="status" aria-live="polite"></span>
       </div>
       <p id="manualError" class="error" role="alert" hidden></p>
+      <p id="manualNotice" class="muted" role="status" hidden></p>
     </form>
-    <section id="manualResult" hidden aria-labelledby="manualResultTitle">
-      <h2 id="manualResultTitle" tabindex="-1">Результат ручного анализа</h2>
-      <p id="manualVersion" class="muted"></p>
-      <p id="manualSummary"></p>
-      <div id="manualWarnings"></div>
-      <details class="manual-document" open>
-        <summary>Заголовок и текст с выделенными фрагментами</summary>
-        <h3>Заголовок</h3><div id="manualTitleEvidence" class="context"></div>
-        <h3>Текст</h3><div id="manualTextEvidence" class="context"></div>
-      </details>
-      <div id="manualFindings"></div>
-      <details><summary>Охват ручного анализа</summary><p id="manualCoverage" class="muted"></p></details>
-      <p><button id="manualDownload" class="button secondary" type="button">Скачать результат JSON</button></p>
+    <section id="manualResult" hidden aria-label="Ограничения результата анализа">
+      <div id="manualWarnings">
+        <p class="muted">Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.</p>
+        <p class="muted">Отсутствие признаков не означает нейтральность текста.</p>
+      </div>
     </section>
   </section>
 </main>
+<div id="manualTooltip" class="manual-tooltip" role="tooltip" hidden></div>
 <script>
   (() => {
     const automaticPanel = document.getElementById('automaticPanel');
@@ -238,7 +246,11 @@
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
       });
-      if (manual) document.getElementById('manualTitle').focus({preventScroll:true});
+      if (manual) {
+        const target = document.getElementById('manualTextEvidence').hidden
+          ? document.getElementById('manualTitle') : document.getElementById('manualTextEvidence');
+        target.focus({preventScroll:true});
+      }
     }
     modeButtons.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
   })();
