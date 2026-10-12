@@ -66,11 +66,7 @@
     target.setAttribute('aria-describedby', 'manualTooltip');
     for (const finding of findings) {
       const section = document.createElement('section');
-      section.append(node('h3', finding.label), node('p', finding.explanation),
-        node('p', finding.rule_id === 'context.quotation_omission'
-          ? 'Сокращение цитаты — требуется сверка с оригиналом'
-          : statuses[finding.status] || finding.status, 'muted'),
-        node('p', finding.review_question));
+      section.append(node('h3', finding.label), node('p', finding.explanation));
       tooltip.append(section);
     }
     const viewport = window.visualViewport;
