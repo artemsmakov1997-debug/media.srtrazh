@@ -93,12 +93,14 @@ def inline_touch_and_overlap(browser, base, errors, requests):
         assert not page.locator("#manualTooltip").is_visible()
         page.set_viewport_size({"width": 375, "height": 420})
         trigger.tap()
-        assert page.locator("#manualTooltip").evaluate("element => element.scrollHeight > element.clientHeight")
-        scrolled = page.locator("#manualTooltip").evaluate("""element => {
-            element.scrollTop = 20;
-            return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(element.scrollTop))));
-        }""")
-        assert scrolled > 0 and page.locator("#manualTooltip").is_visible()
+        # Compact comments may fit without scrolling after removing secondary notes.
+        if page.locator("#manualTooltip").evaluate("element => element.scrollHeight > element.clientHeight"):
+            scrolled = page.locator("#manualTooltip").evaluate("""element => {
+                element.scrollTop = 20;
+                return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(element.scrollTop))));
+            }""")
+            assert scrolled > 0
+        assert page.locator("#manualTooltip").is_visible()
         trigger.tap()
         assert not page.locator("#manualTooltip").is_visible()
         page.set_viewport_size({"width": 375, "height": 812})
@@ -296,7 +298,9 @@ def main():
                 assert box["y"] + box["height"] <= height + 1
                 marks.last.focus()
                 marks.last.press("Enter")
-                assert "Цитата или переданная речь" in page.locator("#manualTooltip").inner_text()
+                # Tooltip now includes the marker title and explanation only.
+                assert "Цитата или переданная речь" not in page.locator("#manualTooltip").inner_text()
+                assert page.locator("#manualTooltip h3").count() > 0
                 marks.last.press("Escape")
                 assert not page.locator("#manualTooltip").is_visible()
                 marks.first.focus()
