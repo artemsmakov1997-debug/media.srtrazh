@@ -647,7 +647,30 @@
     .brand-title { font-size: .94rem; }
   }
 </style>
-</head>
+<style id="header-unification-v2">
+  .header-inner { max-width:1200px !important; width:100%; padding:0 20px !important; margin:0 auto !important; box-sizing:border-box; }
+  .navbar { width:100%; min-height:76px !important; padding:12px 0 !important; display:flex; align-items:center; justify-content:space-between; gap:16px; box-sizing:border-box; }
+  .brand-title { font:800 1.02rem/1.25 Montserrat,sans-serif !important; letter-spacing:.04em !important; white-space:nowrap; flex-shrink:0; }
+  .site-nav { margin-left:auto; }
+  .nav-links { align-items:center; }
+  .nav-link { font-size:.78rem !important; font-weight:600 !important; line-height:1.25 !important; }
+  .support-button-desktop { min-height:42px !important; padding:0 16px !important; font-size:.78rem !important; }
+  @media(min-width:768px) {
+    .nav-links { display:inline-flex !important; position:static !important; gap:4px !important; padding:4px 8px !important; }
+    .nav-link { display:inline-flex; align-items:center; justify-content:center; min-height:40px !important; padding:8px 12px !important; box-sizing:border-box; }
+  }
+  @media(max-width:767px) {
+    .header-inner { padding:0 16px !important; }
+    .navbar { min-height:64px !important; padding:10px 0 !important; }
+    .brand-title { font-size:.94rem !important; }
+  }
+</style>
+<style id="pro-action-center-v2">
+ .modal-footer .modal-analysis-link.pro-action { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:12px; width:100%; }
+ .pro-action-copy { text-align:center; min-width:0; }
+ .pro-action-arrow { color:#22d3ee; font-size:1.3rem; line-height:1; }
+ @media(max-width:767px) { .modal-footer .modal-analysis-link.pro-action { gap:8px; } .pro-action-arrow { font-size:1rem; } }
+ </style></head>
 <body>
   <header>
     <div class="header-inner">
@@ -736,7 +759,7 @@
       </div>
       <div class="modal-body" id="fullListContainer"></div>
       <div class="modal-footer">
-        <a href="analysis.html" class="full-list-button modal-analysis-link pro-action"><span class="pro-label">PRO</span><span>Показать полный список публикаций и провести самостоятельный анализ</span></a>
+        <a href="analysis.html" class="full-list-button modal-analysis-link pro-action"><span class="pro-label">PRO</span><span class="pro-action-copy">Показать полный список публикаций и провести самостоятельный анализ</span><span class="pro-action-arrow" aria-hidden="true">↗</span></a>
       </div>
     </div>
   </div>
