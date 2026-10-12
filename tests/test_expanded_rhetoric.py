@@ -43,11 +43,68 @@ POSITIVE_CASES = {
     "simplification.strawman_cue": "Значит, вы хотите разрушить государство.",
     "dysphemism.people_as_material": "Солдаты — расходный материал.",
     "dysphemism.political_disgust": "В парламенте сидят политические проститутки.",
+    "dysphemism.delegitimizing_regime": "Представители киевского режима покинули встречу.",
     "clickbait.forbidden_revelation": "Прочитайте это пока не удалили",
 }
 
 
 class ExpandedRhetoricTests(unittest.TestCase):
+    def regime_findings(self, document):
+        return [finding for finding in analyze(document)["findings"]
+                if finding["rule_id"] == "dysphemism.delegitimizing_regime"]
+
+    # Short user-supplied excerpt; the linked article is a development example,
+    # not an independent evaluation of detection quality.
+    # https://russian.rt.com/world/article/1693370-ssha-ukraina-npz-rossiya
+    def test_regime_label_inflections_and_exact_spans_in_both_fields(self):
+        phrases = ["киевский режим", "киевского режима", "киевскому режиму",
+                   "киевским режимом", "киевском режиме", "киевские режимы",
+                   "кремлёвского режима", "кремлевский режим", "московского режима",
+                   "вашингтонский режим", "брюссельского режима",
+                   "киевского марионеточного режима", "КИЕВСКОГО РЕЖИМА",
+                   "киевского\u00a0режима"]
+        for phrase in phrases:
+            for field in ("title", "text"):
+                value = "📰 Представители " + phrase + " покинули встречу."
+                document = {"text": "Опубликован материал.", field: value}
+                with self.subTest(phrase=phrase, field=field):
+                    findings = self.regime_findings(document)
+                    self.assertEqual(len(findings), 1)
+                    finding = findings[0]
+                    self.assertEqual((finding["category"], finding["status"]),
+                                     ("euphemism_dysphemism", "needs_review"))
+                    evidence = finding["evidence"][0]
+                    self.assertEqual((evidence["field"], evidence["quote"]), (field, phrase))
+                    self.assertEqual(value[evidence["start"]:evidence["end"]], phrase)
+
+    def test_regime_label_quote_denial_and_discussion_are_preserved(self):
+        examples = [("В тексте написано: «Представители киевского режима покинули встречу».", "quoted_candidate"),
+                    ("Эксперт заявил: представители киевского режима покинули встречу.", "quoted_candidate"),
+                    ("Это не киевский режим, а правительство.", "context_only"),
+                    ("Выражение «киевский режим» задаёт оценку.", "context_only")]
+        for text, status in examples:
+            with self.subTest(text=text):
+                findings = self.regime_findings({"text": text})
+                self.assertEqual(len(findings), 1)
+                self.assertEqual(findings[0]["status"], status)
+
+    def test_regime_word_and_technical_modes_are_not_political_labels(self):
+        examples = ["Представители правительства Украины покинули встречу.",
+                    "Представители властей Киева покинули встречу.",
+                    "Политический режим определяется устройством государственной власти.",
+                    "Исследование сравнивает демократические и авторитарные режимы.",
+                    "Изменился режим работы киевского метро.",
+                    "В Киеве изменился режим движения транспорта.",
+                    "Правительство обсудило киевский режим работы общественного транспорта."]
+        examples.extend("Киевский режим " + suffix + "." for suffix in
+                        ("работы метро", "движения транспорта", "налогообложения предприятий",
+                         "таможенного контроля", "визового оформления", "питания пациентов",
+                         "лечения пациентов", "эксплуатации оборудования", "подачи воды",
+                         "военного положения", "чрезвычайного положения", "карантина"))
+        for text in examples:
+            with self.subTest(text=text):
+                self.assertEqual(self.regime_findings({"text": text}), [])
+
     def test_each_new_rule_has_an_exact_span_regression(self):
         rules = {rule.id: rule for rule in RULES}
         for rule_id, text in POSITIVE_CASES.items():
