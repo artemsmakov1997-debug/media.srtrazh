@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.3.1"
+VERSION = "rules-0.3.2"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -64,6 +64,23 @@ HUMAN_CONTEXT = re.compile(
 )
 LIVESTOCK_CONTEXT = re.compile(r"\b(?:скот[а-яё]*|коров[а-яё]*|свин[а-яё]*|животн[а-яё]*|птиц[а-яё]*)\b", re.I)
 
+# Recognize attribution, not credibility. The same cue applies to all listed
+# political speakers; their party, publisher and position never determine truth.
+POLITICAL_SPEAKER_REPORT = re.compile(
+    r"\b(?:(?:президент|премьер(?:-министр)?|министр|депутат|сенатор|лидер)"
+    r"(?:\s+[а-яёa-z-]+){0,4}|Трамп|Путин|Зеленский|Макрон|Байден|Обама|"
+    r"Шольц|Мерц|Стармер|Си\s+Цзиньпин)\s+"
+    r"(?:(?:вновь|снова|резко|публично|также|сегодня|вчера|недавно)\s+){0,3}"
+    r"(?:заявил[а-яё]*|сказал[а-яё]*|отметил[а-яё]*|подчеркнул[а-яё]*|"
+    r"предложил[а-яё]*|призвал[а-яё]*|потребовал[а-яё]*|посоветовал[а-яё]*|"
+    r"раскритиковал[а-яё]*|обрушился|считает)\b", re.I,
+)
+POLITICAL_PRESCRIPTION_TARGET = re.compile(
+    r"\b(?:украин[а-яё]*|росси[а-яё]*|беларус[а-яё]*|кита[а-яё]*|"
+    r"государств[а-яё]*|правительств[а-яё]*|стран[а-яё]*|власт[а-яё]*|"
+    r"президент[а-яё]*|Зеленск[а-яё]*)\b", re.I,
+)
+
 
 def _rule_applies(rule, field, text, start, end):
     if field not in rule.fields:
@@ -72,6 +89,18 @@ def _rule_applies(rule, field, text, start, end):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "prominent_authority_prescription":
+        # A prominently selected prescriptive quote is a weak review cue, not
+        # evidence that the newsroom adopted it or used status as proof.
+        lead_end = text.find("\n")
+        if field != "title" and start >= (lead_end if lead_end >= 0 else len(text)):
+            return False
+        speakers = list(POLITICAL_SPEAKER_REPORT.finditer(sentence))
+        speakers = [match for match in speakers if not re.search(
+            r"\b(?:компани[а-яё]*|банк[а-яё]*|клуб[а-яё]*|университет[а-яё]*)\b", match.group(), re.I)]
+        if not speakers or not POLITICAL_PRESCRIPTION_TARGET.search(sentence):
+            return False
+        return not re.search(r"\b(?:футбол[а-яё]*|спортивн[а-яё]*|тренер[а-яё]*|капитан[а-яё]*)\b", sentence, re.I)
     if rule.context_requirement == "political_regime_label":
         # A geographic adjective plus "regime" can name a government through
         # a loaded label. An immediately specified operating/legal regime is
@@ -247,6 +276,10 @@ def analyze(document):
                     truncated = True
                     break
                 evidence = _evidence(field, value, *match.span(), quotes[field])
+                if rule.id == "authority.prominent_prescriptive_quote":
+                    # This rule requires attributed speech even without literal
+                    # quotation marks. Denial/discussion still take priority.
+                    evidence["context"]["reported_speech"] = True
                 spans.append(match.span())
                 findings.append({
                     "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],

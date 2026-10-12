@@ -104,6 +104,18 @@ class CollectionTests(unittest.TestCase):
         self.assertEqual((finding["category"], finding["status"]), ("euphemism_dysphemism", "needs_review"))
         self.assertEqual(finding["evidence"][0]["quote"], "киевского режима")
 
+    def test_automatic_collection_preserves_weak_authority_quote_without_asserting_author_voice(self):
+        source = SOURCES["rt"]
+        url = f"https://{source.host}/news/1"
+        text = "Дональд Трамп раскритиковал Зеленского, отметив, что Украине стоило бы «обзавестись новым лидером». " + BODY
+        self.network.responses[url] = page(source, url, text)
+        self.assertTrue(self.collect(sources=[source])["success"])
+        saved = self.store.article(self.store.articles()[0]["id"])["analysis"]
+        finding = next(item for item in saved["findings"] if item["rule_id"] == "authority.prominent_prescriptive_quote")
+        self.assertEqual((finding["category"], finding["status"]), ("appeal_to_authority", "quoted_candidate"))
+        self.assertEqual(saved["summary"]["review_candidates"], 0)
+        self.assertEqual(saved["summary"]["quoted_candidates"], 1)
+
     def test_unchanged_revisit_does_not_duplicate_versions_or_analyses(self):
         self.collect()
         result = self.collect(later(NOW, 3601))
