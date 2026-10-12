@@ -1,0 +1,67 @@
+/* МЕДИА.СТРАЖ PRO — единое окно выбора направления. */
+.pro-gateway-overlay[hidden] { display: none !important; }
+.pro-gateway-overlay {
+  position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center;
+  padding: 20px; overflow-y: auto; background: rgba(1, 5, 12, .86);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.pro-gateway-dialog, .pro-gateway-dialog * { box-sizing: border-box; }
+.pro-gateway-dialog {
+  position: relative; width: min(100%, 860px); max-height: calc(100dvh - 40px);
+  overflow-y: auto; border: 1px solid #344657; border-radius: 18px;
+  background: #0b111a; color: #edf3f8; padding: 36px;
+  box-shadow: 0 32px 90px #000a;
+  font-family: Inter, Arial, sans-serif; line-height: 1.5;
+}
+.pro-gateway-dialog :focus-visible { outline: 2px solid #f2c66d; outline-offset: 4px; }
+.pro-gateway-close {
+  position: absolute; right: 18px; top: 17px; width: 37px; height: 37px;
+  border: 1px solid #354557; border-radius: 8px; color: #c6d4e0;
+  background: #121b27; cursor: pointer; font: 500 24px/1 Inter, sans-serif;
+}
+.pro-gateway-close:hover { color: #fff; border-color: #7e93a6; }
+.pro-gateway-kicker { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 14px;
+  color: #88e7f4; font: 800 11px/1.4 Montserrat, Inter, sans-serif;
+  letter-spacing: .14em; text-transform: uppercase; }
+.pro-gateway-kicker b { padding: 4px 7px; border: 1px solid #96723b; border-radius: 5px;
+  color: #f1cf84; background: #322615; letter-spacing: .08em; }
+.pro-gateway-title { max-width: 640px; margin: 0 0 10px; color: #f3f7fc;
+  font: 800 clamp(23px, 3.4vw, 32px)/1.2 Montserrat, Inter, sans-serif; letter-spacing: -.025em; }
+.pro-gateway-subtitle { max-width: 650px; margin: 0 0 24px; color: #9db1c2; font-size: 14px; line-height: 1.7; }
+.pro-gateway-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.pro-gateway-option {
+  display: flex; flex-direction: column; min-width: 0; gap: 14px;
+  padding: 25px; text-decoration: none !important; border: 1px solid #334657;
+  border-radius: 12px; background: #101a27; color: #eaf2f8 !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.pro-gateway-option:hover { transform: translateY(-2px); background: #142434; }
+.pro-gateway-option--research { border-color: #317e90; }
+.pro-gateway-option--research:hover { border-color: #22d3ee; }
+.pro-gateway-option--business { border-color: #977549; background: #191b20; }
+.pro-gateway-option--business:hover { border-color: #e8b95d; background: #24221f; }
+.pro-gateway-icon { display: inline-grid; place-items: center; width: 42px; height: 42px;
+  border: 1px solid currentColor; border-radius: 10px; font-size: 22px; }
+.pro-gateway-option--research .pro-gateway-icon { color: #79e1ef; }
+.pro-gateway-option--business .pro-gateway-icon { color: #e8bd75; }
+.pro-gateway-option h3 { margin: 0; color: #f2f6fb; font: 800 20px/1.3 Montserrat, Inter, sans-serif; }
+.pro-gateway-audience { margin: 3px 0 0; color: #b5c2ce; font-size: 12px; }
+.pro-gateway-benefits { margin: 0; padding-left: 18px; color: #c5d0db; font-size: 13px; line-height: 1.7; }
+.pro-gateway-benefits li + li { margin-top: 6px; }
+.pro-gateway-cta { margin-top: auto; padding-top: 8px; display: flex; align-items: center;
+  justify-content: space-between; font-size: 13px; font-weight: 800; }
+.pro-gateway-option--research .pro-gateway-cta { color: #81e7f2; }
+.pro-gateway-option--business .pro-gateway-cta { color: #f0c985; }
+.pro-gateway-footnote { margin: 19px 0 0; color: #8194a7; font-size: 11px; line-height: 1.65; }
+@media (max-width: 640px) {
+  .pro-gateway-overlay { padding: 12px; align-items: center; }
+  .pro-gateway-dialog { padding: 26px 18px 18px; max-height: calc(100dvh - 24px); }
+  .pro-gateway-title { padding-right: 20px; }
+  .pro-gateway-options { grid-template-columns: 1fr; }
+  .pro-gateway-option { padding: 18px; gap: 10px; }
+  .pro-gateway-close { right: 12px; top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pro-gateway-option { transition: none; }
+  .pro-gateway-option:hover { transform: none; }
+}
