@@ -404,6 +404,27 @@ def main():
             page.locator(".publication").first.wait_for()
             assert page.locator("#collectionStatus").count() == 0
             assert page.locator("#source option").count() == 18  # Preserve user's existing choices, including Other.
+            assert "иноагент" in page.locator('#source option[value="meduza"]').inner_text()
+            assert "нежелательная организация" in page.locator('#source option[value="meduza"]').inner_text()
+            assert "нежелательная организация" in page.locator('#source option[value="novayagazeta"]').inner_text()
+            assert "иноагент" in page.locator('#source option[value="currenttime"]').inner_text()
+            assert "нежелательная организация" in page.locator('#source option[value="dw"]').inner_text()
+            assert "иноагент" not in page.locator('#source option[value="rt"]').inner_text()
+            # Status is attached to publisher identity; platform-specific channel names do not decide it.
+            page.evaluate("""() => {
+                const item = report.articles.find(item => item.source_id === 'rt');
+                item.source_id = 'test_custom_source';
+                item.publisher_id = 'meduza';
+                render();
+            }""")
+            assert page.locator(".publication .legal-status-tag").count() >= 2
+            page.evaluate("""() => {
+                const item = report.articles.find(item => item.source_id === 'test_custom_source');
+                item.source_id = 'rt';
+                item.publisher_id = 'rt';
+                render();
+            }""")
+
             assert not page.locator("#sources").is_visible()
             assert "HTTP 403" in page.locator("#sources").text_content()
             assert "Подборка давно не обновлялась" in page.locator("#updated").text_content()
