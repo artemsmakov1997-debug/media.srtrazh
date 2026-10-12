@@ -70,19 +70,26 @@ SOURCES = {
                   body_attributes=(("data-component", "text-block"),), homepage_url="https://www.bbc.com/russian"),
 }
 
-# The official RT homepage links telegram.me/rt_russian; the RIA footer links
-# tgclick.com/rian_ru. Other addresses require confirmation from their publishers:
-# a similarly named channel is not sufficient evidence of ownership.
+# First-party-confirmed channels; evidence is recorded in docs/sources.md.
 OFFICIAL_CHANNELS = {"rt": "rt_russian", "ria": "rian_ru", "interfax": "interfaxonline",
                      "meduza": "meduzalive", "novayagazeta": "novaya_europe",
                      "currenttime": "currenttime", "dw": "dwglavnoe", "bbc": "bbcrussian"}
+# Explicitly selected by the user; keep ownership evidence separate from selection.
+USER_CHANNELS = {"tass": "tass_agency", "kommersant": "kommersant", "vedomosti": "vedomosti",
+                 "rbc": "rbc_news", "izvestia": "izvestia", "rg": "rgrunews", "fontanka": "fontankaspb"}
 for _publisher, _website in list(SOURCES.items()):
-    _channel = OFFICIAL_CHANNELS.get(_publisher, "")
+    _channel = OFFICIAL_CHANNELS.get(_publisher) or USER_CHANNELS.get(_publisher, "")
     SOURCES[_publisher + "_telegram"] = Source(
         _publisher + "_telegram", _website.name + " · Telegram", "t.me",
         "https://t.me/s/" + _channel if _channel else "", (),
         publisher_id=_publisher, platform="telegram", channel=_channel,
         configuration_error="Не подтверждён адрес официального Telegram-канала издателя." if not _channel else "")
+
+# oldlentach identifies Лентач, not the newsroom of Лента.ру. It is a separate
+# user-selected publisher; never include its posts in Лента.ру's group or scores.
+SOURCES["oldlentach_telegram"] = Source(
+    "oldlentach_telegram", "Лентач · Telegram", "t.me", "https://t.me/s/oldlentach", (),
+    publisher_id="oldlentach", platform="telegram", channel="oldlentach")
 
 PUBLISHERS = tuple(key for key, source in SOURCES.items() if source.platform == "website")
 
