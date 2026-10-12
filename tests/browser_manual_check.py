@@ -166,7 +166,7 @@ def main():
             source_meta = {source["id"]: source for source in fixture["sources"]}
             sample = copy.deepcopy(displayed[0])
             fixture["articles"] = []
-            for number, source_id in enumerate(("rt", "rt_telegram", "interfax"), 1):
+            for number, source_id in enumerate(("rt", "rt_telegram", "interfax", "oldlentach_telegram"), 1):
                 metadata = source_meta[source_id]
                 item = copy.deepcopy(sample)
                 item.update(id=number, source_id=source_id, publisher_id=metadata["publisher_id"],
@@ -186,27 +186,31 @@ def main():
                                       "last_success_at": snapshot["generated_at"],
                                       "last_error": "HTTP 403" if source_id == "interfax" else None,
                                       "next_attempt_at": None}
-            fixture["totals"].update(displayed=3, analyzed=3, with_review_candidates=0)
+            fixture["totals"].update(displayed=4, analyzed=4, with_review_candidates=0)
             page.route("**/data/analysis.json", lambda route: route.fulfill(json=fixture))
             page.reload()
-            page.locator("#collectionState").filter(has_text="с ошибками").wait_for()
-            assert page.locator("#collectionState").is_visible()
-            assert "Подборка давно не обновлялась" in page.locator("#collectionState").inner_text()
-            assert page.locator("#collectionStatus").get_attribute("open") is None
-            assert page.locator("#source option").count() == 17  # All outlets, without duplicate platforms.
-            page.locator("#collectionStatus > summary").click()
-            assert page.locator("#sources").is_visible()
-            assert "HTTP 403" in page.locator("#sources").inner_text()
+            page.locator(".publication").first.wait_for()
+            assert page.locator("#collectionStatus").count() == 0
+            assert page.locator("#source option").count() == 18  # Preserve user's existing choices, including Other.
+            assert not page.locator("#sources").is_visible()
+            assert "HTTP 403" in page.locator("#sources").text_content()
+            assert "Подборка давно не обновлялась" in page.locator("#updated").text_content()
             for width, height in ((375, 812), (1024, 768), (1280, 900)):
                 page.set_viewport_size({"width": width, "height": height})
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 page.screenshot(path=f"/tmp/media-strazh-automatic-{width}.png")
+            page.select_option("#platform", "telegram")
+            page.select_option("#source", "lenta")
+            assert page.locator(".publication").count() == 0
+            page.select_option("#source", "other")
+            assert page.locator(".publication").count() == 1
+            assert "Лентач" in page.locator(".publication .publication-meta").inner_text()
+            page.select_option("#platform", "")
             page.select_option("#source", "rt")
             assert page.locator(".publication").count() == 2
             page.select_option("#platform", "telegram")
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication h2").inner_text() == fixture["articles"][1]["message_preview"]
-            assert "Это пересланное сообщение" in page.locator(".publication").inner_text()
             assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][1]["url"]
             page.locator(".publication summary").click()
             assert "Совпадений текущих правил не найдено" in page.locator(".publication details").inner_text()

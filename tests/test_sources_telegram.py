@@ -40,8 +40,10 @@ class ExpandedSourceTests(unittest.TestCase):
     def test_official_homepage_channel_discovery_ignores_article_links_and_ambiguity(self):
         website = SOURCES["tass"]
         html = '<article><a href="https://t.me/unrelated_news">Ссылка в статье</a></article><footer><a href="https://t.me/example_news">Telegram</a></footer>'
-        self.assertEqual(channel_from_homepage(html, website).channel, "example_news")
-        self.assertEqual(channel_from_homepage(html + '<footer><a href="https://t.me/feedback_bot">Сообщить редакции</a></footer>', website).channel, "example_news")
+        pending = replace(SOURCES["tass_telegram"], channel="", feed_url="", configuration_error="Не подтверждён")
+        with patch.dict(SOURCES, {pending.id: pending}):
+            self.assertEqual(channel_from_homepage(html, website).channel, "example_news")
+            self.assertEqual(channel_from_homepage(html + '<footer><a href="https://t.me/feedback_bot">Сообщить редакции</a></footer>', website).channel, "example_news")
         for markup in ('<article class="article__text"><a class="social-link" href="https://t.me/unrelated_news">Чужой канал</a></article>',
                        '<footer><a href="https://t.me/first_news">A</a><a href="https://t.me/second_news">B</a></footer>',
                        '<footer><a href="https://t.me/share/url?url=test">Share</a></footer>'):
@@ -51,12 +53,27 @@ class ExpandedSourceTests(unittest.TestCase):
     def test_registry_covers_every_named_publisher_and_both_platforms(self):
         expected = {"rt", "tass", "ria", "interfax", "kommersant", "vedomosti", "rbc", "izvestia", "rg", "lenta", "meduza", "novayagazeta", "fontanka", "currenttime", "dw", "bbc"}
         self.assertEqual(set(PUBLISHERS), expected)
-        self.assertEqual(len(selected_sources()), 32)
+        self.assertEqual(len(selected_sources()), 33)
         for publisher in expected:
             self.assertEqual(SOURCES[publisher].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].platform, "telegram")
         self.assertNotIn("other", SOURCES)
+
+    def test_user_selected_channels_and_lentach_attribution(self):
+        channels = {"tass": "tass_agency", "kommersant": "kommersant", "vedomosti": "vedomosti",
+                    "rbc": "rbc_news", "izvestia": "izvestia", "rg": "rgrunews", "fontanka": "fontankaspb"}
+        for publisher, channel in channels.items():
+            source = SOURCES[publisher + "_telegram"]
+            self.assertEqual((source.channel, source.publisher, source.configuration_error), (channel, publisher, ""))
+            self.assertEqual(source.feed_url, "https://t.me/s/" + channel)
+        lentach = SOURCES["oldlentach_telegram"]
+        self.assertEqual((lentach.channel, lentach.publisher, lentach.name), ("oldlentach", "oldlentach", "Лентач · Telegram"))
+        self.assertNotEqual(lentach.publisher, SOURCES["lenta"].publisher)
+        self.assertEqual(SOURCES["lenta_telegram"].channel, "")
+        html = telegram_post(41, channel="oldlentach")
+        entry = parse_preview(html, lentach)[0]
+        self.assertEqual(extract_post(html, entry.url, lentach, entry)["document"]["source"], "Лентач · Telegram")
 
     def test_feed_domains_and_article_redirect_hosts_are_explicit(self):
         for source in (SOURCES[key] for key in PUBLISHERS):
@@ -273,7 +290,7 @@ class TelegramTests(unittest.TestCase):
                 return Response(url, b'<footer><a href="https://t.me/example_news">Telegram</a></footer>', "text/html")
             def get_feed(self):
                 return Response(self.source.feed_url, telegram_post(41, channel="example_news").encode(), "text/html", "utf-8")
-        with tempfile.TemporaryDirectory() as directory, Store(Path(directory) / "posts.sqlite3") as store:
+        with tempfile.TemporaryDirectory() as directory, Store(Path(directory) / "posts.sqlite3") as store, patch.dict(SOURCES, {inactive.id: inactive}):
             first = collect_once(store, [inactive], client_factory=Client, now=lambda: NOW)
             self.assertTrue(first["success"])
             self.assertEqual(store.status()["sources"][0]["feed_url"], "https://t.me/s/example_news")

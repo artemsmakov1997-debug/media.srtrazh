@@ -185,11 +185,14 @@ function render() {
   const platform = element('platform').value;
   const source = element('source').value;
   const candidatesOnly = element('candidates').checked;
+  const namedOutlets = new Set(Array.from(element('source').options)
+    .map(option => option.value).filter(value => value && value !== 'other'));
 
   const selected = report.articles.filter(item => {
     const outletMatch =
       !source ||
-      publisherOf(item) === source;
+      publisherOf(item) === source ||
+      (source === 'other' && !namedOutlets.has(publisherOf(item)));
 
     const platformMatch =
       !platform || platformOf(item) === platform;
@@ -208,7 +211,7 @@ function render() {
     'Показано публикаций: ' + selected.length + '.';
 
   if (!selected.length) {
-    const message = 'В этой подборке нет публикаций, соответствующих фильтрам. Состояние сбора доступно в блоке «Источники».';
+    const message = 'В этой подборке нет публикаций, соответствующих фильтрам.';
 
     articlesContainer.append(
       node('p', message, 'muted')
@@ -217,21 +220,15 @@ function render() {
 
   for (const item of selected) {
     const article = node('article', '', 'publication');
-    const platformLabel = platformOf(item) === 'telegram' ? 'Telegram' : 'Сайт';
 
     article.append(
-      node('p', item.source.endsWith(' · ' + platformLabel)
-        ? item.source : item.source + ' · ' + platformLabel, 'publication-meta')
+      node('p', item.source, 'publication-meta')
     );
 
     article.append(
       node('h2', item.title || item.message_preview ||
         (platformOf(item) === 'telegram' ? 'Публикация в Telegram' : 'Публикация без заголовка'))
     );
-
-    if (item.published_at) {
-      article.append(node('p', 'Дата публикации: ' + date(item.published_at), 'muted'));
-    }
 
     article.append(
       node(
@@ -250,11 +247,6 @@ function render() {
         'badge'
       )
     );
-    if (item.forwarded) {
-      article.append(node('p',
-        'Это пересланное сообщение; проверьте автора исходного текста. Находки не устанавливают позицию канала.',
-        'muted'));
-    }
 
     const details = document.createElement('details');
     details.append(
@@ -373,36 +365,13 @@ async function load() {
       '.';
 
     element('sources').replaceChildren();
-    const outlets = new Map();
-    for (const source of report.sources) {
-      const publisherId = source.publisher_id || source.id;
-      if (!outlets.has(publisherId) || source.platform === 'website') {
-        outlets.set(publisherId, source.name);
-      }
-    }
-    const selectedOutlet = element('source').value;
-    element('source').replaceChildren(node('option', 'Все издания'));
-    element('source').firstChild.value = '';
-    for (const [id, name] of outlets) {
-      const option = node('option', name);
-      option.value = id;
-      element('source').append(option);
-    }
-    if (outlets.has(selectedOutlet)) element('source').value = selectedOutlet;
-    let successful = 0;
-    let failed = 0;
-    let unchecked = 0;
 
     for (const source of report.sources) {
       const card = node('section', '', 'source');
       const sourceError = (source.status && source.status.last_error) || source.configuration_error;
-      if (sourceError) failed++;
-      else if (source.status && source.status.last_success_at) successful++;
-      else unchecked++;
 
       card.append(
         node('h3', source.name),
-        node('p', source.platform === 'telegram' ? 'Telegram' : 'Сайт', 'muted'),
         node(
           'p',
           'Публикаций в подборке: ' + source.displayed
@@ -424,17 +393,10 @@ async function load() {
         card.append(
           node('p', sourceError, 'error')
         );
-      } else if (source.status && source.status.last_success_at) {
-        card.append(node('p', 'Сбор выполнен.', 'badge'));
       }
 
       element('sources').append(card);
     }
-    element('collectionState').textContent =
-      'Источники: сбор выполнен — ' + successful + ', с ошибками — ' + failed +
-      (unchecked ? ', ещё не проверены — ' + unchecked : '') +
-      (stale ? '. Подборка давно не обновлялась.' : '.');
-    element('collectionState').classList.toggle('error', stale);
 
     element('coverage').textContent =
       report.coverage.map(item =>
@@ -456,7 +418,6 @@ async function load() {
 
     element('updated').textContent =
       'Подборка пока недоступна.';
-    element('collectionState').textContent = 'Источники: опубликованная подборка пока недоступна.';
 
     element('error').textContent =
       'Публикации появятся после успешного сбора. Попробуйте обновить страницу позже.';
