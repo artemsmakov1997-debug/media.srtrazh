@@ -197,7 +197,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         assert page.locator("#manualTooltip h3").all_text_contents() == ["Эвфемизмы и дисфемизмы"]
         hover_fragment("<...>")
         assert "пропуск сам по себе не доказывает" in page.locator("#manualTooltip").inner_text()
-        assert "Сокращение цитаты — требуется сверка с оригиналом" in page.locator("#manualTooltip").inner_text()
+        assert "Сокращение цитаты — требуется сверка с оригиналом" not in page.locator("#manualTooltip").inner_text()
         assert page.locator("#manualWarnings p").count() == 2
         with page.expect_download() as download_info:
             page.locator("#manualDownload").click()
