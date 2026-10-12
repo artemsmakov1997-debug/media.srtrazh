@@ -212,13 +212,12 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
 
 
 def pro_business_navigation_ui(browser, base):
-    """The shared PRO chooser and the Business prototype work on desktop/mobile."""
+    """PRO chooser, gated Business start, mentions and period filtering."""
     context = browser.new_context(viewport={"width": 1280, "height": 900})
     try:
         page = context.new_page()
         page_errors = []
         page.on("pageerror", lambda error: page_errors.append(str(error)))
-
         for route in ("index.html", "archive.html", "about.html", "method.html", "help.html"):
             page.goto(base + "/" + route)
             page.locator("a.pro-nav-link").click()
@@ -227,32 +226,33 @@ def pro_business_navigation_ui(browser, base):
             assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
-
         page.goto(base + "/index.html")
         page.locator("a.pro-nav-link").click()
         page.locator(".pro-gateway-option--business").click()
         page.wait_for_url("**/business.html")
-        assert page.locator("#trendsGrid .business-trend").count() == 3
-        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 4
-        assert "Демонстрационные" in page.locator(".business-kicker").inner_text() or (
-            "демонстрационные" in page.locator(".business-kicker").inner_text()
-        )
+        assert page.locator(".site-header .header-back").is_visible()
+        assert page.locator("#profileForm").is_visible()
+        assert not page.locator("#businessResults").is_visible()
+        assert not page.locator("#trendsGrid .business-trend").count()
         page.locator("#companyName").fill("Тестовая компания")
         page.select_option("#industry", "hospitality")
         page.locator('#profileForm button[type="submit"]').click()
+        assert page.locator("#businessResults").is_visible()
         assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
+        assert page.locator("#mentionsBody tr").count() == 4
+        assert page.locator("#trendsGrid .business-trend").count() == 3
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
-        page.locator("#toggleMentions").click()
-        assert page.locator("[data-extra-mention]:visible").count() == 3
-        page.locator("#opportunitiesGrid [data-draft]").first.click()
-        assert page.locator("#releaseOverlay").is_visible()
-        assert "Тестовая компания" in page.locator("#releaseBody").input_value()
-        page.keyboard.press("Escape")
-        assert not page.locator("#releaseOverlay").is_visible()
-        page.locator("[data-pro-gateway]").click()
-        assert page.locator(".pro-gateway-dialog").is_visible()
-        page.locator(".pro-gateway-option--research").click()
-        page.wait_for_url("**/analysis.html")
+        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
+        page.select_option("#period", "7")
+        assert page.locator("#mentionsBody tr").count() == 2
+        page.select_option("#period", "90")
+        assert page.locator("#mentionsBody tr").count() == 6
+        assert "демонстрационные" in page.locator(".business-data-warning").inner_text().lower()
+        page.locator("#editProfile").click()
+        assert not page.locator("#businessResults").is_visible()
+        assert page.locator("#profileForm").is_visible()
+        page.goto(base + "/analysis.html")
+        assert page.locator(".site-header .header-back").is_visible()
 
         mobile = browser.new_context(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
         try:
@@ -264,14 +264,17 @@ def pro_business_navigation_ui(browser, base):
             assert p.locator(".pro-gateway-dialog").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.keyboard.press("Escape")
-            assert not p.locator(".pro-gateway-dialog").is_visible()
             p.goto(base + "/business.html")
+            assert not p.locator("#businessResults").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            assert p.locator("#trendsGrid .business-trend").count() == 3
+            p.locator("#companyName").fill("Тест")
+            p.locator('#profileForm button[type="submit"]').click()
+            assert p.locator("#businessResults").is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
         finally:
             mobile.close()
         assert not page_errors, page_errors
-        print("PRO choice and business demo passed", flush=True)
+        print("PRO chooser and revised Business workflow passed", flush=True)
     finally:
         context.close()
 
