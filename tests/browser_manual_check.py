@@ -227,6 +227,9 @@ def pro_business_navigation_ui(browser, base):
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
         page.goto(base + "/index.html")
+        # Desktop defaults to compact interface size without horizontal overflow.
+        assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         page.locator("a.pro-nav-link").click()
         page.locator(".pro-gateway-option--business").click()
         page.wait_for_url("**/business.html")
@@ -247,7 +250,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#mentionsBody tr").count() == 2
         page.select_option("#period", "90")
         assert page.locator("#mentionsBody tr").count() == 6
-        assert "демонстрационные" in page.locator(".business-data-warning").inner_text().lower()
+        assert "демо-режим" in page.locator(".business-data-warning").inner_text().lower()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
         assert page.locator("#profileForm").is_visible()
@@ -259,6 +262,7 @@ def pro_business_navigation_ui(browser, base):
             p = mobile.new_page()
             p.on("pageerror", lambda error: page_errors.append(str(error)))
             p.goto(base + "/index.html")
+            assert p.evaluate("getComputedStyle(document.body).zoom") == "1"
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
             assert p.locator(".pro-gateway-dialog").is_visible()
