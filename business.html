@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=business4">
+<link rel="stylesheet" href="business.css?v=business5">
 <script defer src="business.js?v=business2"></script>
 </head>
 <body>
@@ -46,14 +46,23 @@
 
   <div id="businessResults" class="business-results" hidden aria-live="polite">
     <div class="business-result-head">
-      <div><p class="business-eyebrow">ОБЗОР КОМПАНИИ</p><h2 id="companyDisplay"></h2><p id="industryDisplay"></p></div>
+      <div class="business-result-identity">
+        <span class="business-result-label">Обзор для компании</span>
+        <h2 id="companyDisplay"></h2>
+        <p id="industryDisplay"></p>
+      </div>
       <button type="button" id="editProfile" class="business-btn business-btn--secondary">Изменить параметры</button>
     </div>
-    <div class="business-data-warning">Демонстрационные данные для тестирования интерфейса. Публикации, оценки тональности, даты и показатели ниже вымышлены. Мониторинг интернета и ИИ-анализ пока не подключены.</div>
+    <nav class="business-result-tabs" aria-label="Разделы обзора">
+      <a href="#mentions" class="business-result-tab business-result-tab--active">Упоминания</a>
+      <a href="#trends" class="business-result-tab">Инфоповоды</a>
+      <a href="#opportunities" class="business-result-tab">PR-возможности</a>
+    </nav>
+    <p class="business-data-warning"><strong>Демо-режим.</strong> Материалы, источники, категории упоминаний и статистика условные. Подключение реального мониторинга и ИИ-анализа — следующий этап.</p>
 
     <section class="business-section" id="mentions" aria-labelledby="mentionsTitle">
       <div class="business-section-head">
-        <div><p class="business-eyebrow">01 / МЕДИАМОНИТОРИНГ</p><h2 id="mentionsTitle">Упоминания компании</h2><p>Фрагменты материалов, источники и предварительная категория упоминания.</p></div>
+        <div><h2 id="mentionsTitle">Упоминания компании</h2><p>Публикации, источники, контекст и оценка тональности.</p></div>
         <div class="business-period">
           <label for="period">Период</label>
           <select id="period">
@@ -73,12 +82,12 @@
     </section>
 
     <section class="business-section" id="trends" aria-labelledby="trendsTitle">
-      <div class="business-section-head"><div><p class="business-eyebrow">02 / МЕДИАПОВЕСТКА</p><h2 id="trendsTitle">Главные инфоповоды</h2><p>Пример тем, которые обсуждают в выбранной отрасли.</p></div></div>
+      <div class="business-section-head"><div><h2 id="trendsTitle">Главные инфоповоды</h2><p>Темы, которые освещают профильные медиа.</p></div></div>
       <div class="business-trends" id="trendsGrid"></div>
     </section>
 
     <section class="business-section" id="opportunities" aria-labelledby="opportunitiesTitle">
-      <div class="business-section-head"><div><p class="business-eyebrow">03 / PR-ПЛАНИРОВАНИЕ</p><h2 id="opportunitiesTitle">PR-возможности</h2><p>Демонстрационные предложения на пересечении упоминаний и отраслевых инфоповодов. В будущем здесь появятся рекомендации ИИ-ассистента на основании реальных публикаций.</p></div></div>
+      <div class="business-section-head"><div><h2 id="opportunitiesTitle">PR-возможности</h2><p>Идеи для экспертных комментариев, исследований и публикаций.</p></div></div>
       <div class="business-opportunities" id="opportunitiesGrid"></div>
     </section>
     <p class="business-results-foot">Дальнейшие функции, включая подбор редакций и подготовку пресс-релизов, добавим после согласования структуры обзора.</p>
