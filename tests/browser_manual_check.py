@@ -344,8 +344,11 @@ def main():
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication h2").inner_text() == fixture["articles"][1]["message_preview"]
             assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][1]["url"]
-            page.locator(".publication summary").click()
-            assert "Совпадений текущих правил не найдено" in page.locator(".publication details").inner_text()
+            page.locator(".publication .auto-details-button").click()
+            assert page.locator("#automaticModal").is_visible()
+            assert "Совпадений текущих правил не найдено" in page.locator("#automaticModalBody").inner_text()
+            page.locator("#automaticModalClose").click()
+            assert not page.locator("#automaticModal").is_visible()
             page.evaluate("() => { report.articles.find(item => item.platform === 'telegram').summary.review_fragments = 1; render(); }")
             page.locator("#candidates").check()
             assert page.locator(".publication").count() == 1
