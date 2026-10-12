@@ -114,6 +114,9 @@
     .publication > p { margin: 8px 0; }
     .publication > p:first-child { font-size: 13px; }
     .publication-meta { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+    .legal-status-tag { display: inline-block; margin: 4px 0 0 9px; padding: 3px 7px; border: 1px solid #8a7060; border-radius: 4px; color: #edd6bf; background: #261f1b; font-size: 11px; font-weight: 600; line-height: 1.35; vertical-align: middle; }
+    .legal-status-note { margin: -4px 0 18px; color: #9daebd; font-size: 12px; line-height: 1.6; }
+
     .publication-actions { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-top: 18px; }
     .publication-actions details { margin: 0; padding: 0; border: 0; }
     .publication-actions summary { list-style: none; display: inline-flex; align-items: center; padding: 10px 15px; border: 1px solid var(--cyan); border-radius: 6px; color: var(--cyan); font-weight: 700; cursor: pointer; }
@@ -282,6 +285,7 @@
         </select>
       </div>
     </div>
+    <p class="legal-status-note">Статусы некоторых СМИ и организаций-операторов в РФ приведены справочно по состоянию на 12.10.2026. Пометка относится к указанному изданию или организации, а не автоматически к каждому автору. <a href="https://minjust.gov.ru/" target="_blank" rel="noopener noreferrer">Минюст России</a> · <a href="https://epp.genproc.gov.ru/" target="_blank" rel="noopener noreferrer">Генпрокуратура России</a></p>
     <p id="updated" class="muted">Загружаем подборку…</p>
     <div id="totals" class="stats-line" role="status" aria-live="polite"></div>
     <p id="error" class="error" role="alert" hidden></p>
