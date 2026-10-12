@@ -49,7 +49,7 @@
 .pro-gateway-option--business .pro-gateway-audience { color: #e9bd79; }
 .pro-gateway-benefits {
   margin: 0; padding-left: 21px; color: #d5dfe9; font-size: 15px; line-height: 1.7;
-  text-align: justify;
+  text-align: left;
 }
 .pro-gateway-benefits li + li { margin-top: 10px; }
 .pro-gateway-cta {
