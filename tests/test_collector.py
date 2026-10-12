@@ -90,6 +90,20 @@ class CollectionTests(unittest.TestCase):
         self.assertEqual(sum(row["fetched"] for row in result["sources"].values()), 0)
         self.assertEqual(self.store.status()["revisions"], 3)
 
+    def test_automatic_collection_persists_regime_dysphemism_with_current_version(self):
+        source = SOURCES["rt"]
+        url = f"https://{source.host}/news/1"
+        self.network.responses[url] = page(source, url, BODY + " Представители киевского режима покинули встречу.")
+        result = self.collect(sources=[source])
+        self.assertTrue(result["success"])
+        detail = self.store.article(self.store.articles()[0]["id"])
+        saved = detail["analysis"]
+        self.assertEqual(saved, analyze(detail["document"]))
+        self.assertEqual(saved["algorithm_version"], VERSION)
+        finding = next(item for item in saved["findings"] if item["rule_id"] == "dysphemism.delegitimizing_regime")
+        self.assertEqual((finding["category"], finding["status"]), ("euphemism_dysphemism", "needs_review"))
+        self.assertEqual(finding["evidence"][0]["quote"], "киевского режима")
+
     def test_unchanged_revisit_does_not_duplicate_versions_or_analyses(self):
         self.collect()
         result = self.collect(later(NOW, 3601))

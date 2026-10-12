@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.3.0"
+VERSION = "rules-0.3.1"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -72,6 +72,21 @@ def _rule_applies(rule, field, text, start, end):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "political_regime_label":
+        # A geographic adjective plus "regime" can name a government through
+        # a loaded label. An immediately specified operating/legal regime is
+        # a different meaning, even when political words occur nearby.
+        technical_tail = re.match(
+            r"\s*(?:[«\"“„]\s*)?(?:работ[а-яё]*|движени[а-яё]*|"
+            r"налогообложени[а-яё]*|налогов[а-яё]*|таможенн[а-яё]*|"
+            r"визов[а-яё]*|безвизов[а-яё]*|пропускн[а-яё]*|пребывани[а-яё]*|"
+            r"сна|питани[а-яё]*|лечени[а-яё]*|обучени[а-яё]*|"
+            r"пол[её]т[а-яё]*|эксплуатаци[а-яё]*|освещени[а-яё]*|"
+            r"энергосбережени[а-яё]*|тишины|подачи|экономии|доступа|"
+            r"содержания|охраны|чрезвычайн[а-яё]*|военн[а-яё]*|карантин[а-яё]*)\b",
+            text[end:end + 100], re.I,
+        )
+        return technical_tail is None
     if rule.context_requirement == "human_violence":
         # A report on a slaughterhouse must not become a political metaphor.
         if LIVESTOCK_CONTEXT.search(sentence) and not HUMAN_CONTEXT.search(sentence):
