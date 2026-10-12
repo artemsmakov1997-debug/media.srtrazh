@@ -410,7 +410,7 @@ def main():
             page.select_option("#source", "lenta")
             assert page.locator(".publication").count() == 0
             page.select_option("#source", "other")
-            assert page.locator(".publication").count() == 0  # No detected markers in forwarded post.
+            assert page.locator(".publication").count() == 1  # Other Telegram publisher has a detected finding.
             page.select_option("#platform", "")
             page.select_option("#source", "rt")
             assert page.locator(".publication").count() == 1
