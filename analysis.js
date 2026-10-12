@@ -297,6 +297,24 @@ document.addEventListener('keydown', event => {
   }
 });
 
+/* Доступные маркеры определяются фактическими результатами анализа. */
+function refreshMarkers() {
+  const select = element('marker');
+  const previous = select.value;
+  const markers = new Map();
+  for (const item of report.articles) {
+    for (const finding of item.findings || []) {
+      if (finding.rule_id) markers.set(finding.rule_id, finding.label || finding.rule_id);
+    }
+  }
+  const options = [new Option('Все маркеры', '')];
+  for (const [id, label] of [...markers.entries()].sort((a, b) => a[1].localeCompare(b[1], 'ru'))) {
+    options.push(new Option(label, id));
+  }
+  select.replaceChildren(...options);
+  if (markers.has(previous)) select.value = previous;
+}
+
 /* Фильтрация и отрисовка публикаций. */
 function render() {
   if (!report) return;
@@ -306,7 +324,7 @@ function render() {
 
   const platform = element('platform').value;
   const source = element('source').value;
-  const candidatesOnly = element('candidates').checked;
+  const marker = element('marker').value;
   const namedOutlets = new Set(Array.from(element('source').options)
     .map(option => option.value).filter(value => value && value !== 'other'));
 
@@ -319,14 +337,11 @@ function render() {
     const platformMatch =
       !platform || platformOf(item) === platform;
 
-    const candidateMatch =
-      !candidatesOnly ||
-      (
-        item.summary &&
-        (item.summary.candidate_fragments ?? item.summary.review_fragments) > 0
-      );
-
-    return outletMatch && platformMatch && candidateMatch;
+    const findings = Array.isArray(item.findings) ? item.findings : [];
+    // Показываем только материалы с обнаруженными признаками.
+    const hasMetrics = findings.length > 0;
+    const markerMatch = !marker || findings.some(finding => finding.rule_id === marker);
+    return outletMatch && platformMatch && hasMetrics && markerMatch;
   });
 
   element('selection').textContent =
@@ -492,6 +507,7 @@ async function load() {
     element('coverageBlock').hidden = false;
     element('controls').hidden = false;
 
+    refreshMarkers();
     render();
   } catch (error) {
     console.error('Не удалось загрузить подборку анализа:', error);
@@ -509,7 +525,7 @@ async function load() {
 /* Подключение фильтров. */
 element('source').addEventListener('change', render);
 element('platform').addEventListener('change', render);
-element('candidates').addEventListener('change', render);
+element('marker').addEventListener('change', render);
 
 /* Запуск страницы. */
 load();
