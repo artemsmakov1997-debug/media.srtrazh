@@ -210,6 +210,72 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         context.close()
 
 
+
+def pro_business_navigation_ui(browser, base):
+    """The shared PRO chooser and the Business prototype work on desktop/mobile."""
+    context = browser.new_context(viewport={"width": 1280, "height": 900})
+    try:
+        page = context.new_page()
+        page_errors = []
+        page.on("pageerror", lambda error: page_errors.append(str(error)))
+
+        for route in ("index.html", "archive.html", "about.html", "method.html", "help.html"):
+            page.goto(base + "/" + route)
+            page.locator("a.pro-nav-link").click()
+            assert page.locator(".pro-gateway-dialog").is_visible(), route
+            assert page.locator(".pro-gateway-option--research").get_attribute("href") == "analysis.html"
+            assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
+            page.locator(".pro-gateway-close").click()
+            assert not page.locator(".pro-gateway-dialog").is_visible(), route
+
+        page.goto(base + "/index.html")
+        page.locator("a.pro-nav-link").click()
+        page.locator(".pro-gateway-option--business").click()
+        page.wait_for_url("**/business.html")
+        assert page.locator("#trendsGrid .business-trend").count() == 3
+        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 4
+        assert "Демонстрационные" in page.locator(".business-kicker").inner_text() or (
+            "демонстрационные" in page.locator(".business-kicker").inner_text()
+        )
+        page.locator("#companyName").fill("Тестовая компания")
+        page.select_option("#industry", "hospitality")
+        page.locator('#profileForm button[type="submit"]').click()
+        assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
+        assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
+        page.locator("#toggleMentions").click()
+        assert page.locator("[data-extra-mention]:visible").count() == 3
+        page.locator("#opportunitiesGrid [data-draft]").first.click()
+        assert page.locator("#releaseOverlay").is_visible()
+        assert "Тестовая компания" in page.locator("#releaseBody").input_value()
+        page.keyboard.press("Escape")
+        assert not page.locator("#releaseOverlay").is_visible()
+        page.locator("[data-pro-gateway]").click()
+        assert page.locator(".pro-gateway-dialog").is_visible()
+        page.locator(".pro-gateway-option--research").click()
+        page.wait_for_url("**/analysis.html")
+
+        mobile = browser.new_context(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
+        try:
+            p = mobile.new_page()
+            p.on("pageerror", lambda error: page_errors.append(str(error)))
+            p.goto(base + "/index.html")
+            p.locator("#burgerBtn").click()
+            p.locator(".nav-links.open .pro-nav-link").click()
+            assert p.locator(".pro-gateway-dialog").is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.keyboard.press("Escape")
+            assert not p.locator(".pro-gateway-dialog").is_visible()
+            p.goto(base + "/business.html")
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            assert p.locator("#trendsGrid .business-trend").count() == 3
+        finally:
+            mobile.close()
+        assert not page_errors, page_errors
+        print("PRO choice and business demo passed", flush=True)
+    finally:
+        context.close()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--site", type=Path, default=ROOT / "_site")
@@ -507,6 +573,7 @@ def main():
 
             inline_touch_and_overlap(browser, base, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
+            pro_business_navigation_ui(browser, base)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(
