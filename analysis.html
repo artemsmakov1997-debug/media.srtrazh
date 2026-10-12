@@ -208,7 +208,11 @@
   .site-header .header-back { font-size:10px; padding:8px; gap:5px; white-space:normal; text-align:center; min-height:36px; }
  }
 </style>
-</head>
+<style id="analysis-filter-emphasis">
+ #source option[value=""], #platform option[value=""], #marker option[value=""] { font-weight:700; }
+ #source, #platform, #marker { font-weight:600; }
+ .controls { align-items:end; }
+</style></head>
 <body>
 <header class="site-header">
   <div class="header-inner">
@@ -231,24 +235,15 @@
   <section id="automaticPanel" class="section-panel" aria-label="Автоматический анализ">
     <div class="controls" id="controls">
       <div class="control-field">
-        <label for="platform">Площадка публикации</label>
-        <select id="platform">
-          <option value="">Все площадки</option>
-          <option value="website">Сайты изданий</option>
-          <option value="telegram">Telegram</option>
-        </select>
-      </div>
-      <div class="control-field">
         <label for="source">Издание / канал</label>
         <select id="source">
           <option value="">Все издания</option>
-          <optgroup label="Источники в текущей подборке">
-            <option value="rt">RT на русском</option>
+
+<option value="rt">RT на русском</option>
             <option value="tass">ТАСС</option>
             <option value="ria">РИА Новости</option>
-          </optgroup>
-          <optgroup label="Другие русскоязычные политические СМИ">
-            <option value="interfax">Интерфакс</option>
+
+<option value="interfax">Интерфакс</option>
             <option value="kommersant">Коммерсантъ</option>
             <option value="vedomosti">Ведомости</option>
             <option value="rbc">РБК</option>
@@ -262,10 +257,23 @@
             <option value="dw">DW на русском</option>
             <option value="bbc">BBC News Русская служба</option>
             <option value="other">Другие источники</option>
-          </optgroup>
+
+</select>
+      </div>
+      <div class="control-field">
+        <label for="platform">Площадка публикации</label>
+        <select id="platform">
+          <option value="">Все площадки</option>
+          <option value="website">Сайты изданий</option>
+          <option value="telegram">Telegram</option>
         </select>
       </div>
-      <label class="check-field"><input type="checkbox" id="candidates"> Показать публикации с фрагментами для проверки</label>
+      <div class="control-field">
+        <label for="marker">Маркер анализа</label>
+        <select id="marker">
+          <option value="">Все маркеры</option>
+        </select>
+      </div>
     </div>
     <p id="updated" class="muted">Загружаем подборку…</p>
     <div id="totals" class="stats-line" role="status" aria-live="polite"></div>
