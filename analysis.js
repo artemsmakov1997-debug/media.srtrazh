@@ -193,8 +193,7 @@ function closeAutomaticModal() {
 function showAutomaticTooltip(mark) {
   automaticTooltip.replaceChildren(
     node('strong', mark.dataset.label),
-    node('div', mark.dataset.explanation),
-    node('p', mark.dataset.question, 'auto-modal-note')
+    node('div', mark.dataset.explanation)
   );
   automaticTooltip.hidden = false;
   const rect = mark.getBoundingClientRect();
