@@ -233,7 +233,7 @@ function render() {
     article.append(
       node(
         'p',
-        'Дата получения: ' + date(item.retrieved_at),
+        'Дата публикации: ' + date(item.published_at),
         'muted'
       )
     );
