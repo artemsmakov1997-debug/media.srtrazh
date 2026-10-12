@@ -998,6 +998,25 @@
     }
 
   </style>
+<style id="shared-header-alignment">
+  /* Identical header geometry across public pages. */
+  .header-inner { width: 100%; max-width: 1200px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+  .navbar { width: 100%; min-height: 70px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand-title { flex-shrink: 0; font-size: 1.02rem; line-height: 1.25; white-space: nowrap; }
+  .nav-links { align-items: center; }
+  .nav-link.pro-nav-link { color: #7de4f4; border-color: rgba(34,211,238,.35); font-weight: 800; }
+  .nav-link.pro-nav-link:hover { color: #b6f4ff; border-color: #22d3ee; background: rgba(34,211,238,.10); }
+  @media (min-width: 768px) {
+    .header-inner { padding: 0 20px; }
+    .navbar { padding: 12px 0; }
+    .nav-links { display: inline-flex; gap: 4px; }
+    .nav-link { min-height: 40px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; font-size: .78rem; }
+  }
+  @media (max-width: 767px) {
+    .navbar { min-height: 64px; }
+    .brand-title { font-size: .94rem; }
+  }
+</style>
 </head>
 
 <body>
@@ -1017,6 +1036,7 @@
           <a href="about.html"   class="nav-link nav-active">О проекте</a>
           <a href="method.html"  class="nav-link">Методика</a>
           <a href="archive.html" class="nav-link">Архив</a>
+            <a href="analysis.html" class="nav-link pro-nav-link">PRO</a>
           <a href="help.html"    class="support-button-mobile">Поддержать проект</a>
         </div>
       </nav>
