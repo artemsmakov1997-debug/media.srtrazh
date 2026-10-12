@@ -58,6 +58,13 @@
     .mode-card { border-color: #3b5969; background: #101a25; }
     .mode-card:hover { border-color: #66e4f3; background: #142633; }
     .mode-card.active { border-color: var(--cyan); background: #102b36; box-shadow: inset 0 0 0 1px rgba(34,211,238,.28); }
+    /* Цветовой код режимов: автоматический — бирюзовый, самостоятельный — золотистый. */
+    .mode-card[data-mode="automatic"] { border-color: #317e90; }
+    .mode-card[data-mode="automatic"]:hover { border-color: #65e4f4; background: #122936; }
+    .mode-card[data-mode="automatic"].active { border-color: #22d3ee; background: #102b36; box-shadow: inset 0 0 0 1px rgba(34,211,238,.28); }
+    .mode-card[data-mode="manual"] { border-color: #937445; background: #1c1a18; }
+    .mode-card[data-mode="manual"]:hover { border-color: #e8b95d; background: #29241b; }
+    .mode-card[data-mode="manual"].active { border-color: #e8b95d; background: #292317; box-shadow: inset 0 0 0 1px rgba(232,185,93,.25); }
     .mode-card.active strong { color: #e8fbff; }
     .mode-card:not(.active) strong { color: #c9d8e5; }
     .mode-number { color: var(--cyan); font: 700 12px Montserrat, sans-serif; letter-spacing: .08em; }
