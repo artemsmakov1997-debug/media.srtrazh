@@ -21,10 +21,13 @@
 }
 .pro-gateway-close:hover { color: #fff; border-color: #7e93a6; }
 .pro-gateway-title {
-  margin: 0 48px 26px 0; color: #f3f7fc; font: 800 clamp(26px, 3.7vw, 39px)/1.2 Montserrat, Inter, sans-serif;
-  letter-spacing: -.03em; text-align: justify; text-align-last: left;
+  margin: 0 0 28px;
+  color: #f3f7fc;
+  font: 800 clamp(27px, 3.7vw, 39px)/1.18 Montserrat, Inter, sans-serif;
+  letter-spacing: -.03em;
+  text-align: center;
 }
-.pro-gateway-title-brand { color: #22d3ee; }
+.pro-gateway-title-line { display: block; }
 .pro-gateway-title-pro { color: #f2c66d; white-space: nowrap; }
 .pro-gateway-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .pro-gateway-option {
@@ -66,7 +69,7 @@
 @media (max-width: 640px) {
   .pro-gateway-overlay { padding: 12px; align-items: center; }
   .pro-gateway-dialog { padding: 26px 18px 18px; max-height: calc(100dvh - 24px); }
-  .pro-gateway-title { margin-right: 40px; font-size: clamp(24px, 7vw, 30px); text-align: left; }
+  .pro-gateway-title { margin: 0 0 22px; font-size: clamp(22px, 6vw, 30px); line-height: 1.2; text-align: center; }
   .pro-gateway-options { grid-template-columns: 1fr; }
   .pro-gateway-option { padding: 18px; gap: 12px; }
   .pro-gateway-benefits { font-size: 14px; text-align: left; }
