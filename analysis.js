@@ -296,22 +296,20 @@ document.addEventListener('keydown', event => {
   }
 });
 
-/* Доступные маркеры определяются фактическими результатами анализа. */
+/* Все поддерживаемые категории берутся из методики, а не только из текущей выборки.
+   Иначе фильтр теряет варианты при смене новостного снимка. */
 function refreshMarkers() {
   const select = element('marker');
   const previous = select.value;
-  const markers = new Map();
-  for (const item of report.articles) {
-    for (const finding of item.findings || []) {
-      if (finding.rule_id) markers.set(finding.rule_id, finding.label || finding.rule_id);
-    }
-  }
+  const categories = (report.coverage || []).filter(entry =>
+    entry.coverage === 'candidate_rules'
+  );
   const options = [new Option('Все маркеры', '')];
-  for (const [id, label] of [...markers.entries()].sort((a, b) => a[1].localeCompare(b[1], 'ru'))) {
-    options.push(new Option(label, id));
+  for (const category of categories) {
+    options.push(new Option(category.label, category.id));
   }
   select.replaceChildren(...options);
-  if (markers.has(previous)) select.value = previous;
+  if (categories.some(entry => entry.id === previous)) select.value = previous;
 }
 
 /* Фильтрация и отрисовка публикаций. */
@@ -339,7 +337,7 @@ function render() {
     const findings = Array.isArray(item.findings) ? item.findings : [];
     // Показываем только материалы с обнаруженными признаками.
     const hasMetrics = findings.length > 0;
-    const markerMatch = !marker || findings.some(finding => finding.rule_id === marker);
+    const markerMatch = !marker || findings.some(finding => finding.category === marker);
     return outletMatch && platformMatch && hasMetrics && markerMatch;
   });
 
