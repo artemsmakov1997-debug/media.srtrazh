@@ -168,8 +168,8 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        assert page.locator("#marker option").count() > 1
-        marker = page.locator("#marker option").nth(1).get_attribute("value")
+        assert page.locator("#marker option").count() == 11  # Ten implemented marker categories + all.
+        marker = expected["findings"][0]["category"]
         page.select_option("#marker", marker)
         assert page.locator(".publication").count() == 1
         page.select_option("#marker", "")
@@ -369,7 +369,8 @@ def main():
             # finding so filtering and the details dialog can be tested reliably.
             sample["findings"] = [{
                 "rule_id": "fixture.test_marker",
-                "label": "Тестовый маркер",
+                "category": "emotional_evaluation",
+                "label": "Эмоциональная оценка",
                 "status": "needs_review",
                 "explanation": "Тестовое объяснение найденного признака.",
                 "review_question": "Проверен ли источник?",
@@ -418,10 +419,12 @@ def main():
             page.select_option("#platform", "")
             page.select_option("#source", "rt")
             assert page.locator(".publication").count() == 1
-            assert page.locator("#marker option").count() > 1
-            first_marker = page.locator("#marker option").nth(1).get_attribute("value")
-            page.select_option("#marker", first_marker)
+            assert page.locator("#marker option").count() == 11
+            page.select_option("#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
+            page.select_option("#marker", "fear")
+            assert page.locator(".publication").count() == 0
+            assert page.locator("#marker option").count() == 11  # Options do not vanish when results are empty.
             page.select_option("#marker", "")
             page.select_option("#platform", "telegram")
             assert page.locator(".publication").count() == 0
