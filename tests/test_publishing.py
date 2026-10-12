@@ -15,6 +15,7 @@ from media_strazh.sources import SOURCES
 from media_strazh.storage import Store
 from test_collector import BODY, FakeNetwork, NOW, page
 from browser_fixtures import runtime_fixture
+from test_contextual_rhetoric import BLAHA_TEXT
 
 
 class PublishingTests(unittest.TestCase):
@@ -60,6 +61,20 @@ class PublishingTests(unittest.TestCase):
         before = self.store.status()
         snapshot(self.store)
         self.assertEqual(self.store.status(), before)
+
+    def test_automatic_analysis_keeps_quoted_signals_in_published_summary(self):
+        source = SOURCES["rt"]
+        url = f"https://{source.host}/news/1"
+        self.network.responses[url] = page(source, url, text=BLAHA_TEXT)
+        collect_once(self.store, [source], client_factory=self.network, now=lambda: NOW)
+        item = snapshot(self.store)["articles"][0]
+        saved = self.store.article(item["id"])["analysis"]
+        self.assertEqual(item["algorithm_version"], VERSION)
+        self.assertEqual(item["summary"]["review_fragments"], 0)
+        self.assertEqual(item["summary"]["candidate_fragments"], 11)
+        self.assertEqual(item["findings"], [{key: f[key] for key in
+                         ("category", "label", "rule_id", "status", "explanation", "review_question", "evidence")}
+                        for f in saved["findings"]])
 
     def test_quoted_cues_are_separate_from_active_review_fragments(self):
         for source_id, suffix in (("rt", " Все знают о решении."),
