@@ -175,6 +175,125 @@ function findingCard(finding) {
   return card;
 }
 
+
+/* Разбор автоматической публикации в отдельном окне — по образцу Архива.
+   Снимок может содержать только контекст найденных фрагментов, а не полный текст. */
+const automaticModal = element('automaticModal');
+const automaticBody = element('automaticModalBody');
+const automaticTooltip = element('automaticTooltip');
+let previousModalFocus = null;
+
+function closeAutomaticModal() {
+  automaticModal.hidden = true;
+  automaticTooltip.hidden = true;
+  document.body.style.overflow = '';
+  if (previousModalFocus && previousModalFocus.isConnected) previousModalFocus.focus();
+}
+
+function showAutomaticTooltip(mark) {
+  automaticTooltip.replaceChildren(
+    node('strong', mark.dataset.label),
+    node('div', mark.dataset.explanation),
+    node('p', mark.dataset.question, 'auto-modal-note')
+  );
+  automaticTooltip.hidden = false;
+  const rect = mark.getBoundingClientRect();
+  const tip = automaticTooltip.getBoundingClientRect();
+  const left = Math.max(12, Math.min(rect.left, innerWidth - tip.width - 12));
+  const top = rect.bottom + tip.height + 12 <= innerHeight
+    ? rect.bottom + 8
+    : Math.max(12, rect.top - tip.height - 8);
+  automaticTooltip.style.left = left + 'px';
+  automaticTooltip.style.top = top + 'px';
+}
+
+function modalExcerpt(sentence, evidences) {
+  const paragraph = node('p', '', 'auto-modal-excerpt');
+  const chars = Array.from(sentence.text);
+  const segments = [];
+  for (const { finding, evidence } of evidences) {
+    const start = evidence.start - sentence.start;
+    const end = evidence.end - sentence.start;
+    if (start < 0 || end > chars.length || start >= end ||
+        chars.slice(start, end).join('') !== evidence.quote) continue;
+    segments.push({ start, end, finding });
+  }
+  const boundaries = [...new Set([0, chars.length, ...segments.flatMap(s => [s.start, s.end])])].sort((a,b) => a-b);
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const from = boundaries[i], to = boundaries[i + 1];
+    if (from === to) continue;
+    const text = chars.slice(from, to).join('');
+    const matches = segments.filter(s => s.start <= from && s.end >= to);
+    if (!matches.length) { paragraph.append(document.createTextNode(text)); continue; }
+    const mark = node('mark', text, 'auto-modal-highlight');
+    mark.tabIndex = 0;
+    mark.dataset.label = [...new Set(matches.map(s => s.finding.label))].join(' · ');
+    mark.dataset.explanation = [...new Set(matches.map(s => s.finding.explanation))].join(' ');
+    mark.dataset.question = [...new Set(matches.map(s => s.finding.review_question))].join(' ');
+    mark.setAttribute('aria-label', text + ': ' + mark.dataset.label);
+    mark.addEventListener('mouseenter', () => showAutomaticTooltip(mark));
+    mark.addEventListener('mouseleave', () => { automaticTooltip.hidden = true; });
+    mark.addEventListener('focus', () => showAutomaticTooltip(mark));
+    mark.addEventListener('blur', () => { automaticTooltip.hidden = true; });
+    mark.addEventListener('click', () => {
+      if (automaticTooltip.hidden) showAutomaticTooltip(mark);
+      else automaticTooltip.hidden = true;
+    });
+    paragraph.append(mark);
+  }
+  return paragraph;
+}
+
+function openAutomaticModal(item) {
+  previousModalFocus = document.activeElement;
+  automaticTooltip.hidden = true;
+  element('automaticModalTitle').textContent = item.title || item.message_preview || 'Разбор публикации';
+  automaticBody.replaceChildren();
+
+  const findings = Array.isArray(item.findings) ? item.findings : [];
+  const sections = new Map();
+  for (const finding of findings) {
+    for (const evidence of finding.evidence || []) {
+      if (!evidence.sentence || typeof evidence.sentence.text !== 'string') continue;
+      const key = evidence.field + ':' + evidence.sentence.start + ':' + evidence.sentence.text;
+      if (!sections.has(key)) sections.set(key, { sentence: evidence.sentence, field: evidence.field, evidences: [] });
+      sections.get(key).evidences.push({ finding, evidence });
+    }
+  }
+  const panel = node('section', '', 'auto-modal-section');
+  panel.append(node('p', sections.size ? 'Фрагменты публикации с выделенными признаками' : 'Результат анализа', 'auto-modal-section-label'));
+  if (sections.size) {
+    for (const section of sections.values()) {
+      panel.append(modalExcerpt(section.sentence, section.evidences));
+    }
+  } else {
+    panel.append(node('p', findings.length ? 'Контекст найденных признаков недоступен.' :
+      'Совпадений текущих правил не найдено. Это не доказывает нейтральность текста.', 'auto-modal-note'));
+  }
+  automaticBody.append(panel);
+  automaticBody.append(node('p', 'Показаны сохранённые фрагменты контекста, а не обязательно полный текст публикации. Наведите курсор на выделение или нажмите на него, чтобы увидеть комментарий. Выявленные признаки требуют проверки.', 'auto-modal-note'));
+  if (item.findings_omitted) automaticBody.append(node('p', 'Других меток в результате: ' + item.findings_omitted, 'auto-modal-note'));
+  automaticModal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  element('automaticModalClose').focus();
+}
+element('automaticModalClose').addEventListener('click', closeAutomaticModal);
+automaticModal.addEventListener('click', event => {
+  if (event.target === automaticModal) closeAutomaticModal();
+  else if (!event.target.closest('.auto-modal-highlight')) automaticTooltip.hidden = true;
+});
+document.addEventListener('keydown', event => {
+  if (automaticModal.hidden) return;
+  if (event.key === 'Escape') { event.preventDefault(); closeAutomaticModal(); }
+  if (event.key === 'Tab') {
+    const focusable = [...automaticModal.querySelectorAll('button, a[href], [tabindex="0"]')];
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+
 /* Фильтрация и отрисовка публикаций. */
 function render() {
   if (!report) return;
@@ -248,53 +367,11 @@ function render() {
       )
     );
 
-    const details = document.createElement('details');
-    details.append(
-      node('summary', 'Подробнее')
-    );
-
-    if (!counts) {
-      details.append(
-        node('p', 'Анализ текущей версией ещё не сохранён.', 'muted')
-      );
-    } else if (!item.findings.length) {
-      details.append(
-        node(
-          'p',
-          'Совпадений текущих правил не найдено. Это не доказывает нейтральность текста.',
-          'muted'
-        )
-      );
-    } else {
-      for (const finding of item.findings) {
-        details.append(findingCard(finding));
-      }
-
-      if (item.findings_omitted) {
-        details.append(
-          node(
-            'p',
-            'Других меток в результате: ' +
-              item.findings_omitted +
-              '. Подборка ограничена.',
-            'muted'
-          )
-        );
-      }
-    }
-
-    if (counts && counts.findings_truncated) {
-      details.append(
-        node(
-          'p',
-          'Полный результат ограничен первыми 500 совпадениями; сводка неполная.',
-          'muted'
-        )
-      );
-    }
-
     const actions = node('div', '', 'publication-actions');
-    actions.append(details);
+    const more = node('button', 'Подробнее', 'auto-details-button');
+    more.type = 'button';
+    more.addEventListener('click', () => openAutomaticModal(item));
+    actions.append(more);
 
     const link = original(item);
     if (link) {
