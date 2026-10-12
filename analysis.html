@@ -152,6 +152,27 @@
    .pro-page-support { margin-left:auto; min-height:34px; padding:0 10px; font-size:.67rem; }
  }
 </style>
+<style id="automatic-analysis-modal-styles">
+ .auto-modal-overlay { position:fixed; inset:0; z-index:300; display:flex; justify-content:center; align-items:center; padding:22px; background:rgba(2,6,23,.87); backdrop-filter:blur(9px); }
+ .auto-modal-overlay[hidden] { display:none !important; }
+ .auto-modal { width:min(100%,820px); max-height:min(90vh,850px); display:flex; flex-direction:column; overflow:hidden; border:1px solid #34485c; border-radius:20px; background:linear-gradient(180deg,#111d2b,#070d16); box-shadow:0 22px 65px rgba(0,0,0,.65); }
+ .auto-modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; padding:22px 24px; border-bottom:1px solid #26384a; }
+ .auto-modal-kicker { color:#22d3ee; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
+ .auto-modal-head h2 { margin:8px 0 0; font:700 20px/1.4 Montserrat,sans-serif; }
+ .auto-modal-close { flex-shrink:0; width:38px; height:38px; border:1px solid #42566a; border-radius:10px; background:#152231; color:#f3f7fb; font-size:24px; cursor:pointer; }
+ .auto-modal-body { overflow-y:auto; padding:22px 24px 28px; }
+ .auto-modal-section { padding:19px 20px; border:1px solid #2d4152; border-radius:12px; background:#0b1520; margin-bottom:16px; }
+ .auto-modal-section-label { margin:0 0 12px; color:#9caec1; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.11em; }
+ .auto-modal-excerpt { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.85; margin:0 0 14px; color:#e4eaf1; }
+ .auto-modal-excerpt:last-child { margin-bottom:0; }
+ .auto-modal-highlight { padding:1px 3px; border-radius:4px; background:rgba(34,211,238,.22); border-bottom:2px solid #22d3ee; color:#eaffff; cursor:help; }
+ .auto-modal-highlight:hover,.auto-modal-highlight:focus { background:rgba(34,211,238,.4); outline:1px solid #22d3ee; }
+ .auto-modal-note { color:#9baec1; font-size:12px; line-height:1.6; }
+ .auto-modal-tooltip { position:fixed; z-index:450; width:min(310px,calc(100vw - 24px)); max-height:50vh; overflow-y:auto; padding:12px 14px; border:1px solid #4e899d; border-radius:12px; background:#07111c; color:#eaf2f9; box-shadow:0 15px 40px #0009; font-size:12px; line-height:1.55; pointer-events:none; }
+ .auto-modal-tooltip[hidden] { display:none !important; }
+ .auto-modal-tooltip strong { display:block; color:#7de4f4; margin-bottom:5px; }
+ @media(max-width:760px) { .auto-modal-overlay { padding:0; align-items:flex-end; } .auto-modal { max-height:93dvh; border-radius:20px 20px 0 0; } .auto-modal-head { padding:17px 16px; } .auto-modal-head h2 { font-size:16px; } .auto-modal-body { padding:16px; } .auto-modal-section { padding:15px; } }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -255,6 +276,16 @@
     </section>
   </section>
 </main>
+<div id="automaticModal" class="auto-modal-overlay" hidden>
+  <div class="auto-modal" role="dialog" aria-modal="true" aria-labelledby="automaticModalTitle">
+    <div class="auto-modal-head">
+      <div><span class="auto-modal-kicker">Разбор публикации</span><h2 id="automaticModalTitle"></h2></div>
+      <button id="automaticModalClose" class="auto-modal-close" type="button" aria-label="Закрыть окно">×</button>
+    </div>
+    <div id="automaticModalBody" class="auto-modal-body"></div>
+  </div>
+</div>
+<div id="automaticTooltip" class="auto-modal-tooltip" role="tooltip" hidden></div>
 <div id="manualTooltip" class="manual-tooltip" role="tooltip" hidden></div>
 <script>
   (() => {
