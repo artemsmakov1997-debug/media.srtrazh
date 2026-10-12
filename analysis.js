@@ -11,6 +11,39 @@ const statuses = {
 
 let report = null;
 
+// Справочные статусы по российским реестрам, проверены 12.10.2026.
+// Относятся к указанному СМИ/оператору проекта, а не автоматически ко всем его сотрудникам.
+// Источники подтверждения приведены в docs/media-statuses.md.
+const LEGAL_STATUSES = Object.freeze({
+  meduza: {foreignAgent: true, undesirable: true},
+  novayagazeta: {foreignAgent: false, undesirable: true},
+  currenttime: {foreignAgent: true, undesirable: true},
+  dw: {foreignAgent: false, undesirable: true}
+});
+
+function legalStatus(publisherId) {
+  return LEGAL_STATUSES[publisherId] || null;
+}
+
+function statusLabels(publisherId) {
+  const status = legalStatus(publisherId);
+  if (!status) return [];
+  const labels = [];
+  if (status.foreignAgent) labels.push('иноагент');
+  if (status.undesirable) labels.push('нежелательная организация');
+  return labels;
+}
+
+function annotatePublisherOptions() {
+  for (const option of element('source').options) {
+    if (!option.value || option.value === 'other') continue;
+    const labels = statusLabels(option.value);
+    if (labels.length) option.textContent += ' (' + labels.join(', ') + ')';
+  }
+}
+
+
+
 /* Реестр источников приходит из той же конфигурации, которой пользуется сборщик. */
 function sourceOf(item) {
   return report && report.sources.find(source => source.id === item.source_id);
@@ -355,9 +388,13 @@ function render() {
   for (const item of selected) {
     const article = node('article', '', 'publication');
 
-    article.append(
-      node('p', item.source, 'publication-meta')
-    );
+    const publisherMeta = node('p', item.source, 'publication-meta');
+    for (const label of statusLabels(publisherOf(item))) {
+      const badge = node('span', label, 'legal-status-tag');
+      badge.title = 'Статус СМИ или его организации-оператора в РФ на 12.10.2026; сведения справочные';
+      publisherMeta.append(badge);
+    }
+    article.append(publisherMeta);
 
     article.append(
       node('h2', item.title || item.message_preview ||
@@ -518,6 +555,8 @@ async function load() {
     element('error').hidden = false;
   }
 }
+
+annotatePublisherOptions();
 
 /* Подключение фильтров. */
 element('source').addEventListener('change', render);
