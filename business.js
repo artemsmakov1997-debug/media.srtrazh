@@ -113,6 +113,12 @@
     $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
   });
   $('period').addEventListener('change',()=>{if(!$('businessResults').hidden)renderMentions();});
+  document.querySelectorAll('.business-result-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.business-result-tab').forEach(other => other.classList.remove('business-result-tab--active'));
+      tab.classList.add('business-result-tab--active');
+    });
+  });
   $('editProfile').addEventListener('click',()=>{
     $('businessResults').hidden=true;
     $('businessStart').classList.remove('business-start--compact');
