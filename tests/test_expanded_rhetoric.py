@@ -49,6 +49,51 @@ POSITIVE_CASES = {
 
 
 class ExpandedRhetoricTests(unittest.TestCase):
+    def authority_quote_findings(self, document):
+        return [finding for finding in analyze(document)["findings"]
+                if finding["rule_id"] == "authority.prominent_prescriptive_quote"]
+
+    def test_prominent_political_prescription_keeps_source_voice_and_exact_span(self):
+        examples = [
+            "В свою очередь, Дональд Трамп раскритиковал Зеленского, отметив, что Украине стоило бы «обзавестись новым лидером».",
+            "Президент США заявил, что Украине стоит обзавестись новым лидером.",
+            "Президент России предложил стране сменить президента.",
+            "Макрон отметил, что государству нужен новый лидер.",
+            "Зеленский заявил, что стране нужно сменить главу правительства.",
+            "«Предлагаю им обзавестись новым лидером»: за что Трамп обрушился с критикой на Зеленского",
+        ]
+        for text in examples:
+            for field in ("title", "text"):
+                with self.subTest(text=text, field=field):
+                    document = {"text": "Опубликован материал.", field: text}
+                    result = analyze(document)
+                    findings = [finding for finding in result["findings"]
+                                if finding["rule_id"] == "authority.prominent_prescriptive_quote"]
+                    self.assertEqual(len(findings), 1)
+                    self.assertEqual((findings[0]["category"], findings[0]["status"]),
+                                     ("appeal_to_authority", "quoted_candidate"))
+                    e = findings[0]["evidence"][0]
+                    self.assertEqual(text[e["start"]:e["end"]], e["quote"])
+                    self.assertTrue(e["context"]["reported_speech"])
+                    self.assertNotIn("appeal_to_authority", result["summary"]["by_category"])
+
+    def test_routine_speech_and_unattributed_recommendations_are_not_authority_cues(self):
+        examples = ["Президент сообщил дату встречи.", "Трамп заявил, что переговоры состоятся завтра.",
+                    "Журналист предложил Украине обзавестись новым лидером.",
+                    "Издание предложило Украине обзавестись новым лидером.",
+                    "Президент компании заявил, что ей нужен новый лидер.",
+                    "Тренер заявил, что команде нужен новый лидер.",
+                    "Президент США предложил футбольной команде Украины обзавестись новым лидером.",
+                    "Правительство утвердило состав кабинета.\nПрезидент заявил, что стране нужен новый лидер."]
+        for text in examples:
+            with self.subTest(text=text):
+                self.assertEqual(self.authority_quote_findings({"text": text}), [])
+
+    def test_prescriptive_quote_denial_remains_context_only(self):
+        text = "Трамп заявил, что Украине не стоит обзавестись новым лидером."
+        finding = self.authority_quote_findings({"text": text})[0]
+        self.assertEqual(finding["status"], "context_only")
+
     def regime_findings(self, document):
         return [finding for finding in analyze(document)["findings"]
                 if finding["rule_id"] == "dysphemism.delegitimizing_regime"]
