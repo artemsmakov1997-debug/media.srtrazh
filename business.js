@@ -44,145 +44,79 @@
     }
   };
 
-  const trendsGrid = $('trendsGrid');
-  const opportunitiesGrid = $('opportunitiesGrid');
-  const form = $('profileForm');
-  const releaseOverlay = $('releaseOverlay');
-  const headline = $('releaseHeadline');
-  const body = $('releaseBody');
-  let activeIndustry = 'medtech';
-  let activeCompany = 'Демо-компания';
-  let previousFocus = null;
-  let previousOverflow = '';
-  let toastTimer = null;
-
-  function elt(tag, text, className) {
-    const node = document.createElement(tag);
-    if (text != null) node.textContent = text;
-    if (className) node.className = className;
-    return node;
+  const sources = ['Деловой вестник (демо)', 'Отраслевой обзор (демо)', 'Городские новости (демо)', 'Экспертный журнал (демо)', 'Бизнес-лента (демо)'];
+  const excerpts = [
+    ['positive','Положительное','Компания представила проект и сообщила о результатах, которые планирует развивать.'],
+    ['neutral','Нейтральное','Участники рынка обсудили новые решения; среди упомянутых организаций названа компания.'],
+    ['negative','Отрицательное','В материале приведены вопросы к срокам обслуживания и комментарии участников рынка.'],
+    ['neutral','Нейтральное','Издание опубликовало обзор текущих предложений отрасли и упомянуло производителя.'],
+    ['positive','Положительное','Эксперты отметили перспективность подхода, который использует компания.'],
+    ['neutral','Нейтральное','На отраслевом мероприятии обсуждались технологии и планы предприятий.']
+  ];
+  let activeIndustry='medtech';
+  let activeCompany='';
+  const $table=$('mentionsBody');
+  function node(tag,text,klass) {
+    const n=document.createElement(tag); if(text!==undefined)n.textContent=text;
+    if(klass)n.className=klass;return n;
   }
-
-  function render() {
-    const data = samples[activeIndustry];
-    trendsGrid.replaceChildren();
-    opportunitiesGrid.replaceChildren();
-
-    for (const [index, trend] of data.trends.entries()) {
-      const card = elt('article', null, 'business-trend');
-      const top = elt('div', null, 'business-trend-top');
-      top.append(elt('span', String(index + 1).padStart(2,'0') + ' / ТЕМА', 'business-trend-num'),
-                 elt('span', trend.growth, 'business-trend-growth'));
-      const bottom = elt('div', null, 'business-trend-stat');
-      bottom.append(elt('strong', String(trend.count)), document.createTextNode(' публикаций · условные данные'));
-      const link = elt('a', 'Посмотреть PR-возможности ↗', 'business-inline-link');
-      link.href = '#opportunities';
-      card.append(top, elt('h3', trend.title), elt('p', trend.detail), bottom, link);
-      trendsGrid.append(card);
+  function renderMentions() {
+    const days=Number($('period').value);
+    // Fixed relative demo dates, strictly illustrative — no network/API calls.
+    const records=excerpts.map((entry,i)=>({entry,i,daysAgo:[1,4,11,18,38,68][i]})).filter(x=>x.daysAgo<=days);
+    $table.replaceChildren();
+    for(const {entry,i,daysAgo} of records) {
+      const tr=node('tr');
+      const mention=node('td');
+      mention.append(node('strong','Пример упоминания №'+(i+1)),
+        node('p',entry[2].replace('Компания',activeCompany).replace('компания',activeCompany),'business-excerpt'));
+      const source=node('td',sources[i%sources.length]);
+      const sentiment=node('td');
+      sentiment.append(node('span',entry[1],'business-sentiment '+entry[0]));
+      const date=new Date(Date.now()-daysAgo*24*60*60*1000);
+      const datetime=node('td',date.toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' МСК','business-datetime');
+      tr.append(mention,source,sentiment,datetime); $table.append(tr);
     }
-
-    for (const [index, opportunity] of data.opportunities.entries()) {
-      const card = elt('article', null, 'business-opportunity');
-      const actions = elt('div', null, 'business-opportunity-actions');
-      const draft = elt('button', 'Подготовить релиз ↗', 'business-btn business-btn--gold');
-      draft.type = 'button';
-      draft.dataset.draft = String(index);
-      const sources = elt('a', 'Подбор СМИ', 'business-btn business-btn--secondary');
-      sources.href = '#media';
-      actions.append(draft, sources);
-      card.append(elt('small', opportunity.kind), elt('h3', opportunity.title),
-                  elt('p', opportunity.detail), actions);
-      opportunitiesGrid.append(card);
-    }
+    $('mentionsCount').textContent='Показано '+records.length+' демонстрационных упоминаний за '+days+' дней. Тональность иллюстративная.';
   }
-
-  function notify(message) {
-    const toast = $('businessToast');
-    clearTimeout(toastTimer);
-    toast.textContent = message;
-    toast.hidden = false;
-    toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
+  function renderTrendsAndPR() {
+    const data=samples[activeIndustry];
+    const trends=$('trendsGrid'),pr=$('opportunitiesGrid');
+    trends.replaceChildren();pr.replaceChildren();
+    data.trends.forEach((trend,i)=>{
+      const card=node('article',undefined,'business-trend');
+      const top=node('div',undefined,'business-trend-top');
+      top.append(node('span',String(i+1).padStart(2,'0')+' / ИНФОПОВОД','business-trend-num'),
+        node('span','ДЕМО','business-trend-growth'));
+      card.append(top,node('h3',trend.title),node('p',trend.detail));
+      const foot=node('div','Пример: '+trend.count+' публикаций · рост '+trend.growth,'business-trend-stat');
+      card.append(foot);trends.append(card);
+    });
+    data.opportunities.slice(0,3).forEach(idea=>{
+      const card=node('article',undefined,'business-opportunity');
+      card.append(node('small',idea.kind),node('h3',idea.title),node('p',idea.detail));
+      const label=node('span','Идея для проверки PR-командой','business-prototype-label');
+      card.append(label);pr.append(card);
+    });
   }
-
-  form.addEventListener('submit', event => {
+  const form=$('profileForm');
+  form.addEventListener('submit',event=>{
     event.preventDefault();
-    activeCompany = $('companyName').value.trim() || 'Демо-компания';
-    activeIndustry = $('industry').value;
-    $('companyDisplay').textContent = '«' + activeCompany + '»';
-    $('profileStatus').textContent = 'Показан демонстрационный сценарий для выбранной отрасли. Мониторинг «' +
-      activeCompany + '» не запускался; показатели и публикации остаются условными.';
-    render();
-    notify('Демонстрационный сценарий обновлён');
+    activeCompany=$('companyName').value.trim();
+    if(!activeCompany){$('companyName').focus();return;}
+    activeIndustry=$('industry').value;
+    $('companyDisplay').textContent=activeCompany;
+    $('industryDisplay').textContent=$('industry').selectedOptions[0].textContent;
+    renderMentions();renderTrendsAndPR();
+    $('businessStart').classList.add('business-start--compact');
+    $('businessResults').hidden=false;
+    $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
   });
-
-  const extraMentions = [...document.querySelectorAll('[data-extra-mention]')];
-  $('toggleMentions').addEventListener('click', () => {
-    const show = extraMentions.some(entry => entry.hidden);
-    extraMentions.forEach(entry => { entry.hidden = !show; });
-    $('toggleMentions').textContent = show ? 'Свернуть примеры ↑' : 'Показать ещё 3 примера ↓';
-    $('toggleMentions').setAttribute('aria-expanded', String(show));
+  $('period').addEventListener('change',()=>{if(!$('businessResults').hidden)renderMentions();});
+  $('editProfile').addEventListener('click',()=>{
+    $('businessResults').hidden=true;
+    $('businessStart').classList.remove('business-start--compact');
+    window.scrollTo({top:0,behavior:'auto'});
+    $('companyName').focus();
   });
-
-  function openDraft(index, trigger) {
-    const idea = samples[activeIndustry].opportunities[index];
-    if (!idea) return;
-    previousFocus = trigger;
-    previousOverflow = document.body.style.overflow;
-    headline.value = activeCompany + ': [добавьте подтверждённый информационный повод]';
-    body.value = 'Возможная тема: ' + idea.title + '\n\n' +
-      'Компания: ' + activeCompany + '\n\n' +
-      '[Укажите, что произошло, где и когда. Не используйте вымышленные события.]\n\n' +
-      '[Добавьте факты, цифры и независимые подтверждения.]\n\n' +
-      '[Приведите согласованную цитату представителя компании, если она есть.]\n\n' +
-      '[Укажите контакты пресс-службы.]\n\n' +
-      'Рекомендация к подготовке: ' + idea.detail;
-    releaseOverlay.hidden = false;
-    document.body.style.overflow = 'hidden';
-    $('closeRelease').focus();
-  }
-
-  function closeDraft() {
-    if (releaseOverlay.hidden) return;
-    releaseOverlay.hidden = true;
-    document.body.style.overflow = previousOverflow;
-    if (previousFocus && previousFocus.isConnected) previousFocus.focus();
-  }
-
-  opportunitiesGrid.addEventListener('click', event => {
-    const btn = event.target.closest('button[data-draft]');
-    if (btn) openDraft(Number(btn.dataset.draft), btn);
-  });
-  $('closeRelease').addEventListener('click', closeDraft);
-  $('cancelRelease').addEventListener('click', closeDraft);
-  releaseOverlay.addEventListener('click', event => { if (event.target === releaseOverlay) closeDraft(); });
-  document.addEventListener('keydown', event => {
-    if (releaseOverlay.hidden) return;
-    if (event.key === 'Escape') {
-      event.preventDefault(); closeDraft();
-    } else if (event.key === 'Tab') {
-      const focusables = [...releaseOverlay.querySelectorAll('button:not([disabled]),input,textarea')];
-      if (!focusables.length) return;
-      const first = focusables[0], last = focusables[focusables.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    }
-  });
-
-  $('copyRelease').addEventListener('click', async () => {
-    const draft = headline.value + '\n\n' + body.value;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(draft);
-      } else {
-        // Clipboard API may be unavailable on local, non-secure test pages.
-        body.focus(); body.select();
-        if (!document.execCommand('copy')) throw new Error('Copy unavailable');
-      }
-      notify('Черновик скопирован — проверьте и дополните фактуру');
-    } catch (_) {
-      notify('Копирование недоступно: выделите текст и скопируйте вручную');
-    }
-  });
-
-  render();
 })();
