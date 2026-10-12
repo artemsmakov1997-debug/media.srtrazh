@@ -1,0 +1,10 @@
+/* Desktop compact mode.
+   Equivalent to a user choosing 80% browser zoom, without changing browser settings.
+   Restore normal fluid layout for tablets and phones. */
+@media (min-width: 1100px) {
+  html { overflow-x: clip; }
+  body {
+    zoom: .8;
+    width: 125%;
+  }
+}
