@@ -158,3 +158,86 @@ button { cursor:pointer; }
   .business-release-dialog { padding:19px; }
 }
 @media(prefers-reduced-motion:reduce) { html {scroll-behavior:auto;} }
+
+
+/* PRO / Бизнес: поиск прежде результатов; шапка как в analysis.html. */
+.site-header {width:100%;border-bottom:1px solid #202d3b;background:#05070b;}
+.site-header .header-inner {max-width:1200px;min-height:76px;padding:12px 20px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.site-header .brand {display:inline-flex;align-items:center;gap:9px;font:800 1.02rem/1.25 Montserrat,Inter,sans-serif;letter-spacing:.04em;text-decoration:none;color:#22d3ee;white-space:nowrap;}
+.site-header .brand-pro {padding:4px 6px;border:1px solid #e8b95d;border-radius:5px;background:#392a13;color:#ffd98b;font:800 11px/1.2 Montserrat,sans-serif;letter-spacing:.06em;}
+.site-header .header-back {display:inline-flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid #304153;border-radius:6px;color:#edf3f8;font-size:13px;font-weight:600;white-space:nowrap;}
+.site-header .header-back:hover {border-color:#22d3ee;color:#22d3ee;}
+.business-shell {max-width:1180px;margin:auto;padding:0 24px 70px;}
+.business-start {min-height:calc(100svh - 77px);display:grid;place-items:center;padding:60px 0;}
+.business-start-inner {position:relative;width:min(100%,940px);padding:clamp(28px,5vw,62px);border:1px solid #30485a;border-radius:18px;background:radial-gradient(circle at 100% 0%,rgba(34,211,238,.09),transparent 40%),linear-gradient(145deg,#101d2b,#09111b 75%);box-shadow:0 24px 65px rgba(0,0,0,.28);overflow:hidden;}
+.business-start-accent {position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,#22d3ee,#2e6073 55%,transparent);}
+.business-start-caption,.business-eyebrow {margin:0 0 15px;color:#63d4e8;font-size:11px;font-weight:800;letter-spacing:.14em;}
+.business-start h1 {margin:0 0 17px;font:800 clamp(30px,5vw,51px)/1.13 Montserrat,Inter,sans-serif;letter-spacing:-.035em;color:#f1f7fa;}
+.business-start h1 span {color:#78dce9;}
+.business-start-lead {max-width:660px;margin:0 0 30px;color:#b3c3d1;font-size:15px;line-height:1.75;}
+.business-profile {display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:12px;align-items:end;border:0;padding:0;background:transparent;}
+.business-profile .business-btn {min-height:45px;white-space:nowrap;}
+.business-start-note {margin:17px 0 0;color:#8398a9;font-size:11px;line-height:1.6;}
+.business-start--compact {min-height:0;padding:28px 0 14px;display:block;}
+.business-start--compact .business-start-inner {width:100%;padding:25px 30px;}
+.business-start--compact .business-start h1 {font-size:30px;}
+.business-start--compact h1 {font-size:28px;margin-bottom:9px;}
+.business-start--compact .business-start-lead {display:none;}
+.business-start--compact .business-start-caption {margin-bottom:7px;}
+.business-results {scroll-margin-top:20px;padding-top:24px;}
+.business-result-head {display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;}
+.business-result-head h2 {font:800 clamp(23px,3vw,30px)/1.2 Montserrat,Inter,sans-serif;margin:0 0 5px;overflow-wrap:anywhere;}
+.business-result-head p {margin:0;color:#9dafc1;font-size:12px;}
+.business-result-head .business-eyebrow {margin-bottom:7px;color:#75d7e7;}
+.business-data-warning {padding:11px 15px;border-left:3px solid #c49a5a;border-radius:3px;background:#1b1c20;color:#d0c2aa;font-size:12px;line-height:1.55;}
+.business-section {margin-top:32px;padding-top:29px;border-top:1px solid #263749;}
+.business-section+.business-section {margin-top:34px;padding-top:35px;}
+.business-section-head {align-items:end;}
+.business-period {display:flex;flex-direction:column;gap:7px;min-width:155px;}
+.business-period label {font-size:12px;font-weight:650;color:#afc0ce;}
+.business-period select {min-height:42px;padding:8px 12px;border:1px solid #395166;border-radius:6px;background:#0e1927;}
+.business-table-wrap {width:100%;overflow-x:auto;border:1px solid #2b4052;border-radius:10px;background:#0b1521;}
+.business-mentions-table {border-collapse:collapse;width:100%;min-width:780px;text-align:left;}
+.business-mentions-table th {padding:15px 17px;background:#142335;color:#b3c5d5;font-size:11px;letter-spacing:.03em;font-weight:750;}
+.business-mentions-table td {padding:17px;vertical-align:top;border-top:1px solid #223749;color:#d5e1ed;font-size:12px;line-height:1.6;}
+.business-mentions-table th:nth-child(1) {width:47%;}
+.business-mentions-table th:nth-child(2) {width:20%;}
+.business-mentions-table th:nth-child(3) {width:17%;}
+.business-mentions-table th:nth-child(4) {width:16%;}
+.business-mentions-table td strong {display:block;color:#eef5f9;font-size:13px;margin-bottom:6px;}
+.business-excerpt {margin:0;color:#adbfd0;line-height:1.7;}
+.business-sentiment {display:inline-block;padding:5px 9px;border-radius:5px;white-space:nowrap;font-size:11px;font-weight:750;}
+.business-sentiment.positive {border:1px solid #376958;background:#11251f;color:#a0e7c2;}
+.business-sentiment.negative {border:1px solid #855452;background:#2a1a1b;color:#efa8a5;}
+.business-sentiment.neutral {border:1px solid #4b637a;background:#172637;color:#b9d0e8;}
+.business-datetime {white-space:nowrap;color:#a8bdce!important;}
+.business-table-note {color:#9bb0c1;font-size:12px;margin:12px 0 0;}
+.business-trends {grid-template-columns:repeat(3,minmax(0,1fr));}
+.business-opportunities {grid-template-columns:repeat(3,minmax(0,1fr));}
+.business-prototype-label {font-size:11px;color:#d5b983;font-weight:700;}
+.business-results-foot {margin:30px 0 0;color:#8399ab;font-size:12px;}
+@media(max-width:850px) {
+ .business-profile {grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+ .business-profile .business-btn {grid-column:1/-1;}
+ .business-opportunities {grid-template-columns:1fr 1fr;}
+}
+@media(max-width:650px) {
+ .site-header .header-inner {min-height:64px;padding:10px 16px;}
+ .site-header .brand {font-size:12px;}
+ .site-header .brand-pro {font-size:10px;}
+ .site-header .header-back {font-size:11px;padding:9px;}
+ .business-shell {padding:0 16px 44px;}
+ .business-start {min-height:calc(100svh - 65px);padding:22px 0;}
+ .business-start-inner {padding:27px 20px;border-radius:13px;}
+ .business-start h1 {font-size:clamp(27px,8vw,38px);}
+ .business-start-lead {font-size:13px;margin-bottom:24px;}
+ .business-profile {grid-template-columns:1fr;}
+ .business-profile .business-btn {grid-column:auto;}
+ .business-start--compact {min-height:0;}
+ .business-start--compact .business-start-inner {padding:17px;}
+ .business-start--compact h1 {font-size:23px;}
+ .business-result-head {align-items:flex-start;flex-direction:column;}
+ .business-section-head {align-items:start;}
+ .business-period {width:100%;}
+ .business-trends,.business-opportunities {grid-template-columns:1fr;}
+}
