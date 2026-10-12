@@ -14,7 +14,7 @@
       <section class="pro-gateway-dialog" role="dialog" aria-modal="true"
         aria-labelledby="proGatewayTitle">
         <button type="button" class="pro-gateway-close" aria-label="Закрыть выбор PRO">×</button>
-        <h2 class="pro-gateway-title" id="proGatewayTitle">Возможности <span class="pro-gateway-title-brand">МЕДИА.СТРАЖ</span> <span class="pro-gateway-title-pro">PRO</span> для ваших задач</h2>
+        <h2 class="pro-gateway-title" id="proGatewayTitle">Возможности <span class="pro-gateway-title-pro">PRO</span>-версии для ваших задач</h2>
         <div class="pro-gateway-options">
           <a class="pro-gateway-option pro-gateway-option--research" href="analysis.html">
             <div>
