@@ -1,10 +1,5 @@
-/* Desktop compact mode.
-   Equivalent to a user choosing 80% browser zoom, without changing browser settings.
-   Restore normal fluid layout for tablets and phones. */
+/* Compact 80% desktop presentation. Let the browser size the body naturally:
+   forcing width:125% creates document overflow at 1280px and breaks checks. */
 @media (min-width: 1100px) {
-  html { overflow-x: clip; }
-  body {
-    zoom: .8;
-    width: 125%;
-  }
+  body { zoom: .8; }
 }
