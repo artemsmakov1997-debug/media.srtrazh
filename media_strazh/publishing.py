@@ -36,13 +36,16 @@ def snapshot(store, limit=100):
             SELECT id,published_at,retrieved_at FROM (
                 SELECT a.id,a.source_id,r.published_at,r.retrieved_at,
                        (n.revision_id IS NOT NULL) AS analyzed,
+                       (COALESCE(json_array_length(json_extract(n.result_json, '$.findings')),0) > 0)
+                           AS has_findings,
                        ROW_NUMBER() OVER (PARTITION BY a.source_id ORDER BY
                            (n.revision_id IS NOT NULL) DESC,
+                           (COALESCE(json_array_length(json_extract(n.result_json, '$.findings')),0) > 0) DESC,
                            COALESCE(NULLIF(r.published_at,''),r.retrieved_at) DESC,a.id DESC) AS rank
                 FROM articles a JOIN revisions r ON r.id=a.current_revision_id
                 LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=?
                 WHERE a.source_id IN (""" + placeholders + """))
-            ORDER BY analyzed DESC,rank,source_id LIMIT ?
+            ORDER BY has_findings DESC,analyzed DESC,rank,source_id LIMIT ?
         """, [VERSION, *source_ids, limit]))
         selected.sort(key=lambda row: (row["published_at"] or row["retrieved_at"], row["id"]),
                       reverse=True)
