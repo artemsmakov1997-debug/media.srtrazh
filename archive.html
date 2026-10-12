@@ -1702,9 +1702,23 @@
 </style>
 <style id="archive-pro-center-v2">
  .archive-pro-strip { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:12px; }
- .archive-pro-copy { text-align:center; min-width:0; }
+ .archive-pro-copy { text-align:center !important; min-width:0; }
  @media(max-width:600px) { .archive-pro-strip { gap:8px; } }
- </style></head>
+ </style><style id="pro-nav-visibility-final">
+  .site-nav .nav-links a.nav-link.pro-nav-link {
+    color:#7de4f4 !important;
+    background:rgba(34,211,238,.11) !important;
+    border:1px solid rgba(34,211,238,.65) !important;
+    box-shadow:inset 0 0 0 1px rgba(34,211,238,.08) !important;
+    font-weight:800 !important;
+  }
+  .site-nav .nav-links a.nav-link.pro-nav-link:hover {
+    color:#c9faff !important;
+    background:rgba(34,211,238,.19) !important;
+    border-color:#7de4f4 !important;
+  }
+</style>
+</head>
 <body>
 
 <header>
