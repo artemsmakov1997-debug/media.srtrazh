@@ -80,8 +80,9 @@
     #manualFindings .finding { overflow-wrap: anywhere; }
     #manualResultTitle:focus { outline: none; }
     .stats-line { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 12px 0 16px; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line); }
-    /* Сводка по источникам убрана из интерфейса автоматического анализа. */
-    #updated, #totals, #sources, #coverageBlock, #selection { display: none !important; }
+    .collection-status { margin: 14px 0; }
+    .collection-status > summary { color: var(--muted); font-size: 13px; }
+    #selection { color: var(--muted); font-size: 13px; }
     .sources { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin: 18px 0 22px; }
     .source { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #080d13; overflow-wrap: anywhere; }
     .source h3 { margin: 0 0 8px; }
@@ -96,8 +97,8 @@
     .publication > p { margin: 8px 0; }
     .publication > p:first-child { font-size: 13px; }
     .publication-meta { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
-    .publication-actions { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-top: 18px; }
-    .publication-actions details { margin: 0; padding: 0; border: 0; }
+    .publication-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-top: 18px; }
+    .publication-actions details { margin: 0; padding: 0; border: 0; min-width: 0; }
     .publication-actions summary { list-style: none; display: inline-flex; align-items: center; padding: 10px 15px; border: 1px solid var(--cyan); border-radius: 6px; color: var(--cyan); font-weight: 700; cursor: pointer; }
     .publication-actions summary::-webkit-details-marker { display: none; }
     .publication-actions .source-link { display: inline-flex; align-items: center; justify-content: center; padding: 10px 15px; border: 1px solid #405365; border-radius: 6px; color: var(--text); font-weight: 700; text-decoration: none; }
@@ -178,19 +179,21 @@
             <option value="currenttime">Настоящее Время</option>
             <option value="dw">DW на русском</option>
             <option value="bbc">BBC News Русская служба</option>
-            <option value="other">Другие источники</option>
           </optgroup>
         </select>
       </div>
       <label class="check-field"><input type="checkbox" id="candidates"> Показать публикации с фрагментами для проверки</label>
     </div>
-    <p id="updated" class="muted">Загружаем подборку…</p>
-    <div id="totals" class="stats-line" role="status" aria-live="polite"></div>
     <p id="error" class="error" role="alert" hidden></p>
-    <div id="sources" class="sources"></div>
+    <details id="collectionStatus" class="collection-status">
+      <summary><span id="collectionState" role="status" aria-live="polite">Загружаем состояние источников…</span></summary>
+      <p id="updated" class="muted">Загружаем подборку…</p>
+      <div id="totals" class="stats-line"></div>
+      <div id="sources" class="sources"></div>
+      <details id="coverageBlock" hidden><summary>Охват анализа</summary><p id="coverage" class="muted"></p></details>
+    </details>
     <p id="selection" role="status" aria-live="polite"></p>
     <div id="articles"></div>
-    <details id="coverageBlock" hidden><summary>Охват анализа</summary><p id="coverage" class="muted"></p></details>
   </section>
 
   <section id="manualPanel" class="section-panel manual" aria-label="Самостоятельный анализ" hidden>

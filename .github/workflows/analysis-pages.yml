@@ -12,14 +12,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: analysis-pages
+  group: analysis-pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -33,14 +33,14 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 -m media_strazh collect --db /tmp/media-strazh-pilot.sqlite3 --limit 5 --verbose
+          python3 -m media_strazh collect --db /tmp/media-strazh-pilot.sqlite3 --limit 2 --time-budget-seconds 900 --verbose
           collection_exit=$?
           set -e
           if [ "$collection_exit" -gt 1 ]; then
             exit "$collection_exit"
           fi
       - name: Build public site
-        run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 30
+        run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 100
       - name: Install browser test tools
         if: github.event_name != 'schedule'
         run: |
@@ -53,6 +53,7 @@ jobs:
         with:
           path: _site
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10

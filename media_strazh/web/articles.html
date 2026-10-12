@@ -28,12 +28,12 @@
   <div class="brand">МЕДИА.СТРАЖ</div>
   <p><a href="/">Вставить текст для разбора →</a></p>
   <h1>Собранные публикации</h1>
-  <p class="muted">Новости RT, ТАСС и РИА Новости, полученные автоматическим сборщиком. Откройте публикацию, чтобы посмотреть найденные фрагменты и объяснения.</p>
+  <p class="muted">Публикации сайтов и официальных Telegram-каналов, полученные автоматическим сборщиком. Откройте публикацию, чтобы посмотреть найденные фрагменты и объяснения.</p>
   <p id="totals" role="status" aria-live="polite">Загружаем состояние сбора…</p>
   <div id="sources" class="sources"></div>
   <div class="controls">
     <label for="source">Источник</label>
-    <select id="source"><option value="">Все три</option><option value="rt">RT на русском</option><option value="tass">ТАСС</option><option value="ria">РИА Новости</option></select>
+    <select id="source"><option value="">Все источники</option></select>
     <button id="refresh" type="button">Обновить</button>
   </div>
   <p id="error" class="error" role="alert" hidden></p>
@@ -42,7 +42,8 @@
 </main>
 <script>
   const el = id => document.getElementById(id);
-  const labels = {rt: 'RT на русском', tass: 'ТАСС', ria: 'РИА Новости'};
+  const labels = {};
+  let registry = null;
   const pageSize = 25;
   let offset = 0;
   function node(tag, text, className) {
@@ -62,6 +63,14 @@
   async function refresh() {
     el('refresh').disabled = true; el('error').hidden = true;
     try {
+      if (!registry) {
+        registry = (await get('/api/v1/sources')).sources;
+        for (const entry of registry) {
+          labels[entry.id] = entry.name + (entry.platform === 'telegram' ? '' : ' · сайт');
+          const option = node('option', labels[entry.id]); option.value = entry.id;
+          el('source').append(option);
+        }
+      }
       const source = el('source').value;
       const [status, listing] = await Promise.all([get('/api/v1/collection/status'), get(`/api/v1/articles?limit=${pageSize}&offset=${offset}` + (source ? '&source=' + source : ''))]);
       el('totals').textContent = `Собрано публикаций: ${status.articles_collected}. Найдено ссылок: ${status.articles_discovered}. Ожидают получения текста: ${status.pending}.`;
@@ -70,7 +79,9 @@
         const saved = status.sources.find(item => item.source_id === id);
         const card = node('section', '', 'source'); card.append(node('h2', label));
         card.append(node('p', saved ? 'Последняя проверка: ' + date(saved.last_attempt_at) : 'Лента ещё не проверялась.', 'muted'));
-        if (saved?.last_error) card.append(node('p', saved.last_error, 'error'));
+        const configured = registry.find(entry => entry.id === id);
+        if (configured?.configuration_error) card.append(node('p', configured.configuration_error, 'error'));
+        if (saved?.last_error && saved.last_error !== configured?.configuration_error) card.append(node('p', saved.last_error, 'error'));
         if (saved?.next_attempt_at) card.append(node('p', 'Повторная попытка после ' + date(saved.next_attempt_at), 'muted'));
         el('sources').append(card);
       }

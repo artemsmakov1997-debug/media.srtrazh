@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from .analysis import validate_document
 from .sources import Source, normalize_url
 
-EXTRACTOR_VERSION = "html-0.3.0"
+EXTRACTOR_VERSION = "html-0.4.0"
 MAX_FEED_ITEMS = 2000
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 BLOCK = {"p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "blockquote", "br", "ul", "ol"}
@@ -169,6 +169,9 @@ def _structured_articles(data):
 
 
 def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> dict:
+    if source.platform == "telegram":
+        from .telegram import extract_post
+        return extract_post(html, url, source, entry)
     tree = HTMLTree()
     tree.feed(html)
     tree.close()
@@ -193,6 +196,17 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
             continue
     matched, unlocated = [], []
     for article in structured:
+        location = article.get("url") or article.get("mainEntityOfPage")
+        if isinstance(location, dict):
+            location = location.get("@id")
+        located_here = False
+        if isinstance(location, str):
+            try:
+                located_here = normalize_url(urljoin(url, location), source) in {canonical, normalize_url(url, source)}
+            except ValueError:
+                pass
+        if (located_here or (not location and len(structured) == 1)) and article.get("isAccessibleForFree") in (False, "False", "false"):
+            raise ValueError("Издатель пометил публикацию как платную: доступный фрагмент не считается полным текстом.")
         body = article.get("articleBody")
         if not isinstance(body, str) or not body.strip():
             continue
@@ -208,18 +222,37 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
         elif not location:
             unlocated.append(article)
     chosen = matched[0] if matched else (unlocated[0] if len(unlocated) == 1 else None)
+    special = None
+    if source.publisher == "bbc":
+        from .bbc import embedded_article
+        special = embedded_article(tree, canonical, source)
     if chosen:
         body = plain_text(chosen["articleBody"])
         title = plain_text(chosen.get("headline", "")) if isinstance(chosen.get("headline"), str) else ""
         date = timestamp(chosen.get("datePublished"))
         method = "jsonld.articleBody"
+    elif special:
+        body, title, date = special["text"], special["title"], special["published_at"]
+        method = "bbc.simorgh.article_model"
     else:
         selected = []
         selected_ids = set()
         for node in tree.nodes:
+            ancestor = node.parent
+            excluded = False
+            while ancestor is not None:
+                if ancestor.tag in SKIP or (ancestor.tag not in {"html", "body", "root"} and NOISE.search(ancestor.attrs.get("class") or "")):
+                    excluded = True
+                    break
+                ancestor = ancestor.parent
+            if excluded:
+                continue
             classes = (node.attrs.get("class") or "").split()
             matches = any(token == selector or token.startswith(selector + "_")
                           for token in classes for selector in source.body_classes)
+            matches = matches or "articleBody" in (node.attrs.get("itemprop") or "").split()
+            matches = matches or any(node.attrs.get(attribute) == value
+                                     for attribute, value in source.body_attributes)
             if not matches:
                 continue
             parent, nested = node.parent, False

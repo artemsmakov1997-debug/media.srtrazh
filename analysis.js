@@ -9,26 +9,17 @@ const statuses = {
   context_only: 'Отрицание или обсуждение формулировки'
 };
 
-const publishers = {
-  rt: 'russian.rt.com',
-  tass: 'tass.ru',
-  ria: 'ria.ru',
-  interfax: 'interfax.ru',
-  kommersant: 'kommersant.ru',
-  vedomosti: 'vedomosti.ru',
-  rbc: 'rbc.ru',
-  izvestia: 'iz.ru',
-  rg: 'rg.ru',
-  lenta: 'lenta.ru',
-  meduza: 'meduza.io',
-  novayagazeta: 'novayagazeta.eu',
-  fontanka: 'fontanka.ru',
-  currenttime: 'currenttime.tv',
-  dw: 'dw.com',
-  bbc: 'bbc.com'
-};
-
 let report = null;
+
+/* Реестр источников приходит из той же конфигурации, которой пользуется сборщик. */
+function sourceOf(item) {
+  return report && report.sources.find(source => source.id === item.source_id);
+}
+
+function publisherOf(item) {
+  const source = sourceOf(item);
+  return (source && source.publisher_id) || item.publisher_id || item.source_id;
+}
 
 /* Создание DOM-элементов без вставки пользовательского HTML. */
 function node(tag, text, className) {
@@ -55,28 +46,8 @@ function date(value) {
 
 /* Определение платформы публикации. */
 function platformOf(item) {
-  if (
-    item.platform === 'telegram' ||
-    item.source_type === 'telegram'
-  ) {
-    return 'telegram';
-  }
-
-  try {
-    const host = new URL(item.url).hostname.toLowerCase();
-
-    if (
-      host === 't.me' ||
-      host.endsWith('.t.me') ||
-      host === 'telegram.me'
-    ) {
-      return 'telegram';
-    }
-  } catch {
-    // Если URL некорректен, используем значение по умолчанию.
-  }
-
-  return 'website';
+  const source = sourceOf(item);
+  return (source ? source.platform : item.platform) === 'telegram' ? 'telegram' : 'website';
 }
 
 /* Проверка ссылки на оригинал публикации. */
@@ -84,8 +55,10 @@ function original(item) {
   try {
     const url = new URL(item.url);
     const platform = platformOf(item);
+    const source = sourceOf(item);
 
     if (
+      !source ||
       url.protocol !== 'https:' ||
       url.username ||
       url.password ||
@@ -95,18 +68,13 @@ function original(item) {
     }
 
     if (platform === 'telegram') {
-      const isTelegram =
-        url.hostname === 't.me' ||
-        url.hostname.endsWith('.t.me') ||
-        url.hostname === 'telegram.me';
-
-      if (!isTelegram) {
+      const post = url.pathname.match(/^\/([^/]+)\/([1-9]\d*)\/?$/);
+      if (url.hostname !== 't.me' || !source.channel || !post ||
+          post[1].toLowerCase() !== source.channel.toLowerCase() || url.search || url.hash) {
         return null;
       }
     } else {
-      const expectedHost = publishers[item.source_id];
-
-      if (!expectedHost || url.hostname !== expectedHost) {
+      if (!Array.isArray(source.allowed_hosts) || !source.allowed_hosts.includes(url.hostname)) {
         return null;
       }
     }
@@ -209,6 +177,7 @@ function findingCard(finding) {
 
 /* Фильтрация и отрисовка публикаций. */
 function render() {
+  if (!report) return;
   const articlesContainer = element('articles');
 
   articlesContainer.replaceChildren();
@@ -220,14 +189,7 @@ function render() {
   const selected = report.articles.filter(item => {
     const outletMatch =
       !source ||
-      item.source_id === source ||
-      (
-        source === 'other' &&
-        !Object.prototype.hasOwnProperty.call(
-          publishers,
-          item.source_id
-        )
-      );
+      publisherOf(item) === source;
 
     const platformMatch =
       !platform || platformOf(item) === platform;
@@ -246,9 +208,7 @@ function render() {
     'Показано публикаций: ' + selected.length + '.';
 
   if (!selected.length) {
-    const message = platform === 'telegram'
-      ? 'В текущей подборке нет публикаций из Telegram. Для их появления нужно подключить сбор Telegram-каналов.'
-      : 'В этой подборке нет публикаций, соответствующих фильтрам.';
+    const message = 'В этой подборке нет публикаций, соответствующих фильтрам. Состояние сбора доступно в блоке «Источники».';
 
     articlesContainer.append(
       node('p', message, 'muted')
@@ -257,14 +217,21 @@ function render() {
 
   for (const item of selected) {
     const article = node('article', '', 'publication');
+    const platformLabel = platformOf(item) === 'telegram' ? 'Telegram' : 'Сайт';
 
     article.append(
-      node('p', item.source, 'publication-meta')
+      node('p', item.source.endsWith(' · ' + platformLabel)
+        ? item.source : item.source + ' · ' + platformLabel, 'publication-meta')
     );
 
     article.append(
-      node('h2', item.title)
+      node('h2', item.title || item.message_preview ||
+        (platformOf(item) === 'telegram' ? 'Публикация в Telegram' : 'Публикация без заголовка'))
     );
+
+    if (item.published_at) {
+      article.append(node('p', 'Дата публикации: ' + date(item.published_at), 'muted'));
+    }
 
     article.append(
       node(
@@ -275,17 +242,19 @@ function render() {
     );
 
     const counts = item.summary;
-    const fragmentCount = counts
-      ? counts.review_fragments
-      : 0;
-
     article.append(
       node(
         'p',
-        'Найдено фрагментов для проверки: ' + fragmentCount,
+        counts ? 'Найдено фрагментов для проверки: ' + counts.review_fragments
+          : 'Анализ текущей версии отсутствует.',
         'badge'
       )
     );
+    if (item.forwarded) {
+      article.append(node('p',
+        'Это пересланное сообщение; проверьте автора исходного текста. Находки не устанавливают позицию канала.',
+        'muted'));
+    }
 
     const details = document.createElement('details');
     details.append(
@@ -366,7 +335,8 @@ async function load() {
 
     if (
       report.schema_version !== 'public-snapshot-1.0' ||
-      !Array.isArray(report.articles)
+      !Array.isArray(report.articles) ||
+      !Array.isArray(report.sources)
     ) {
       throw new Error('invalid snapshot');
     }
@@ -379,10 +349,10 @@ async function load() {
       '.';
 
     const age = Date.now() - Date.parse(report.generated_at);
+    const stale = Number.isFinite(age) && age > 90 * 60 * 1000;
 
     if (
-      Number.isFinite(age) &&
-      age > 90 * 60 * 1000
+      stale
     ) {
       element('updated').classList.add('error');
 
@@ -403,12 +373,36 @@ async function load() {
       '.';
 
     element('sources').replaceChildren();
+    const outlets = new Map();
+    for (const source of report.sources) {
+      const publisherId = source.publisher_id || source.id;
+      if (!outlets.has(publisherId) || source.platform === 'website') {
+        outlets.set(publisherId, source.name);
+      }
+    }
+    const selectedOutlet = element('source').value;
+    element('source').replaceChildren(node('option', 'Все издания'));
+    element('source').firstChild.value = '';
+    for (const [id, name] of outlets) {
+      const option = node('option', name);
+      option.value = id;
+      element('source').append(option);
+    }
+    if (outlets.has(selectedOutlet)) element('source').value = selectedOutlet;
+    let successful = 0;
+    let failed = 0;
+    let unchecked = 0;
 
     for (const source of report.sources) {
       const card = node('section', '', 'source');
+      const sourceError = (source.status && source.status.last_error) || source.configuration_error;
+      if (sourceError) failed++;
+      else if (source.status && source.status.last_success_at) successful++;
+      else unchecked++;
 
       card.append(
         node('h3', source.name),
+        node('p', source.platform === 'telegram' ? 'Telegram' : 'Сайт', 'muted'),
         node(
           'p',
           'Публикаций в подборке: ' + source.displayed
@@ -426,14 +420,21 @@ async function load() {
         )
       );
 
-      if (source.status && source.status.last_error) {
+      if (sourceError) {
         card.append(
-          node('p', source.status.last_error, 'error')
+          node('p', sourceError, 'error')
         );
+      } else if (source.status && source.status.last_success_at) {
+        card.append(node('p', 'Сбор выполнен.', 'badge'));
       }
 
       element('sources').append(card);
     }
+    element('collectionState').textContent =
+      'Источники: сбор выполнен — ' + successful + ', с ошибками — ' + failed +
+      (unchecked ? ', ещё не проверены — ' + unchecked : '') +
+      (stale ? '. Подборка давно не обновлялась.' : '.');
+    element('collectionState').classList.toggle('error', stale);
 
     element('coverage').textContent =
       report.coverage.map(item =>
@@ -455,6 +456,7 @@ async function load() {
 
     element('updated').textContent =
       'Подборка пока недоступна.';
+    element('collectionState').textContent = 'Источники: опубликованная подборка пока недоступна.';
 
     element('error').textContent =
       'Публикации появятся после успешного сбора. Попробуйте обновить страницу позже.';

@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.2.1"
+VERSION = "rules-0.3.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -20,7 +20,7 @@ TAXONOMY = (
     ("enemy_image", "Образ врага", True),
     ("exaggeration", "Преувеличение", True),
     ("generalization", "Обобщение", True),
-    ("appeal_to_authority", "Ссылка на авторитет", False),
+    ("appeal_to_authority", "Ссылка на авторитет", True),
     ("vague_source", "Размытый источник", True),
     ("selective_context", "Выборочный контекст", False),
     ("oversimplification", "Упрощение", True),
@@ -39,9 +39,10 @@ BODY_UNCERTAINTY = re.compile(
     r"не\s+доказыва[а-яё]*\s+причинн[а-яё]*\s+связ[а-яё]*)\b", re.I,
 )
 POLITICAL_CONTEXT = re.compile(
-    r"\b(?:(?:евро)?политик[а-яё]*|президент[а-яё]*|премьер[а-яё]*|министр[а-яё]*|"
+    r"\b(?:(?:евро)?политик[а-яё]*|политическ[а-яё]*|президент[а-яё]*|премьер[а-яё]*|министр[а-яё]*|"
     r"правительств[а-яё]*|власт[а-яё]*|режим[а-яё]*|лидер[а-яё]*|депутат[а-яё]*|"
-    r"европ[а-яё]*|государств[а-яё]*|народ[а-яё]*|наци[а-яё]*|граждан[а-яё]*|ЕС)\b", re.I,
+    r"оппозиц[а-яё]*|сенат[а-яё]*|конгресс[а-яё]*|губернатор[а-яё]*|мэр[а-яё]*|"
+    r"европ[а-яё]*|государств[а-яё]*|стран[а-яё]*|парламент[а-яё]*|народ[а-яё]*|наци[а-яё]*|граждан[а-яё]*|ЕС)\b", re.I,
 )
 LITERAL_CLINICAL_CONTEXT = re.compile(
     r"\b(?:пациент[а-яё]*|врач[а-яё]*|больниц[а-яё]*|диагноз[а-яё]*|"
@@ -54,7 +55,8 @@ LITERAL_ENTERTAINMENT_CONTEXT = re.compile(
 )
 LITERAL_ANIMAL_CONTEXT = re.compile(
     r"\b(?:биолог[а-яё]*|зоолог[а-яё]*|грызун[а-яё]*|насеком[а-яё]*|"
-    r"дератизаци[а-яё]*|санэпид[а-яё]*|кишечник[а-яё]*|животн[а-яё]*)\b", re.I,
+    r"дератизаци[а-яё]*|санэпид[а-яё]*|кишечник[а-яё]*|животн[а-яё]*|"
+    r"собак[а-яё]*|псов|псы|пёс|псами|кошк[а-яё]*)\b", re.I,
 )
 HUMAN_CONTEXT = re.compile(
     r"\b(?:народ[а-яё]*|населени[а-яё]*|граждан[а-яё]*|люд[а-яё]*|человек[а-яё]*|"
@@ -68,7 +70,8 @@ def _rule_applies(rule, field, text, start, end):
         return False
     if not rule.context_requirement:
         return True
-    sentence = _sentence(text, start, end)["text"]
+    sentence_span = _sentence(text, start, end)
+    sentence = sentence_span["text"]
     if rule.context_requirement == "human_violence":
         # A report on a slaughterhouse must not become a political metaphor.
         if LIVESTOCK_CONTEXT.search(sentence) and not HUMAN_CONTEXT.search(sentence):
@@ -77,12 +80,28 @@ def _rule_applies(rule, field, text, start, end):
     if rule.context_requirement == "political":
         if LITERAL_CLINICAL_CONTEXT.search(sentence) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
             return False
-        if rule.id == "enemy.dehumanization" and LITERAL_ANIMAL_CONTEXT.search(sentence):
+        if rule.id in {"enemy.dehumanization", "enemy.group_animalization"} and LITERAL_ANIMAL_CONTEXT.search(sentence):
             return False
+        if rule.id == "enemy.group_animalization":
+            if re.search(r"\b(?:топлив[а-яё]*|сырь[а-яё]*|биоэнерг[а-яё]*|биотоплив[а-яё]*)\b", sentence, re.I):
+                target_prefix = text[max(sentence_span["start"], start - 100):start]
+                if not re.search(
+                    r"\b(?:люди|солдат[а-яё]*|граждан[а-яё]*|работник[а-яё]*|бойц[а-яё]*|"
+                    r"призывник[а-яё]*|населени[а-яё]*|народ[а-яё]*|журналист[а-яё]*|"
+                    r"политик[а-яё]*|избирател[а-яё]*|оппонент[а-яё]*|чиновник[а-яё]*|"
+                    r"беженц[а-яё]*)\s*(?:[—:-]\s*|(?:это|считают|рассматривают)\s*)$",
+                    target_prefix, re.I,
+                ):
+                    return False
         # A pronoun or surname may refer to a target named in a preceding
         # paragraph. The bounded window never substitutes publisher identity.
         nearby = text[max(0, start - 900):min(len(text), end + 200)]
         return bool(POLITICAL_CONTEXT.search(nearby))
+    if rule.context_requirement == "harm":
+        return bool(re.search(
+            r"\b(?:погиб[а-яё]*|смерт[а-яё]*|жертв[а-яё]*|ранен[а-яё]*|"
+            r"убит[а-яё]*|пытк[а-яё]*|насили[а-яё]*)\b", sentence, re.I,
+        ))
     raise ValueError("Неизвестное требование к контексту правила.")
 
 
@@ -151,16 +170,25 @@ def _evidence(field, text, start, end, quotes):
     prefix = re.split(r"[,;:]", text[sentence["start"]:start])[-1][-60:]
     negated = bool(re.search(r"\bне\s+(?:(?!только\b)\w+\s+){0,2}$", prefix, re.I))
     discussed = bool(re.search(
-        r'\b(?:слово|слова|выражение|фраза|формулировка|формулировку|термин|ярлык|тезис)\s*[:«"“„—-]?\s*$', prefix, re.I,
+        r'\b(?:слово|слова|выражение|фраза|формулировка|формулировку|термин|ярлык|тезис|лозунг|слоган|клише|цитата|пример)\s*[:«"“„—-]?\s*$', prefix, re.I,
     ))
     denied = bool(re.search(
         r"\b(?:опроверг[а-яё]*|отверг[а-яё]*|неверно\s+(?:считать|утверждать)|нельзя\s+(?:считать|утверждать))\b",
         prefix, re.I,
     ))
+    # An explicit rejected proposition may cross its complement comma. Other
+    # commas still end local negation: "Не согласен, все знают" stays active.
+    denied = denied or bool(re.search(
+        r"\b(?:(?:нельзя|неверно|неправильно)\s+(?:считать|утверждать)|"
+        r"(?:опроверг[а-яё]*|отверг[а-яё]*)\s+(?:утверждени[ея]|тезис|предположени[ея]|версию))"
+        r"\s*,\s*(?:что|будто)\s+(?:[а-яё]+\s+){0,3}[«\"“„]?\s*$",
+        text[sentence["start"]:start][-180:], re.I,
+    ))
     statement_prefix = text[sentence["start"]:start][-220:]
     reported = bool(re.search(
         r"\b(?:заявил[а-яё]*|сказал[а-яё]*|назвал[а-яё]*|утвержда[а-яё]*|отметил[а-яё]*|"
-        r"считает|считают|по\s+словам)\b[^.!?\n]{0,110}$", statement_prefix, re.I,
+        r"написал[а-яё]*|сообщил[а-яё]*|пояснил[а-яё]*|подчеркнул[а-яё]*|"
+        r"считает|считают|по\s+(?:словам|мнению|убеждению))\b[^.!?\n]{0,110}$", statement_prefix, re.I,
     ) or re.search(
         r"^\s*(?:[»”\"]\s*)?[.,!?]?\s*[—-]\s*(?:так\s+)?(?:[^.!?\n]{0,45}\s+)?"
         r"(?:назвал[а-яё]*|заявил[а-яё]*|сказал[а-яё]*|отметил[а-яё]*)\b",

@@ -19,6 +19,7 @@ from media_strazh.sources import SOURCES
 from media_strazh.storage import Store, collection_lock, later
 
 NOW = "2026-10-10T09:00:00.000000+00:00"
+BASE_SOURCES = [SOURCES[key] for key in ("rt", "tass", "ria")]
 # Synthetic pages used only in temporary test databases.
 BODY = ("Городская библиотека открыла новый читальный зал. Жители смогут пользоваться "
         "книгами и электронным каталогом. Расписание работы опубликовано на сайте учреждения.")
@@ -35,7 +36,7 @@ class FakeNetwork:
     def __init__(self):
         self.responses, self.calls = {}, []
         self.blocked_article_sources = set()
-        for source in SOURCES.values():
+        for source in BASE_SOURCES:
             url = f"https://{source.host}/news/1"
             feed = f'<rss><channel><item><title>Новая библиотека</title><link>{url}</link></item></channel></rss>'
             self.responses[source.feed_url] = Response(source.feed_url, feed.encode(), "application/rss+xml")
@@ -65,7 +66,7 @@ class CollectionTests(unittest.TestCase):
         self.store.__exit__()
         self.directory.cleanup()
     def collect(self, when=NOW, sources=None, limit=5):
-        return collect_once(self.store, sources, limit=limit, client_factory=self.network, now=lambda: when)
+        return collect_once(self.store, BASE_SOURCES if sources is None else sources, limit=limit, client_factory=self.network, now=lambda: when)
 
     def test_all_three_sources_collected_analyzed_and_persisted(self):
         result = self.collect()
@@ -120,6 +121,18 @@ class CollectionTests(unittest.TestCase):
         self.assertNotIn(SOURCES["tass"].feed_url, self.network.calls)
         self.assertEqual(second["sources"]["tass"]["deferred_until"], later(NOW, 7200))
 
+    def test_article_retry_after_also_defers_other_requests_to_its_source(self):
+        source = SOURCES["ria"]
+        self.network.responses[f"https://{source.host}/news/1"] = FetchError("HTTP 429", retry_after=7200, status_code=429)
+        first = self.collect(sources=[source])
+        self.assertFalse(first["success"])
+        status = next(row for row in self.store.status()["sources"] if row["source_id"] == "ria")
+        self.assertEqual(status["next_attempt_at"], later(NOW, 7200))
+        self.network.calls.clear()
+        second = self.collect(later(NOW, 300), [source])
+        self.assertEqual(self.network.calls, [])
+        self.assertEqual(second["sources"]["ria"]["deferred_until"], later(NOW, 7200))
+
     def test_failed_article_retry_is_not_reset_by_rediscovery(self):
         source = SOURCES["ria"]
         url = f"https://{source.host}/news/1"
@@ -164,7 +177,7 @@ class CollectionTests(unittest.TestCase):
     def test_restart_preserves_state_and_retry_schedule(self):
         self.collect()
         with Store(self.path) as reopened:
-            result = collect_once(reopened, client_factory=self.network, now=lambda: later(NOW, 300))
+            result = collect_once(reopened, BASE_SOURCES, client_factory=self.network, now=lambda: later(NOW, 300))
             self.assertEqual(reopened.status()["articles_collected"], 3)
             self.assertEqual(sum(row["fetched"] for row in result["sources"].values()), 0)
 
@@ -311,7 +324,7 @@ class CollectionAPITests(unittest.TestCase):
         cls.directory = tempfile.TemporaryDirectory()
         cls.path = Path(cls.directory.name) / "test.sqlite3"
         with Store(cls.path) as store:
-            collect_once(store, client_factory=FakeNetwork(), now=lambda: NOW)
+            collect_once(store, BASE_SOURCES, client_factory=FakeNetwork(), now=lambda: NOW)
         class QuietHandler(Handler):
             def log_message(self, *args): pass
         cls.server = ThreadingHTTPServer(("127.0.0.1", 0), QuietHandler)

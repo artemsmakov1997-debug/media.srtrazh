@@ -11,6 +11,7 @@ from .browser import DEFAULT_RUNTIME, prepare_runtime
 from .server import serve
 from .collector import collect_once, reanalyze_current, reextract_current, selected_sources, watch
 from .storage import DEFAULT_DB, Store, collection_lock, utcnow
+from .sources import SOURCES, resolve_source
 
 
 def main():
@@ -30,37 +31,41 @@ def main():
                               ("watch", "Проверять ленты и анализировать новости по расписанию")):
         collection = commands.add_parser(name, help=description)
         collection.add_argument("--db", type=Path, default=DEFAULT_DB)
-        collection.add_argument("--source", action="append", choices=["rt", "tass", "ria"],
-                                help="Повторите для нескольких источников; по умолчанию все три")
+        collection.add_argument("--source", action="append", choices=list(SOURCES),
+                                help="Повторите для нескольких источников; по умолчанию весь реестр сайтов и каналов")
         collection.add_argument("--feed", action="append", metavar="ID=HTTPS_URL",
-                                help="Заменить URL RSS на том же домене")
+                                help="Заменить URL ленты в пределах разрешённых адресов источника")
         collection.add_argument("--limit", type=int, default=5, help="Максимум загрузок на источник за цикл")
         collection.add_argument("--revisit-seconds", type=int, default=3600)
         if name == "watch":
             collection.add_argument("--interval", type=int, default=300, help="Пауза между циклами, секунды")
         else:
+            collection.add_argument("--time-budget-seconds", type=int,
+                                    help="Лимит длительности цикла; при исчерпании сохранить частичный результат")
             collection.add_argument("--retry-now", action="store_true",
                                     help="Повторить ошибочные запросы после исправления доступа/настроек")
             collection.add_argument("--verbose", action="store_true")
     status = commands.add_parser("status", help="Показать состояние автоматического сбора")
     status.add_argument("--db", type=Path, default=DEFAULT_DB)
+    registry = commands.add_parser("sources", help="Показать реестр сайтов и Telegram-каналов для сбора")
+    registry.add_argument("--db", type=Path, default=DEFAULT_DB)
     export = commands.add_parser("export-corpus", help="Экспортировать собранные статьи для ручной разметки")
     export.add_argument("--db", type=Path, default=DEFAULT_DB)
     export.add_argument("--output", type=Path, help="Новый JSONL-файл; по умолчанию stdout")
     publish = commands.add_parser("build-site", help="Собрать статический сайт с подборкой реальных результатов")
     publish.add_argument("--db", type=Path, default=DEFAULT_DB)
     publish.add_argument("--output", type=Path, default=Path("_site"))
-    publish.add_argument("--limit", type=int, default=30)
+    publish.add_argument("--limit", type=int, default=100)
     publish.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME)
     browser = commands.add_parser("prepare-browser", help="Загрузить проверенный движок ручного анализа для сайта")
     browser.add_argument("--output", type=Path, default=DEFAULT_RUNTIME)
     browser.add_argument("--archive", type=Path, help="Проверенный архив npm для установки без повторной загрузки")
     reextract = commands.add_parser("reextract", help="Повторно извлечь текст из сохранённых HTML без загрузки сайтов")
     reextract.add_argument("--db", type=Path, default=DEFAULT_DB)
-    reextract.add_argument("--source", action="append", choices=["rt", "tass", "ria"])
+    reextract.add_argument("--source", action="append", choices=list(SOURCES))
     reanalyze = commands.add_parser("reanalyze", help="Пересчитать сохранённые тексты новой версией правил без загрузки сайтов")
     reanalyze.add_argument("--db", type=Path, default=DEFAULT_DB)
-    reanalyze.add_argument("--source", action="append", choices=["rt", "tass", "ria"])
+    reanalyze.add_argument("--source", action="append", choices=list(SOURCES))
     args = parser.parse_args()
     try:
         if args.command == "serve":
@@ -87,12 +92,24 @@ def main():
                 if args.retry_now:
                     store.retry_now([source.id for source in sources], utcnow())
                 logger = (lambda event: print(json.dumps(event, ensure_ascii=False), flush=True)) if args.verbose else None
-                result = collect_once(store, sources, args.limit, args.revisit_seconds, log=logger)
+                result = collect_once(store, sources, args.limit, args.revisit_seconds, log=logger,
+                                      time_budget_seconds=args.time_budget_seconds)
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["success"] else 1
         elif args.command == "status":
             with Store(args.db) as store:
                 result = store.status()
+        elif args.command == "sources":
+            saved = {}
+            if args.db.is_file():
+                with Store(args.db) as store:
+                    saved = {row["source_id"]: row["feed_url"] for row in store.status()["sources"]}
+            sources = [resolve_source(source, saved.get(source.id)) for source in SOURCES.values()]
+            result = {"sources": [{"id": source.id, "name": source.name,
+                                   "publisher_id": source.publisher, "platform": source.platform,
+                                   "feed_url": source.feed_url, "channel": source.channel,
+                                   "configuration_error": source.configuration_error}
+                                  for source in sources]}
         elif args.command == "build-site":
             with Store(args.db) as store:
                 result = build_site(store, args.output, args.limit, args.runtime_dir)
