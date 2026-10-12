@@ -37,7 +37,8 @@
     :focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
     .site-header { border-bottom: 1px solid var(--line); }
     .header-inner { max-width: 1180px; margin: auto; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-    .brand { margin: 0; font: 800 14px/1.2 Montserrat, sans-serif; letter-spacing: .09em; color: var(--cyan); }
+    .brand { margin: 0; display: inline-flex; align-items: center; gap: 9px; font: 800 14px/1.2 Montserrat, sans-serif; letter-spacing: .09em; color: var(--cyan); }
+    .brand-pro { display: inline-block; padding: 4px 6px; border: 1px solid #e8b95d; border-radius: 5px; background: #392a13; color: #ffd98b; font: 800 11px/1.2 Montserrat, sans-serif; letter-spacing: .06em; }
     .header-back { display: inline-flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--text); font-size: 13px; font-weight: 600; white-space: nowrap; }
     .header-back:hover { border-color: var(--cyan); color: var(--cyan); text-decoration: none; }
     main { max-width: 1180px; margin: auto; padding: 26px 24px 64px; }
@@ -139,7 +140,7 @@
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <p class="brand">МЕДИА.СТРАЖ</p>
+    <p class="brand">МЕДИА.СТРАЖ <span class="brand-pro">PRO</span></p>
     <a class="header-back" href="index.html"><span aria-hidden="true">←</span> Вернуться к рейтингу</a>
   </div>
 </header>
