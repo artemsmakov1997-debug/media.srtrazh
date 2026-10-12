@@ -228,7 +228,10 @@ function modalExcerpt(sentence, evidences) {
     const mark = node('mark', text, 'auto-modal-highlight');
     mark.tabIndex = 0;
     mark.dataset.label = [...new Set(matches.map(s => s.finding.label))].join(' · ');
-    mark.dataset.explanation = [...new Set(matches.map(s => s.finding.explanation))].join(' ');
+    mark.dataset.explanation = [...new Set(matches.map(s =>
+      (s.finding.rule_id === 'context.quotation_omission'
+        ? 'Сокращение цитаты — требуется сверка с оригиналом'
+        : statuses[s.finding.status] || s.finding.status) + '. ' + s.finding.explanation))].join(' ');
     mark.dataset.question = [...new Set(matches.map(s => s.finding.review_question))].join(' ');
     mark.setAttribute('aria-label', text + ': ' + mark.dataset.label);
     mark.addEventListener('mouseenter', () => showAutomaticTooltip(mark));
@@ -320,7 +323,7 @@ function render() {
       !candidatesOnly ||
       (
         item.summary &&
-        item.summary.review_fragments > 0
+        (item.summary.candidate_fragments ?? item.summary.review_fragments) > 0
       );
 
     return outletMatch && platformMatch && candidateMatch;
@@ -361,7 +364,7 @@ function render() {
     article.append(
       node(
         'p',
-        counts ? 'Найдено фрагментов для проверки: ' + counts.review_fragments
+        counts ? 'Найдено фрагментов для проверки: ' + (counts.candidate_fragments ?? counts.review_fragments)
           : 'Анализ текущей версии отсутствует.',
         'badge'
       )

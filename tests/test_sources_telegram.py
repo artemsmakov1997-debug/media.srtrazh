@@ -1,4 +1,5 @@
 from dataclasses import replace
+from html import escape
 import json
 from pathlib import Path
 import tempfile
@@ -13,6 +14,8 @@ from media_strazh.network import FetchError, PublisherRedirects, Response, Sourc
 from media_strazh.sources import PUBLISHERS, SOURCES, channel_from_homepage, normalize_url, resolve_source
 from media_strazh.storage import Store
 from media_strazh.telegram import extract_post, parse_preview
+from media_strazh.analysis import analyze
+from test_contextual_rhetoric import BLAHA_TEXT
 
 
 NOW = "2026-10-11T10:00:00+00:00"
@@ -29,6 +32,26 @@ def telegram_post(post_id, body="Новость: открыта библиоте
 
 
 class ExpandedSourceTests(unittest.TestCase):
+    def test_user_post_retains_omission_and_quoted_signals_through_collection(self):
+        source = SOURCES["izvestia_telegram"]
+        html = telegram_post(253503, escape(BLAHA_TEXT).replace("\n", "<br>"), channel="izvestia")
+        class Client:
+            robots_error = None
+            def __init__(self, selected): self.source = selected
+            def get_feed(self): return Response(source.feed_url, html.encode(), "text/html", "utf-8")
+            def get(self, url): raise AssertionError("Feed already includes the requested message.")
+        with tempfile.TemporaryDirectory() as directory, Store(Path(directory) / "corpus.sqlite3") as store:
+            summary = collect_once(store, [source], client_factory=Client, now=lambda: NOW)
+            self.assertTrue(summary["success"])
+            item = store.article(store.articles()[0]["id"])
+            # The HTML adapter collapses empty paragraphs before analysis;
+            # evidence offsets must refer to this stored extracted version.
+            self.assertEqual(item["document"]["text"], BLAHA_TEXT.replace("\n\n", "\n"))
+            self.assertEqual(item["analysis"], analyze(item["document"]))
+            self.assertEqual(item["analysis"]["summary"]["candidate_fragments"], 11)
+            omission = next(f for f in item["analysis"]["findings"] if f["rule_id"] == "context.quotation_omission")
+            self.assertEqual(omission["evidence"][0]["quote"], "<...>")
+
     def test_runtime_channel_restore_uses_exact_scoped_canonical_preview(self):
         inactive = replace(SOURCES["tass_telegram"], channel="", feed_url="", configuration_error="Не подтверждён")
         resolved = resolve_source(inactive, "https://t.me/s/example_news")

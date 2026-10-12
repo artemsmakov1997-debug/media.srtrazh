@@ -23,6 +23,7 @@ from media_strazh.analysis import analyze
 import test_analysis
 import test_rhetoric
 import test_expanded_rhetoric
+import test_contextual_rhetoric
 
 
 def examples():
@@ -39,7 +40,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -47,6 +48,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_analysis.AnalysisTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_rhetoric.RhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_expanded_rhetoric.ExpandedRhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_contextual_rhetoric.ContextualRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -140,6 +142,65 @@ def inline_touch_and_overlap(browser, base, errors, requests):
         assert page.locator("#manualTooltip img").count() == 0
         page.locator("#manualForm button[type=reset]").click()
         assert not page.locator("#manualTooltip").is_visible()
+    finally:
+        context.close()
+
+
+def contextual_analysis_ui(browser, base, site, errors, requests):
+    """A quoted-only publication must remain visible under the candidate filter."""
+    document = {"title": "", "text": test_contextual_rhetoric.BLAHA_TEXT}
+    expected = analyze(document)
+    snapshot = json.loads((site / "data/analysis.json").read_text())
+    source = next(source for source in snapshot["sources"] if source["id"] == "izvestia_telegram")
+    item = copy.deepcopy(snapshot["articles"][0])
+    item.update(id=253503, source_id=source["id"], publisher_id=source["publisher_id"],
+                platform="telegram", source=source["name"], title="",
+                message_preview=document["text"][:160], url="https://t.me/izvestia/253503",
+                summary=expected["summary"], findings=expected["findings"], findings_omitted=0)
+    snapshot["articles"] = [item]
+    context = browser.new_context(viewport={"width": 1280, "height": 900})
+    try:
+        page = context.new_page()
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+        page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+        page.goto(base + "/analysis.html")
+        page.locator(".publication").wait_for()
+        page.locator("#candidates").check()
+        assert page.locator(".publication").count() == 1
+        assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
+        page.locator(".auto-details-button").click()
+        page.locator("#automaticModal").wait_for(state="visible")
+        auto_marks = page.locator("#automaticModal mark")
+        assert any("головорезов" in text for text in auto_marks.all_text_contents())
+        auto_marks.filter(has_text="головорезов").hover()
+        assert "Цитата или переданная речь" in page.locator("#automaticTooltip").inner_text()
+        page.locator("#automaticModalClose").click()
+        page.locator('[data-mode="manual"]').click()
+        page.locator("#manualText").fill(document["text"])
+        page.locator("#manualSubmit").click()
+        page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+        assert page.locator("#manualTextEvidence").inner_text() == document["text"]
+        assert page.locator("#manualTextEvidence mark").count() == 12
+        def hover_fragment(text):
+            mark = page.locator("#manualTextEvidence mark").filter(has_text=text)
+            mark.scroll_into_view_if_needed()
+            # Hover after the reader/page scrolling has completed, as a person
+            # does. Intentional scrolling dismisses existing comments.
+            page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
+            mark.hover()
+            page.locator("#manualTooltip").wait_for(state="visible")
+        hover_fragment("головорезов")
+        assert page.locator("#manualTooltip h3").all_text_contents() == ["Эвфемизмы и дисфемизмы"]
+        hover_fragment("<...>")
+        assert "пропуск сам по себе не доказывает" in page.locator("#manualTooltip").inner_text()
+        assert "Сокращение цитаты — требуется сверка с оригиналом" in page.locator("#manualTooltip").inner_text()
+        assert page.locator("#manualWarnings p").count() == 2
+        with page.expect_download() as download_info:
+            page.locator("#manualDownload").click()
+        exported = json.loads(Path(download_info.value.path()).read_text())
+        assert exported == expected
+        print("Quoted publication filter and user-example inline analysis passed", flush=True)
     finally:
         context.close()
 
@@ -307,6 +368,7 @@ def main():
                                if metadata["platform"] == "telegram"
                                else f'https://{metadata["allowed_hosts"][0]}/news/123')
                 item["summary"]["review_fragments"] = 0
+                item["summary"]["candidate_fragments"] = 0
                 if source_id == "rt_telegram":
                     item["title"] = ""
                     item["message_preview"] = "Городская библиотека открыла новый читальный зал."
@@ -349,7 +411,8 @@ def main():
             assert "Совпадений текущих правил не найдено" in page.locator("#automaticModalBody").inner_text()
             page.locator("#automaticModalClose").click()
             assert not page.locator("#automaticModal").is_visible()
-            page.evaluate("() => { report.articles.find(item => item.platform === 'telegram').summary.review_fragments = 1; render(); }")
+            # Older snapshots lack the new counter; keep its fallback working.
+            page.evaluate("() => { const summary = report.articles.find(item => item.platform === 'telegram').summary; delete summary.candidate_fragments; summary.review_fragments = 1; render(); }")
             page.locator("#candidates").check()
             assert page.locator(".publication").count() == 1
             page.select_option("#platform", "website")
@@ -413,6 +476,7 @@ def main():
             context.close()
 
             inline_touch_and_overlap(browser, base, errors, requests)
+            contextual_analysis_ui(browser, base, site, errors, requests)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(

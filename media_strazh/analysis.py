@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.3.2"
+VERSION = "rules-0.4.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -42,7 +42,27 @@ POLITICAL_CONTEXT = re.compile(
     r"\b(?:(?:евро)?политик[а-яё]*|политическ[а-яё]*|президент[а-яё]*|премьер[а-яё]*|министр[а-яё]*|"
     r"правительств[а-яё]*|власт[а-яё]*|режим[а-яё]*|лидер[а-яё]*|депутат[а-яё]*|"
     r"оппозиц[а-яё]*|сенат[а-яё]*|конгресс[а-яё]*|губернатор[а-яё]*|мэр[а-яё]*|"
-    r"европ[а-яё]*|государств[а-яё]*|стран[а-яё]*|парламент[а-яё]*|народ[а-яё]*|наци[а-яё]*|граждан[а-яё]*|ЕС)\b", re.I,
+    r"европ[а-яё]*|государств[а-яё]*|стран[а-яё]*|(?:евро)?парламент[а-яё]*|народ[а-яё]*|наци[а-яё]*|граждан[а-яё]*|"
+    r"украин[а-яё]*|росси[а-яё]*|беларус[а-яё]*|америк[а-яё]*|германи[а-яё]*|франци[а-яё]*|испан[а-яё]*|ЕС|США|"
+    r"Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*)\b", re.I,
+)
+MODERN_CUE = re.compile(
+    r"\b(?:нынешн[а-яё]*|современн[а-яё]*|сегодня|сейчас|действующ[а-яё]*|"
+    r"будущ[а-яё]*|станет|закончится|вернутся|правит|вед[её]т\s+себя|"
+    r"Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|"
+    r"Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*)\b", re.I,
+)
+CURRENT_TARGET = re.compile(
+    r"\b(?:Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|"
+    r"Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*|"
+    r"(?:нынешн[а-яё]*|современн[а-яё]*|действующ[а-яё]*)\s+"
+    r"(?:[а-яё]+\s+){0,2}(?:министр[а-яё]*|президент[а-яё]*|правительств[а-яё]*|"
+    r"парламент[а-яё]*|политик[а-яё]*|власт[а-яё]*|росси[а-яё]*|украин[а-яё]*|Европ[а-яё]*))\b", re.I,
+)
+HISTORICAL_LITERAL = re.compile(
+    r"\b(?:историк[а-яё]*|архив[а-яё]*|средневеков[а-яё]*|"
+    r"(?:18\d\d|19[0-4]\d)\s*(?:-х|-е|год[а-яё]*|г\.)|"
+    r"историческ[а-яё]*\s+(?:должност[а-яё]*|професси[а-яё]*))\b", re.I,
 )
 LITERAL_CLINICAL_CONTEXT = re.compile(
     r"\b(?:пациент[а-яё]*|врач[а-яё]*|больниц[а-яё]*|диагноз[а-яё]*|"
@@ -82,13 +102,69 @@ POLITICAL_PRESCRIPTION_TARGET = re.compile(
 )
 
 
-def _rule_applies(rule, field, text, start, end):
+def _rule_applies(rule, field, text, start, end, quotes=()):
     if field not in rule.fields:
         return False
     if not rule.context_requirement:
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "quote_omission":
+        index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
+        return index >= 0 and end <= quotes[index][1]
+    if rule.context_requirement in {"current_political", "modern_label", "modern_analogy",
+                                    "political_machine", "political_collapse"}:
+        nearby = text[max(0, start - 900):min(len(text), end + 200)]
+        if not POLITICAL_CONTEXT.search(nearby) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+            return False
+        modern = bool(MODERN_CUE.search(sentence))
+        # Today's report about an archive is still about history. A time word
+        # alone must not turn its historical subject into a current opponent.
+        if HISTORICAL_LITERAL.search(sentence) and not (CURRENT_TARGET.search(sentence) or re.search(
+            r"\b(?:будущ[а-яё]*|станет|закончится|вернутся)\b", sentence, re.I,
+        )):
+            return False
+        if rule.context_requirement in {"modern_label", "modern_analogy"}:
+            # Historical comparisons need a current target or a forecast in
+            # the SAME sentence. Nearby political words alone are insufficient.
+            prefix = text[sentence_span["start"]:start]
+            # A current office/country may be named without a personal name.
+            # Historical figures and explicit archival dates do not supply
+            # this fallback. The candidate still needs semantic review.
+            target = bool(POLITICAL_CONTEXT.search(prefix)) and not re.search(
+                r"\b(?:Гитлер[а-яё]*|Муссолини|Сталин[а-яё]*|Черчилл[а-яё]*|"
+                r"Чемберлен[а-яё]*|Рузвельт[а-яё]*|Наполеон[а-яё]*)\b", prefix, re.I,
+            )
+            if rule.id == "dysphemism.autocratic_label" and (re.match(
+                r"\s+(?:Гитлер[а-яё]*|Муссолини|Сталин[а-яё]*|Наполеон[а-яё]*)\b",
+                text[end:end + 40], re.I,
+            ) or re.search(
+                r"\b(?:Гитлер[а-яё]*|Муссолини|Сталин[а-яё]*|Наполеон[а-яё]*)\s*(?:[—:-]|это|был)?\s*$",
+                prefix, re.I,
+            )):
+                return False
+            if rule.context_requirement == "modern_analogy" and re.search(
+                r"\b(?:рассказ[а-яё]*|описал[а-яё]*|объяснил[а-яё]*|изучил[а-яё]*)\b[^.!?\n]{0,60},\s*$",
+                prefix, re.I,
+            ):
+                return False
+            if rule.id == "enemy.nazi_political_label" and re.match(
+                r"(?:нов[а-яё]*|современн[а-яё]*)\s+", text[start:end], re.I,
+            ):
+                return True
+            return modern or target
+        if rule.context_requirement == "political_machine":
+            prefix = text[sentence_span["start"]:start]
+            return bool(POLITICAL_CONTEXT.search(prefix)) and not re.search(
+                r"\b(?:бронет[а-яё]*|танк[а-яё]*|гусениц[а-яё]*|двигател[а-яё]*|"
+                r"завод[а-яё]*|техник[а-яё]*|автомобил[а-яё]*)\b", sentence, re.I,
+            )
+        if rule.context_requirement == "political_collapse":
+            return not re.search(
+                r"\b(?:здани[а-яё]*|кирпич[а-яё]*|фундамент[а-яё]*|мост[а-яё]*|"
+                r"ветх[а-яё]*|крыша|кровл[а-яё]*)\b", sentence, re.I,
+            )
+        return True
     if rule.context_requirement == "prominent_authority_prescription":
         # A prominently selected prescriptive quote is a weak review cue, not
         # evidence that the newsroom adopted it or used status as proof.
@@ -232,10 +308,11 @@ def _evidence(field, text, start, end, quotes):
     reported = bool(re.search(
         r"\b(?:заявил[а-яё]*|сказал[а-яё]*|назвал[а-яё]*|утвержда[а-яё]*|отметил[а-яё]*|"
         r"написал[а-яё]*|сообщил[а-яё]*|пояснил[а-яё]*|подчеркнул[а-яё]*|"
-        r"считает|считают|по\s+(?:словам|мнению|убеждению))\b[^.!?\n]{0,110}$", statement_prefix, re.I,
+        r"считает|считают|по\s+(?:(?:его|её|ее|их|собственным)\s+)?(?:словам|мнению|убеждению))\b[^.!?\n]{0,110}$", statement_prefix, re.I,
     ) or re.search(
-        r"^\s*(?:[»”\"]\s*)?[.,!?]?\s*[—-]\s*(?:так\s+)?(?:[^.!?\n]{0,45}\s+)?"
-        r"(?:назвал[а-яё]*|заявил[а-яё]*|сказал[а-яё]*|отметил[а-яё]*)\b",
+        r"^\s*(?:[»”\"]\s*)?[.!?]?\s*(?:[,—-]\s*|,\s*[—-]\s*)(?:так\s+)?"
+        r"(?:(?!(?:но|однако|а|и)\b)[^.!?\n]{0,45}\s+)?"
+        r"(?:назвал[а-яё]*|заявил[а-яё]*|сказал[а-яё]*|отметил[а-яё]*|подытожил[а-яё]*)\b",
         text[end:min(len(text), end + 140)], re.I,
     ))
     quote_index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
@@ -267,7 +344,7 @@ def analyze(document):
             if field not in rule.fields:
                 continue
             for match in pattern.finditer(value):
-                if not _rule_applies(rule, field, value, *match.span()):
+                if not _rule_applies(rule, field, value, *match.span(), quotes[field]):
                     continue
                 spans = occupied.setdefault((field, rule.category), [])
                 if any(match.start() < end and start < match.end() for start, end in spans):
@@ -280,10 +357,14 @@ def analyze(document):
                     # This rule requires attributed speech even without literal
                     # quotation marks. Denial/discussion still take priority.
                     evidence["context"]["reported_speech"] = True
+                if rule.id == "context.quotation_omission":
+                    # Editing is observable; distortion is not established.
+                    evidence["context"]["quotation_edited"] = True
                 spans.append(match.span())
                 findings.append({
                     "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],
-                    "status": _status(evidence), "explanation": rule.explanation,
+                    "status": "context_only" if rule.id == "context.quotation_omission" else _status(evidence),
+                    "explanation": rule.explanation,
                     "review_question": rule.review_question, "evidence": [evidence],
                 })
     # Co-occurrence is a review cue, never proof that the claims contradict.
@@ -330,6 +411,9 @@ def analyze(document):
                     "review_fragments": len({(e["field"], e["start"], e["end"])
                                              for f in findings if f["status"] == "needs_review"
                                              for e in f["evidence"]}),
+                    "candidate_fragments": len({(e["field"], e["start"], e["end"])
+                                                for f in findings if f["status"] != "context_only"
+                                                for e in f["evidence"]}),
                     "findings_truncated": truncated,
                     "quoted_candidates": sum(f["status"] == "quoted_candidate" for f in findings),
                     "context_only": sum(f["status"] == "context_only" for f in findings)},
