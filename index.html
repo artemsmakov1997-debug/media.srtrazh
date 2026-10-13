@@ -42,9 +42,9 @@
       font-family: "Inter", sans-serif;
       color: var(--text-main);
       background:
-        radial-gradient(circle at 20% 0%,  rgba(34,211,238,.14), transparent 25%),
-        radial-gradient(circle at 80% 10%, rgba(239,68,68,.12),  transparent 25%),
-        radial-gradient(circle at bottom,  rgba(15,23,42,0.7),   transparent 60%),
+        radial-gradient(circle at 20% 0%,  rgba(34,211,238,.055), transparent 25%),
+        radial-gradient(circle at 80% 10%, rgba(239,68,68,.045),  transparent 25%),
+        radial-gradient(circle at bottom,  rgba(15,23,42,.42),   transparent 60%),
         var(--bg-body);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -71,7 +71,7 @@
       color: #e5e7eb; line-height: 1.15; max-width: 170px;
     }
     .brand-title span { color: var(--accent-blue); }
-    .header-glow { height: 2px; background: radial-gradient(circle at center, rgba(34,211,238,.75), transparent 70%); opacity: .45; }
+    .header-glow { height: 2px; background: radial-gradient(circle at center, rgba(34,211,238,.42), transparent 70%); opacity: .3; }
     .site-nav { display: flex; align-items: center; justify-content: flex-end; margin-left: auto; }
     .burger {
       width: 44px; height: 44px; border-radius: 12px;
@@ -114,18 +114,18 @@
     .hero-text::before, .hero-counter::before {
       content: ""; position: absolute; inset: -40% auto auto -10%;
       width: 180px; height: 180px;
-      background: radial-gradient(circle, rgba(34,211,238,.22), transparent 70%); pointer-events: none;
+      background: radial-gradient(circle, rgba(34,211,238,.10), transparent 70%); pointer-events: none;
     }
     .hero-counter::after {
       content: ""; position: absolute; right: -30px; bottom: -30px;
       width: 140px; height: 140px;
-      background: radial-gradient(circle, rgba(239,68,68,.18), transparent 70%); pointer-events: none;
+      background: radial-gradient(circle, rgba(239,68,68,.08), transparent 70%); pointer-events: none;
     }
     .hero h1 {
       margin: 0; position: relative; z-index: 1;
       font-family: "Montserrat", sans-serif;
       font-size: clamp(1.55rem, 6vw, 2.4rem); line-height: 1.08;
-      letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 0 18px rgba(34,211,238,.12);
+      letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 0 16px rgba(34,211,238,.04);
     }
 
     .hero-subtitle {
@@ -155,7 +155,7 @@
     .hero-counter { display: flex; flex-direction: column; gap: 8px; }
     .counter-label { position: relative; z-index: 1; font-size: .78rem; line-height: 1.45; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); }
     .counter-label span { font-weight: 700; color: var(--accent-blue); }
-    .counter-value { position: relative; z-index: 1; margin: 0; font-family: "Montserrat", sans-serif; font-size: clamp(2.2rem, 12vw, 4.4rem); font-weight: 900; line-height: 1; color: var(--accent-red); text-shadow: 0 0 18px rgba(248,113,113,.65); }
+    .counter-value { position: relative; z-index: 1; margin: 0; font-family: "Montserrat", sans-serif; font-size: clamp(2.2rem, 12vw, 4.4rem); font-weight: 900; line-height: 1; color: var(--accent-red); text-shadow: 0 0 13px rgba(248,113,113,.25); }
     .counter-demo-note { position: relative; z-index: 1; font-size: .7rem; color: rgba(139,141,150,.7); letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
 
     /* FIX 1: Мобильный счётчик — обрезка при >999 */
@@ -179,7 +179,7 @@
       /* clamp: сжимается при росте числа */
       font-size: clamp(1.8rem, 10vw, 4.1rem);
       color: var(--accent-red);
-      text-shadow: 0 0 16px rgba(248,113,113,.62);
+      text-shadow: 0 0 12px rgba(248,113,113,.25);
       line-height: .88;
       letter-spacing: -.04em;
       /* не выходит за колонку */
@@ -206,7 +206,7 @@
     /* ══ MEDIA CARD ══ */
     .media-card {
       position: relative;
-      background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.08), transparent 28%), radial-gradient(circle at bottom, rgba(34,211,238,.16), transparent 55%), linear-gradient(145deg, #050816, #050b13);
+      background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.035), transparent 28%), radial-gradient(circle at bottom, rgba(34,211,238,.065), transparent 55%), linear-gradient(145deg, #050816, #050b13);
       border-radius: 20px; border: 1px solid rgba(31,41,55,.95); padding: 16px; box-shadow: var(--shadow-card); overflow: hidden;
     }
     .media-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 28%); pointer-events: none; }
@@ -216,9 +216,9 @@
     .media-name { font-weight: 700; font-size: 1rem; line-height: 1.2; word-break: break-word; }
     .media-type { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
     .rating-score { font-family: "Montserrat", sans-serif; font-size: 1.45rem; font-weight: 900; line-height: 1; flex-shrink: 0; }
-    .red-score    { color: var(--accent-red);    text-shadow: 0 0 12px rgba(248,113,113,.75); }
-    .yellow-score { color: var(--accent-yellow); text-shadow: 0 0 12px rgba(234,179,8,.55); }
-    .green-score  { color: var(--accent-green);  text-shadow: 0 0 12px rgba(74,222,128,.55); }
+    .red-score    { color: var(--accent-red);    text-shadow: 0 0 9px rgba(248,113,113,.24); }
+    .yellow-score { color: var(--accent-yellow); text-shadow: 0 0 9px rgba(234,179,8,.20); }
+    .green-score  { color: var(--accent-green);  text-shadow: 0 0 9px rgba(74,222,128,.20); }
     .media-meta { display: grid; grid-template-columns: 1fr; gap: 6px; font-size: .84rem; color: var(--text-muted); margin-bottom: 8px; }
     .media-details { font-size: .86rem; line-height: 1.45; color: #c3c7d0; }
     .small-graph { width: 100%; height: 36px; margin-top: 10px; border-radius: 10px; background: linear-gradient(to top, #020617, #0b1220); overflow: hidden; }
@@ -232,7 +232,7 @@
     /* Dots */
     .media-dots { display: none; justify-content: center; gap: 8px; margin-top: 14px; }
     .media-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(139,141,150,.35); border: none; padding: 0; cursor: pointer; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
-    .media-dot.active { width: 22px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); box-shadow: 0 0 14px rgba(34,211,238,.45); }
+    .media-dot.active { width: 22px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); box-shadow: 0 0 9px rgba(34,211,238,.18); }
 
     footer { border-top: 1px solid rgba(31,41,55,.9); padding: 20px 16px 28px; text-align: center; color: var(--text-muted); font-size: .83rem; margin-top: 32px; }
 
@@ -344,7 +344,7 @@
       .full-list-button-desktop { display: none; }
       .full-list-button-mobile { display: block; order: 3; }
       .media-stage { order: 2; }
-      .media-grid.is-mobile-slider { position: relative; min-height: 350px; }
+      .media-grid.is-mobile-slider { position: relative; min-height: 0; }
       .media-grid.is-mobile-slider .media-card { position: absolute; inset: 0; opacity: 0; transform: translateX(18px) scale(.98); pointer-events: none; transition: opacity .45s ease, transform .45s ease; }
       .media-grid.is-mobile-slider .media-card.is-active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; position: relative; }
       .media-grid.is-mobile-slider .media-card.is-exit-left { opacity: 0; transform: translateX(-18px) scale(.98); }
@@ -388,7 +388,7 @@
       .support-button-desktop { display: inline-flex; }
       .media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
       .media-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-      .media-card:hover { transform: translateY(-3px); border-color: rgba(56,189,248,.9); box-shadow: 0 26px 70px rgba(0,0,0,1), 0 0 30px rgba(56,189,248,.35); }
+      .media-card:hover { transform: translateY(-3px); border-color: rgba(56,189,248,.9); box-shadow: 0 22px 54px rgba(0,0,0,.85), 0 0 17px rgba(56,189,248,.10); }
     }
 
     /* ══ DESKTOP HOVER STATES (mouse-driven devices only) ══ */
@@ -401,7 +401,7 @@
       .link-button:hover { border-color: rgba(34,211,238,.6); background: linear-gradient(180deg, rgba(15,26,46,.95), rgba(10,17,32,.95)); color: #67e8f9; }
       .modal-close:hover { border-color: rgba(148,163,184,.7); background: rgba(30,41,59,.9); }
       .media-dot:hover { background: rgba(148,163,184,.6); }
-      .media-dot.active:hover { box-shadow: 0 0 18px rgba(34,211,238,.65); }
+      .media-dot.active:hover { box-shadow: 0 0 10px rgba(34,211,238,.24); }
       .modal-search:hover { border-color: rgba(100,116,139,.9); }
       .modal-sort:hover { border-color: rgba(100,116,139,.9); }
       .full-list-row:hover .fli-name .title { color: #ffffff; }
@@ -761,6 +761,32 @@
 }
 </style>
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
+
+<style id="mobile-hero-entry-and-dynamic-rating">
+@media (max-width: 767px) {
+  /* Adapt height to the active publication card, not a fixed 350px box. */
+  .media-grid.is-mobile-slider { min-height: 0 !important; height: auto; }
+  .media-grid.is-mobile-slider .media-card.is-active {
+    min-height: 0; height: auto; position: relative;
+  }
+  /* Compact hero copy; higher specificity than shared mobile font rules. */
+  body .hero h1 {
+    font-size: clamp(20px, 5.65vw, 24px) !important;
+    line-height: 1.22 !important;
+    letter-spacing: -.028em;
+  }
+  .hero-text h1 {
+    animation: rating-title-appear 850ms cubic-bezier(.22,1,.36,1) 80ms both;
+  }
+}
+@keyframes rating-title-appear {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-text h1 { animation: none !important; }
+}
+</style>
 </head>
 <body>
   <header>
@@ -886,11 +912,11 @@
       const c = {red:'#ef4444',yellow:'#eab308',green:'#22c55e'}[level]||'#22d3ee';
       return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
         <defs><linearGradient id="g${rating}${level}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${c}" stop-opacity="0.35"/>
+          <stop offset="0%" stop-color="${c}" stop-opacity="0.19"/>
           <stop offset="100%" stop-color="${c}" stop-opacity="0.02"/>
         </linearGradient></defs>
         <polygon points="${ptStr} ${aB}" fill="url(#g${rating}${level})"/>
-        <polyline points="${ptStr}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+        <polyline points="${ptStr}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.78"/>
       </svg>`;
     }
 
