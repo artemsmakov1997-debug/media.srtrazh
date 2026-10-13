@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#00c7df">
-  <meta name="description" content="Поддержите независимый проект «МЕДИА.СТРАЖ». Разовый донат или ежемесячная подписка — любая помощь сохраняет беспристрастность анализа." />
+  <meta name="description" content="Поддержите развитие МЕДИА.СТРАЖ: разовый взнос, подписка PRO для исследователей или PRO для бизнеса. Оформление подписок пока готовится." />
   <meta property="og:title" content="МЕДИА.СТРАЖ — Поддержка проекта" />
   <meta property="og:description" content="Помогите независимому рейтингу российских СМИ оставаться свободным от рекламных и государственных интересов." />
   <meta property="og:type" content="website" />
@@ -1772,6 +1772,175 @@
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
   <link rel="stylesheet" href="support-hover.css?v=20261013-1">
+<style id="support-three-paths-and-typewriter">
+  /* Calm, premium support overview: three genuinely distinct choices. */
+  .hero-support {
+    position: relative; margin: 22px 0 0 !important;
+    min-height: 265px; padding: 42px 30px 38px !important;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: linear-gradient(135deg,#0c1725 0%,#0b101b 76%) !important;
+    border:1px solid #304153 !important; border-radius:19px !important;
+    box-shadow:0 19px 50px rgba(0,0,0,.3) !important;
+    overflow:hidden;
+  }
+  .support-kicker {
+    margin:0 0 15px !important; font-size:11px !important; font-weight:800;
+    line-height:1.5 !important; color:#8eacc0 !important; text-align:center !important;
+    letter-spacing:.13em;
+  }
+  .hero-support .support-typing-title {
+    display:flex; flex-direction:column; align-items:center; gap:0;
+    margin:0 0 17px !important; width:100%; max-width:100%;
+    color:#f1f6fa; font:800 clamp(31px,4.3vw,49px)/1.13 Montserrat,Inter,sans-serif;
+    letter-spacing:-.035em; text-align:center;
+  }
+  .support-typing-title .typing-line {
+    display:block; position:relative; width:max-content; max-width:100%;
+    clip-path:inset(0 100% 0 0);
+  }
+  .support-typing-title .typing-line--first {
+    animation:support-type-reveal 950ms steps(10,end) 100ms both;
+  }
+  .support-typing-title .typing-line--second {
+    color:#53d5e9 !important;
+    animation:support-type-reveal 1100ms steps(12,end) 1080ms both;
+  }
+  @keyframes support-type-reveal {
+    from { clip-path:inset(0 100% 0 0); }
+    to { clip-path:inset(0 0 0 0); }
+  }
+  .hero-support .support-hero-intro {
+    margin:0 !important; max-width:620px;
+    color:#aebfcd !important; text-align:center !important;
+    font-size:14px !important; line-height:1.75 !important;
+  }
+  .section-block#supportFormats { margin-top:35px !important; }
+  .support-formats-intro {
+    color:#a4b5c3; margin:0 0 19px; font-size:14px; line-height:1.65;
+  }
+  #supportFormats .support-grid {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:stretch; gap:14px;
+  }
+  #supportFormats .support-choice,
+  #supportFormats .support-choice.card-featured {
+    padding:24px 21px !important; min-width:0; border-radius:13px !important;
+    background:#101a26 !important; border:1px solid #304253 !important;
+    box-shadow:0 12px 29px rgba(0,0,0,.21) !important;
+    display:flex; flex-direction:column;
+  }
+  #supportFormats .support-choice--research { border-color:#367282 !important; }
+  #supportFormats .support-choice--business { border-color:#977546 !important; }
+  #supportFormats .support-choice .support-card-header {
+    display:flex; flex-wrap:wrap; gap:8px;
+    align-items:center; justify-content:space-between; margin:0 0 24px;
+  }
+  #supportFormats .support-choice .support-card-label {
+    font-size:10px; letter-spacing:.07em; color:#9cb8c8;
+    font-weight:800; white-space:normal;
+  }
+  #supportFormats .support-choice .support-card-badge {
+    display:inline-flex; align-items:center; padding:5px 8px;
+    background:#152737; border:1px solid #355168; border-radius:6px;
+    font-size:10px; line-height:1.4; font-weight:700; color:#bcd3df;
+    white-space:normal;
+  }
+  #supportFormats .support-choice--business .support-card-badge {
+    border-color:#876a43; background:#282116; color:#e5bd7e;
+  }
+  #supportFormats .support-choice-title {
+    margin:0 0 11px; color:#f1f6fa;
+    font:800 21px/1.27 Montserrat,Inter,sans-serif; letter-spacing:-.025em;
+  }
+  #supportFormats .support-choice-desc {
+    margin:0 0 18px; color:#aebfcd; font-size:13px; line-height:1.7;
+  }
+  #supportFormats .support-choice-features {
+    margin:0 0 23px; padding-left:19px; flex:1;
+    color:#d4dee8; font-size:12px; line-height:1.65;
+  }
+  #supportFormats .support-choice-features li { padding-left:3px; }
+  #supportFormats .support-choice-features li+li { margin-top:10px; }
+  #supportFormats .support-choice-features li::marker { color:#79cedd; }
+  #supportFormats .support-choice--business .support-choice-features li::marker { color:#e9be78; }
+  #supportFormats .support-choice-action {
+    margin-top:auto; padding-top:15px; border-top:1px solid #2b3c4c;
+  }
+  #supportFormats .support-amount-label {
+    display:block; margin:0 0 9px; font-size:11px;
+    font-weight:750; color:#b7c8d7;
+  }
+  #supportFormats .support-choice-action .support-input-row {
+    display:flex; flex-direction:column; gap:9px;
+  }
+  #supportFormats .support-choice-action .amount-wrap,
+  #supportFormats .support-choice-action #donateBtn { width:100%; }
+  #supportFormats .support-choice-action .amount-wrap input {
+    width:100%; min-height:45px; background:#0b1520; border:1px solid #3c5063;
+    border-radius:8px;
+  }
+  #supportFormats .support-choice-action #donateBtn {
+    border-radius:8px; min-height:46px;
+    background:linear-gradient(180deg,#4dd6eb,#20b8d4);
+    color:#05202a; font-weight:800;
+  }
+  #supportFormats .support-choice-action #donateBtn:disabled {
+    opacity:.52; cursor:not-allowed;
+  }
+  #supportFormats .support-plan-link {
+    min-height:46px; padding:12px 13px;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    border:1px solid #3b8695; border-radius:8px;
+    background:linear-gradient(180deg,#1a4557,#133344);
+    color:#abf0f9; text-align:center;
+    font-size:12px; font-weight:800; text-decoration:none;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 4px 0 #07141d,0 9px 19px rgba(0,0,0,.18);
+    transition:transform .16s ease,border-color .16s ease,background .16s ease;
+  }
+  #supportFormats .support-plan-link:hover,
+  #supportFormats .support-plan-link:focus-visible {
+    transform:translateY(-2px); border-color:#61d8ed;
+    background:linear-gradient(180deg,#235568,#174355);
+  }
+  #supportFormats .support-plan-link--business {
+    border-color:#b68b4f;
+    color:#f4d392; background:linear-gradient(180deg,#42341e,#2c2419);
+  }
+  #supportFormats .support-plan-link--business:hover,
+  #supportFormats .support-plan-link--business:focus-visible {
+    border-color:#e9c181;
+    background:linear-gradient(180deg,#51402a,#362b1e);
+  }
+  #supportFormats .support-plan-status {
+    display:block !important; margin:12px 0 0 !important;
+    color:#91a4b4 !important; font-size:11px !important;
+    line-height:1.55 !important;
+  }
+  #supportFormats .input-hint {
+    margin-top:6px; color:#f2d28d; font-size:11px; line-height:1.55;
+  }
+  @media(max-width:940px){
+    #supportFormats .support-grid {grid-template-columns:1fr 1fr;}
+    #supportFormats .support-choice--business {grid-column:1 / -1;}
+  }
+  @media(max-width:767px){
+    .hero-support {min-height:235px; padding:29px 17px 26px !important;}
+    .support-kicker {font-size:9px !important; letter-spacing:.09em;}
+    .hero-support .support-typing-title {
+      font-size:clamp(25px,7vw,32px) !important; line-height:1.2;
+    }
+    .hero-support .support-hero-intro {font-size:12px !important; line-height:1.65 !important;}
+    #supportFormats .support-grid {grid-template-columns:1fr;}
+    #supportFormats .support-choice--business {grid-column:auto;}
+    #supportFormats .support-choice {padding:21px !important;}
+    #supportFormats .support-choice-title {font-size:19px;}
+    .support-formats-intro {font-size:12px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .support-typing-title .typing-line {animation:none !important;clip-path:none !important;}
+    #supportFormats .support-plan-link {transition:none;}
+  }
+</style>
 </head>
 
 <body>
@@ -1806,107 +1975,82 @@
 <div class="container">
 
   <section class="hero-support" id="support-top">
-    <h1>Развитие стоит дорого<br><span class="hero-title-accent">Независимость — бесценна</span></h1>
-
-    <div class="hero-principle-card">
-</div>
+    <p class="support-kicker">ПОДДЕРЖКА НЕЗАВИСИМОГО ПРОЕКТА</p>
+    <h1 class="support-typing-title" aria-label="Поддержите МЕДИА.СТРАЖ">
+      <span class="typing-line typing-line--first" aria-hidden="true">Поддержите</span>
+      <span class="typing-line typing-line--second hero-title-accent" aria-hidden="true">МЕДИА.СТРАЖ</span>
+    </h1>
+    <p class="support-hero-intro">Помогите развивать независимую медианалитику или выберите PRO-направление для своих задач.</p>
   </section>
 
   <section class="section-block" id="supportFormats">
-    <h2 class="section-title">Форматы поддержки</h2>
+    <h2 class="section-title">Выберите формат поддержки</h2>
 
+    <p class="support-formats-intro">Три способа участвовать в развитии проекта — от разовой поддержки до профессиональных инструментов.</p>
     <div class="support-grid">
-
-      <article class="support-card">
+      <article class="support-card support-choice support-choice--donation">
         <div class="support-card-header">
-          <span class="support-card-label">разовая поддержка</span>
-          <span class="support-card-badge">любой размер</span>
+          <span class="support-card-label">01 / СВОБОДНАЯ ПОДДЕРЖКА</span>
+          <span class="support-card-badge">Без подписки</span>
         </div>
-
-        <div class="support-price">
-          <strong>от 1 ₽</strong>
-          <span>разовый донат</span>
-        </div>
-
-        <div class="support-layout">
-          <div class="bonus-box highlight">
-            <span class="bonus-box-title">Что получает человек</span>
-            <ul class="bonus-list">
-              <li>Размещение на доске почёта проекта.</li>
-              <li>Публичное спасибо от команды — по желанию, без раскрытия полного имени.</li>
-            </ul>
+        <h3 class="support-choice-title">Любая сумма</h3>
+        <p class="support-choice-desc">Разовый вклад в развитие проекта — без обязательств и регулярных списаний.</p>
+        <ul class="support-choice-features">
+          <li>Развитие аналитических инструментов</li>
+          <li>Поддержка инфраструктуры проекта</li>
+          <li>Возможность помочь на комфортную сумму</li>
+        </ul>
+        <div class="support-choice-action">
+          <label class="support-amount-label" for="donateInput">Выберите сумму, ₽</label>
+          <div class="support-input-row" id="donateRow">
+            <div class="amount-wrap">
+              <span class="currency" aria-hidden="true">₽</span>
+              <input type="text" id="donateInput" inputmode="numeric"
+                pattern="[0-9]*" placeholder="Сумма" autocomplete="off"
+                aria-label="Сумма разовой поддержки в рублях">
+            </div>
+            <button class="support-btn btn-blue" id="donateBtn" type="button" disabled>Поддержать</button>
           </div>
-          <div class="bonus-box project">
-            <span class="bonus-box-title">Что получает проект</span>
-            <ul class="bonus-list">
-              <li>Ресурсы на обновление рейтингов и серверную инфраструктуру.</li>
-              <li>Запас независимости без внешнего давления и спонсорской повестки.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="support-input-row" id="donateRow">
-          <div class="amount-wrap">
-            <span class="currency" aria-hidden="true">₽</span>
-            <input
-              type="text"
-              id="donateInput"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              placeholder="Сумма"
-              autocomplete="off"
-              aria-label="Сумма доната в рублях"
-            />
-          </div>
-          <button class="support-btn btn-blue" id="donateBtn" type="button" disabled>
-            Поддержать
-          </button>
-        </div>
-        <div class="input-hint" id="donateHint" role="alert" aria-live="polite"></div>
-
-        <div class="support-note">
-          Любой донат добавляет имя или ник в список участников поддержки.
+          <div class="input-hint" id="donateHint" role="status" aria-live="polite"></div>
+          <p class="support-plan-status">Приём платежей готовится; списаний пока нет.</p>
         </div>
       </article>
 
-      <article class="support-card card-featured">
+      <article class="support-card support-choice support-choice--research">
         <div class="support-card-header">
-          <span class="support-card-label">ежемесячная поддержка</span>
-          <span class="support-card-badge badge-recommended">★ Рекомендуем</span>
+          <span class="support-card-label">02 / PRO-ДОСТУП</span>
+          <span class="support-card-badge">Для исследователей</span>
         </div>
-
-        <div class="support-price">
-          <strong>400 ₽</strong>
-          <span>ежемесячно</span>
-        </div>
-
-        <div class="support-layout">
-          <div class="bonus-box highlight">
-            <span class="bonus-box-title">Что получает человек</span>
-            <ul class="bonus-list">
-              <li>Размещение на доске почёта проекта.</li>
-              <li>Доступ к закрытому авторскому каналу.</li>
-              <li>Доступ к экспертному чату с обсуждением медиаповестки.</li>
-            </ul>
-          </div>
-          <div class="bonus-box project">
-            <span class="bonus-box-title">Что получает проект</span>
-            <ul class="bonus-list">
-              <li>Предсказуемую финансовую опору для долгосрочного развития.</li>
-              <li>Возможность быстрее улучшать модели анализа и публиковать новые функции.</li>
-            </ul>
-          </div>
-        </div>
-
-        <button class="support-btn btn-gold" id="subscribeBtn" type="button">
-          Оформить подписку
-        </button>
-
-        <div class="support-note">
-          Подписчики попадают в более высокий уровень доски почёта и получают закрытые возможности сообщества.
+        <h3 class="support-choice-title">PRO / Исследования</h3>
+        <p class="support-choice-desc">Для журналистов, преподавателей и исследователей, которым важно понимать устройство медиатекста.</p>
+        <ul class="support-choice-features">
+          <li>Изучение языковых приёмов воздействия</li>
+          <li>Объяснение обнаруженных маркеров</li>
+          <li>Самостоятельная проверка публикаций</li>
+        </ul>
+        <div class="support-choice-action">
+          <a class="support-plan-link support-plan-link--research" href="analysis.html">Перейти к исследованиям <span aria-hidden="true">→</span></a>
+          <p class="support-plan-status">Подписка готовится · оформление пока недоступно</p>
         </div>
       </article>
 
+      <article class="support-card support-choice support-choice--business">
+        <div class="support-card-header">
+          <span class="support-card-label">03 / PRO-ДОСТУП</span>
+          <span class="support-card-badge">Для бизнеса</span>
+        </div>
+        <h3 class="support-choice-title">PRO / Бизнес</h3>
+        <p class="support-choice-desc">Для предпринимателей и PR-команд: отслеживать медиаповестку и находить идеи для продвижения.</p>
+        <ul class="support-choice-features">
+          <li>Упоминания компании и репутационные сигналы</li>
+          <li>Отраслевые инфоповоды и медиатренды</li>
+          <li>Идеи для PR-коммуникаций и публикаций</li>
+        </ul>
+        <div class="support-choice-action">
+          <a class="support-plan-link support-plan-link--business" href="business.html">Открыть бизнес-панель <span aria-hidden="true">→</span></a>
+          <p class="support-plan-status">Подписка готовится · обзор работает в демо-режиме</p>
+        </div>
+      </article>
     </div>
 
     <button class="honor-board-cta" id="openHonorBoard" type="button">
@@ -2092,19 +2236,12 @@
         return;
       }
 
-      alert(`Переход к оплате: ${parseInt(donateInput.value, 10).toLocaleString("ru-RU")} ₽`);
+      donateHint.textContent = "Вы выбрали " + parseInt(donateInput.value, 10).toLocaleString("ru-RU") + " ₽. Приём платежей пока не подключён; средства не списываются.";
     });
 
     donateInput.addEventListener("focus", () => {
       donateInput.classList.remove("input-error");
       donateHint.textContent = "";
-    });
-  }
-
-  const subscribeBtn = document.getElementById("subscribeBtn");
-  if (subscribeBtn) {
-    subscribeBtn.addEventListener("click", () => {
-      alert("Переход к оформлению подписки (интеграция с платёжной системой)");
     });
   }
 
