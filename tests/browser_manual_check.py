@@ -365,6 +365,23 @@ def pro_business_navigation_ui(browser, base):
         # The support page offers donation and both distinct PRO pathways.
         page.goto(base + "/help.html")
         assert page.locator(".support-choice").count() == 3
+        assert page.locator(".support-choice-audience").count() == 3
+        assert all(text.strip() for text in page.locator(".support-choice-audience").all_text_contents())
+        assert page.locator("#honorBoardModal, #openHonorBoard").count() == 0
+        assert page.locator("#donateHint:empty").evaluate("el => getComputedStyle(el).display") == "none"
+        # The donation amount field/buttons and subscription price/action rows
+        # must be aligned rather than shifted by an invisible validation hint.
+        payment_top = page.locator(".support-choice--donation .amount-wrap").bounding_box()["y"]
+        research_top = page.locator(".support-choice--research .support-plan-price").bounding_box()["y"]
+        business_top = page.locator(".support-choice--business .support-plan-price").bounding_box()["y"]
+        assert max(payment_top, research_top, business_top) - min(payment_top, research_top, business_top) < 8
+        action_buttons = [
+            page.locator(".support-choice--donation #donateBtn"),
+            page.locator(".support-choice--research .support-plan-link"),
+            page.locator(".support-choice--business .support-plan-link")
+        ]
+        button_y = [el.bounding_box()["y"] for el in action_buttons]
+        assert max(button_y) - min(button_y) < 8, button_y
         assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит дорого, независимость бесценна"
         assert page.locator(".support-kicker, .support-hero-intro, .support-formats-intro").count() == 0
         assert page.locator(".support-choice-index").count() == 0
@@ -462,6 +479,8 @@ def pro_business_navigation_ui(browser, base):
             # Three support paths remain stacked and do not overflow a phone.
             p.goto(base + "/help.html")
             assert p.locator(".support-choice").count() == 3
+            assert p.locator(".support-choice-audience").count() == 3
+            assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
             # Compact About title and single-line Method headings on mobile.
