@@ -350,6 +350,12 @@ function refreshMarkers() {
    (включая метаданные репоста) нельзя выдавать за заголовок. */
 function cardHeadline(item) {
   if (platformOf(item) === 'telegram') {
+    // An extractive, complete phrase from the original message, if available.
+    // Never show an auto-truncated preview or Telegram's "Forwarded from" label.
+    const excerpt = String(item.display_excerpt || '').replace(/\s+/g, ' ').trim();
+    if (excerpt && !excerpt.endsWith('…') && !/^(?:Forwarded from|Переслано из|Переслано от)\b/i.test(excerpt)) {
+      return excerpt;
+    }
     return item.forwarded ? 'Пересланная публикация в Telegram' : 'Публикация в Telegram';
   }
   const title = String(item.title || '').replace(/\s+/g, ' ').trim();
