@@ -26,6 +26,7 @@ import test_expanded_rhetoric
 import test_contextual_rhetoric
 import test_latest_media_rhetoric
 import test_quantitative_cues
+import test_event_terminology
 
 
 def examples():
@@ -42,7 +43,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -53,6 +54,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_contextual_rhetoric.ContextualRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_latest_media_rhetoric.LatestMediaRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_quantitative_cues.QuantitativeCueTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_event_terminology.EventTerminologyTests),
     ])
     try:
         output = io.StringIO()
@@ -106,6 +108,71 @@ def quantitative_manual_ui(browser, base, errors, requests):
             assert page.locator("#manualText").input_value() == text
             from urllib.parse import unquote
             assert all(text not in unquote(url) and body is None for _, url, body in requests)
+        finally:
+            context.close()
+
+
+def terminology_layer_ui(browser, base, site, errors, requests):
+    document = {"title": "", "text": "\n".join(test_event_terminology.CASES.values())}
+    expected = analyze(document)
+    snapshot = json.loads((site / "data/analysis.json").read_text())
+    source = next(source for source in snapshot["sources"] if source["id"] == "mediazona_telegram")
+    item = copy.deepcopy(snapshot["articles"][0])
+    item.update(id=1, source_id=source["id"], source=source["name"], publisher_id="mediazona",
+                platform="telegram", title="", summary=expected["summary"], findings=expected["findings"],
+                display_excerpt=document["text"], findings_omitted=0, url="https://t.me/mediazzzona/1")
+    snapshot["articles"] = [item]
+    snapshot["totals"] = {"displayed": 1, "analyzed": 1, "with_review_candidates": 0, "review_fragments": 0}
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width": 375 if mobile else 1280, "height": 812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+            page.goto(base + "/analysis.html")
+            page.select_option("#source", "mediazona")
+            page.select_option("#marker", "event_terminology")
+            assert page.locator(".publication").count() == 1
+            assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
+            assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+            page.locator(".auto-details-button").click()
+            page.locator("#automaticModal").wait_for(state="visible")
+            marks = page.locator("#automaticModal mark")
+            assert marks.count() == 4
+            if mobile:
+                marks.first.tap()
+            else:
+                marks.first.hover()
+            page.locator("#automaticTooltip").wait_for(state="visible")
+            assert "Информационная отметка" in page.locator("#automaticTooltip").inner_text()
+            assert "Отрицание или обсуждение" not in page.locator("#automaticTooltip").inner_text()
+            if mobile:
+                marks.first.tap()
+                page.locator("#automaticTooltip").wait_for(state="hidden")
+            page.locator("#automaticModalClose").click()
+            page.locator('[data-mode="manual"]').click()
+            page.locator("#manualText").fill(document["text"])
+            page.locator("#manualSubmit").click()
+            page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+            marks = page.locator("#manualTextEvidence mark")
+            assert marks.count() == 4
+            for index, finding in enumerate(expected["findings"]):
+                if mobile:
+                    marks.nth(index).tap()
+                else:
+                    marks.nth(index).hover()
+                page.locator("#manualTooltip").wait_for(state="visible")
+                assert finding["explanation"] in page.locator("#manualTooltip").inner_text()
+                assert page.locator("#manualTooltip h3").all_text_contents() == ["Выбор обозначения события"]
+                if mobile:
+                    marks.nth(index).tap()
+            with page.expect_download() as download_info:
+                page.locator("#manualDownload").click()
+            exported = json.loads(Path(download_info.value.path()).read_text())
+            assert exported == expected
+            assert exported["summary"]["candidate_fragments"] == 0
         finally:
             context.close()
 
@@ -214,7 +281,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        assert page.locator("#marker option").count() == 11  # Ten implemented marker categories + all.
+        assert page.locator("#marker option").count() == 12  # Ten candidate types, an informational layer, and all.
         marker = expected["findings"][0]["category"]
         page.select_option("#marker", marker)
         assert page.locator(".publication").count() == 1
@@ -369,7 +436,7 @@ def new_media_filters_ui(browser, base, site, errors, requests):
     sources = {source["id"]: source for source in snapshot["sources"]}
     sample = snapshot["articles"][0]
     snapshot["articles"] = []
-    for number, source_id in enumerate(("aif", "aif_telegram", "inosmi", "inosmi_telegram", "smotri_telegram"), 1):
+    for number, source_id in enumerate(("aif", "aif_telegram", "inosmi", "inosmi_telegram", "smotri_telegram", "mediazona_telegram"), 1):
         source = sources[source_id]
         document = {"title": "" if source["platform"] == "telegram" else "Решение правительства",
                     "text": "Власти приняли возмутительное решение."}
@@ -388,7 +455,7 @@ def new_media_filters_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").first.wait_for()
-        assert page.locator(".publication").count() == 5
+        assert page.locator(".publication").count() == 6
         for publisher in ("aif", "inosmi"):
             page.select_option("#source", publisher)
             page.select_option("#platform", "")
@@ -400,6 +467,10 @@ def new_media_filters_ui(browser, base, site, errors, requests):
         page.select_option("#source", "smotri")
         assert page.locator(".publication").count() == 1
         assert page.locator(".source-link").get_attribute("href") == "https://t.me/smotri_media/1"
+        page.select_option("#source", "mediazona")
+        assert page.locator(".publication").count() == 1
+        assert page.locator(".source-link").get_attribute("href") == "https://t.me/mediazzzona/1"
+        assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
         page.select_option("#platform", "website")
         assert page.locator(".publication").count() == 0
         page.select_option("#platform", "")
@@ -604,7 +675,9 @@ def main():
             page.reload()
             page.locator(".publication").first.wait_for()
             assert page.locator("#collectionStatus").count() == 0
-            assert page.locator("#source option").count() == 21  # Existing choices plus three requested publishers.
+            assert page.locator("#source option").count() == 22  # Existing choices plus Медиазона.
+            assert "иноагент" in page.locator('#source option[value="mediazona"]').inner_text()
+            assert "нежелательная организация" not in page.locator('#source option[value="mediazona"]').inner_text()
             assert "иноагент" in page.locator('#source option[value="meduza"]').inner_text()
             assert "нежелательная организация" in page.locator('#source option[value="meduza"]').inner_text()
             assert "нежелательная организация" in page.locator('#source option[value="novayagazeta"]').inner_text()
@@ -641,12 +714,12 @@ def main():
             page.select_option("#platform", "")
             page.select_option("#source", "rt")
             assert page.locator(".publication").count() == 1
-            assert page.locator("#marker option").count() == 11
+            assert page.locator("#marker option").count() == 12
             page.select_option("#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
             page.select_option("#marker", "fear")
             assert page.locator(".publication").count() == 0
-            assert page.locator("#marker option").count() == 11  # Options do not vanish when results are empty.
+            assert page.locator("#marker option").count() == 12  # Options do not vanish when results are empty.
             page.select_option("#marker", "")
             page.select_option("#platform", "telegram")
             assert page.locator(".publication").count() == 0
@@ -708,6 +781,7 @@ def main():
 
             inline_touch_and_overlap(browser, base, errors, requests)
             quantitative_manual_ui(browser, base, errors, requests)
+            terminology_layer_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             pro_business_navigation_ui(browser, base)

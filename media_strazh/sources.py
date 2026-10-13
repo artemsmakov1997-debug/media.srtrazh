@@ -98,6 +98,9 @@ SOURCES["oldlentach_telegram"] = Source(
 SOURCES["smotri_telegram"] = Source(
     "smotri_telegram", "СМОТРИ · Telegram", "t.me", "https://t.me/s/smotri_media", (),
     publisher_id="smotri", platform="telegram", channel="smotri_media")
+SOURCES["mediazona_telegram"] = Source(
+    "mediazona_telegram", "Медиазона · Telegram", "t.me", "https://t.me/s/mediazzzona", (),
+    publisher_id="mediazona", platform="telegram", channel="mediazzzona")
 
 PUBLISHERS = tuple(key for key, source in SOURCES.items() if source.platform == "website")
 
