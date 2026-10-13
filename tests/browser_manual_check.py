@@ -357,12 +357,24 @@ def pro_business_navigation_ui(browser, base):
             assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
+            # Desktop navigation names illuminate when hovered.
+            menu_link = page.locator(".site-nav .nav-links > a.nav-link").first
+            menu_link.hover()
+            page.wait_for_timeout(260)
+            assert menu_link.evaluate("el => getComputedStyle(el).color") == "rgb(185, 246, 255)", route
         # The support page offers donation and both distinct PRO pathways.
         page.goto(base + "/help.html")
         assert page.locator(".support-choice").count() == 3
+        assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит много, независимость бесценна"
+        assert page.locator(".support-kicker, .support-hero-intro, .support-formats-intro").count() == 0
         assert page.locator('.support-choice--research a[href="analysis.html"]').count() == 1
         assert page.locator('.support-choice--business a[href="business.html"]').count() == 1
+        assert page.locator(".support-plan-price").count() == 2
+        assert page.locator(".support-plan-price").all_text_contents() == ["Уточняется", "Уточняется"]
         assert "support-type-reveal" in page.locator(".typing-line--first").evaluate("el => getComputedStyle(el).animationName")
+        assert "support-card-appear" in page.locator(".support-choice--business").evaluate("el => getComputedStyle(el).animationName")
+        surfaces = page.locator(".support-choice").evaluate_all("els => els.map(el => getComputedStyle(el).backgroundColor)")
+        assert len(set(surfaces)) == 3, surfaces
         page.locator("#donateInput").fill("500")
         page.locator("#donateBtn").click()
         assert "не списываются" in page.locator("#donateHint").inner_text()
@@ -377,7 +389,12 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".value-card .value-link").count() == 3
         assert page.locator('.value-card[data-n="2"] .value-link').get_attribute("href") == "help.html"
         assert "0px 5px 0px" in page.locator(".value-card .value-link").first.evaluate("el => getComputedStyle(el).boxShadow")
-        assert "добровольная поддержка" in page.locator('.value-card[data-n="2"]').inner_text().lower()
+        assert "добровольную и прозрачную модель финансирования" in page.locator('.value-card[data-n="2"]').inner_text().lower()
+        assert page.locator('.value-card[data-n="2"] p').inner_text().strip().endswith("сохранять самостоятельность.")
+        kicker = page.locator(".manifest-kicker").bounding_box()
+        map_box = page.locator(".map-wrap").bounding_box()
+        assert abs(kicker["y"] - map_box["y"]) < 4, (kicker, map_box)
+        assert page.locator(".manifest-subtitle-desktop").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 17
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
