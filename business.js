@@ -86,17 +86,15 @@
     data.trends.forEach((trend,i)=>{
       const card=node('article',undefined,'business-trend');
       const top=node('div',undefined,'business-trend-top');
-      top.append(node('span',String(i+1).padStart(2,'0')+' / ИНФОПОВОД','business-trend-num'),
-        node('span','ДЕМО','business-trend-growth'));
+      top.append(node('span',String(i+1).padStart(2,'0'),'business-trend-num'));
       card.append(top,node('h3',trend.title),node('p',trend.detail));
-      const foot=node('div','Пример: '+trend.count+' публикаций · рост '+trend.growth,'business-trend-stat');
+      const foot=node('div',trend.count+' публикаций · '+trend.growth,'business-trend-stat');
       card.append(foot);trends.append(card);
     });
     data.opportunities.slice(0,3).forEach(idea=>{
       const card=node('article',undefined,'business-opportunity');
       card.append(node('small',idea.kind),node('h3',idea.title),node('p',idea.detail));
-      const label=node('span','Идея для проверки PR-командой','business-prototype-label');
-      card.append(label);pr.append(card);
+      pr.append(card);
     });
   }
   const form=$('profileForm');
