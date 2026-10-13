@@ -771,7 +771,7 @@
   }
   /* Compact hero copy; higher specificity than shared mobile font rules. */
   body .hero h1 {
-    font-size: clamp(20px, 5.65vw, 24px) !important;
+    font-size: clamp(18px, 5vw, 21px) !important;
     line-height: 1.22 !important;
     letter-spacing: -.028em;
   }
@@ -786,6 +786,10 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-text h1 { animation: none !important; }
 }
+</style>
+<style id="rating-brand-color-final">
+  /* Logo and main headline share the same accent, on desktop and mobile. */
+  .hero .hero-brand-accent { color: #22d3ee !important; }
 </style>
 </head>
 <body>
@@ -815,7 +819,7 @@
   <main class="container">
     <section class="hero">
       <div class="hero-text">
-        <h1>МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ</h1>
+        <h1>МЕДИА.<span class="hero-brand-accent">СТРАЖ</span> — система анализа манипулятивных техник в СМИ</h1>
         <p class="hero-subtitle">Независимый проект по разработке системы автоматического анализа медиатекстов. Сейчас проект работает в <strong>DEMO-режиме</strong>.</p>
       </div>
       <aside class="hero-counter" aria-label="Демонстрационный счётчик сигналов за 24 часа">
