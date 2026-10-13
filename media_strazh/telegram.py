@@ -47,7 +47,10 @@ def preview_posts(html, source):
                 quoted.children.insert(0, "«")
                 quoted.children.append("»")
         # Media-only/deleted posts and unavailable paid content have no text node.
-        body = "\n".join(node_text(node) for node in content).strip()
+        # Album previews may render the same caption twice for different
+        # layouts. Deduplicate complete rendered nodes, not repeated sentences
+        # within an author's text: actual rhetorical repetition stays intact.
+        body = "\n".join(dict.fromkeys(node_text(node) for node in content)).strip()
         if len(re.findall(r"[а-яё]", body, re.I)) < 3:
             continue
         forwarded = next((node_text(node) for node in children

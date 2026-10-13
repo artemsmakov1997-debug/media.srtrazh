@@ -24,6 +24,7 @@ import test_analysis
 import test_rhetoric
 import test_expanded_rhetoric
 import test_contextual_rhetoric
+import test_latest_media_rhetoric
 
 
 def examples():
@@ -40,7 +41,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -49,6 +50,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_rhetoric.RhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_expanded_rhetoric.ExpandedRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_contextual_rhetoric.ContextualRhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_latest_media_rhetoric.LatestMediaRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -319,6 +321,54 @@ def pro_business_navigation_ui(browser, base):
         context.close()
 
 
+def new_media_filters_ui(browser, base, site, errors, requests):
+    """Local fixtures test the three publisher choices across their platforms."""
+    snapshot = json.loads((site / "data/analysis.json").read_text())
+    sources = {source["id"]: source for source in snapshot["sources"]}
+    sample = snapshot["articles"][0]
+    snapshot["articles"] = []
+    for number, source_id in enumerate(("aif", "aif_telegram", "inosmi", "inosmi_telegram", "smotri_telegram"), 1):
+        source = sources[source_id]
+        document = {"title": "" if source["platform"] == "telegram" else "Решение правительства",
+                    "text": "Власти приняли возмутительное решение."}
+        result = analyze(document)
+        item = copy.deepcopy(sample)
+        item.update(id=number, source_id=source_id, source=source["name"], publisher_id=source["publisher_id"],
+                    platform=source["platform"], title=document["title"], summary=result["summary"],
+                    findings=result["findings"], display_excerpt=document["text"], findings_omitted=0,
+                    url=f'https://t.me/{source["channel"]}/1' if source["platform"] == "telegram" else f'https://{source["allowed_hosts"][0]}/news/1')
+        snapshot["articles"].append(item)
+    context = browser.new_context(viewport={"width": 375, "height": 812})
+    try:
+        page = context.new_page()
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+        page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+        page.goto(base + "/analysis.html")
+        page.locator(".publication").first.wait_for()
+        assert page.locator(".publication").count() == 5
+        for publisher in ("aif", "inosmi"):
+            page.select_option("#source", publisher)
+            page.select_option("#platform", "")
+            assert page.locator(".publication").count() == 2
+            page.select_option("#platform", "website")
+            assert page.locator(".publication").count() == 1
+            page.select_option("#platform", "telegram")
+            assert page.locator(".publication").count() == 1
+        page.select_option("#source", "smotri")
+        assert page.locator(".publication").count() == 1
+        assert page.locator(".source-link").get_attribute("href") == "https://t.me/smotri_media/1"
+        page.select_option("#platform", "website")
+        assert page.locator(".publication").count() == 0
+        page.select_option("#platform", "")
+        page.select_option("#source", "other")
+        assert page.locator(".publication").count() == 0
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        print("New publisher and platform filters passed", flush=True)
+    finally:
+        context.close()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--site", type=Path, default=ROOT / "_site")
@@ -512,7 +562,7 @@ def main():
             page.reload()
             page.locator(".publication").first.wait_for()
             assert page.locator("#collectionStatus").count() == 0
-            assert page.locator("#source option").count() == 18  # Preserve user's existing choices, including Other.
+            assert page.locator("#source option").count() == 21  # Existing choices plus three requested publishers.
             assert "иноагент" in page.locator('#source option[value="meduza"]').inner_text()
             assert "нежелательная организация" in page.locator('#source option[value="meduza"]').inner_text()
             assert "нежелательная организация" in page.locator('#source option[value="novayagazeta"]').inner_text()
@@ -616,6 +666,7 @@ def main():
 
             inline_touch_and_overlap(browser, base, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
+            new_media_filters_ui(browser, base, site, errors, requests)
             pro_business_navigation_ui(browser, base)
             assert not errors, errors
             from urllib.parse import unquote

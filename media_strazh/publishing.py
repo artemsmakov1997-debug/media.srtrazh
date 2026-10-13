@@ -17,6 +17,22 @@ STATIC_SUFFIXES = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif",
                    ".webp", ".svg", ".ico", ".webmanifest", ".xml"}
 
 
+def bounded_findings(findings, limit=40):
+    """Keep each category visible, then fill fairly; retain source order."""
+    buckets = {}
+    for index, finding in enumerate(findings):
+        buckets.setdefault(finding["category"], []).append(index)
+    selected, rank = [], 0
+    while len(selected) < min(limit, len(findings)):
+        for indices in buckets.values():
+            if rank < len(indices):
+                selected.append(indices[rank])
+                if len(selected) == limit:
+                    break
+        rank += 1
+    return [findings[index] for index in sorted(selected)]
+
+
 def telegram_display_excerpt(text: str, forwarded: bool = False) -> str:
     """One complete lead phrase for display only, never a fabricated headline.
 
@@ -82,7 +98,7 @@ def snapshot(store, limit=100):
                 preview = preview[:159].rstrip() + "…"
             findings = []
             if analysis:
-                for finding in analysis["findings"][:40]:
+                for finding in bounded_findings(analysis["findings"]):
                     findings.append({
                         key: finding[key] for key in
                         ("category", "label", "rule_id", "status", "explanation", "review_question", "evidence")

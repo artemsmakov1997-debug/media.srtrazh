@@ -76,6 +76,11 @@ class Store:
                 created_at TEXT NOT NULL, result_json TEXT NOT NULL,
                 PRIMARY KEY(revision_id, algorithm_version)
             );
+            CREATE TABLE IF NOT EXISTS extraction_checks (
+                revision_id INTEGER NOT NULL REFERENCES revisions(id),
+                extractor_version TEXT NOT NULL, checked_at TEXT NOT NULL,
+                PRIMARY KEY(revision_id, extractor_version)
+            );
             CREATE TABLE IF NOT EXISTS source_status (
                 source_id TEXT PRIMARY KEY, feed_url TEXT NOT NULL,
                 last_attempt_at TEXT NOT NULL, last_success_at TEXT, last_error TEXT,
@@ -145,6 +150,10 @@ class Store:
             new_revision = cursor.rowcount == 1
             revision_id = self.db.execute("SELECT id FROM revisions WHERE article_id=? AND revision_key=?",
                                           (article["id"], key)).fetchone()[0]
+            self.db.execute("""
+                INSERT OR REPLACE INTO extraction_checks (revision_id,extractor_version,checked_at)
+                VALUES (?,?,?)
+            """, (revision_id, extracted["extractor_version"], now))
             cursor = self.db.execute("""
                 INSERT OR IGNORE INTO analyses (revision_id,algorithm_version,created_at,result_json)
                 VALUES (?,?,?,?)
@@ -283,9 +292,12 @@ class Store:
             """, (revision_id, analysis["algorithm_version"], now, json.dumps(analysis, ensure_ascii=False)))
         return cursor.rowcount == 1
 
-    def retained_pages(self):
+    def retained_pages(self, outdated_version=None):
         for row in self.db.execute("""
-            SELECT a.*,r.raw_html_gzip,r.content_type,r.retrieved_at,r.canonical_url AS page_url
-            FROM articles a JOIN revisions r ON r.id=a.current_revision_id ORDER BY a.id
-        """):
+            SELECT a.*,r.raw_html_gzip,r.content_type,r.retrieved_at,r.extractor_version,r.canonical_url AS page_url
+            FROM articles a JOIN revisions r ON r.id=a.current_revision_id
+            WHERE (? IS NULL OR (r.extractor_version!=? AND NOT EXISTS (
+                SELECT 1 FROM extraction_checks x WHERE x.revision_id=r.id AND x.extractor_version=?)))
+            ORDER BY a.id
+        """, (outdated_version, outdated_version, outdated_version)):
             yield dict(row)

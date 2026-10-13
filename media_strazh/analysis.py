@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.4.0"
+VERSION = "rules-0.5.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -76,7 +76,7 @@ LITERAL_ENTERTAINMENT_CONTEXT = re.compile(
 LITERAL_ANIMAL_CONTEXT = re.compile(
     r"\b(?:биолог[а-яё]*|зоолог[а-яё]*|грызун[а-яё]*|насеком[а-яё]*|"
     r"дератизаци[а-яё]*|санэпид[а-яё]*|кишечник[а-яё]*|животн[а-яё]*|"
-    r"собак[а-яё]*|псов|псы|пёс|псами|кошк[а-яё]*)\b", re.I,
+    r"собак[а-яё]*|псов|псы|пёс|псами|кошк[а-яё]*|птиц[а-яё]*|пингвин[а-яё]*|волк[а-яё]*)\b", re.I,
 )
 HUMAN_CONTEXT = re.compile(
     r"\b(?:народ[а-яё]*|населени[а-яё]*|граждан[а-яё]*|люд[а-яё]*|человек[а-яё]*|"
@@ -109,9 +109,34 @@ def _rule_applies(rule, field, text, start, end, quotes=()):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "nonfiction":
+        return not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
     if rule.context_requirement == "quote_omission":
         index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
         return index >= 0 and end <= quotes[index][1]
+    if rule.context_requirement in {"political_speech_metaphor", "political_nickname", "political_mocking_emoji", "group_mental_state"}:
+        nearby = text[max(0, start - 900):min(len(text), end + 200)]
+        if not POLITICAL_CONTEXT.search(nearby) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+            return False
+        if rule.context_requirement == "political_speech_metaphor":
+            return not LITERAL_ANIMAL_CONTEXT.search(sentence)
+        if rule.context_requirement == "political_mocking_emoji":
+            return not re.search(r"\b(?:цирк[а-яё]*|клоун[а-яё]*|маскарад[а-яё]*)\b", sentence, re.I)
+        if rule.context_requirement == "political_nickname":
+            return not re.match(
+                r"\s+(?:срок[а-яё]*|продукт[а-яё]*|лекарств[а-яё]*|паспорт[а-яё]*|пропуск[а-яё]*|"
+                r"мандат[а-яё]*|договор[а-яё]*|кредит[а-яё]*|плат[её]ж[а-яё]*|сч[её]т[а-яё]*|"
+                r"долг[а-яё]*|задолженност[а-яё]*|билет[а-яё]*|сертификат[а-яё]*|вакцин[а-яё]*|"
+                r"товар[а-яё]*|документ[а-яё]*|удостоверени[а-яё]*|разрешени[а-яё]*)\b",
+                text[end:end + 80], re.I,
+            )
+        # A quantified subset is different from assigning one attitude to a
+        # whole population. This is local scope, not a survey fact check.
+        prefix = text[max(sentence_span["start"], start - 65):start]
+        return not re.search(
+            r"\b(?:часть|большинство|меньшинство|некоторые|многие|немногие|несколько)\s*$|"
+            r"(?:\d+(?:[.,]\d+)?\s*%|\d+\s+процент[а-яё]*)\s*$", prefix, re.I,
+        )
     if rule.context_requirement in {"current_political", "modern_label", "modern_analogy",
                                     "political_machine", "political_collapse"}:
         nearby = text[max(0, start - 900):min(len(text), end + 200)]
@@ -290,7 +315,7 @@ def _evidence(field, text, start, end, quotes):
     prefix = re.split(r"[,;:]", text[sentence["start"]:start])[-1][-60:]
     negated = bool(re.search(r"\bне\s+(?:(?!только\b)\w+\s+){0,2}$", prefix, re.I))
     discussed = bool(re.search(
-        r'\b(?:слово|слова|выражение|фраза|формулировка|формулировку|термин|ярлык|тезис|лозунг|слоган|клише|цитата|пример)\s*[:«"“„—-]?\s*$', prefix, re.I,
+        r'\b(?:слово|слова|выражение|фраза|формулировка|формулировку|термин|ярлык|тезис|лозунг|слоган|клише|цитата|пример|эмодзи|символ|значок)\s*[:«"“„—-]?\s*$', prefix, re.I,
     ))
     denied = bool(re.search(
         r"\b(?:опроверг[а-яё]*|отверг[а-яё]*|неверно\s+(?:считать|утверждать)|нельзя\s+(?:считать|утверждать))\b",
@@ -308,13 +333,21 @@ def _evidence(field, text, start, end, quotes):
     reported = bool(re.search(
         r"\b(?:заявил[а-яё]*|сказал[а-яё]*|назвал[а-яё]*|утвержда[а-яё]*|отметил[а-яё]*|"
         r"написал[а-яё]*|сообщил[а-яё]*|пояснил[а-яё]*|подчеркнул[а-яё]*|"
-        r"считает|считают|по\s+(?:(?:его|её|ее|их|собственным)\s+)?(?:словам|мнению|убеждению))\b[^.!?\n]{0,110}$", statement_prefix, re.I,
+        r"считает|считают|пишет|пишут|сообщает|сообщают|отмечает|отмечают|по\s+(?:(?:его|её|ее|их|собственным)\s+)?(?:словам|мнению|убеждению))\b[^.!?\n]{0,110}$", statement_prefix, re.I,
     ) or re.search(
         r"^\s*(?:[»”\"]\s*)?[.!?]?\s*(?:[,—-]\s*|,\s*[—-]\s*)(?:так\s+)?"
         r"(?:(?!(?:но|однако|а|и)\b)[^.!?\n]{0,45}\s+)?"
         r"(?:назвал[а-яё]*|заявил[а-яё]*|сказал[а-яё]*|отметил[а-яё]*|подытожил[а-яё]*)\b",
         text[end:min(len(text), end + 140)], re.I,
     ))
+    suffix = sentence["text"][end - sentence["start"]:]
+    contrast = re.search(r"[,;]\s*(?:но|однако|а|зато)\b", suffix, re.I)
+    if not contrast:
+        reported = reported or bool(re.search(
+            r",\s*(?:как\s+)?(?:пишет|пишут|сообщает|сообщают|отмечает|отмечают|"
+            r"признал[а-яё]*|заявил[а-яё]*|сказал[а-яё]*)\s+"
+            r"(?!(?:о|об|что|как)\b)[^.!?\n]{1,60}[.!?]?\s*$", suffix, re.I,
+        ))
     quote_index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
     quoted = quote_index >= 0 and end <= quotes[quote_index][1]
     context = {"in_quotes": quoted, "nearby_negation": negated or denied,

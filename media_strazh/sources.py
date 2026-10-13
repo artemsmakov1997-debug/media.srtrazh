@@ -68,6 +68,10 @@ SOURCES = {
     "bbc": Source("bbc", "BBC News Русская служба", "www.bbc.com", "https://feeds.bbci.co.uk/russian/rss.xml",
                   (), allowed_hosts=("bbc.com", "www.bbc.co.uk", "bbc.co.uk", "feeds.bbci.co.uk"),
                   body_attributes=(("data-component", "text-block"),), homepage_url="https://www.bbc.com/russian"),
+    "aif": Source("aif", "Аргументы и факты", "aif.ru", "https://aif.ru/rss/news.php",
+                  ("article_text", "article__text", "article-content"), allowed_hosts=("www.aif.ru",)),
+    "inosmi": Source("inosmi", "ИноСМИ", "inosmi.ru", "https://inosmi.ru/export/rss2/archive/index.xml",
+                     ("article__text",), allowed_hosts=("www.inosmi.ru",)),
 }
 
 # First-party-confirmed channels; evidence is recorded in docs/sources.md.
@@ -76,7 +80,8 @@ OFFICIAL_CHANNELS = {"rt": "rt_russian", "ria": "rian_ru", "interfax": "interfax
                      "currenttime": "currenttime", "dw": "dwglavnoe", "bbc": "bbcrussian"}
 # Explicitly selected by the user; keep ownership evidence separate from selection.
 USER_CHANNELS = {"tass": "tass_agency", "kommersant": "kommersant", "vedomosti": "vedomosti",
-                 "rbc": "rbc_news", "izvestia": "izvestia", "rg": "rgrunews", "fontanka": "fontankaspb"}
+                 "rbc": "rbc_news", "izvestia": "izvestia", "rg": "rgrunews", "fontanka": "fontankaspb",
+                 "aif": "aifonline", "inosmi": "inosmichannel"}
 for _publisher, _website in list(SOURCES.items()):
     _channel = OFFICIAL_CHANNELS.get(_publisher) or USER_CHANNELS.get(_publisher, "")
     SOURCES[_publisher + "_telegram"] = Source(
@@ -90,6 +95,9 @@ for _publisher, _website in list(SOURCES.items()):
 SOURCES["oldlentach_telegram"] = Source(
     "oldlentach_telegram", "Лентач · Telegram", "t.me", "https://t.me/s/oldlentach", (),
     publisher_id="oldlentach", platform="telegram", channel="oldlentach")
+SOURCES["smotri_telegram"] = Source(
+    "smotri_telegram", "СМОТРИ · Telegram", "t.me", "https://t.me/s/smotri_media", (),
+    publisher_id="smotri", platform="telegram", channel="smotri_media")
 
 PUBLISHERS = tuple(key for key, source in SOURCES.items() if source.platform == "website")
 

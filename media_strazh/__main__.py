@@ -63,6 +63,7 @@ def main():
     reextract = commands.add_parser("reextract", help="Повторно извлечь текст из сохранённых HTML без загрузки сайтов")
     reextract.add_argument("--db", type=Path, default=DEFAULT_DB)
     reextract.add_argument("--source", action="append", choices=list(SOURCES))
+    reextract.add_argument("--outdated-only", action="store_true", help="Извлечь только версии со старым extractor_version")
     reanalyze = commands.add_parser("reanalyze", help="Пересчитать сохранённые тексты новой версией правил без загрузки сайтов")
     reanalyze.add_argument("--db", type=Path, default=DEFAULT_DB)
     reanalyze.add_argument("--source", action="append", choices=list(SOURCES))
@@ -117,7 +118,8 @@ def main():
             result = prepare_runtime(args.output, args.archive)
         elif args.command in {"reextract", "reanalyze"}:
             with collection_lock(args.db), Store(args.db) as store:
-                result = (reextract_current if args.command == "reextract" else reanalyze_current)(store, args.source)
+                result = (reextract_current(store, args.source, outdated_only=args.outdated_only)
+                          if args.command == "reextract" else reanalyze_current(store, args.source))
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["success"] else 1
         else:

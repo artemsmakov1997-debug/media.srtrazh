@@ -8,7 +8,7 @@ import threading
 import time
 
 from .analysis import analyze
-from .extraction import FeedEntry, extract_article, parse_feed
+from .extraction import EXTRACTOR_VERSION, FeedEntry, extract_article, parse_feed
 from .network import FetchError, Response, SourceClient
 from .sources import SOURCES, channel_from_homepage, normalize_url, resolve_source
 from .storage import Store, collection_lock, utcnow
@@ -147,12 +147,12 @@ def collect_once(store, sources=None, limit=5, revisit_seconds=3600,
     return summary
 
 
-def reextract_current(store, source_ids=None, now=utcnow):
+def reextract_current(store, source_ids=None, now=utcnow, outdated_only=False):
     selected = set(source_ids or SOURCES)
     if selected - SOURCES.keys():
         raise ValueError("Неизвестный идентификатор источника.")
     summary = {"success": True, "processed": 0, "new_revisions": 0, "new_analyses": 0, "errors": []}
-    for article in store.retained_pages():
+    for article in store.retained_pages(outdated_version=EXTRACTOR_VERSION if outdated_only else None):
         if article["source_id"] not in selected:
             continue
         try:
