@@ -225,11 +225,8 @@
 </style>  <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
 <style id="analysis-card-cleanup">
   .publication .publication-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
+    display: block;
+    overflow: visible;
     overflow-wrap: break-word;
     margin: 10px 0 12px;
     font-size: clamp(15px, 1.7vw, 18px);
@@ -247,7 +244,7 @@
   }
   @media (max-width: 760px) {
     .publication { padding: 16px; }
-    .publication .publication-title { font-size: 16px; -webkit-line-clamp: 3; line-clamp: 3; }
+    .publication .publication-title { font-size: 16px; }
     .publication-actions { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 8px; }
     .publication-actions .auto-details-button,
     .publication-actions .source-link { width: 100%; min-width: 0; padding: 10px 5px; font-size: clamp(11px, 3.05vw, 12px); }
