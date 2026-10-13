@@ -365,8 +365,12 @@ def pro_business_navigation_ui(browser, base):
         # The support page offers donation and both distinct PRO pathways.
         page.goto(base + "/help.html")
         assert page.locator(".support-choice").count() == 3
-        assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит много, независимость бесценна"
+        assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит дорого, независимость бесценна"
         assert page.locator(".support-kicker, .support-hero-intro, .support-formats-intro").count() == 0
+        assert page.locator(".support-choice-index").count() == 0
+        assert page.locator(".support-choice-desc").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 14
+        assert page.locator(".support-typing-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 45
+        assert page.locator(".typing-line--second").evaluate("el => getComputedStyle(el).textShadow") != "none"
         assert page.locator('.support-choice--research a[href="analysis.html"]').count() == 1
         assert page.locator('.support-choice--business a[href="business.html"]').count() == 1
         assert page.locator(".support-plan-price").count() == 2
