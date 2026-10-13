@@ -357,6 +357,12 @@ def pro_business_navigation_ui(browser, base):
             assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
+        # Archive starts directly with search/filter controls on desktop.
+        page.goto(base + "/archive.html")
+        assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
+        assert page.locator("#archiveList .archive-item").count() > 0
+        page.goto(base + "/about.html")
+        assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
         page.goto(base + "/index.html")
         # Desktop defaults to compact interface size without horizontal overflow.
         assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
@@ -409,7 +415,27 @@ def pro_business_navigation_ui(browser, base):
             assert abs(grid_box["height"] - card_box["height"]) <= 4, (grid_box, card_box)
             assert p.locator(".hero h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 25
             assert "rating-title-appear" in p.locator(".hero-text h1").evaluate("el => getComputedStyle(el).animationName")
+            assert p.locator(".hero .hero-brand-accent").evaluate("el => getComputedStyle(el).color") == "rgb(34, 211, 238)"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            # Compact About title and single-line Method headings on mobile.
+            p.goto(base + "/about.html")
+            assert p.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 24
+            p.goto(base + "/method.html")
+            for title in p.locator(".section .section-title").all():
+                assert title.evaluate("el => el.scrollWidth <= el.clientWidth + 1"), title.inner_text()
+            for card in p.locator("#pipelineGrid .pipeline-card").all():
+                bg = card.evaluate("el => getComputedStyle(el).backgroundImage")
+                assert "linear-gradient" in bg, bg
+            # Archive category left, Details right, same horizontal row.
+            p.goto(base + "/archive.html")
+            assert p.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
+            archive_card = p.locator("#archiveList .archive-item").first
+            category_box = archive_card.locator(".cell-category").bounding_box()
+            button_box = archive_card.locator(".more-btn").bounding_box()
+            assert category_box["x"] + category_box["width"] <= button_box["x"] + 2
+            assert abs((category_box["y"] + category_box["height"]/2) - (button_box["y"] + button_box["height"]/2)) < 6
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.goto(base + "/index.html")
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
             assert p.locator(".pro-gateway-dialog").is_visible()
