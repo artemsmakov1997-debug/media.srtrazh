@@ -176,7 +176,12 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
         assert page.locator(".legal-status-note").count() == 0
         assert page.locator(".publication-title").count() == 1
-        assert len(page.locator(".publication-title").inner_text()) <= 120
+        # Telegram captions are not headlines; never show "Forwarded from"
+        # or truncate an arbitrary message preview into a fake title.
+        heading = page.locator(".publication-title")
+        assert heading.inner_text() in ("Публикация в Telegram", "Пересланная публикация в Telegram")
+        assert heading.evaluate("el => getComputedStyle(el).webkitLineClamp") == "none"
+        assert heading.evaluate("el => el.scrollHeight <= el.clientHeight + 1")
         # The narrow layout keeps both actions readable and aligned.
         page.set_viewport_size({"width": 375, "height": 812})
         details_box = page.locator(".publication .auto-details-button").bounding_box()
@@ -283,6 +288,12 @@ def pro_business_navigation_ui(browser, base):
             badge_center = badge_box["y"] + badge_box["height"] / 2
             examples_center = examples_box["y"] + examples_box["height"] / 2
             assert abs(badge_center - examples_center) < 6
+            slider = p.locator(".media-grid.is-mobile-slider")
+            grid_box = slider.bounding_box()
+            card_box = rating_card.bounding_box()
+            assert abs(grid_box["height"] - card_box["height"]) <= 4, (grid_box, card_box)
+            assert p.locator(".hero h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 25
+            assert "rating-title-appear" in p.locator(".hero-text h1").evaluate("el => getComputedStyle(el).animationName")
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
