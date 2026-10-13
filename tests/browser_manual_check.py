@@ -25,6 +25,7 @@ import test_rhetoric
 import test_expanded_rhetoric
 import test_contextual_rhetoric
 import test_latest_media_rhetoric
+import test_quantitative_cues
 
 
 def examples():
@@ -41,7 +42,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -51,6 +52,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_expanded_rhetoric.ExpandedRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_contextual_rhetoric.ContextualRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_latest_media_rhetoric.LatestMediaRhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_quantitative_cues.QuantitativeCueTests),
     ])
     try:
         output = io.StringIO()
@@ -66,6 +68,46 @@ def examples():
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+def quantitative_manual_ui(browser, base, errors, requests):
+    text = test_quantitative_cues.RADIOSVOBODA_EXCERPT
+    expected = analyze({"text": text})["findings"]
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width": 375 if mobile else 1280, "height": 812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            page.goto(base + "/analysis.html")
+            page.locator('[data-mode="manual"]').click()
+            page.locator("#manualText").fill(text)
+            page.locator("#manualSubmit").click()
+            page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+            marks = page.locator("#manualTextEvidence mark")
+            assert marks.all_text_contents() == [f["evidence"][0]["quote"] for f in expected]
+            assert page.locator("#manualTextEvidence").inner_text() == text
+            for index, finding in enumerate(expected):
+                trigger = marks.nth(index)
+                if mobile:
+                    trigger.tap()
+                else:
+                    trigger.hover()
+                page.locator("#manualTooltip").wait_for(state="visible")
+                assert finding["explanation"] in page.locator("#manualTooltip").inner_text()
+                if mobile:
+                    trigger.tap()
+            assert page.locator("#manualWarnings p").all_text_contents() == [
+                "Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.",
+                "Отсутствие признаков не означает нейтральность текста.",
+            ]
+            page.locator("#manualEdit").click()
+            assert page.locator("#manualText").input_value() == text
+            from urllib.parse import unquote
+            assert all(text not in unquote(url) and body is None for _, url, body in requests)
+        finally:
+            context.close()
 
 
 def inline_touch_and_overlap(browser, base, errors, requests):
@@ -665,6 +707,7 @@ def main():
             context.close()
 
             inline_touch_and_overlap(browser, base, errors, requests)
+            quantitative_manual_ui(browser, base, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             pro_business_navigation_ui(browser, base)
