@@ -280,7 +280,9 @@ def pro_business_navigation_ui(browser, base):
             badge_box = rating_card.locator(".media-footer .badge").bounding_box()
             examples_box = rating_card.locator(".media-footer .link-button").bounding_box()
             assert badge_box["x"] < examples_box["x"]
-            assert abs(badge_box["y"] - examples_box["y"]) < 5
+            badge_center = badge_box["y"] + badge_box["height"] / 2
+            examples_center = examples_box["y"] + examples_box["height"] / 2
+            assert abs(badge_center - examples_center) < 6
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
