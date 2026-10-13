@@ -174,6 +174,17 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         assert page.locator(".publication").count() == 1
         page.select_option("#marker", "")
         assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
+        assert page.locator(".legal-status-note").count() == 0
+        assert page.locator(".publication-title").count() == 1
+        assert len(page.locator(".publication-title").inner_text()) <= 120
+        # The narrow layout keeps both actions readable and aligned.
+        page.set_viewport_size({"width": 375, "height": 812})
+        details_box = page.locator(".publication .auto-details-button").bounding_box()
+        source_box = page.locator(".publication .source-link").bounding_box()
+        assert details_box["x"] + details_box["width"] <= source_box["x"] + 1
+        assert abs(details_box["y"] - source_box["y"]) < 2
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.set_viewport_size({"width": 1280, "height": 900})
         page.locator(".auto-details-button").click()
         page.locator("#automaticModal").wait_for(state="visible")
         auto_marks = page.locator("#automaticModal mark")
@@ -263,6 +274,14 @@ def pro_business_navigation_ui(browser, base):
             p.on("pageerror", lambda error: page_errors.append(str(error)))
             p.goto(base + "/index.html")
             assert p.evaluate("getComputedStyle(document.body).zoom") == "1"
+            assert p.locator(".hero h1").evaluate("element => parseFloat(getComputedStyle(element).fontSize)") <= 28
+            rating_card = p.locator(".media-grid .media-card.is-active")
+            rating_card.wait_for(state="visible")
+            badge_box = rating_card.locator(".media-footer .badge").bounding_box()
+            examples_box = rating_card.locator(".media-footer .link-button").bounding_box()
+            assert badge_box["x"] < examples_box["x"]
+            assert abs(badge_box["y"] - examples_box["y"]) < 5
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
             assert p.locator(".pro-gateway-dialog").is_visible()
