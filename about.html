@@ -1139,6 +1139,30 @@
   }
 </style>
   <link rel="stylesheet" href="support-hover.css?v=20261013-1">
+<style id="about-manifest-and-principles-polish">
+  @media (min-width: 768px) {
+    /* Anchor kicker to the top edge of the map, not the vertical center of the column. */
+    .manifest-inner { align-items: start !important; }
+    .manifest-text { align-self: start; }
+    .manifest-visual { align-self: start; }
+    .manifest-subtitle .manifest-subtitle-desktop {
+      font-size: 17px;
+      line-height: 1.65;
+      color: #c2d1df;
+    }
+    .manifest-subtitle { line-height: 1.65; }
+  }
+  .values-grid { align-items: stretch; }
+  .values-grid .value-card { padding-bottom: 22px; }
+  .values-grid .value-card p {
+    flex: 0 0 auto;
+    margin-bottom: 24px;
+  }
+  .values-grid .value-card .value-link { margin-top: auto; }
+  @media (max-width: 767px) {
+    .values-grid .value-card p { margin-bottom: 16px; }
+  }
+</style>
 </head>
 
 <body>
@@ -1280,7 +1304,7 @@
         <div class="value-num">Принцип 02</div>
         <div class="value-title-row"><h3>Независимость</h3></div>
         <p>
-          Мы развиваем прозрачную модель финансирования: добровольная поддержка и подписки PRO. Это позволяет проекту сохранять самостоятельность и не зависеть от интересов медиахолдингов, рекламодателей или политических структур.
+          Мы развиваем добровольную и прозрачную модель финансирования. Это позволяет проекту сохранять самостоятельность.
         </p>
         <a href="help.html" class="value-link">Поддержать проект →</a>
       </article>
