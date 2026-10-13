@@ -715,6 +715,51 @@
   <link rel="stylesheet" href="pro-gateway.css?v=20261012-pro4">
   <script defer src="pro-gateway.js?v=20261012-pro3"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
+<style id="rating-mobile-refinement">
+@media (max-width: 767px) {
+  /* More editorial, less oversized: preserve usable tap areas. */
+  .hero-text { padding: 16px; }
+  .hero h1 { font-size: clamp(22px, 6.15vw, 27px) !important; line-height: 1.2 !important; letter-spacing: -.025em; }
+  .hero-subtitle { font-size: 13px; line-height: 1.55; margin-top: 11px; }
+  .hero-counter-mobile { min-height: 72px; padding: 12px 15px; gap: 12px; }
+  .hero-counter-mobile .counter-value-sm { font-size: clamp(30px, 8.5vw, 41px); }
+  .hero-counter-mobile .counter-label-sm { font-size: 10px; line-height: 1.35; letter-spacing: .06em; }
+  .counter-demo-sm { font-size: 9px; }
+  .media-card { padding: 15px !important; border-radius: 15px; }
+  .media-card-header { gap: 8px; }
+  .media-name { font-size: 14px !important; line-height: 1.3; }
+  .media-type { font-size: 11px; }
+  .media-meta, .media-details { font-size: 12px !important; line-height: 1.55; }
+  .rating-score { font-size: 20px; }
+  .rating-caption { font-size: 10px; }
+  .media-footer {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px 0 0;
+    border-top: 1px solid rgba(100,116,139,.22);
+  }
+  .media-footer .badge {
+    flex: 0 1 auto; min-width: 0; max-width: 50%;
+    font-size: 10px !important; line-height: 1.25; letter-spacing: 0;
+    padding: 6px 9px; text-align: left; overflow-wrap: normal;
+  }
+  .media-footer .link-button {
+    flex: 0 0 auto; width: auto !important; min-width: 0;
+    min-height: 40px; padding: 9px 12px; border-radius: 9px;
+    font-size: 12px; font-weight: 650; line-height: 1.2; white-space: nowrap;
+  }
+  .rating-appeal-strip { font-size: 12px; }
+  .full-list-button { font-size: 12px; min-height: 42px; letter-spacing: .04em; }
+}
+@media (max-width: 340px) {
+  .media-footer .badge { font-size: 9px !important; padding: 6px; }
+  .media-footer .link-button { font-size: 11px; padding: 8px; }
+}
+</style>
 </head>
 <body>
   <header>
