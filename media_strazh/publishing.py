@@ -1,6 +1,7 @@
 """Bounded reports for Pages, with short Telegram previews and no corpus/database."""
 
 import json
+import re
 from pathlib import Path
 import shutil
 import tempfile
@@ -14,6 +15,30 @@ SCHEMA = "public-snapshot-1.0"
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_SUFFIXES = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif",
                    ".webp", ".svg", ".ico", ".webmanifest", ".xml"}
+
+
+def telegram_display_excerpt(text: str, forwarded: bool = False) -> str:
+    """Extract one complete display-only phrase; never invent a Telegram headline.
+
+    A forwarded-from label is attribution, not article content. Prefer a full
+    sentence or short original paragraph, without ellipsis/truncation.
+    The document title stays empty for Telegram text analysis.
+    """
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if forwarded and lines:
+        lines = lines[1:]
+    for line in lines:
+        if re.match(r"^(?:Forwarded from|Переслано из|Переслано от)\\b", line, re.I):
+            continue
+        line = re.sub(r"^[^\\w«„“\\\"]+", "", line).strip()
+        if len(line) < 15:
+            continue
+        sentence = re.search(r"^(.{20,220}?[.!?])(?=\\s|$)", line)
+        if sentence:
+            return sentence.group(1)
+        if len(line) <= 155 and not line.endswith("…"):
+            return line
+    return ""
 
 
 def snapshot(store, limit=100):
@@ -63,11 +88,14 @@ def snapshot(store, limit=100):
                         key: finding[key] for key in
                         ("category", "label", "rule_id", "status", "explanation", "review_question", "evidence")
                     })
+            forwarded = source.platform == "telegram" and item["extraction_method"].endswith(".forwarded")
+            display_excerpt = telegram_display_excerpt(document["text"], forwarded) if source.platform == "telegram" else ""
             articles.append({
                 "id": item["id"], "source_id": source.id, "source": source.name,
                 "publisher_id": source.publisher, "platform": source.platform,
-                "forwarded": source.platform == "telegram" and item["extraction_method"].endswith(".forwarded"),
+                "forwarded": forwarded,
                 "title": document["title"], "url": normalize_url(document["url"], source),
+                "display_excerpt": display_excerpt,
                 "message_preview": preview,
                 "published_at": document["published_at"], "retrieved_at": item["retrieved_at"],
                 "algorithm_version": analysis["algorithm_version"] if analysis else None,
