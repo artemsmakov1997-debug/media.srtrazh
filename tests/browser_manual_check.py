@@ -156,8 +156,10 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
     source = next(source for source in snapshot["sources"] if source["id"] == "izvestia_telegram")
     item = copy.deepcopy(snapshot["articles"][0])
     item.update(id=253503, source_id=source["id"], publisher_id=source["publisher_id"],
-                platform="telegram", source=source["name"], title="",
-                message_preview=document["text"][:160], url="https://t.me/izvestia/253503",
+                platform="telegram", source=source["name"], title="", forwarded=True,
+                display_excerpt="Эксперты обсудили изменения медиарынка и представили результаты исследования.",
+                message_preview="Forwarded from Test channel " + document["text"][:160],
+                url="https://t.me/izvestia/253503",
                 summary=expected["summary"], findings=expected["findings"], findings_omitted=0)
     snapshot["articles"] = [item]
     context = browser.new_context(viewport={"width": 1280, "height": 900})
@@ -179,7 +181,9 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         # Telegram captions are not headlines; never show "Forwarded from"
         # or truncate an arbitrary message preview into a fake title.
         heading = page.locator(".publication-title")
-        assert heading.inner_text() in ("Публикация в Telegram", "Пересланная публикация в Telegram")
+        assert heading.inner_text() == "Эксперты обсудили изменения медиарынка и представили результаты исследования."
+        assert "Forwarded from" not in heading.inner_text()
+        assert "…" not in heading.inner_text()
         assert heading.evaluate("el => getComputedStyle(el).webkitLineClamp") == "none"
         assert heading.evaluate("el => el.scrollHeight <= el.clientHeight + 1")
         # The narrow layout keeps both actions readable and aligned.
