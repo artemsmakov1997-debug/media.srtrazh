@@ -1773,172 +1773,170 @@
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
   <link rel="stylesheet" href="support-hover.css?v=20261013-1">
 <style id="support-three-paths-and-typewriter">
-  /* Calm, premium support overview: three genuinely distinct choices. */
+  /* Intro: only the sentence, written in two controlled lines. */
   .hero-support {
-    position: relative; margin: 22px 0 0 !important;
-    min-height: 265px; padding: 42px 30px 38px !important;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    background: linear-gradient(135deg,#0c1725 0%,#0b101b 76%) !important;
-    border:1px solid #304153 !important; border-radius:19px !important;
-    box-shadow:0 19px 50px rgba(0,0,0,.3) !important;
+    min-height:270px; margin:24px 0 0 !important; padding:40px 28px !important;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid #2c3b4b !important; border-radius:17px !important;
+    background:linear-gradient(135deg,#0c1522,#090f18) !important;
+    box-shadow:0 16px 45px rgba(0,0,0,.2) !important;
     overflow:hidden;
   }
-  .support-kicker {
-    margin:0 0 15px !important; font-size:11px !important; font-weight:800;
-    line-height:1.5 !important; color:#8eacc0 !important; text-align:center !important;
-    letter-spacing:.13em;
-  }
   .hero-support .support-typing-title {
-    display:flex; flex-direction:column; align-items:center; gap:0;
-    margin:0 0 17px !important; width:100%; max-width:100%;
-    color:#f1f6fa; font:800 clamp(31px,4.3vw,49px)/1.13 Montserrat,Inter,sans-serif;
-    letter-spacing:-.035em; text-align:center;
+    width:100%; max-width:none; margin:0 !important;
+    display:flex; flex-direction:column; gap:5px; align-items:center;
+    text-align:center;
+    font:800 clamp(25px,3.3vw,42px)/1.22 Montserrat,Inter,sans-serif;
+    letter-spacing:-.035em; color:#f3f7fa;
   }
   .support-typing-title .typing-line {
-    display:block; position:relative; width:max-content; max-width:100%;
-    clip-path:inset(0 100% 0 0);
+    display:block; width:max-content; max-width:100%;
+    white-space:nowrap; clip-path:inset(0 100% 0 0);
   }
   .support-typing-title .typing-line--first {
-    animation:support-type-reveal 950ms steps(10,end) 100ms both;
+    animation:support-type-reveal 900ms steps(21,end) 100ms both;
   }
   .support-typing-title .typing-line--second {
-    color:#53d5e9 !important;
-    animation:support-type-reveal 1100ms steps(12,end) 1080ms both;
+    color:#63d6e8 !important;
+    animation:support-type-reveal 1050ms steps(25,end) 1030ms both;
   }
   @keyframes support-type-reveal {
     from { clip-path:inset(0 100% 0 0); }
     to { clip-path:inset(0 0 0 0); }
   }
-  .hero-support .support-hero-intro {
-    margin:0 !important; max-width:620px;
-    color:#aebfcd !important; text-align:center !important;
-    font-size:14px !important; line-height:1.75 !important;
-  }
-  .section-block#supportFormats { margin-top:35px !important; }
-  .support-formats-intro {
-    color:#a4b5c3; margin:0 0 19px; font-size:14px; line-height:1.65;
-  }
+  #supportFormats.section-block { margin-top:27px !important; }
   #supportFormats .support-grid {
     display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
-    align-items:stretch; gap:14px;
+    gap:16px; align-items:stretch;
   }
-  #supportFormats .support-choice,
-  #supportFormats .support-choice.card-featured {
-    padding:24px 21px !important; min-width:0; border-radius:13px !important;
-    background:#101a26 !important; border:1px solid #304253 !important;
-    box-shadow:0 12px 29px rgba(0,0,0,.21) !important;
-    display:flex; flex-direction:column;
+  #supportFormats .support-choice {
+    --plan-accent:#44c7df; --plan-border:rgba(68,199,223,.56); --plan-surface:#101c28;
+    position:relative; display:flex; flex-direction:column;
+    padding:27px 24px 24px !important;
+    min-width:0; border:1px solid var(--plan-border) !important;
+    border-radius:15px !important; background:var(--plan-surface) !important;
+    box-shadow:0 10px 28px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035) !important;
+    transform:translateY(15px); opacity:0;
+    animation:support-card-appear 650ms cubic-bezier(.18,.75,.24,1) 1950ms both;
   }
-  #supportFormats .support-choice--research { border-color:#367282 !important; }
-  #supportFormats .support-choice--business { border-color:#977546 !important; }
-  #supportFormats .support-choice .support-card-header {
-    display:flex; flex-wrap:wrap; gap:8px;
-    align-items:center; justify-content:space-between; margin:0 0 24px;
+  #supportFormats .support-choice--research {
+    --plan-accent:#56d7c4; --plan-border:rgba(86,215,196,.55); --plan-surface:#101e22;
+    animation-delay:2180ms;
   }
-  #supportFormats .support-choice .support-card-label {
-    font-size:10px; letter-spacing:.07em; color:#9cb8c8;
-    font-weight:800; white-space:normal;
+  #supportFormats .support-choice--business {
+    --plan-accent:#f0c27e; --plan-border:rgba(240,194,126,.56); --plan-surface:#211c1a;
+    animation-delay:2410ms;
   }
-  #supportFormats .support-choice .support-card-badge {
-    display:inline-flex; align-items:center; padding:5px 8px;
-    background:#152737; border:1px solid #355168; border-radius:6px;
-    font-size:10px; line-height:1.4; font-weight:700; color:#bcd3df;
-    white-space:normal;
+  #supportFormats .support-choice::before {
+    content:""; position:absolute; display:block; top:0; left:19px; right:19px;
+    width:auto; height:2px; border-radius:0 0 2px 2px;
+    background:var(--plan-accent); opacity:.75; pointer-events:none;
   }
-  #supportFormats .support-choice--business .support-card-badge {
-    border-color:#876a43; background:#282116; color:#e5bd7e;
+  #supportFormats .support-choice:hover {
+    border-color:var(--plan-accent) !important;
+    box-shadow:0 12px 30px rgba(0,0,0,.27) !important;
+  }
+  @keyframes support-card-appear {
+    from { opacity:0; transform:translateY(15px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  #supportFormats .support-choice-index {
+    margin:0 0 17px; color:var(--plan-accent);
+    font:750 10px/1.4 Inter,sans-serif; letter-spacing:.11em;
   }
   #supportFormats .support-choice-title {
-    margin:0 0 11px; color:#f1f6fa;
-    font:800 21px/1.27 Montserrat,Inter,sans-serif; letter-spacing:-.025em;
+    margin:0 0 13px; color:#f1f5f9; font:800 22px/1.25 Montserrat,Inter,sans-serif;
+    letter-spacing:-.023em;
   }
   #supportFormats .support-choice-desc {
-    margin:0 0 18px; color:#aebfcd; font-size:13px; line-height:1.7;
+    margin:0 0 25px; min-height:80px;
+    color:#c0cbd5; font-size:13px; line-height:1.7; font-weight:450;
   }
-  #supportFormats .support-choice-features {
-    margin:0 0 23px; padding-left:19px; flex:1;
-    color:#d4dee8; font-size:12px; line-height:1.65;
-  }
-  #supportFormats .support-choice-features li { padding-left:3px; }
-  #supportFormats .support-choice-features li+li { margin-top:10px; }
-  #supportFormats .support-choice-features li::marker { color:#79cedd; }
-  #supportFormats .support-choice--business .support-choice-features li::marker { color:#e9be78; }
   #supportFormats .support-choice-action {
-    margin-top:auto; padding-top:15px; border-top:1px solid #2b3c4c;
+    display:flex; flex-direction:column;
+    margin-top:auto; padding-top:19px; border-top:1px solid rgba(151,170,186,.19);
   }
   #supportFormats .support-amount-label {
-    display:block; margin:0 0 9px; font-size:11px;
-    font-weight:750; color:#b7c8d7;
+    display:block; min-height:17px; margin:0 0 8px;
+    color:#a8bac9; font-size:11px; line-height:1.45; font-weight:750;
   }
-  #supportFormats .support-choice-action .support-input-row {
-    display:flex; flex-direction:column; gap:9px;
+  #supportFormats .support-plan-price {
+    display:flex; align-items:center; height:49px; min-height:49px;
+    margin:0 0 10px; padding:0 15px;
+    border:1px solid rgba(151,170,186,.25); border-radius:8px;
+    background:rgba(0,0,0,.17);
+    color:#edf3f8; font-size:17px; font-weight:800;
   }
-  #supportFormats .support-choice-action .amount-wrap,
-  #supportFormats .support-choice-action #donateBtn { width:100%; }
-  #supportFormats .support-choice-action .amount-wrap input {
-    width:100%; min-height:45px; background:#0b1520; border:1px solid #3c5063;
+  #supportFormats .support-choice .support-input-row {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  #supportFormats .support-choice .amount-wrap {
+    display:flex; width:100%; height:49px; min-height:49px; margin:0;
+  }
+  #supportFormats .support-choice .amount-wrap input {
+    min-height:49px; width:100%; height:49px; font-size:14px;
+    border:1px solid rgba(151,170,186,.35); background:rgba(0,0,0,.17);
     border-radius:8px;
   }
-  #supportFormats .support-choice-action #donateBtn {
-    border-radius:8px; min-height:46px;
-    background:linear-gradient(180deg,#4dd6eb,#20b8d4);
-    color:#05202a; font-weight:800;
+  #supportFormats .support-choice .support-btn,
+  #supportFormats .support-choice .support-plan-link {
+    width:100%; min-height:47px; margin:0;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 13px; border:1px solid var(--plan-accent);
+    border-radius:8px;
+    font:800 12px/1.3 Inter,sans-serif; text-align:center;
+    text-decoration:none; color:#091c24;
+    background:linear-gradient(180deg,#64d5e9,#2cafc9);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 3px 0 rgba(0,0,0,.33);
+    transition:filter .18s ease,transform .18s ease,box-shadow .18s ease;
   }
-  #supportFormats .support-choice-action #donateBtn:disabled {
+  #supportFormats .support-choice--research .support-plan-link {
+    background:linear-gradient(180deg,#81ddcd,#44bba8); color:#0d2522;
+  }
+  #supportFormats .support-choice--business .support-plan-link {
+    background:linear-gradient(180deg,#f0cc96,#dbad6d); color:#2c1d0f;
+  }
+  #supportFormats .support-choice .support-btn:hover:not(:disabled),
+  #supportFormats .support-choice .support-plan-link:hover,
+  #supportFormats .support-choice .support-plan-link:focus-visible {
+    filter:brightness(1.09); transform:translateY(-2px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 0 rgba(0,0,0,.33);
+  }
+  #supportFormats .support-choice .support-btn:disabled {
     opacity:.52; cursor:not-allowed;
   }
-  #supportFormats .support-plan-link {
-    min-height:46px; padding:12px 13px;
-    display:flex; align-items:center; justify-content:center; gap:7px;
-    border:1px solid #3b8695; border-radius:8px;
-    background:linear-gradient(180deg,#1a4557,#133344);
-    color:#abf0f9; text-align:center;
-    font-size:12px; font-weight:800; text-decoration:none;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 4px 0 #07141d,0 9px 19px rgba(0,0,0,.18);
-    transition:transform .16s ease,border-color .16s ease,background .16s ease;
-  }
-  #supportFormats .support-plan-link:hover,
-  #supportFormats .support-plan-link:focus-visible {
-    transform:translateY(-2px); border-color:#61d8ed;
-    background:linear-gradient(180deg,#235568,#174355);
-  }
-  #supportFormats .support-plan-link--business {
-    border-color:#b68b4f;
-    color:#f4d392; background:linear-gradient(180deg,#42341e,#2c2419);
-  }
-  #supportFormats .support-plan-link--business:hover,
-  #supportFormats .support-plan-link--business:focus-visible {
-    border-color:#e9c181;
-    background:linear-gradient(180deg,#51402a,#362b1e);
-  }
   #supportFormats .support-plan-status {
-    display:block !important; margin:12px 0 0 !important;
-    color:#91a4b4 !important; font-size:11px !important;
-    line-height:1.55 !important;
+    display:block !important; margin:14px 0 0 !important;
+    color:#94a5b4 !important; font-size:11px !important; line-height:1.5 !important;
   }
   #supportFormats .input-hint {
-    margin-top:6px; color:#f2d28d; font-size:11px; line-height:1.55;
+    font-size:11px; line-height:1.5; color:#e9cc96;
   }
-  @media(max-width:940px){
-    #supportFormats .support-grid {grid-template-columns:1fr 1fr;}
-    #supportFormats .support-choice--business {grid-column:1 / -1;}
+  #supportFormats .honor-board-cta { margin-top:26px; }
+  @media(max-width:950px) {
+    #supportFormats .support-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    #supportFormats .support-choice--business { grid-column:1 / -1; }
   }
-  @media(max-width:767px){
-    .hero-support {min-height:235px; padding:29px 17px 26px !important;}
-    .support-kicker {font-size:9px !important; letter-spacing:.09em;}
+  @media(max-width:767px) {
+    .hero-support { min-height:216px; padding:27px 13px !important; }
     .hero-support .support-typing-title {
-      font-size:clamp(25px,7vw,32px) !important; line-height:1.2;
+      font-size:clamp(15px,4.45vw,23px) !important; line-height:1.3;
+      letter-spacing:-.035em;
     }
-    .hero-support .support-hero-intro {font-size:12px !important; line-height:1.65 !important;}
-    #supportFormats .support-grid {grid-template-columns:1fr;}
-    #supportFormats .support-choice--business {grid-column:auto;}
-    #supportFormats .support-choice {padding:21px !important;}
-    #supportFormats .support-choice-title {font-size:19px;}
-    .support-formats-intro {font-size:12px;}
+    #supportFormats .support-grid { grid-template-columns:1fr; gap:13px; }
+    #supportFormats .support-choice--business { grid-column:auto; }
+    #supportFormats .support-choice { padding:23px 20px 22px !important; }
+    #supportFormats .support-choice-title { font-size:20px; }
+    #supportFormats .support-choice-desc { min-height:0; margin-bottom:20px; }
   }
-  @media (prefers-reduced-motion:reduce){
-    .support-typing-title .typing-line {animation:none !important;clip-path:none !important;}
-    #supportFormats .support-plan-link {transition:none;}
+  @media (max-width:360px) {
+    .hero-support .support-typing-title { font-size:14px !important; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .support-typing-title .typing-line { animation:none !important;clip-path:none !important; }
+    #supportFormats .support-choice { opacity:1; transform:none; animation:none !important; }
+    #supportFormats .support-choice .support-btn,
+    #supportFormats .support-choice .support-plan-link { transition:none !important; }
   }
 </style>
 </head>
@@ -1975,80 +1973,55 @@
 <div class="container">
 
   <section class="hero-support" id="support-top">
-    <p class="support-kicker">ПОДДЕРЖКА НЕЗАВИСИМОГО ПРОЕКТА</p>
-    <h1 class="support-typing-title" aria-label="Поддержите МЕДИА.СТРАЖ">
-      <span class="typing-line typing-line--first" aria-hidden="true">Поддержите</span>
-      <span class="typing-line typing-line--second hero-title-accent" aria-hidden="true">МЕДИА.СТРАЖ</span>
+    <h1 class="support-typing-title" aria-label="Развитие стоит много, независимость бесценна">
+      <span class="typing-line typing-line--first" aria-hidden="true">Развитие стоит много,</span>
+      <span class="typing-line typing-line--second" aria-hidden="true">независимость бесценна</span>
     </h1>
-    <p class="support-hero-intro">Помогите развивать независимую медианалитику или выберите PRO-направление для своих задач.</p>
   </section>
 
   <section class="section-block" id="supportFormats">
-    <h2 class="section-title">Выберите формат поддержки</h2>
-
-    <p class="support-formats-intro">Три способа участвовать в развитии проекта — от разовой поддержки до профессиональных инструментов.</p>
     <div class="support-grid">
       <article class="support-card support-choice support-choice--donation">
-        <div class="support-card-header">
-          <span class="support-card-label">01 / СВОБОДНАЯ ПОДДЕРЖКА</span>
-          <span class="support-card-badge">Без подписки</span>
-        </div>
-        <h3 class="support-choice-title">Любая сумма</h3>
-        <p class="support-choice-desc">Разовый вклад в развитие проекта — без обязательств и регулярных списаний.</p>
-        <ul class="support-choice-features">
-          <li>Развитие аналитических инструментов</li>
-          <li>Поддержка инфраструктуры проекта</li>
-          <li>Возможность помочь на комфортную сумму</li>
-        </ul>
+        <span class="support-choice-index">01 / ПОДДЕРЖКА</span>
+        <h2 class="support-choice-title">Любая сумма</h2>
+        <p class="support-choice-desc">Помогите развивать независимую медианалитику без обязательств и регулярных платежей.</p>
         <div class="support-choice-action">
-          <label class="support-amount-label" for="donateInput">Выберите сумму, ₽</label>
+          <label class="support-amount-label" for="donateInput">Сумма поддержки, ₽</label>
           <div class="support-input-row" id="donateRow">
             <div class="amount-wrap">
               <span class="currency" aria-hidden="true">₽</span>
-              <input type="text" id="donateInput" inputmode="numeric"
-                pattern="[0-9]*" placeholder="Сумма" autocomplete="off"
+              <input type="text" id="donateInput" inputmode="numeric" pattern="[0-9]*"
+                placeholder="Введите сумму" autocomplete="off"
                 aria-label="Сумма разовой поддержки в рублях">
             </div>
             <button class="support-btn btn-blue" id="donateBtn" type="button" disabled>Поддержать</button>
           </div>
           <div class="input-hint" id="donateHint" role="status" aria-live="polite"></div>
-          <p class="support-plan-status">Приём платежей готовится; списаний пока нет.</p>
+          <p class="support-plan-status">Оплата пока не подключена. Списаний нет.</p>
         </div>
       </article>
 
       <article class="support-card support-choice support-choice--research">
-        <div class="support-card-header">
-          <span class="support-card-label">02 / PRO-ДОСТУП</span>
-          <span class="support-card-badge">Для исследователей</span>
-        </div>
-        <h3 class="support-choice-title">PRO / Исследования</h3>
-        <p class="support-choice-desc">Для журналистов, преподавателей и исследователей, которым важно понимать устройство медиатекста.</p>
-        <ul class="support-choice-features">
-          <li>Изучение языковых приёмов воздействия</li>
-          <li>Объяснение обнаруженных маркеров</li>
-          <li>Самостоятельная проверка публикаций</li>
-        </ul>
+        <span class="support-choice-index">02 / ПОДПИСКА PRO</span>
+        <h2 class="support-choice-title">Исследования</h2>
+        <p class="support-choice-desc">Глубокий анализ медиатекстов, объяснение маркеров воздействия и самостоятельная проверка публикаций.</p>
         <div class="support-choice-action">
+          <span class="support-amount-label">Стоимость подписки</span>
+          <div class="support-plan-price">Уточняется</div>
           <a class="support-plan-link support-plan-link--research" href="analysis.html">Перейти к исследованиям <span aria-hidden="true">→</span></a>
-          <p class="support-plan-status">Подписка готовится · оформление пока недоступно</p>
+          <p class="support-plan-status">Подписка готовится. Раздел уже доступен для ознакомления.</p>
         </div>
       </article>
 
       <article class="support-card support-choice support-choice--business">
-        <div class="support-card-header">
-          <span class="support-card-label">03 / PRO-ДОСТУП</span>
-          <span class="support-card-badge">Для бизнеса</span>
-        </div>
-        <h3 class="support-choice-title">PRO / Бизнес</h3>
-        <p class="support-choice-desc">Для предпринимателей и PR-команд: отслеживать медиаповестку и находить идеи для продвижения.</p>
-        <ul class="support-choice-features">
-          <li>Упоминания компании и репутационные сигналы</li>
-          <li>Отраслевые инфоповоды и медиатренды</li>
-          <li>Идеи для PR-коммуникаций и публикаций</li>
-        </ul>
+        <span class="support-choice-index">03 / ПОДПИСКА PRO</span>
+        <h2 class="support-choice-title">Бизнес</h2>
+        <p class="support-choice-desc">Мониторинг упоминаний компании, отраслевые тренды и PR-возможности для роста узнаваемости.</p>
         <div class="support-choice-action">
+          <span class="support-amount-label">Стоимость подписки</span>
+          <div class="support-plan-price">Уточняется</div>
           <a class="support-plan-link support-plan-link--business" href="business.html">Открыть бизнес-панель <span aria-hidden="true">→</span></a>
-          <p class="support-plan-status">Подписка готовится · обзор работает в демо-режиме</p>
+          <p class="support-plan-status">Подписка готовится. Бизнес-обзор работает в демо-режиме.</p>
         </div>
       </article>
     </div>
