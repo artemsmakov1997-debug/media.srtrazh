@@ -1845,6 +1845,12 @@
     margin:0 0 13px; color:#f1f5f9; font:800 22px/1.25 Montserrat,Inter,sans-serif;
     letter-spacing:-.023em;
   }
+  #supportFormats .support-choice-audience {
+    min-height:45px; margin:0 0 14px; max-width:100%;
+    color:var(--plan-accent); font-size:11px; font-weight:800;
+    line-height:1.45; letter-spacing:.045em; text-transform:uppercase;
+    overflow-wrap:break-word;
+  }
   #supportFormats .support-choice-desc {
     margin:0 0 25px; min-height:80px;
     color:#c8d5df; font-size:14px; line-height:1.67; font-weight:450;
@@ -1864,11 +1870,12 @@
     background:rgba(0,0,0,.17);
     color:#edf3f8; font-size:17px; font-weight:800;
   }
+  /* Donation and subscriptions use the same vertical rhythm. */
   #supportFormats .support-choice .support-input-row {
-    display:flex; flex-direction:column; gap:10px;
+    display:contents;
   }
   #supportFormats .support-choice .amount-wrap {
-    display:flex; width:100%; height:49px; min-height:49px; margin:0;
+    display:flex; width:100%; height:49px; min-height:49px; margin:0 0 10px;
   }
   #supportFormats .support-choice .amount-wrap input {
     min-height:49px; width:100%; height:49px; font-size:14px;
@@ -1909,7 +1916,9 @@
   #supportFormats .input-hint {
     font-size:11px; line-height:1.5; color:#e9cc96;
   }
-  #supportFormats .honor-board-cta { margin-top:26px; }
+  #supportFormats .input-hint:empty { display:none !important; }
+  #supportFormats .support-plan-status { min-height:34px; }
+
   @media(max-width:950px) {
     #supportFormats .support-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     #supportFormats .support-choice--business { grid-column:1 / -1; }
@@ -1924,6 +1933,7 @@
     #supportFormats .support-choice--business { grid-column:auto; }
     #supportFormats .support-choice { padding:23px 20px 22px !important; }
     #supportFormats .support-choice-title { font-size:20px; }
+    #supportFormats .support-choice-audience { min-height:0; margin-bottom:12px; }
     #supportFormats .support-choice-desc { min-height:0; margin-bottom:20px; }
   }
   @media (max-width:360px) {
@@ -1980,6 +1990,7 @@
     <div class="support-grid">
       <article class="support-card support-choice support-choice--donation">
         <h2 class="support-choice-title">Любая сумма</h2>
+        <p class="support-choice-audience">ВСЕМ, КТО ЦЕНИТ НЕЗАВИСИМУЮ И ДОСТОВЕРНУЮ ИНФОРМАЦИЮ</p>
         <p class="support-choice-desc">Помогите развивать независимую медианалитику без обязательств и регулярных платежей.</p>
         <div class="support-choice-action">
           <label class="support-amount-label" for="donateInput">Сумма поддержки, ₽</label>
@@ -1999,6 +2010,7 @@
 
       <article class="support-card support-choice support-choice--research">
         <h2 class="support-choice-title">Исследования</h2>
+        <p class="support-choice-audience">ИССЛЕДОВАТЕЛЯМ · ЖУРНАЛИСТАМ · ПРЕПОДАВАТЕЛЯМ</p>
         <p class="support-choice-desc">Глубокий анализ медиатекстов, объяснение маркеров воздействия и самостоятельная проверка публикаций.</p>
         <div class="support-choice-action">
           <span class="support-amount-label">Стоимость подписки</span>
@@ -2010,6 +2022,7 @@
 
       <article class="support-card support-choice support-choice--business">
         <h2 class="support-choice-title">Бизнес</h2>
+        <p class="support-choice-audience">ПРЕДПРИНИМАТЕЛЯМ · МАРКЕТОЛОГАМ · PR-КОМАНДАМ</p>
         <p class="support-choice-desc">Мониторинг упоминаний компании, отраслевые тренды и PR-возможности для роста узнаваемости.</p>
         <div class="support-choice-action">
           <span class="support-amount-label">Стоимость подписки</span>
@@ -2019,119 +2032,11 @@
         </div>
       </article>
     </div>
-
-    <button class="honor-board-cta" id="openHonorBoard" type="button">
-      Открыть доску почёта
-    </button>
   </section>
 
 </div>
 
 <footer>© 2025 Проект «МЕДИА.СТРАЖ»</footer>
-
-<div class="modal-overlay" id="honorBoardModal" aria-hidden="true">
-  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="honorBoardTitle">
-    <div class="modal-header">
-      <div class="modal-header-copy">
-        <span class="modal-label">сообщество проекта</span>
-        <h3 class="modal-title" id="honorBoardTitle">Доска почёта</h3>
-        <p class="modal-subtitle">
-          Здесь — люди, которые помогают «МЕДИА.СТРАЖУ» оставаться независимым.
-          Мы сознательно делаем эту витрину не «про деньги», а про вклад в устойчивость проекта.
-        </p>
-      </div>
-      <button class="modal-close" id="closeHonorBoard" type="button" aria-label="Закрыть окно">×</button>
-    </div>
-
-    <div class="modal-body">
-      <div class="board-grid">
-
-        <section class="board-column patrons">
-          <div class="board-tier">
-            <h4 class="board-tier-title">Патроны</h4>
-            <span class="board-tier-badge">подписка</span>
-          </div>
-          <p class="board-tier-text">
-            Ежемесячные участники, которые дают проекту долгую опору и получают доступ
-            к закрытому каналу и экспертному чату.
-          </p>
-          <div class="donor-list">
-            <article class="donor-card">
-              <span class="donor-name">Анна К.</span>
-              <span class="donor-role">подписка · закрытый канал</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Илья М.</span>
-              <span class="donor-role">подписка · экспертный чат</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Мария С.</span>
-              <span class="donor-role">подписка · постоянная поддержка</span>
-            </article>
-          </div>
-        </section>
-
-        <section class="board-column allies">
-          <div class="board-tier">
-            <h4 class="board-tier-title">Союзники</h4>
-            <span class="board-tier-badge">крупный донат</span>
-          </div>
-          <p class="board-tier-text">
-            Люди, которые поддержали проект разовым взносом и заметно усилили его в важный момент.
-          </p>
-          <div class="donor-list">
-            <article class="donor-card">
-              <span class="donor-name">Дмитрий Р.</span>
-              <span class="donor-role">разовая поддержка</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Ольга Н.</span>
-              <span class="donor-role">разовая поддержка</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Екатерина В.</span>
-              <span class="donor-role">разовая поддержка</span>
-            </article>
-          </div>
-        </section>
-
-        <section class="board-column members">
-          <div class="board-tier">
-            <h4 class="board-tier-title">Участники</h4>
-            <span class="board-tier-badge">любой донат</span>
-          </div>
-          <p class="board-tier-text">
-            Все, кто решил поддержать проект любой суммой и стать частью его живого сообщества.
-          </p>
-          <div class="donor-list">
-            <article class="donor-card">
-              <span class="donor-name">Алексей К.</span>
-              <span class="donor-role">донат · доска почёта</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Ник "Signal"</span>
-              <span class="donor-role">донат · публичный ник</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Татьяна Л.</span>
-              <span class="donor-role">донат · участие в поддержке</span>
-            </article>
-            <article class="donor-card">
-              <span class="donor-name">Ник "Observer"</span>
-              <span class="donor-role">донат · участник сообщества</span>
-            </article>
-          </div>
-        </section>
-
-      </div>
-
-      <p class="board-footer-note">
-        Имена на доске — демонстрационные. В реальной версии участник сможет выбрать:
-        показывать полное имя, сокращённый формат или только ник.
-      </p>
-    </div>
-  </div>
-</div>
 
 <script>
   const burgerBtn  = document.getElementById("burgerBtn");
@@ -2166,7 +2071,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeNav();
-      closeHonorBoardModal();
+
     }
   });
 
@@ -2212,30 +2117,6 @@
     });
   }
 
-  const honorBoardModal    = document.getElementById("honorBoardModal");
-  const openHonorBoardBtn  = document.getElementById("openHonorBoard");
-  const closeHonorBoardBtn = document.getElementById("closeHonorBoard");
-
-  function openHonorBoardModal() {
-    if (!honorBoardModal) return;
-    honorBoardModal.classList.add("open");
-    honorBoardModal.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-    closeHonorBoardBtn && closeHonorBoardBtn.focus();
-  }
-
-  function closeHonorBoardModal() {
-    if (!honorBoardModal) return;
-    honorBoardModal.classList.remove("open");
-    honorBoardModal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-  }
-
-  if (openHonorBoardBtn)  openHonorBoardBtn.addEventListener("click",  openHonorBoardModal);
-  if (closeHonorBoardBtn) closeHonorBoardBtn.addEventListener("click",  closeHonorBoardModal);
-  if (honorBoardModal)    honorBoardModal.addEventListener("click", (e) => {
-    if (e.target === honorBoardModal) closeHonorBoardModal();
-  });
 </script>
 
 </body>
