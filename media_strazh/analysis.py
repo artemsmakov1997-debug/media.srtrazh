@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.5.0"
+VERSION = "rules-0.5.1"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -84,6 +84,43 @@ HUMAN_CONTEXT = re.compile(
 )
 LIVESTOCK_CONTEXT = re.compile(r"\b(?:скот[а-яё]*|коров[а-яё]*|свин[а-яё]*|животн[а-яё]*|птиц[а-яё]*)\b", re.I)
 
+# These bounded cues ask for the basis of a quantity claim. They do not decide
+# whether the claim is true or whether evidence exists elsewhere in a document.
+GROUP_ASSERTION = re.compile(
+    r"\b(?:утвержда[а-яё]*|сообща[а-яё]*|говор[а-яё]*|счита[а-яё]*|поддержива[а-яё]*|"
+    r"одобря[а-яё]*|выступа[а-яё]*|отказ[а-яё]*|заявля[а-яё]*|опаса[а-яё]*|"
+    r"верят|верили|голос[а-яё]*|соверша[а-яё]*|совершили|принима[а-яё]*|принимали|"
+    r"получа[а-яё]*|получили|хотят|готовы|столкнулись)\b", re.I,
+)
+PUBLIC_EVENT = re.compile(
+    r"\b(?:задержанн[а-яё]*|обвиняем[а-яё]*|подозреваем[а-яё]*|несовершеннолетн[а-яё]*|"
+    r"граждан[а-яё]*|жител[а-яё]*|преступлени[а-яё]*|поджог[а-яё]*|диверси[а-яё]*|"
+    r"терроризм[а-яё]*|суд[а-яё]*|компани[а-яё]*|предприяти[а-яё]*|избирател[а-яё]*)\b", re.I,
+)
+EVENT_ASSERTION = re.compile(
+    r"\b(?:задержива[а-яё]*|задержали|возбужда[а-яё]*|возбудили|обвиня[а-яё]*|"
+    r"обвинили|арестовыва[а-яё]*|арестовали|соверша[а-яё]*|совершили|"
+    r"осужда[а-яё]*|осудили|привлека[а-яё]*|привлекли|отказыва[а-яё]*|отказали|"
+    r"голосуют|голосовали|закрыва[а-яё]*|закрыли|увольня[а-яё]*|уволили)\b", re.I,
+)
+COUNT_CONTEXT = re.compile(
+    r"\b(?:числ[а-яё]*|количеств[а-яё]*|доля|доли|долю|долей|доле|"
+    r"частот[а-яё]*|процент[а-яё]*|случа[а-яё]*|поджог[а-яё]*|"
+    r"задержани[а-яё]*|преступлени[а-яё]*|нарушени[а-яё]*)\b", re.I,
+)
+DIRECT_QUANTITY = re.compile(
+    r"\s*\(\s*(?:в\s+)?\d+(?:[.,]\d+)?\s*"
+    r"(?:%|процент[а-яё]*|из\s+\d+(?:\s+[а-яё]+){0,2})\s*\)", re.I,
+)
+DIRECT_DIFFERENCE = re.compile(
+    r"\s*(?:[—–:,-]\s*|\(\s*)?(?:(?:на|в)\s+\d+(?:[.,]\d+)?\s*"
+    r"(?:%|процент[а-яё]*|раз[а-яё]*)|\d+(?:[.,]\d+)?\s*%|\d+\s+против\s+\d+)(?!\w)", re.I,
+)
+CLAUSE_QUANTITY = re.compile(
+    r"^[^,;.!?\n]{0,100}[:(]\s*(?:в\s+)?\d+(?:[.,]\d+)?\s*"
+    r"(?:%|процент[а-яё]*|из\s+\d+\b)", re.I,
+)
+
 # Recognize attribution, not credibility. The same cue applies to all listed
 # political speakers; their party, publisher and position never determine truth.
 POLITICAL_SPEAKER_REPORT = re.compile(
@@ -109,6 +146,19 @@ def _rule_applies(rule, field, text, start, end, quotes=()):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement.startswith("quantitative_"):
+        tail = text[end:end + 100]
+        if DIRECT_QUANTITY.match(tail) or CLAUSE_QUANTITY.search(tail):
+            return False
+        if rule.context_requirement == "quantitative_prevalence":
+            return bool(GROUP_ASSERTION.search(sentence))
+        if rule.context_requirement == "quantitative_frequency":
+            return bool(PUBLIC_EVENT.search(sentence) and EVENT_ASSERTION.search(sentence))
+        # Keep the count subject in the same clause. An unrelated earlier
+        # number/actor must not license a qualitative comparison of size/height.
+        prefix = re.split(r"[,;:]", text[sentence_span["start"]:start])[-1]
+        suffix = re.split(r"[,;:.!?\n]", tail)[0]
+        return bool(COUNT_CONTEXT.search(prefix + " " + suffix)) and not DIRECT_DIFFERENCE.match(tail)
     if rule.context_requirement == "nonfiction":
         return not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
     if rule.context_requirement == "quote_omission":
