@@ -18,22 +18,21 @@ STATIC_SUFFIXES = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif",
 
 
 def telegram_display_excerpt(text: str, forwarded: bool = False) -> str:
-    """Extract one complete display-only phrase; never invent a Telegram headline.
+    """One complete lead phrase for display only, never a fabricated headline.
 
-    A forwarded-from label is attribution, not article content. Prefer a full
-    sentence or short original paragraph, without ellipsis/truncation.
-    The document title stays empty for Telegram text analysis.
+    Forwarded attribution is not the publication title. The original document
+    title remains empty for Telegram so analysis never doubles the same text.
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if forwarded and lines:
         lines = lines[1:]
     for line in lines:
-        if re.match(r"^(?:Forwarded from|Переслано из|Переслано от)\\b", line, re.I):
+        if re.match(r"^(?:Forwarded from|Переслано из|Переслано от)\b", line, re.I):
             continue
-        line = re.sub(r"^[^\\w«„“\\\"]+", "", line).strip()
+        line = re.sub(r'^[^\w«„“"]+', "", line).strip()
         if len(line) < 15:
             continue
-        sentence = re.search(r"^(.{20,220}?[.!?])(?=\\s|$)", line)
+        sentence = re.search(r"^(.{20,220}?[.!?])(?=\s|$)", line)
         if sentence:
             return sentence.group(1)
         if len(line) <= 155 and not line.endswith("…"):
