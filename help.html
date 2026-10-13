@@ -1775,7 +1775,7 @@
 <style id="support-three-paths-and-typewriter">
   /* Intro: only the sentence, written in two controlled lines. */
   .hero-support {
-    min-height:270px; margin:24px 0 0 !important; padding:40px 28px !important;
+    min-height:228px; margin:24px 0 0 !important; padding:29px 24px !important;
     display:flex; align-items:center; justify-content:center;
     border:1px solid #2c3b4b !important; border-radius:17px !important;
     background:linear-gradient(135deg,#0c1522,#090f18) !important;
@@ -1786,7 +1786,7 @@
     width:100%; max-width:none; margin:0 !important;
     display:flex; flex-direction:column; gap:5px; align-items:center;
     text-align:center;
-    font:800 clamp(25px,3.3vw,42px)/1.22 Montserrat,Inter,sans-serif;
+    font:800 clamp(35px,4.65vw,59px)/1.17 Montserrat,Inter,sans-serif;
     letter-spacing:-.035em; color:#f3f7fa;
   }
   .support-typing-title .typing-line {
@@ -1797,7 +1797,8 @@
     animation:support-type-reveal 900ms steps(21,end) 100ms both;
   }
   .support-typing-title .typing-line--second {
-    color:#63d6e8 !important;
+    color:#91eaff !important;
+    text-shadow:0 0 15px rgba(44,210,241,.33), 0 0 36px rgba(44,210,241,.12);
     animation:support-type-reveal 1050ms steps(25,end) 1030ms both;
   }
   @keyframes support-type-reveal {
@@ -1840,17 +1841,13 @@
     from { opacity:0; transform:translateY(15px); }
     to { opacity:1; transform:translateY(0); }
   }
-  #supportFormats .support-choice-index {
-    margin:0 0 17px; color:var(--plan-accent);
-    font:750 10px/1.4 Inter,sans-serif; letter-spacing:.11em;
-  }
   #supportFormats .support-choice-title {
     margin:0 0 13px; color:#f1f5f9; font:800 22px/1.25 Montserrat,Inter,sans-serif;
     letter-spacing:-.023em;
   }
   #supportFormats .support-choice-desc {
     margin:0 0 25px; min-height:80px;
-    color:#c0cbd5; font-size:13px; line-height:1.7; font-weight:450;
+    color:#c8d5df; font-size:14px; line-height:1.67; font-weight:450;
   }
   #supportFormats .support-choice-action {
     display:flex; flex-direction:column;
@@ -1918,9 +1915,9 @@
     #supportFormats .support-choice--business { grid-column:1 / -1; }
   }
   @media(max-width:767px) {
-    .hero-support { min-height:216px; padding:27px 13px !important; }
+    .hero-support { min-height:184px; padding:23px 13px !important; }
     .hero-support .support-typing-title {
-      font-size:clamp(15px,4.45vw,23px) !important; line-height:1.3;
+      font-size:clamp(19px,5vw,25px) !important; line-height:1.25;
       letter-spacing:-.035em;
     }
     #supportFormats .support-grid { grid-template-columns:1fr; gap:13px; }
@@ -1930,7 +1927,7 @@
     #supportFormats .support-choice-desc { min-height:0; margin-bottom:20px; }
   }
   @media (max-width:360px) {
-    .hero-support .support-typing-title { font-size:14px !important; }
+    .hero-support .support-typing-title { font-size:17px !important; }
   }
   @media (prefers-reduced-motion:reduce) {
     .support-typing-title .typing-line { animation:none !important;clip-path:none !important; }
@@ -1973,8 +1970,8 @@
 <div class="container">
 
   <section class="hero-support" id="support-top">
-    <h1 class="support-typing-title" aria-label="Развитие стоит много, независимость бесценна">
-      <span class="typing-line typing-line--first" aria-hidden="true">Развитие стоит много,</span>
+    <h1 class="support-typing-title" aria-label="Развитие стоит дорого, независимость бесценна">
+      <span class="typing-line typing-line--first" aria-hidden="true">Развитие стоит дорого,</span>
       <span class="typing-line typing-line--second" aria-hidden="true">независимость бесценна</span>
     </h1>
   </section>
@@ -1982,7 +1979,6 @@
   <section class="section-block" id="supportFormats">
     <div class="support-grid">
       <article class="support-card support-choice support-choice--donation">
-        <span class="support-choice-index">01 / ПОДДЕРЖКА</span>
         <h2 class="support-choice-title">Любая сумма</h2>
         <p class="support-choice-desc">Помогите развивать независимую медианалитику без обязательств и регулярных платежей.</p>
         <div class="support-choice-action">
@@ -2002,7 +1998,6 @@
       </article>
 
       <article class="support-card support-choice support-choice--research">
-        <span class="support-choice-index">02 / ПОДПИСКА PRO</span>
         <h2 class="support-choice-title">Исследования</h2>
         <p class="support-choice-desc">Глубокий анализ медиатекстов, объяснение маркеров воздействия и самостоятельная проверка публикаций.</p>
         <div class="support-choice-action">
@@ -2014,7 +2009,6 @@
       </article>
 
       <article class="support-card support-choice support-choice--business">
-        <span class="support-choice-index">03 / ПОДПИСКА PRO</span>
         <h2 class="support-choice-title">Бизнес</h2>
         <p class="support-choice-desc">Мониторинг упоминаний компании, отраслевые тренды и PR-возможности для роста узнаваемости.</p>
         <div class="support-choice-action">
