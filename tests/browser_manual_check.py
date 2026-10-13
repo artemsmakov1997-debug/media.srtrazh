@@ -357,6 +357,25 @@ def pro_business_navigation_ui(browser, base):
             assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
+        # The support page offers donation and both distinct PRO pathways.
+        page.goto(base + "/help.html")
+        assert page.locator(".support-choice").count() == 3
+        assert page.locator('.support-choice--research a[href="analysis.html"]').count() == 1
+        assert page.locator('.support-choice--business a[href="business.html"]').count() == 1
+        assert "support-type-reveal" in page.locator(".typing-line--first").evaluate("el => getComputedStyle(el).animationName")
+        page.locator("#donateInput").fill("500")
+        page.locator("#donateBtn").click()
+        assert "не списываются" in page.locator("#donateHint").inner_text()
+        # All public pages use the same highlighted support navigation state.
+        nav_support = page.locator(".support-button-desktop")
+        nav_support.hover()
+        assert "rgba(250, 188, 41" in nav_support.evaluate("el => getComputedStyle(el).boxShadow")
+        # Principles lead to functional destinations and show raised buttons.
+        page.goto(base + "/about.html")
+        assert page.locator(".value-card .value-link").count() == 3
+        assert page.locator('.value-card[data-n="2"] .value-link').get_attribute("href") == "help.html"
+        assert "0px 5px 0px" in page.locator(".value-card .value-link").first.evaluate("el => getComputedStyle(el).boxShadow")
+        assert "добровольная поддержка" in page.locator('.value-card[data-n="2"]').inner_text().lower()
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
@@ -417,6 +436,11 @@ def pro_business_navigation_ui(browser, base):
             assert "rating-title-appear" in p.locator(".hero-text h1").evaluate("el => getComputedStyle(el).animationName")
             assert p.locator(".hero .hero-brand-accent").evaluate("el => getComputedStyle(el).color") == "rgb(34, 211, 238)"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            # Three support paths remain stacked and do not overflow a phone.
+            p.goto(base + "/help.html")
+            assert p.locator(".support-choice").count() == 3
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
             # Compact About title and single-line Method headings on mobile.
             p.goto(base + "/about.html")
             assert p.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 24
