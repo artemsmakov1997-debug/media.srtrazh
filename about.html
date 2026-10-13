@@ -1081,6 +1081,22 @@
   <script defer src="pro-gateway.js?v=20261012-pro3"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
+<style id="about-title-scale">
+  /* Refined headline scale across devices, without shrinking body text. */
+  body .manifest-title {
+    font-size: clamp(23px, 3.4vw, 34px) !important;
+    line-height: 1.15;
+    letter-spacing: .008em;
+  }
+  @media (max-width: 767px) {
+    body .manifest-title {
+      font-size: clamp(19px, 5.4vw, 23px) !important;
+      line-height: 1.17 !important;
+      letter-spacing: .005em;
+      max-width: 100%;
+    }
+  }
+</style>
 </head>
 
 <body>
