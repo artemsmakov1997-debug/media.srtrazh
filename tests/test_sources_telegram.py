@@ -74,9 +74,9 @@ class ExpandedSourceTests(unittest.TestCase):
                 channel_from_homepage(markup, website)
 
     def test_registry_covers_every_named_publisher_and_both_platforms(self):
-        expected = {"rt", "tass", "ria", "interfax", "kommersant", "vedomosti", "rbc", "izvestia", "rg", "lenta", "meduza", "novayagazeta", "fontanka", "currenttime", "dw", "bbc"}
+        expected = {"rt", "tass", "ria", "interfax", "kommersant", "vedomosti", "rbc", "izvestia", "rg", "lenta", "meduza", "novayagazeta", "fontanka", "currenttime", "dw", "bbc", "aif", "inosmi"}
         self.assertEqual(set(PUBLISHERS), expected)
-        self.assertEqual(len(selected_sources()), 33)
+        self.assertEqual(len(selected_sources()), 38)
         for publisher in expected:
             self.assertEqual(SOURCES[publisher].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].publisher, publisher)
@@ -136,7 +136,7 @@ class ExpandedSourceTests(unittest.TestCase):
             summary = collect_once(store, [SOURCES[key] for key in PUBLISHERS], client_factory=Client, now=lambda: NOW)
             self.assertTrue(summary["success"])
             self.assertEqual(set(summary["sources"]), set(PUBLISHERS))
-            self.assertEqual(store.status()["articles_collected"], 16)
+            self.assertEqual(store.status()["articles_collected"], 18)
 
     def test_bbc_text_blocks_are_explicit_not_wholepage(self):
         source = SOURCES["bbc"]
@@ -220,6 +220,30 @@ class ExpandedSourceTests(unittest.TestCase):
 
 
 class TelegramTests(unittest.TestCase):
+    def test_album_duplicate_nodes_are_removed_but_author_repetition_is_retained(self):
+        source = SOURCES["aif_telegram"]
+        caption = "Политики — свора. Политики — свора."
+        html = telegram_post(1, caption, channel="aifonline").replace(
+            '<a class="tgme_widget_message_link_preview">',
+            '<div class="tgme_widget_message_text">' + caption + '</div><a class="tgme_widget_message_link_preview">')
+        entry = parse_preview(html, source)[0]
+        document = extract_post(html, entry.url, source, entry)["document"]
+        self.assertEqual(document["text"], caption)
+        self.assertEqual(len(analyze(document)["findings"]), 2)
+
+    def test_all_three_requested_channels_are_distinct_and_usable(self):
+        for source_id, channel, publisher in (("aif_telegram", "aifonline", "aif"),
+                                               ("inosmi_telegram", "inosmichannel", "inosmi"),
+                                               ("smotri_telegram", "smotri_media", "smotri")):
+            with self.subTest(source=source_id):
+                source = SOURCES[source_id]
+                self.assertEqual((source.channel, source.publisher), (channel, publisher))
+                entry = parse_preview(telegram_post(1, channel=channel), source)[0]
+                self.assertEqual(entry.url, f"https://t.me/{channel}/1")
+                self.assertEqual(extract_post(telegram_post(1, channel=channel), entry.url, source, entry)["document"]["text"], "Новость: открыта библиотека.")
+        self.assertNotIn("smotri", PUBLISHERS)
+        self.assertNotIn("smotri", SOURCES)
+
     source = SOURCES["rt_telegram"]
 
     def test_channel_scope_and_case_normalization(self):

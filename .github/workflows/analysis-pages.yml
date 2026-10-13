@@ -34,12 +34,17 @@ jobs:
       # The cache key is unique per run, so the post-job save creates a new
       # revision; restore-keys picks the most recent available revision.
       - name: Restore accumulated news history
+        if: github.ref == 'refs/heads/main'
         uses: actions/cache@v4
         with:
           path: /tmp/media-strazh-pilot.sqlite3
           key: media-strazh-corpus-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             media-strazh-corpus-
+      - name: Refresh outdated extracted texts without downloading publishers
+        run: python3 -m media_strazh reextract --db /tmp/media-strazh-pilot.sqlite3 --outdated-only
+      - name: Reanalyze retained publications with the current rules
+        run: python3 -m media_strazh reanalyze --db /tmp/media-strazh-pilot.sqlite3
       - name: Collect a fresh, bounded sample
         shell: bash
         run: |

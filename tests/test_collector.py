@@ -308,6 +308,22 @@ class CollectionTests(unittest.TestCase):
         self.assertEqual(repeat.returncode, 2)
         self.assertEqual(len(output.read_text().splitlines()), 3)
 
+    def test_outdated_reextraction_is_idempotent_even_when_text_does_not_change(self):
+        self.collect(sources=[SOURCES["rt"]])
+        item = self.store.articles()[0]
+        before = self.store.article(item["id"])
+        self.store.db.execute("UPDATE revisions SET extractor_version='html-0.1.0'")
+        self.store.db.execute("DELETE FROM extraction_checks")
+        self.store.db.commit()
+        first = reextract_current(self.store, now=lambda: later(NOW, 100), outdated_only=True)
+        second = reextract_current(self.store, now=lambda: later(NOW, 200), outdated_only=True)
+        self.assertEqual((first["processed"], first["new_revisions"], second["processed"]), (1, 0, 0))
+        after = self.store.article(item["id"])
+        self.assertEqual(after["document"], before["document"])
+        self.assertEqual(after["retrieved_at"], before["retrieved_at"])
+        self.assertEqual(after["last_fetched_at"], before["last_fetched_at"])
+        self.assertEqual(self.store.db.execute("SELECT extractor_version FROM revisions").fetchone()[0], "html-0.1.0")
+
     def test_reextract_fixes_retained_text_without_claiming_a_new_download(self):
         source = SOURCES["rt"]
         url = f"https://{source.host}/news/1"

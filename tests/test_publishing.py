@@ -10,7 +10,7 @@ from unittest.mock import patch
 from media_strazh.analysis import VERSION, analyze
 from media_strazh.collector import collect_once
 from media_strazh.extraction import FeedEntry
-from media_strazh.publishing import ROOT, build_site, snapshot, telegram_display_excerpt
+from media_strazh.publishing import ROOT, bounded_findings, build_site, snapshot, telegram_display_excerpt
 from media_strazh.sources import SOURCES
 from media_strazh.storage import Store
 from test_collector import BODY, FakeNetwork, NOW, page
@@ -19,6 +19,16 @@ from test_contextual_rhetoric import BLAHA_TEXT
 
 
 class PublishingTests(unittest.TestCase):
+    def test_bounded_findings_keeps_rare_markers_and_source_order(self):
+        findings = analyze({"text": "Возмутительное решение. " * 45 + "Неминуемая катастрофа."})["findings"]
+        selected = bounded_findings(findings)
+        self.assertEqual(len(selected), 40)
+        self.assertEqual({f["category"] for f in selected}, {"emotional_evaluation", "fear"})
+        self.assertEqual([f["evidence"][0]["start"] for f in selected],
+                         sorted(f["evidence"][0]["start"] for f in selected))
+        self.assertEqual(bounded_findings(findings[:12]), findings[:12])
+        self.assertEqual(bounded_findings([]), [])
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.path = Path(self.directory.name)
