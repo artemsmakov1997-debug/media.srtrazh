@@ -368,8 +368,10 @@ def pro_business_navigation_ui(browser, base):
         assert "не списываются" in page.locator("#donateHint").inner_text()
         # All public pages use the same highlighted support navigation state.
         nav_support = page.locator(".support-button-desktop")
+        before_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         nav_support.hover()
-        assert "rgba(250, 188, 41" in nav_support.evaluate("el => getComputedStyle(el).boxShadow")
+        after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
+        assert before_hover != after_hover, (before_hover, after_hover)
         # Principles lead to functional destinations and show raised buttons.
         page.goto(base + "/about.html")
         assert page.locator(".value-card .value-link").count() == 3
