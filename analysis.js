@@ -11,14 +11,15 @@ const statuses = {
 
 let report = null;
 
-// Справочные статусы по российским реестрам, проверены 12.10.2026.
+// Справочные статусы по указанным в документации источникам и датам проверки.
 // Относятся к указанному СМИ/оператору проекта, а не автоматически ко всем его сотрудникам.
 // Источники подтверждения приведены в docs/media-statuses.md.
 const LEGAL_STATUSES = Object.freeze({
   meduza: {foreignAgent: true, undesirable: true},
   novayagazeta: {foreignAgent: false, undesirable: true},
   currenttime: {foreignAgent: true, undesirable: true},
-  dw: {foreignAgent: false, undesirable: true}
+  dw: {foreignAgent: false, undesirable: true},
+  mediazona: {foreignAgent: true, undesirable: null, checkedAt: '13.10.2026'}
 });
 
 function legalStatus(publisherId) {
@@ -215,6 +216,7 @@ const automaticModal = element('automaticModal');
 const automaticBody = element('automaticModalBody');
 const automaticTooltip = element('automaticTooltip');
 let previousModalFocus = null;
+let automaticTooltipTarget = null;
 
 function closeAutomaticModal() {
   automaticModal.hidden = true;
@@ -224,6 +226,7 @@ function closeAutomaticModal() {
 }
 
 function showAutomaticTooltip(mark) {
+  automaticTooltipTarget = mark;
   automaticTooltip.replaceChildren(
     node('strong', mark.dataset.label),
     node('div', mark.dataset.explanation)
@@ -261,18 +264,31 @@ function modalExcerpt(sentence, evidences) {
     mark.tabIndex = 0;
     mark.dataset.label = [...new Set(matches.map(s => s.finding.label))].join(' · ');
     mark.dataset.explanation = [...new Set(matches.map(s =>
-      (s.finding.rule_id === 'context.quotation_omission'
+      (s.finding.category === 'event_terminology'
+        ? 'Информационная отметка — не признак манипуляции'
+        : s.finding.rule_id === 'context.quotation_omission'
         ? 'Сокращение цитаты — требуется сверка с оригиналом'
         : statuses[s.finding.status] || s.finding.status) + '. ' + s.finding.explanation))].join(' ');
     mark.dataset.question = [...new Set(matches.map(s => s.finding.review_question))].join(' ');
     mark.setAttribute('aria-label', text + ': ' + mark.dataset.label);
-    mark.addEventListener('mouseenter', () => showAutomaticTooltip(mark));
-    mark.addEventListener('mouseleave', () => { automaticTooltip.hidden = true; });
+    mark.addEventListener('pointerenter', event => {
+      if (event.pointerType === 'mouse') showAutomaticTooltip(mark);
+    });
+    mark.addEventListener('pointerleave', event => {
+      if (event.pointerType === 'mouse') automaticTooltip.hidden = true;
+    });
     mark.addEventListener('focus', () => showAutomaticTooltip(mark));
     mark.addEventListener('blur', () => { automaticTooltip.hidden = true; });
+    let closeOnClick = false;
+    mark.addEventListener('pointerdown', () => {
+      closeOnClick = !automaticTooltip.hidden && automaticTooltipTarget === mark;
+    });
     mark.addEventListener('click', () => {
-      if (automaticTooltip.hidden) showAutomaticTooltip(mark);
-      else automaticTooltip.hidden = true;
+      // Touch focuses the mark before click. Use its pre-focus state so the
+      // first tap does not immediately close the tooltip that focus just opened.
+      if (closeOnClick) automaticTooltip.hidden = true;
+      else showAutomaticTooltip(mark);
+      closeOnClick = false;
     });
     paragraph.append(mark);
   }
@@ -335,7 +351,7 @@ function refreshMarkers() {
   const select = element('marker');
   const previous = select.value;
   const categories = (report.coverage || []).filter(entry =>
-    entry.coverage === 'candidate_rules'
+    entry.coverage === 'candidate_rules' || entry.coverage === 'context_notices'
   );
   const options = [new Option('Все маркеры', '')];
   for (const category of categories) {
@@ -409,7 +425,8 @@ function render() {
     const publisherMeta = node('p', item.source, 'publication-meta');
     for (const label of statusLabels(publisherOf(item))) {
       const badge = node('span', label, 'legal-status-tag');
-      badge.title = 'Статус СМИ или его организации-оператора в РФ на 12.10.2026; сведения справочные';
+      badge.title = 'Статус СМИ или его организации-оператора в РФ; проверка ' +
+        (legalStatus(publisherOf(item)).checkedAt || '12.10.2026') + '; сведения справочные';
       publisherMeta.append(badge);
     }
     article.append(publisherMeta);
@@ -551,6 +568,7 @@ async function load() {
         (
           item.coverage === 'candidate_rules'
             ? 'поиск отдельных признаков'
+            : item.coverage === 'context_notices' ? 'информационные отметки'
             : 'не проверяется'
         )
       ).join('; ') + '.';

@@ -76,7 +76,10 @@ class ServerTests(unittest.TestCase):
             urlopen(self.base + "/secret-file")
         self.assertEqual(error.exception.code, 404)
         with urlopen(self.base + "/api/v1/taxonomy") as response:
-            self.assertEqual(len(json.load(response)["categories"]), 12)
+            categories = json.load(response)["categories"]
+            self.assertEqual(len(categories), 13)
+            self.assertEqual(next(c for c in categories if c["id"] == "event_terminology")["coverage"],
+                             "context_notices")
 
     def test_source_registry_available_without_collection_database(self):
         with urlopen(self.base + "/api/v1/sources") as response:

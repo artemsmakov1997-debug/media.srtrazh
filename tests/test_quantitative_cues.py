@@ -30,7 +30,7 @@ class QuantitativeCueTests(unittest.TestCase):
             with self.subTest(field=field):
                 value = "📰 " + RADIOSVOBODA_EXCERPT
                 result = analyze({"text": "Опубликован материал.", field: value})
-                findings = result["findings"]
+                findings = [f for f in result["findings"] if f["rule_id"] in QUANTITY_RULES]
                 self.assertEqual([f["evidence"][0]["quote"] for f in findings],
                                  ["Зачастую", "Как правило", "Многие задержанные", "существенно меньше"])
                 for f in findings:
@@ -111,7 +111,9 @@ class QuantitativeCueTests(unittest.TestCase):
         )
         for text in texts:
             with self.subTest(text=text):
-                self.assertEqual(analyze({"text": text})["findings"], [])
+                findings = analyze({"text": text})["findings"]
+                self.assertTrue(all(f["category"] == "event_terminology" and f["status"] == "context_only"
+                                    for f in findings))
 
     def test_quoted_denied_and_discussed_cues_keep_context(self):
         for text, expected in (

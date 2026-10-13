@@ -76,7 +76,7 @@ class ExpandedSourceTests(unittest.TestCase):
     def test_registry_covers_every_named_publisher_and_both_platforms(self):
         expected = {"rt", "tass", "ria", "interfax", "kommersant", "vedomosti", "rbc", "izvestia", "rg", "lenta", "meduza", "novayagazeta", "fontanka", "currenttime", "dw", "bbc", "aif", "inosmi"}
         self.assertEqual(set(PUBLISHERS), expected)
-        self.assertEqual(len(selected_sources()), 38)
+        self.assertEqual(len(selected_sources()), 39)
         for publisher in expected:
             self.assertEqual(SOURCES[publisher].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].publisher, publisher)
@@ -243,6 +243,19 @@ class TelegramTests(unittest.TestCase):
                 self.assertEqual(extract_post(telegram_post(1, channel=channel), entry.url, source, entry)["document"]["text"], "Новость: открыта библиотека.")
         self.assertNotIn("smotri", PUBLISHERS)
         self.assertNotIn("smotri", SOURCES)
+
+    def test_mediazona_channel_is_scoped_and_does_not_invent_a_website(self):
+        source = SOURCES["mediazona_telegram"]
+        self.assertEqual((source.channel, source.publisher, source.platform),
+                         ("mediazzzona", "mediazona", "telegram"))
+        markup = telegram_post(7, channel="mediazzzona")
+        entry = parse_preview(markup, source)[0]
+        self.assertEqual(entry.url, "https://t.me/mediazzzona/7")
+        self.assertEqual(extract_post(markup, entry.url, source, entry)["document"]["text"],
+                         "Новость: открыта библиотека.")
+        with self.assertRaises(ValueError):
+            normalize_url("https://t.me/mediazona/7", source)
+        self.assertNotIn("mediazona", PUBLISHERS)
 
     source = SOURCES["rt_telegram"]
 

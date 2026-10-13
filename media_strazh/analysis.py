@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.5.1"
+VERSION = "rules-0.6.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -29,6 +29,7 @@ TAXONOMY = (
     ("euphemism_dysphemism", "Эвфемизмы и дисфемизмы", True),
 )
 LABELS = {key: label for key, label, _ in TAXONOMY}
+LABELS["event_terminology"] = "Выбор обозначения события"
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
@@ -120,6 +121,22 @@ CLAUSE_QUANTITY = re.compile(
     r"^[^,;.!?\n]{0,100}[:(]\s*(?:в\s+)?\d+(?:[.,]\d+)?\s*"
     r"(?:%|процент[а-яё]*|из\s+\d+\b)", re.I,
 )
+WAR_PARTICIPANT = re.compile(r"\b(?:украин[а-яё]*|росси[а-яё]*|киев[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*)\b", re.I)
+WAR_ACTION = re.compile(
+    r"\b(?:войн[а-яё]*|вторжени[а-яё]*|военн[а-яё]*|боев[а-яё]*|фронт[а-яё]*|"
+    r"ветеран[а-яё]*|мобилиз[а-яё]*|военнослужащ[а-яё]*|вооруж[а-яё]*|"
+    r"солдат[а-яё]*|погиб[а-яё]*|участник[а-яё]*)\b", re.I,
+)
+OTHER_WAR_CONTEXT = re.compile(
+    r"\b(?:втор[а-яё]*\s+миров[а-яё]*|велик[а-яё]*\s+отечественн[а-яё]*|"
+    r"1939|1941|1945|Ирак[а-яё]*|Афганистан[а-яё]*|Сири[а-яё]*|Ливан[а-яё]*|"
+    r"Газ[аеуы]|Израил[а-яё]*)\b", re.I,
+)
+OTHER_SVO = re.compile(
+    r"\b(?:систем[а-яё]*\s+(?:водян[а-яё]*|воздушн[а-яё]*)\s+охлаждени[а-яё]*|"
+    r"охлаждени[а-яё]*|радиатор[а-яё]*|процессор[а-яё]*|"
+    r"совет\s+ветеранов\s+организации)\b", re.I,
+)
 
 # Recognize attribution, not credibility. The same cue applies to all listed
 # political speakers; their party, publisher and position never determine truth.
@@ -139,13 +156,22 @@ POLITICAL_PRESCRIPTION_TARGET = re.compile(
 )
 
 
-def _rule_applies(rule, field, text, start, end, quotes=()):
+def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     if field not in rule.fields:
         return False
     if not rule.context_requirement:
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "russian_ukrainian_terminology":
+        # A publisher's identity never supplies the conflict context. Limit it
+        # to nearby text; explicit other wars and technical acronyms take priority.
+        nearby = text[max(0, start - 350):min(len(text), end + 350)] + "\n" + event_context
+        if OTHER_WAR_CONTEXT.search(sentence) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+            return False
+        if rule.id == "terminology.svo" and OTHER_SVO.search(nearby):
+            return False
+        return bool(WAR_PARTICIPANT.search(nearby) and WAR_ACTION.search(sentence + "\n" + event_context))
     if rule.context_requirement.startswith("quantitative_"):
         tail = text[end:end + 100]
         if DIRECT_QUANTITY.match(tail) or CLAUSE_QUANTITY.search(tail):
@@ -304,7 +330,8 @@ def taxonomy():
     return [
         {"id": key, "label": label, "coverage": "candidate_rules" if supported else "not_evaluated"}
         for key, label, supported in TAXONOMY
-    ]
+    ] + [{"id": "event_terminology", "label": LABELS["event_terminology"],
+          "coverage": "context_notices"}]
 
 
 def validate_document(document):
@@ -422,53 +449,62 @@ def analyze(document):
     findings = []
     occupied = {}
     truncated = False
-    for field, value in (("title", title), ("text", text)):
-        for rule, pattern in COMPILED_RULES:
-            if field not in rule.fields:
-                continue
-            for match in pattern.finditer(value):
-                if not _rule_applies(rule, field, value, *match.span(), quotes[field]):
+    # Informational terms must not exhaust the budget before rhetoric in either field.
+    for informational in (False, True):
+        for field, value in (("title", title), ("text", text)):
+            for rule, pattern in COMPILED_RULES:
+                if (rule.category == "event_terminology") != informational:
                     continue
-                spans = occupied.setdefault((field, rule.category), [])
-                if any(match.start() < end and start < match.end() for start, end in spans):
+                if field not in rule.fields:
                     continue
+                for match in pattern.finditer(value):
+                    if not _rule_applies(rule, field, value, *match.span(), quotes[field],
+                                         event_context=text[:350] if field == "title" else title):
+                        continue
+                    spans = occupied.setdefault((field, rule.category), [])
+                    if any(match.start() < end and start < match.end() for start, end in spans):
+                        continue
+                    if len(findings) >= MAX_FINDINGS:
+                        truncated = True
+                        break
+                    evidence = _evidence(field, value, *match.span(), quotes[field])
+                    if rule.id == "authority.prominent_prescriptive_quote":
+                        # This rule requires attributed speech even without literal
+                        # quotation marks. Denial/discussion still take priority.
+                        evidence["context"]["reported_speech"] = True
+                    if rule.id == "context.quotation_omission":
+                        # Editing is observable; distortion is not established.
+                        evidence["context"]["quotation_edited"] = True
+                    if rule.category == "event_terminology":
+                        evidence["context"]["informational_notice"] = True
+                    spans.append(match.span())
+                    findings.append({
+                        "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],
+                        "status": "context_only" if rule.id == "context.quotation_omission" or rule.category == "event_terminology" else _status(evidence),
+                        "explanation": rule.explanation,
+                        "review_question": rule.review_question, "evidence": [evidence],
+                    })
+        if informational:
+            continue
+        # Co-occurrence is a review cue, never proof that the claims contradict.
+        caveat = BODY_UNCERTAINTY.search(text)
+        if caveat:
+            for certainty in TITLE_CERTAINTY.finditer(title):
                 if len(findings) >= MAX_FINDINGS:
                     truncated = True
                     break
-                evidence = _evidence(field, value, *match.span(), quotes[field])
-                if rule.id == "authority.prominent_prescriptive_quote":
-                    # This rule requires attributed speech even without literal
-                    # quotation marks. Denial/discussion still take priority.
-                    evidence["context"]["reported_speech"] = True
-                if rule.id == "context.quotation_omission":
-                    # Editing is observable; distortion is not established.
-                    evidence["context"]["quotation_edited"] = True
-                spans.append(match.span())
+                heading = _evidence("title", title, *certainty.span(), quotes["title"])
+                body = _evidence("text", text, *caveat.span(), quotes["text"])
+                # Do not turn a quoted/negated caveat into an asserted limitation.
+                if _status(body) != "needs_review":
+                    continue
                 findings.append({
-                    "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],
-                    "status": "context_only" if rule.id == "context.quotation_omission" else _status(evidence),
-                    "explanation": rule.explanation,
-                    "review_question": rule.review_question, "evidence": [evidence],
+                    "rule_id": "headline.certainty_gap", "category": "clickbait", "label": LABELS["clickbait"],
+                    "status": _status(heading),
+                    "explanation": "В заголовке есть категоричный вывод, а в тексте — оговорка о неопределённости. Связь между ними требует проверки.",
+                    "review_question": "Относятся ли вывод и оговорка к одному исследованию, субъекту и утверждению?",
+                    "evidence": [heading, body],
                 })
-    # Co-occurrence is a review cue, never proof that the claims contradict.
-    caveat = BODY_UNCERTAINTY.search(text)
-    if caveat:
-        for certainty in TITLE_CERTAINTY.finditer(title):
-            if len(findings) >= MAX_FINDINGS:
-                truncated = True
-                break
-            heading = _evidence("title", title, *certainty.span(), quotes["title"])
-            body = _evidence("text", text, *caveat.span(), quotes["text"])
-            # Do not turn a quoted/negated caveat into an asserted limitation.
-            if _status(body) != "needs_review":
-                continue
-            findings.append({
-                "rule_id": "headline.certainty_gap", "category": "clickbait", "label": LABELS["clickbait"],
-                "status": _status(heading),
-                "explanation": "В заголовке есть категоричный вывод, а в тексте — оговорка о неопределённости. Связь между ними требует проверки.",
-                "review_question": "Относятся ли вывод и оговорка к одному исследованию, субъекту и утверждению?",
-                "evidence": [heading, body],
-            })
     findings.sort(key=lambda f: (f["evidence"][0]["field"] != "title", f["evidence"][0]["start"], f["rule_id"]))
     for index, finding in enumerate(findings, 1):
         finding["id"] = f"f{index}"
