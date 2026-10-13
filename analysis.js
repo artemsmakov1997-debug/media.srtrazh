@@ -348,11 +348,11 @@ function refreshMarkers() {
 /* Короткий заголовок карточки: не превращаем Telegram-превью в заголовок целого поста.
    Оригинал сохраняется в title и полностью доступен внутри «Подробнее». */
 function cardHeadline(item) {
-  const source = String(item.title || item.message_preview || '').replace(/\\s+/g, ' ').trim();
+  const source = String(item.title || item.message_preview || '').replace(/\s+/g, ' ').trim();
   if (!source) return platformOf(item) === 'telegram' ? 'Публикация в Telegram' : 'Публикация без заголовка';
   const isPreview = !item.title;
   if (!isPreview) return source;
-  const firstSentence = source.match(/^.{12,180}?[.!?](?=\\s|$)/u);
+  const firstSentence = source.match(/^.{12,180}?[.!?](?=\s|$)/u);
   const concise = firstSentence ? firstSentence[0] : source;
   if (concise.length <= 115) return concise;
   const head = concise.slice(0, 114);
@@ -413,7 +413,7 @@ function render() {
 
     const headline = node('h2', cardHeadline(item));
     headline.className = 'publication-title';
-    const fullHeadline = String(item.title || item.message_preview || '').replace(/\\s+/g, ' ').trim();
+    const fullHeadline = String(item.title || item.message_preview || '').replace(/\s+/g, ' ').trim();
     if (fullHeadline && headline.textContent !== fullHeadline) {
       headline.title = fullHeadline;
     }
