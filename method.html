@@ -1293,6 +1293,37 @@
   <script defer src="pro-gateway.js?v=20261012-pro3"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
+<style id="method-mobile-stage-layout">
+  @media (max-width: 767px) {
+    /* All three section headings fit a single line on phone widths. */
+    body .section .section-title {
+      font-size: clamp(11px, 3.08vw, 13px) !important;
+      line-height: 1.35 !important;
+      letter-spacing: -.015em !important;
+      white-space: nowrap;
+      text-wrap: nowrap;
+      margin-bottom: 9px;
+    }
+    /* Make the three consecutive analysis stages clearly separate surfaces. */
+    body #pipelineGrid.pipeline-grid {
+      gap: 9px;
+    }
+    body #pipelineGrid .pipeline-card {
+      background: linear-gradient(135deg, #162437 0%, #101b2a 100%) !important;
+      border: 1px solid rgba(92, 127, 152, .42) !important;
+      border-radius: 11px !important;
+      padding: 14px 13px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 3px 10px rgba(0,0,0,.13) !important;
+      transform: none;
+    }
+    body #pipelineGrid .pipeline-card.is-active,
+    body #pipelineGrid .pipeline-card:hover {
+      border-color: rgba(34,211,238,.6) !important;
+      background: linear-gradient(135deg, #1a2d40 0%, #112233 100%) !important;
+    }
+    body #pipelineGrid .pipe-title { min-width: 0; }
+  }
+</style>
 </head>
 
 <body>
