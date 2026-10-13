@@ -1,0 +1,21 @@
+/* Unified hover/focus treatment for the public site's Support navigation CTA. */
+.support-button-desktop,
+.support-button-mobile {
+  transition: transform .22s ease, filter .22s ease, box-shadow .22s ease, background .22s ease !important;
+  will-change: auto;
+}
+.support-button-desktop:hover,
+.support-button-mobile:hover,
+.support-button-desktop:focus-visible,
+.support-button-mobile:focus-visible {
+  background: linear-gradient(125deg, #ffe14d 0%, #ffae22 75%, #ff9a23 100%) !important;
+  filter: brightness(1.13) saturate(1.12) !important;
+  color: #16150b !important;
+  box-shadow: 0 0 0 2px rgba(255,222,103,.35), 0 0 23px rgba(250,188,41,.52), 0 9px 22px rgba(0,0,0,.35) !important;
+  transform: translateY(-2px) !important;
+}
+.support-button-desktop:active,
+.support-button-mobile:active { transform: translateY(0) !important; }
+@media (prefers-reduced-motion: reduce) {
+ .support-button-desktop,.support-button-mobile { transition: none !important; }
+}
