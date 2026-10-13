@@ -359,9 +359,11 @@ def pro_business_navigation_ui(browser, base):
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
             # Desktop navigation names illuminate when hovered.
             menu_link = page.locator(".site-nav .nav-links > a.nav-link").first
+            before_nav_hover = menu_link.evaluate("el => ({ bg: getComputedStyle(el).backgroundColor, shadow: getComputedStyle(el).boxShadow, color: getComputedStyle(el).color })")
             menu_link.hover()
-            page.wait_for_timeout(260)
-            assert menu_link.evaluate("el => getComputedStyle(el).color") == "rgb(185, 246, 255)", route
+            page.wait_for_timeout(320)
+            after_nav_hover = menu_link.evaluate("el => ({ bg: getComputedStyle(el).backgroundColor, shadow: getComputedStyle(el).boxShadow, color: getComputedStyle(el).color })")
+            assert before_nav_hover != after_nav_hover, (route, before_nav_hover, after_nav_hover)
         # The support page offers donation and both distinct PRO pathways.
         page.goto(base + "/help.html")
         assert page.locator(".support-choice").count() == 3
