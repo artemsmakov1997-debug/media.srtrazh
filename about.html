@@ -1097,6 +1097,47 @@
     }
   }
 </style>
+<style id="principle-links-3d">
+  .values-grid .value-card {
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  .values-grid .value-card p { flex: 1; }
+  .values-grid .value-card .value-link {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    max-width: 100%; min-height: 44px; padding: 11px 16px; margin-top: 8px;
+    border: 1px solid color-mix(in srgb, var(--card-accent, #22d3ee), transparent 44%);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #1e3545 0%, #102331 100%);
+    color: #e6f6fb; opacity: 1;
+    font-size: 12px; line-height: 1.3; font-weight: 800;
+    letter-spacing: .01em; text-transform: none; text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 5px 0 #07131d, 0 13px 22px rgba(0,0,0,.2);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  }
+  .values-grid .value-card .value-link:hover,
+  .values-grid .value-card .value-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--card-accent, #22d3ee);
+    background: linear-gradient(180deg, #284757 0%, #153345 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 7px 0 #07131d, 0 15px 25px rgba(0,0,0,.23);
+  }
+  .values-grid .value-card .value-link:active {
+    transform: translateY(2px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 0 #07131d, 0 6px 12px rgba(0,0,0,.2);
+  }
+  .values-grid .value-card[data-n="2"] .value-link {
+    border-color: rgba(20,184,166,.65);
+  }
+  .values-grid .value-card[data-n="3"] .value-link {
+    border-color: rgba(34,197,94,.52);
+  }
+  @media (max-width: 767px) {
+    .values-grid .value-card .value-link { width: 100%; min-height: 46px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .values-grid .value-card .value-link { transition: none; }
+  }
+</style>
 </head>
 
 <body>
@@ -1229,8 +1270,7 @@
         <div class="value-num">Принцип 01</div>
         <div class="value-title-row"><h3>Прозрачность</h3></div>
         <p>
-          Для каждого сообщения видно, какие именно факторы повлияли на индекс манипулятивности:
-          эмоциональная лексика, псевдостатистика, образ врага и другие. Мы не прячем логику ИИ.
+          Для каждого сообщения видно, какие именно факторы повлияли на индекс манипулятивности.
         </p>
         <a href="method.html" class="value-link">Смотреть методику →</a>
       </article>
@@ -1239,18 +1279,16 @@
         <div class="value-num">Принцип 02</div>
         <div class="value-title-row"><h3>Независимость</h3></div>
         <p>
-          Проект не связан с медиахолдингами, государственными структурами или коммерческими заказчиками.
-          Задача — измерять манипуляции, а не обслуживать чьи-то интересы.
+          Мы развиваем прозрачную модель финансирования: добровольная поддержка и подписки PRO. Это позволяет проекту сохранять самостоятельность и не зависеть от интересов медиахолдингов, рекламодателей или политических структур.
         </p>
-        <a href="http://media-strazh.ru/help" class="value-link">Поддержать проект →</a>
+        <a href="help.html" class="value-link">Поддержать проект →</a>
       </article>
 
       <article class="value-card" data-n="3">
         <div class="value-num">Принцип 03</div>
         <div class="value-title-row"><h3>Динамика</h3></div>
         <p>
-          Система регулярно перечитывает новостные ленты и обновляет индексы. Это не музей манипуляций,
-          а живой срез медиа-реальности, за которой можно наблюдать в динамике.
+          Система регулярно перечитывает новостные ленты и обновляет индексы.
         </p>
         <a href="archive.html" class="value-link">Перейти к архиву →</a>
       </article>
