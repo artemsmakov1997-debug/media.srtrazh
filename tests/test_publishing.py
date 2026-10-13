@@ -10,7 +10,7 @@ from unittest.mock import patch
 from media_strazh.analysis import VERSION, analyze
 from media_strazh.collector import collect_once
 from media_strazh.extraction import FeedEntry
-from media_strazh.publishing import ROOT, build_site, snapshot
+from media_strazh.publishing import ROOT, build_site, snapshot, telegram_display_excerpt
 from media_strazh.sources import SOURCES
 from media_strazh.storage import Store
 from test_collector import BODY, FakeNetwork, NOW, page
@@ -46,6 +46,22 @@ class PublishingTests(unittest.TestCase):
         article = next(row for row in self.store.due(source.id, NOW, 100) if row["url"] == url)
         self.store.save(article, {"document": document, "extractor_version": "fixture",
                         "extraction_method": "fixture"}, page(source, url), analyze(document), NOW, 3600)
+
+    def test_telegram_display_phrase_removes_forwarding_and_never_truncates(self):
+        text = ("Forwarded from Новая-Европа: истории\n"
+                "✊ Удары по «Яндексу» оттягивают суверенизацию Рунета, "
+                "но на восстановление потребуется много времени. "
+                "Это следующее предложение не является заголовком.\n"
+                "Продолжение новости.")
+        phrase = telegram_display_excerpt(text, forwarded=True)
+        self.assertEqual(phrase, "Удары по «Яндексу» оттягивают суверенизацию Рунета, "
+                                 "но на восстановление потребуется много времени.")
+        self.assertNotIn("Forwarded from", phrase)
+        self.assertNotIn("…", phrase)
+        self.assertEqual(telegram_display_excerpt(
+            "Короткая заметка без завершающей точки", forwarded=False),
+            "Короткая заметка без завершающей точки")
+        self.assertEqual(telegram_display_excerpt("А" * 500, forwarded=False), "")
 
     def test_report_contains_real_metadata_without_article_bodies_or_raw_html(self):
         self.collect()
