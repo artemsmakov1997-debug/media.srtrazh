@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=business6">
-<script defer src="business.js?v=business6"></script>
+<link rel="stylesheet" href="business.css?v=business7">
+<script defer src="business.js?v=business7"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
 </head>
@@ -25,12 +25,12 @@
 <main class="business-shell">
   <section class="business-start" id="businessStart" aria-labelledby="businessTitle">
     <div class="business-start-inner">
-      <h1 id="businessTitle">Медиаповестка вашей компании</h1>
-      <p class="business-start-lead">Что о вас говорят, какие темы набирают популярность и как использовать их для коммуникаций.</p>
+      <h1 id="businessTitle">Медиаповестка вашей компании<span class="title-mark">.</span></h1>
+      <p class="business-start-lead">Отслеживайте упоминания, находите растущие инфоповоды и превращайте интерес СМИ в возможности для продвижения.</p>
       <form id="profileForm" class="business-profile">
         <div class="business-field">
-          <label for="companyName">Название компании</label>
-          <input id="companyName" name="companyName" maxlength="80" required placeholder="Например, название компании" autocomplete="organization">
+          <label for="companyName">Компания</label>
+          <input id="companyName" name="companyName" maxlength="80" required placeholder="Название компании" autocomplete="organization">
         </div>
         <div class="business-field">
           <label for="industry">Отрасль</label>
@@ -40,56 +40,83 @@
             <option value="hospitality">Гостиничный бизнес</option>
           </select>
         </div>
-        <button class="business-btn" type="submit">Показать обзор <span aria-hidden="true">→</span></button>
+        <button class="business-btn" type="submit">Построить обзор <span aria-hidden="true">↗</span></button>
       </form>
-      <p class="business-start-note">Демо-режим · Результаты для тестирования интерфейса, без реального мониторинга</p>
+      <p class="business-start-note">Демонстрационный режим · Без подключения к СМИ и мониторингу интернета</p>
     </div>
   </section>
 
-  <div id="businessResults" class="business-results" hidden aria-live="polite">
+  <div id="businessResults" class="business-results" hidden>
     <div class="business-result-head">
       <div class="business-result-identity">
-        <span class="business-result-label">Обзор для компании</span>
+        <span class="business-result-label">ПРОФИЛЬ МЕДИАПОЛЯ <span class="result-demo-marker">ДЕМО</span></span>
         <h2 id="companyDisplay"></h2>
         <p id="industryDisplay"></p>
       </div>
-      <button type="button" id="editProfile" class="business-btn business-btn--secondary">Изменить параметры</button>
+      <button type="button" id="editProfile" class="business-btn business-btn--secondary">Изменить компанию <span aria-hidden="true">↗</span></button>
     </div>
-    <nav class="business-result-tabs" aria-label="Разделы обзора">
-      <a href="#mentions" class="business-result-tab business-result-tab--active">Упоминания</a>
-      <a href="#trends" class="business-result-tab">Инфоповоды</a>
-      <a href="#opportunities" class="business-result-tab">PR-возможности</a>
-    </nav>
-    <p class="business-data-warning"><strong>Демо-режим.</strong> Материалы, источники, категории упоминаний и статистика условные. Подключение реального мониторинга и ИИ-анализа — следующий этап.</p>
 
-    <section class="business-section" id="mentions" aria-labelledby="mentionsTitle">
+    <div class="business-workspace-bar">
+      <div class="business-result-tabs" role="tablist" aria-label="Разделы бизнес-аналитики">
+        <button id="tabMentions" type="button" role="tab" class="business-result-tab business-result-tab--active" aria-controls="mentions" aria-selected="true" tabindex="0" data-tab="mentions">Упоминания</button>
+        <button id="tabTrends" type="button" role="tab" class="business-result-tab" aria-controls="trends" aria-selected="false" tabindex="-1" data-tab="trends">Инфоповоды</button>
+        <button id="tabOpportunities" type="button" role="tab" class="business-result-tab" aria-controls="opportunities" aria-selected="false" tabindex="-1" data-tab="opportunities">PR-возможности</button>
+      </div>
+      <div class="business-period">
+        <label for="period">Период</label>
+        <select id="period">
+          <option value="7">7 дней</option>
+          <option value="30" selected>30 дней</option>
+          <option value="90">90 дней</option>
+        </select>
+      </div>
+    </div>
+    <p class="business-data-warning"><strong>Демо-режим.</strong> Упоминания, источники, тональность, количества публикаций и PR-рекомендации условные. Реальный мониторинг и ИИ-анализ ещё не подключены.</p>
+
+    <section class="business-section" id="mentions" role="tabpanel" aria-labelledby="tabMentions" tabindex="0">
       <div class="business-section-head">
-        <div><h2 id="mentionsTitle">Упоминания компании</h2><p>Публикации, источники, контекст и оценка тональности.</p></div>
-        <div class="business-period">
-          <label for="period">Период</label>
-          <select id="period">
-            <option value="7">7 дней</option>
-            <option value="30" selected>30 дней</option>
-            <option value="90">90 дней</option>
-          </select>
+        <div>
+          <h2 id="mentionsTitle">Упоминания компании</h2>
+          <p>Сводка по выбранному периоду и полный список сообщений.</p>
         </div>
       </div>
-      <div class="business-table-wrap">
-        <table class="business-mentions-table">
-          <thead><tr><th scope="col">Упоминание и фрагмент</th><th scope="col">СМИ / источник</th><th scope="col">Категория</th><th scope="col">Дата и время</th></tr></thead>
-          <tbody id="mentionsBody"></tbody>
-        </table>
+      <div class="business-mention-stats" aria-label="Статистика упоминаний">
+        <div class="business-stat business-stat--total"><span class="business-stat-label">Всего упоминаний</span><strong id="totalMentions">0</strong><span class="business-stat-foot">за выбранный период</span></div>
+        <div class="business-stat business-stat--positive"><span class="business-stat-label"><span class="stat-dot"></span>Положительные</span><strong id="positiveCount">0</strong></div>
+        <div class="business-stat business-stat--negative"><span class="business-stat-label"><span class="stat-dot"></span>Отрицательные</span><strong id="negativeCount">0</strong></div>
+        <div class="business-stat business-stat--neutral"><span class="business-stat-label"><span class="stat-dot"></span>Нейтральные</span><strong id="neutralCount">0</strong></div>
       </div>
-      <p class="business-table-note" id="mentionsCount" role="status"></p>
+      <div class="business-feed-heading"><h3>Все публикации</h3><span id="mentionsCount" role="status" aria-live="polite"></span></div>
+      <div id="mentionsBody" class="business-mentions-feed" role="list" aria-label="Полный список упоминаний"></div>
     </section>
 
-    <section class="business-section" id="trends" aria-labelledby="trendsTitle">
-      <div class="business-section-head"><div><h2 id="trendsTitle">Главные инфоповоды</h2><p>Темы, которые освещают профильные медиа.</p></div></div>
+    <section class="business-section" id="trends" role="tabpanel" aria-labelledby="tabTrends" tabindex="0" hidden>
+      <div class="business-section-head">
+        <div>
+          <h2 id="trendsTitle">Растущие инфоповоды</h2>
+          <p>Темы, которые становятся популярнее и могут помочь в продвижении бизнеса.</p>
+        </div>
+      </div>
+      <p class="business-trends-explainer">Рост по сравнению с предыдущим аналогичным периодом: <strong id="trendPeriodLabel">30 дней</strong>. Проценты и количество публикаций — демонстрационные.</p>
       <div class="business-trends" id="trendsGrid"></div>
     </section>
 
-    <section class="business-section" id="opportunities" aria-labelledby="opportunitiesTitle">
-      <div class="business-section-head"><div><h2 id="opportunitiesTitle">PR-возможности</h2><p>Идеи для экспертных комментариев, исследований и публикаций.</p></div></div>
+    <section class="business-section business-section--pr" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0" hidden>
+      <div class="intelligence-hero">
+        <div class="intelligence-overline"><span class="intelligence-signal" aria-hidden="true"></span> ПРОТОТИП ИИ-РЕКОМЕНДАЦИЙ</div>
+        <h2>От медиасигналов <em>к действиям.</em></h2>
+        <p>Три возможных PR-сценария на пересечении интересов СМИ и вашего бизнеса. Сейчас предложения сформированы по демонстрационным шаблонам, а не реальным ИИ.</p>
+        <div class="intelligence-stages" aria-label="Логика будущего анализа">
+          <span>01 <b>Упоминания</b></span><span class="stage-arrow" aria-hidden="true">→</span>
+          <span>02 <b>Инфоповоды</b></span><span class="stage-arrow" aria-hidden="true">→</span>
+          <span>03 <b>Готовые действия</b></span>
+        </div>
+        <div class="intelligence-light-line" aria-hidden="true"></div>
+      </div>
+      <div class="business-recs-header">
+        <div><h3>Предложения для вашей команды</h3><p>Каждая идея привязана к демонстрационному отраслевому инфоповоду.</p></div>
+        <span class="business-recs-count">03 СЦЕНАРИЯ</span>
+      </div>
       <div class="business-opportunities" id="opportunitiesGrid"></div>
     </section>
   </div>
