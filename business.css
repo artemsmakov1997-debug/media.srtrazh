@@ -34,7 +34,7 @@ a{color:inherit;text-decoration:none}
 .site-header .header-back:hover{color:#22d3ee;border-color:#22d3ee;background:rgba(34,211,238,.08)}
 .business-shell{margin:0 auto}
 .business-start{position:relative;min-height:calc(100svh - 76px);padding:55px clamp(22px,5vw,86px);display:flex;align-items:center;justify-content:center;background:var(--paper);overflow:hidden}
-.business-start-inner{width:min(100%,940px);margin:0 auto;transition:opacity .32s ease,transform .38s ease}
+.business-start-inner{width:min(100%,1160px);margin:0 auto;transition:opacity .32s ease,transform .38s ease}
 /* Editorial media-signal field: quiet kinetic type, never over the form.
    Intentionally not simulated data or an AI visualization. */
 .business-start{
@@ -62,22 +62,28 @@ a{color:inherit;text-decoration:none}
   white-space:nowrap;color:rgba(49,106,125,.19);
   font:750 clamp(20px,2.8vw,44px)/1.12 Montserrat,Inter,sans-serif;
   letter-spacing:-.055em;text-transform:lowercase;
-  animation:ambient-float 18s ease-in-out infinite alternate;
+  animation:ambient-drift-left 40s linear infinite;
   will-change:transform;
 }
-.ambient-term--one{top:17%;left:6%;font-size:clamp(26px,2.8vw,44px);animation-duration:19s}
-.ambient-term--two{top:20%;right:7%;font-size:clamp(25px,2.55vw,40px);color:rgba(49,106,125,.15);animation-delay:-6s}
-.ambient-term--three{top:68%;right:9%;font-size:clamp(27px,2.9vw,46px);animation-duration:22s;color:rgba(130,114,88,.2)}
-.ambient-term--four{top:73%;left:6%;font-size:clamp(24px,2.7vw,43px);animation-delay:-11s}
-.ambient-term--five{top:42%;left:1.5%;font-size:clamp(16px,1.5vw,24px);color:rgba(49,106,125,.13);animation-duration:24s}
-.ambient-term--six{top:87%;left:52%;font-size:clamp(17px,1.65vw,26px);color:rgba(137,111,75,.19);animation-delay:-7s}
-.ambient-term--seven{top:43%;right:3%;font-size:clamp(16px,1.45vw,23px);color:rgba(83,136,148,.16);animation-delay:-9s}
-@keyframes ambient-float{from{transform:translate3d(0,0,0)}to{transform:translate3d(6px,-13px,0)}}
+.ambient-term--one{top:17%;left:6%;font-size:clamp(26px,2.8vw,44px);animation-duration:42s;animation-delay:-11s}
+.ambient-term--two{top:20%;right:7%;font-size:clamp(25px,2.55vw,40px);color:rgba(49,106,125,.15);animation-duration:46s;animation-delay:-6s}
+.ambient-term--three{top:68%;right:9%;font-size:clamp(27px,2.9vw,46px);animation-duration:39s;animation-delay:-17s;color:rgba(130,114,88,.2)}
+.ambient-term--four{top:73%;left:6%;font-size:clamp(24px,2.7vw,43px);animation-duration:45s;animation-delay:-23s}
+.ambient-term--five{top:42%;left:1.5%;font-size:clamp(16px,1.5vw,24px);color:rgba(49,106,125,.13);animation-duration:49s;animation-delay:-13s}
+.ambient-term--six{top:87%;left:52%;font-size:clamp(17px,1.65vw,26px);color:rgba(137,111,75,.19);animation-duration:43s;animation-delay:-7s}
+.ambient-term--seven{top:43%;right:3%;font-size:clamp(16px,1.45vw,23px);color:rgba(83,136,148,.16);animation-duration:52s;animation-delay:-9s}
+/* Move left only. Words fade before resetting off-screen, so there is no visible snap. */
+@keyframes ambient-drift-left{
+  0%{transform:translate3d(var(--ambient-from,42px),0,0);opacity:0}
+  5%{opacity:1}
+  89%{opacity:1}
+  100%{transform:translate3d(var(--ambient-to,-165px),0,0);opacity:0}
+}
 @keyframes signal-journey{to{stroke-dashoffset:-450}}
 @keyframes signal-breathe{from{opacity:.4}to{opacity:.95}}
 
 .section-number{font:800 11px/1.4 Inter,sans-serif;letter-spacing:.135em;color:#3b8393}
-.business-profile{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,.9fr) auto;gap:14px;align-items:end;max-width:940px;padding:21px;background:#fff;border:1px solid #d9dddc;box-shadow:0 18px 54px rgba(28,50,62,.055)}
+.business-profile{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,.9fr) auto;gap:14px;align-items:end;max-width:1160px;padding:21px;background:#fff;border:1px solid #d9dddc;box-shadow:0 18px 54px rgba(28,50,62,.055)}
 .business-field{min-width:0;display:flex;flex-direction:column;gap:10px}
 .business-field label{font-size:12px;color:#576b79;font-weight:750}
 .business-field input,.business-field select{width:100%;min-width:0;height:49px;background:#f7f8f7;border:1px solid #cfd6d7;padding:10px 13px;border-radius:4px;color:#213541;font-size:14px}
@@ -268,7 +274,7 @@ body.business-open>.site-header{display:none}
   .site-header .brand-pro{font-size:10px;padding:3px 5px}
   .site-header .header-back{font-size:10px;padding:8px;gap:5px;white-space:normal;text-align:center;min-height:36px}
   .business-start{min-height:calc(100svh - 64px);padding:34px 18px 55px}
-  .ambient-term{font-size:15px!important;color:rgba(49,106,125,.13)}
+  .ambient-term{font-size:15px!important;color:rgba(49,106,125,.13);--ambient-from:12px;--ambient-to:-62px}
   .ambient-term--one{top:12%;left:7%;font-size:22px!important}
   .ambient-term--three{top:80%;right:7%;font-size:21px!important}
   .ambient-term--two,.ambient-term--four,.ambient-term--five,
