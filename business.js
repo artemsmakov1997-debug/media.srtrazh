@@ -258,8 +258,53 @@
     });
   });
   const form=$('profileForm');
+  const start=$('businessStart');
+  const loading=$('businessLoading');
+  const openButton=form.querySelector('button[type="submit"]');
+  const loadingStages=[
+    'Проверяем параметры компании',
+    'Подготавливаем демонстрационную выборку публикаций',
+    'Формируем аналитическую записку'
+  ];
+  let loadingTimeouts=[];
+  let isPreparing=false;
+
+  function cancelPreparation(){
+    loadingTimeouts.forEach(clearTimeout);
+    loadingTimeouts=[];
+    isPreparing=false;
+    openButton.disabled=false;
+    start.classList.remove('business-start--loading');
+    start.removeAttribute('aria-busy');
+    loading.hidden=true;
+  }
+
+  function setLoadingStep(index){
+    $('loadingStage').textContent=loadingStages[index];
+    document.querySelectorAll('[data-load-step]').forEach(el=>{
+      const step=Number(el.dataset.loadStep);
+      el.classList.toggle('is-current',step===index);
+      el.classList.toggle('is-done',step<index);
+    });
+  }
+
+  function showCabinet(){
+    if(!isPreparing)return;
+    cancelPreparation();
+    renderOverview();renderMentions();renderTrends();renderPR();
+    start.classList.add('business-start--compact');
+    $('businessResults').hidden=false;
+    $('businessResults').classList.remove('is-opening');
+    void $('businessResults').offsetWidth;
+    $('businessResults').classList.add('is-opening');
+    document.body.classList.add('business-open');
+    activateTab('overview');
+    $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
+  }
+
   form.addEventListener('submit',event=>{
     event.preventDefault();
+    if(isPreparing)return;
     activeCompany=$('companyName').value.trim();
     if(!activeCompany){$('companyName').focus();return;}
     activeIndustry=$('industry').value;
@@ -267,12 +312,25 @@
     $('industryDisplay').textContent=$('industry').selectedOptions[0].textContent;
     $('railCompany').textContent=activeCompany;
     $('railIndustry').textContent=$('industry').selectedOptions[0].textContent;
-    renderOverview();renderMentions();renderTrends();renderPR();
-    $('businessStart').classList.add('business-start--compact');
-    $('businessResults').hidden=false;
-    document.body.classList.add('business-open');
-    activateTab('overview');
-    $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
+    openButton.disabled=true;
+    isPreparing=true;
+    setLoadingStep(0);
+    loading.hidden=false;
+    start.setAttribute('aria-busy','true');
+    start.classList.add('business-start--loading');
+
+    // This is a visual transition between static demo data and its local
+    // rendering. No news retrieval or AI work happens during these stages.
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reducedMotion){
+      loadingTimeouts.push(setTimeout(showCabinet,220));
+      return;
+    }
+    loadingTimeouts.push(
+      setTimeout(()=>setLoadingStep(1),820),
+      setTimeout(()=>setLoadingStep(2),1640),
+      setTimeout(showCabinet,2480)
+    );
   });
   $('period').addEventListener('change',()=>{
     if($('businessResults').hidden)return;
@@ -283,8 +341,10 @@
     btn.addEventListener('click',()=>activateTab(btn.dataset.open));
   });
   $('editProfile').addEventListener('click',()=>{
+    cancelPreparation();
     $('businessResults').hidden=true;
-    $('businessStart').classList.remove('business-start--compact');
+    $('businessResults').classList.remove('is-opening');
+    start.classList.remove('business-start--compact');
     document.body.classList.remove('business-open');
     window.scrollTo({top:0,behavior:'auto'});
     $('companyName').focus();
