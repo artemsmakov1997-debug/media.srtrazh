@@ -254,6 +254,7 @@
   function activateTab(name,focus=false){
     if(!panels.includes(name))return;
     activeTab=name;
+    $('businessResults').classList.toggle('is-mentions',name==='mentions');
     tabs.forEach(tab=>{
       const on=tab.dataset.tab===name;
       tab.classList.toggle('business-result-tab--active',on);
