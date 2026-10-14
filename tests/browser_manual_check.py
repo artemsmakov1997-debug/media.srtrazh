@@ -424,6 +424,14 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
         assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
+        # Business entry header must match the Analysis PRO header geometry.
+        page.goto(base + "/analysis.html")
+        analysis_header = page.locator(".site-header .header-inner").evaluate(
+            "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
+        )
+        analysis_back_radius = page.locator(".site-header .header-back").evaluate(
+            "el => getComputedStyle(el).borderRadius"
+        )
         page.goto(base + "/index.html")
         # Desktop defaults to compact interface size without horizontal overflow.
         assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
@@ -432,13 +440,29 @@ def pro_business_navigation_ui(browser, base):
         page.locator(".pro-gateway-option--business").click()
         page.wait_for_url("**/business.html")
         assert page.locator(".site-header .header-back").is_visible()
+        assert page.locator(".site-header .header-back").inner_text().strip() == "← Вернуться к рейтингу"
+        assert page.locator(".site-header .header-inner").evaluate(
+            "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
+        ) == analysis_header
+        assert page.locator(".site-header .header-back").evaluate(
+            "el => getComputedStyle(el).borderRadius"
+        ) == analysis_back_radius
+        assert page.locator("#businessTitle, .start-eyebrow, .business-start-lead").count() == 0
         assert page.locator("#profileForm").is_visible()
+        assert not page.locator("#businessLoading").is_visible()
         assert not page.locator("#businessResults").is_visible()
         assert not page.locator("#trendsGrid .business-trend").count()
         page.locator("#companyName").fill("Тестовая компания")
         page.select_option("#industry", "hospitality")
         page.locator('#profileForm button[type="submit"]').click()
-        assert page.locator("#businessResults").is_visible()
+        page.locator("#businessLoading").wait_for(state="visible")
+        assert not page.locator("#businessResults").is_visible()
+        assert "Демонстрационная подготовка" in page.locator(".business-loading-disclaimer").inner_text()
+        assert "business-loading-track" in page.locator(".business-loading-progress").evaluate(
+            "el => getComputedStyle(el).animationName"
+        )
+        page.locator("#businessResults").wait_for(state="visible", timeout=8000)
+        assert not page.locator("#businessLoading").is_visible()
         assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
         assert page.locator("#overview").is_visible()
         assert not page.locator("#mentions").is_visible()
@@ -556,7 +580,10 @@ def pro_business_navigation_ui(browser, base):
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
-            assert p.locator("#businessResults").is_visible()
+            p.locator("#businessLoading").wait_for(state="visible")
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.locator("#businessResults").wait_for(state="visible", timeout=8000)
+            assert not p.locator("#businessLoading").is_visible()
             assert p.locator("#overview").is_visible()
             assert p.locator("#overviewTotal").inner_text() == "4"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
