@@ -360,3 +360,37 @@ body.business-open>.site-header{display:none}
   .business-atmosphere-map .signal-nodes circle{animation:none!important;will-change:auto}
   .business-results.is-opening{animation:none!important}
 }
+/* Business workspace refinements: 2026-10-15 */
+.business-profile{background:#fff;border:1px solid #bfccd1;border-radius:9px;box-shadow:0 0 0 5px rgba(255,255,255,.52),0 22px 64px rgba(17,39,52,.16),0 4px 14px rgba(17,39,52,.09)}
+.business-profile:focus-within{border-color:#76afbd;box-shadow:0 0 0 4px rgba(44,155,177,.11),0 22px 64px rgba(17,39,52,.15)}
+.business-loading h2{font-family:Inter,Arial,sans-serif;font-weight:500;letter-spacing:-.035em;font-size:clamp(20px,2.1vw,27px);line-height:1.4;max-width:100%;margin-bottom:20px;text-align:justify;text-align-last:justify}
+.business-loading{width:min(690px,calc(100% - 40px))}
+.business-mentions-summary{display:grid;grid-template-columns:minmax(225px,.8fr) minmax(270px,1.2fr);gap:36px;align-items:center;border-top:1px solid #cbd3d3;border-bottom:1px solid #cbd3d3;padding:27px 0;margin:24px 0 38px}
+.business-mentions-summary .business-mention-stats{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:19px 12px}
+.business-mentions-summary .business-stat--total{grid-column:1/-1;border-bottom:1px solid #e0e5e4;padding-bottom:18px}
+.business-mentions-summary .business-stat--total strong{font-size:clamp(55px,5.8vw,80px);font-weight:650}
+.business-mentions-summary .business-stat:not(.business-stat--total) strong{font-size:27px;font-weight:650}
+.mentions-chart-panel{min-width:0;border-left:1px solid #dde2e2;padding-left:32px}
+.mentions-chart-label{font-size:10px;font-weight:750;letter-spacing:.11em;color:#72858d}
+.mentions-stair-chart{width:100%;height:136px;margin-top:10px}
+.mentions-stair-chart svg{width:100%;height:100%;display:block;overflow:visible}
+.mentions-chart-axis{display:flex;justify-content:space-between;color:#91a0a7;font-size:10px}
+.mentions-table-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.mentions-table-heading h3{margin:0;font-size:19px;font-weight:700}
+.mentions-table-heading span{font-size:12px;color:#70828b}
+.mentions-filters{display:grid;grid-template-columns:minmax(190px,1fr) 150px 190px;gap:10px;align-items:end;margin-bottom:20px}
+.mentions-search input,.mentions-filter select{width:100%;height:43px;border:1px solid #cbd5d8;border-radius:6px;background:#fff;color:#243b48;font-size:12px;padding:0 13px}
+.mentions-search input:focus,.mentions-filter select:focus{outline:2px solid rgba(35,184,208,.27);border-color:#278ca2}
+.mentions-filter{display:flex;flex-direction:column;gap:5px;min-width:0}
+.mentions-filter span{font-size:10px;font-weight:650;color:#687d86}
+.mentions-table-columns{display:grid;grid-template-columns:minmax(0,1fr) 145px 138px;gap:20px;border-bottom:1px solid #c9d3d5;padding:0 14px 12px;color:#7b8d96;font-size:10px;font-weight:750;letter-spacing:.08em}
+.business-mentions-feed .mention-item{grid-template-columns:minmax(0,1fr) 145px 138px;align-items:center;gap:20px;padding:19px 14px}
+.business-mentions-feed .mention-title{font-size:14px;font-weight:700;margin:0 0 5px}
+.business-mentions-feed .mention-source{margin:0 0 6px}
+.business-mentions-feed .mention-excerpt{display:none}
+.business-mentions-feed .mention-aside{justify-content:flex-start}
+.mention-source-button{display:inline-flex;align-items:center;justify-content:center;min-height:35px;padding:8px 10px;border:1px solid #9fb8c2;border-radius:5px;background:#fff;color:#216781;font-size:11px;font-weight:700;text-decoration:none}
+.mention-source-button:not(:disabled):hover{border-color:#247e99;background:#f0f8fa}
+.mention-source-button:disabled{opacity:.57;cursor:not-allowed;color:#536c79}
+@media(max-width:950px){.mentions-filters{grid-template-columns:minmax(0,1fr) 130px 150px}.business-mentions-summary{gap:18px}.mentions-chart-panel{padding-left:18px}}
+@media(max-width:720px){.business-loading h2{text-align:left;text-align-last:auto;font-size:clamp(18px,4.8vw,23px)}.business-mentions-summary{grid-template-columns:1fr;gap:20px}.business-mentions-summary .business-mention-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.mentions-chart-panel{border-left:0;border-top:1px solid #dce2e3;padding:19px 0 0}.mentions-filters{grid-template-columns:1fr 1fr;gap:10px}.mentions-search{grid-column:1/-1}.mentions-table-columns{display:none}.business-mentions-feed .mention-item{grid-template-columns:1fr;gap:9px}.mention-source-button{width:max-content}}
