@@ -218,8 +218,9 @@ body.business-open>.site-header{display:none}
   .business-result-tab{min-height:39px;white-space:nowrap;width:auto;flex:0 0 auto;font-size:12px;padding:8px 11px}
   .business-result-tab--active{border-left:1px solid transparent;border-bottom:2px solid #5cd7e6;padding:8px 11px}
   .rail-icon{display:none}
-  .rail-bottom{position:absolute;right:16px;top:18px;margin:0;padding:0;gap:0}
-  .rail-demo,.rail-edit{display:none}
+  .rail-bottom{position:static;margin:0;padding:7px 3px 12px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+  .rail-demo{display:none}
+  .rail-edit{display:inline-flex;font-size:11px}
   .rail-back{font-size:11px}
   .business-paper{padding:22px 19px 58px;min-height:calc(100svh - 100px)}
   .paper-toolbar{align-items:flex-start}
