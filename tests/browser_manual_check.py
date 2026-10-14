@@ -432,6 +432,9 @@ def pro_business_navigation_ui(browser, base):
         analysis_back_radius = page.locator(".site-header .header-back").evaluate(
             "el => getComputedStyle(el).borderRadius"
         )
+        analysis_brand_box = page.locator(".site-header .brand").bounding_box()
+        analysis_back_box = page.locator(".site-header .header-back").bounding_box()
+        analysis_zoom = page.evaluate("getComputedStyle(document.body).zoom")
         page.goto(base + "/index.html")
         # Desktop defaults to compact interface size without horizontal overflow.
         assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
@@ -447,6 +450,16 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".site-header .header-back").evaluate(
             "el => getComputedStyle(el).borderRadius"
         ) == analysis_back_radius
+        assert page.evaluate("getComputedStyle(document.body).zoom") == analysis_zoom
+        business_brand_box = page.locator(".site-header .brand").bounding_box()
+        business_back_box = page.locator(".site-header .header-back").bounding_box()
+        for coordinate in ("x", "y"):
+            assert abs(business_brand_box[coordinate] - analysis_brand_box[coordinate]) <= 3
+            assert abs(business_back_box[coordinate] - analysis_back_box[coordinate]) <= 3
+        assert page.locator(".business-atmosphere .ambient-term").count() == 7
+        assert page.locator(".business-atmosphere").get_attribute("aria-hidden") == "true"
+        assert page.locator(".ambient-term").first.evaluate("el => getComputedStyle(el).animationName") == "ambient-float"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         assert page.locator("#businessTitle, .start-eyebrow, .business-start-lead").count() == 0
         assert page.locator("#profileForm").is_visible()
         assert not page.locator("#businessLoading").is_visible()
@@ -577,6 +590,7 @@ def pro_business_navigation_ui(browser, base):
             p.keyboard.press("Escape")
             p.goto(base + "/business.html")
             assert not p.locator("#businessResults").is_visible()
+            assert p.locator(".business-atmosphere").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
