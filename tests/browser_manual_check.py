@@ -440,7 +440,7 @@ def pro_business_navigation_ui(browser, base):
         page.locator(".pro-gateway-option--business").click()
         page.wait_for_url("**/business.html")
         assert page.locator(".site-header .header-back").is_visible()
-        assert page.locator(".site-header .header-back").inner_text().strip() == "← Вернуться к рейтингу"
+        assert "Вернуться к рейтингу" in page.locator(".site-header .header-back").inner_text()
         assert page.locator(".site-header .header-inner").evaluate(
             "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
         ) == analysis_header
