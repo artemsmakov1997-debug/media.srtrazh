@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=desk12">
+<link rel="stylesheet" href="business.css?v=desk13">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk9"></script>
+<script defer src="business.js?v=desk10"></script>
 </head>
 <body>
 <header class="site-header">
@@ -169,13 +169,16 @@
           <h2>Упоминания</h2>
           <p class="section-intro">Полный список публикаций по выбранному периоду и их тональность.</p>
         </header>
-        <div class="business-mention-stats" aria-label="Статистика упоминаний">
+        <div class="business-mentions-summary"><div class="business-mention-stats" aria-label="Статистика упоминаний">
           <div class="business-stat business-stat--total"><span class="business-stat-label">ВСЕГО</span><strong id="totalMentions">0</strong><span class="stat-unit">публикаций</span></div>
           <div class="business-stat business-stat--positive"><span class="business-stat-label">ПОЛОЖИТЕЛЬНЫЕ</span><strong id="positiveCount">0</strong></div>
           <div class="business-stat business-stat--negative"><span class="business-stat-label">ОТРИЦАТЕЛЬНЫЕ</span><strong id="negativeCount">0</strong></div>
           <div class="business-stat business-stat--neutral"><span class="business-stat-label">НЕЙТРАЛЬНЫЕ</span><strong id="neutralCount">0</strong></div>
         </div>
-        <div class="business-feed-heading"><h3>Все сообщения</h3><span id="mentionsCount" role="status" aria-live="polite"></span></div>
+        <div class="mentions-chart-panel"><span class="mentions-chart-label">ДИНАМИКА УПОМИНАНИЙ</span><div id="mentionsStairChart" class="mentions-stair-chart" role="img" aria-label="Диаграмма динамики публикаций за выбранный период"></div><div class="mentions-chart-axis"><span id="chartFrom"></span><span id="chartTo"></span></div></div></div>
+        <div class="mentions-table-heading"><h3>Сообщения СМИ</h3><span id="mentionsCount" role="status" aria-live="polite"></span></div>
+        <div class="mentions-filters" role="search" aria-label="Поиск и фильтрация упоминаний"><label class="mentions-search"><span class="visually-hidden">Поиск по публикациям</span><input id="mentionsSearch" type="search" placeholder="Поиск по заголовку, источнику..." autocomplete="off"></label><label class="mentions-filter"><span>Период</span><select id="mentionsPeriod"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select></label><label class="mentions-filter"><span>Тональность</span><select id="mentionsTone"><option value="all">Все</option><option value="positive">Положительная</option><option value="neutral">Нейтральная</option><option value="negative">Отрицательная</option></select></label></div>
+        <div class="mentions-table-columns" aria-hidden="true"><span>ПУБЛИКАЦИЯ</span><span>ТОНАЛЬНОСТЬ</span><span>ИСТОЧНИК</span></div>
         <div class="business-mentions-feed" id="mentionsBody" role="list" aria-label="Полный список упоминаний"></div>
       </section>
 
