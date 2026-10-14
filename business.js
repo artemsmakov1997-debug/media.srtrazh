@@ -100,7 +100,7 @@
   const dateFormat = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   let activeIndustry='medtech';
   let activeCompany='';
-  let activeTab='mentions';
+  let activeTab='overview';
   const periodDays=()=>Number($('period').value);
   // Synthetic demo trend counts, with a previous period to calculate growth
   // mathematically for each filter. No real article data or live AI is used.
@@ -117,6 +117,27 @@
     return {current:trend.count,previous:Math.max(1,Math.round(trend.count/(1+rise)))};
   }
   const growthPercent = totals => Math.round((totals.current-totals.previous)/totals.previous*100);
+
+  function renderOverview(){
+    const days=periodDays();
+    const records=mentions.filter(m=>m.daysAgo<=days);
+    const counts={positive:0,negative:0,neutral:0};
+    records.forEach(m=>counts[m.tone]++);
+    $('overviewTotal').textContent=say(records.length);
+    $('overviewPositive').textContent=say(counts.positive);
+    $('overviewNegative').textContent=say(counts.negative);
+    $('overviewNeutral').textContent=say(counts.neutral);
+    const data=samples[activeIndustry];
+    // All trend counts are fabricated demonstration values; percentage
+    // is computed from each synthetic pair of adjacent comparison periods.
+    const signal=data.trends[0];
+    const stats=trendNumbers(signal,days);
+    $('overviewSignalTitle').textContent=signal.title;
+    $('overviewSignalGrowth').textContent='+'+growthPercent(stats)+'%';
+    $('overviewSignalDetail').textContent=signal.detail;
+    $('overviewPRTitle').textContent=data.opportunities[0].title;
+    $('overviewPRRationale').textContent=data.opportunities[0].detail;
+  }
 
   function renderMentions(){
     const days=periodDays();
@@ -202,7 +223,7 @@
   }
 
   const tabs=[...document.querySelectorAll('.business-result-tab')];
-  const panels=['mentions','trends','opportunities'];
+  const panels=['overview','mentions','trends','opportunities'];
   function activateTab(name,focus=false){
     if(!panels.includes(name))return;
     activeTab=name;
@@ -214,6 +235,8 @@
       if(on&&focus)tab.focus();
     });
     panels.forEach(panel=>$(panel).hidden=(panel!==name));
+    const label= tabs.find(tab=>tab.dataset.tab===name);
+    $('paperLocation').textContent=label?label.textContent.trim().toUpperCase():'ОБЗОР';
     const pr=$('opportunities');
     if(name==='opportunities'){
       pr.classList.remove('is-revealing');
@@ -226,8 +249,8 @@
     tab.addEventListener('click',()=>activateTab(tab.dataset.tab));
     tab.addEventListener('keydown',e=>{
       let next=-1;
-      if(e.key==='ArrowRight')next=(index+1)%tabs.length;
-      if(e.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;
+      if(e.key==='ArrowRight'||e.key==='ArrowDown')next=(index+1)%tabs.length;
+      if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=(index-1+tabs.length)%tabs.length;
       if(e.key==='Home')next=0;
       if(e.key==='End')next=tabs.length-1;
       if(next!==-1){e.preventDefault();activateTab(tabs[next].dataset.tab,true);}
@@ -241,20 +264,27 @@
     activeIndustry=$('industry').value;
     $('companyDisplay').textContent=activeCompany;
     $('industryDisplay').textContent=$('industry').selectedOptions[0].textContent;
-    renderMentions();renderTrends();renderPR();
+    $('railCompany').textContent=activeCompany;
+    $('railIndustry').textContent=$('industry').selectedOptions[0].textContent;
+    renderOverview();renderMentions();renderTrends();renderPR();
     $('businessStart').classList.add('business-start--compact');
     $('businessResults').hidden=false;
-    activateTab('mentions');
+    document.body.classList.add('business-open');
+    activateTab('overview');
     $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
   });
   $('period').addEventListener('change',()=>{
     if($('businessResults').hidden)return;
-    renderMentions();renderTrends();renderPR();
+    renderOverview();renderMentions();renderTrends();renderPR();
     if(activeTab==='opportunities')activateTab('opportunities');
+  });
+  document.querySelectorAll('[data-open]').forEach(btn=>{
+    btn.addEventListener('click',()=>activateTab(btn.dataset.open));
   });
   $('editProfile').addEventListener('click',()=>{
     $('businessResults').hidden=true;
     $('businessStart').classList.remove('business-start--compact');
+    document.body.classList.remove('business-open');
     window.scrollTo({top:0,behavior:'auto'});
     $('companyName').focus();
   });
