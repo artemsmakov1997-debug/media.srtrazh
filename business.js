@@ -212,6 +212,7 @@
         node('span',signal.title+' · +'+rate+'% за '+days+' дн. (демо)','opportunity-evidence-text'));
       card.append(evidence);
       const details=node('details',null,'opportunity-action-plan');
+      if(i===0)details.open=true;
       const summary=node('summary','Посмотреть план действий');
       details.append(summary);
       const steps=node('ol');
