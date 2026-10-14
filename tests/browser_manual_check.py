@@ -473,7 +473,12 @@ def pro_business_navigation_ui(browser, base):
         page.locator('#profileForm button[type="submit"]').click()
         page.locator("#businessLoading").wait_for(state="visible")
         assert not page.locator("#businessResults").is_visible()
-        assert "Демонстрационная подготовка" in page.locator(".business-loading-disclaimer").inner_text()
+        assert page.locator("#businessLoading h2").inner_text() == "Готовим медиаобзор вашей компании"
+        assert page.locator(".business-loading-milestones span").count() == 3
+        assert page.locator(".business-loading-emblem, .business-loading-overline, .business-loading-current, .business-loading-disclaimer").count() == 0
+        assert page.locator("#businessLoading h2").evaluate(
+            "el => {const range=document.createRange();range.selectNodeContents(el);return range.getClientRects().length}"
+        ) == 1
         assert "business-loading-track" in page.locator(".business-loading-progress").evaluate(
             "el => getComputedStyle(el).animationName"
         )
@@ -487,6 +492,19 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#overviewNegative").inner_text() == "1"
         assert page.locator("#overviewNeutral").inner_text() == "2"
         assert page.locator(".business-rail").is_visible()
+        assert page.evaluate("getComputedStyle(document.body).zoom") == "1"
+        rail_box = page.locator(".business-rail").bounding_box()
+        assert abs(rail_box["height"] - page.viewport_size["height"]) < 4, rail_box
+        assert "МЕДИА.СТРАЖ" in page.locator(".rail-brand").inner_text()
+        assert "PRO" in page.locator(".rail-brand").inner_text()
+        assert page.locator(".rail-product, .rail-demo").count() == 0
+        assert page.locator("#editProfile").evaluate("el => el.closest('.rail-context') !== null")
+        assert page.locator(".rail-bottom .rail-back").is_visible()
+        return_button = page.locator(".rail-bottom .rail-back").bounding_box()
+        assert return_button["y"] > page.viewport_size["height"] - 95, return_button
+        assert page.locator(".rail-bottom .rail-back").evaluate(
+            "el => getComputedStyle(el).boxShadow"
+        ) != "none"
         assert page.locator(".business-paper").evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(247, 247, 243)"
         page.locator('[data-open="mentions"]').click()
         assert page.locator("#mentions").is_visible()
@@ -599,6 +617,7 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
             p.locator("#businessLoading").wait_for(state="visible")
+            assert p.locator("#businessLoading h2").inner_text() == "Готовим медиаобзор вашей компании"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessResults").wait_for(state="visible", timeout=8000)
             assert not p.locator("#businessLoading").is_visible()
