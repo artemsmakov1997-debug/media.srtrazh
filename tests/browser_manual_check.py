@@ -440,14 +440,45 @@ def pro_business_navigation_ui(browser, base):
         page.locator('#profileForm button[type="submit"]').click()
         assert page.locator("#businessResults").is_visible()
         assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
-        assert page.locator("#mentionsBody tr").count() == 4
+        assert page.locator("#mentionsBody .mention-item").count() == 4
+        assert page.locator("#totalMentions").inner_text() == "4"
+        assert page.locator("#positiveCount").inner_text() == "1"
+        assert page.locator("#negativeCount").inner_text() == "1"
+        assert page.locator("#neutralCount").inner_text() == "2"
+        assert not page.locator("#trends").is_visible()
+        assert not page.locator("#opportunities").is_visible()
+        # A tab must switch visible content, not just scroll down the same page.
+        page.get_by_role("tab", name="Инфоповоды").click()
+        assert page.locator("#trends").is_visible()
+        assert not page.locator("#mentions").is_visible()
         assert page.locator("#trendsGrid .business-trend").count() == 3
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
-        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
+        initial_growth = page.locator(".business-trend-growth").first.inner_text()
+        assert initial_growth.startswith("+") and initial_growth.endswith("%")
         page.select_option("#period", "7")
-        assert page.locator("#mentionsBody tr").count() == 2
+        assert page.locator("#trendPeriodLabel").inner_text() == "7 дней"
+        assert page.locator(".business-trend-growth").first.inner_text() != initial_growth
+        page.get_by_role("tab", name="Упоминания").click()
+        assert page.locator("#mentionsBody .mention-item").count() == 2
+        assert page.locator("#totalMentions").inner_text() == "2"
+        assert page.locator("#positiveCount").inner_text() == "1"
+        assert page.locator("#negativeCount").inner_text() == "0"
+        assert page.locator("#neutralCount").inner_text() == "1"
         page.select_option("#period", "90")
-        assert page.locator("#mentionsBody tr").count() == 6
+        assert page.locator("#mentionsBody .mention-item").count() == 6
+        assert page.locator("#totalMentions").inner_text() == "6"
+        assert page.locator("#positiveCount").inner_text() == "2"
+        assert page.locator("#negativeCount").inner_text() == "1"
+        assert page.locator("#neutralCount").inner_text() == "3"
+        page.get_by_role("tab", name="PR-возможности").click()
+        assert page.locator("#opportunities").is_visible()
+        assert not page.locator("#mentions").is_visible()
+        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
+        assert "демо" in page.locator(".intelligence-hero").inner_text().lower()
+        assert "insight-appear" in page.locator(".business-opportunity").first.evaluate("el => getComputedStyle(el).animationName")
+        page.locator(".opportunity-action-plan summary").first.click()
+        assert page.locator(".opportunity-action-plan").first.get_attribute("open") is not None
+        assert page.locator(".opportunity-action-plan li").count() == 9
         assert "демо-режим" in page.locator(".business-data-warning").inner_text().lower()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
@@ -515,6 +546,13 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
             assert p.locator("#businessResults").is_visible()
+            assert p.locator("#totalMentions").inner_text() == "4"
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.get_by_role("tab", name="Инфоповоды").click()
+            assert p.locator("#trendsGrid .business-trend").count() == 3
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.get_by_role("tab", name="PR-возможности").click()
+            assert p.locator(".business-opportunity").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
         finally:
             mobile.close()
