@@ -484,7 +484,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
-        assert "демо" in page.locator(".memo-header").inner_text().lower()
+        assert "demo" in page.locator(".memo-header").inner_text().lower()
         assert "report-reveal" in page.locator(".business-opportunity").first.evaluate("el => getComputedStyle(el).animationName")
         assert page.locator(".opportunity-action-plan").first.get_attribute("open") is not None
         page.locator(".opportunity-action-plan summary").nth(1).click()
