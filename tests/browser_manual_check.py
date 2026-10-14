@@ -440,6 +440,16 @@ def pro_business_navigation_ui(browser, base):
         page.locator('#profileForm button[type="submit"]').click()
         assert page.locator("#businessResults").is_visible()
         assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
+        assert page.locator("#overview").is_visible()
+        assert not page.locator("#mentions").is_visible()
+        assert page.locator("#overviewTotal").inner_text() == "4"
+        assert page.locator("#overviewPositive").inner_text() == "1"
+        assert page.locator("#overviewNegative").inner_text() == "1"
+        assert page.locator("#overviewNeutral").inner_text() == "2"
+        assert page.locator(".business-rail").is_visible()
+        assert page.locator(".business-paper").evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(247, 247, 243)"
+        page.locator('[data-open="mentions"]').click()
+        assert page.locator("#mentions").is_visible()
         assert page.locator("#mentionsBody .mention-item").count() == 4
         assert page.locator("#totalMentions").inner_text() == "4"
         assert page.locator("#positiveCount").inner_text() == "1"
@@ -470,14 +480,15 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#positiveCount").inner_text() == "2"
         assert page.locator("#negativeCount").inner_text() == "1"
         assert page.locator("#neutralCount").inner_text() == "3"
-        page.get_by_role("tab", name="PR-возможности").click()
+        page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
-        assert "демо" in page.locator(".intelligence-hero").inner_text().lower()
-        assert "insight-appear" in page.locator(".business-opportunity").first.evaluate("el => getComputedStyle(el).animationName")
-        page.locator(".opportunity-action-plan summary").first.click()
+        assert "демо" in page.locator(".memo-header").inner_text().lower()
+        assert "report-reveal" in page.locator(".business-opportunity").first.evaluate("el => getComputedStyle(el).animationName")
         assert page.locator(".opportunity-action-plan").first.get_attribute("open") is not None
+        page.locator(".opportunity-action-plan summary").nth(1).click()
+        assert page.locator(".opportunity-action-plan").nth(1).get_attribute("open") is not None
         assert page.locator(".opportunity-action-plan li").count() == 9
         assert "демо-режим" in page.locator(".business-data-warning").inner_text().lower()
         page.locator("#editProfile").click()
@@ -546,14 +557,19 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
             assert p.locator("#businessResults").is_visible()
-            assert p.locator("#totalMentions").inner_text() == "4"
+            assert p.locator("#overview").is_visible()
+            assert p.locator("#overviewTotal").inner_text() == "4"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.get_by_role("tab", name="Инфоповоды").click()
             assert p.locator("#trendsGrid .business-trend").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            p.get_by_role("tab", name="PR-возможности").click()
+            p.locator('[data-tab="opportunities"]').click()
+            assert p.locator("#opportunities").is_visible()
             assert p.locator(".business-opportunity").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            assert p.locator("#editProfile").is_visible()
+            p.locator("#editProfile").click()
+            assert p.locator("#profileForm").is_visible()
         finally:
             mobile.close()
         assert not page_errors, page_errors
