@@ -394,3 +394,8 @@ body.business-open>.site-header{display:none}
 .mention-source-button:disabled{opacity:.57;cursor:not-allowed;color:#536c79}
 @media(max-width:950px){.mentions-filters{grid-template-columns:minmax(0,1fr) 130px 150px}.business-mentions-summary{gap:18px}.mentions-chart-panel{padding-left:18px}}
 @media(max-width:720px){.business-loading h2{text-align:left;text-align-last:auto;font-size:clamp(18px,4.8vw,23px)}.business-mentions-summary{grid-template-columns:1fr;gap:20px}.business-mentions-summary .business-mention-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.mentions-chart-panel{border-left:0;border-top:1px solid #dce2e3;padding:19px 0 0}.mentions-filters{grid-template-columns:1fr 1fr;gap:10px}.mentions-search{grid-column:1/-1}.mentions-table-columns{display:none}.business-mentions-feed .mention-item{grid-template-columns:1fr;gap:9px}.mention-source-button{width:max-content}}
+
+/* Sharper onboarding form and restrained, justified loading headline */
+.business-profile{border:1px solid #a8bdc5;outline:1px solid rgba(25,53,69,.1);outline-offset:6px;box-shadow:0 0 0 7px rgba(230,239,240,.85),0 26px 72px rgba(17,39,52,.19),0 5px 18px rgba(17,39,52,.1)}
+.business-loading h2{font-family:Inter,Arial,sans-serif;font-weight:400;font-size:clamp(21px,2.1vw,27px);letter-spacing:-.03em;text-align:justify;text-align-last:justify}
+@media(max-width:720px){.business-loading h2{text-align:left;text-align-last:auto}}
