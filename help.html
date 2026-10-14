@@ -1919,6 +1919,49 @@
   #supportFormats .input-hint:empty { display:none !important; }
   #supportFormats .support-plan-status { min-height:34px; }
 
+  /* Equal internal rows: subtitles, descriptions, price/input, CTA, and fine print
+     line up across the three equal-height desktop cards. */
+  @media (min-width:951px) {
+    #supportFormats .support-choice {
+      display:grid !important;
+      grid-template-rows: auto minmax(50px,auto) minmax(112px,auto) minmax(0,1fr);
+      align-content:stretch;
+    }
+    #supportFormats .support-choice-title { grid-row:1; }
+    #supportFormats .support-choice-audience { grid-row:2; }
+    #supportFormats .support-choice-desc { grid-row:3; min-height:0; margin:0 0 22px; }
+    #supportFormats .support-choice-action { grid-row:4; }
+  }
+  #supportFormats .support-choice-audience {
+    color:var(--plan-accent) !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    line-height:1.45 !important;
+    letter-spacing:.035em !important;
+  }
+  /* A single four-row control layout eliminates donation-card drift.
+     The wrapper around the input/button is flattened just inside the action area. */
+  #supportFormats .support-choice-action {
+    display:grid !important;
+    grid-template-rows: 18px 49px 47px minmax(34px,auto);
+    grid-auto-flow:row;
+    row-gap:10px;
+    align-content:end;
+    margin-top:0 !important;
+    min-width:0;
+  }
+  #supportFormats .support-choice .support-input-row { display:contents !important; }
+  #supportFormats .support-choice .amount-wrap,
+  #supportFormats .support-plan-price { height:49px; margin:0 !important; }
+  #supportFormats .support-choice .support-btn,
+  #supportFormats .support-choice .support-plan-link { min-height:47px; margin:0 !important; }
+  #supportFormats .support-plan-status {
+    margin:0 !important;
+    min-height:34px !important;
+    align-self:start;
+  }
+  #supportFormats .input-hint:empty { display:none !important; }
+  #supportFormats .input-hint:not(:empty) { grid-row:5; }
   @media(max-width:950px) {
     #supportFormats .support-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     #supportFormats .support-choice--business { grid-column:1 / -1; }
@@ -1990,7 +2033,7 @@
     <div class="support-grid">
       <article class="support-card support-choice support-choice--donation">
         <h2 class="support-choice-title">Любая сумма</h2>
-        <p class="support-choice-audience">ВСЕМ, КТО ЦЕНИТ НЕЗАВИСИМУЮ И ДОСТОВЕРНУЮ ИНФОРМАЦИЮ</p>
+        <p class="support-choice-audience">ВСЕМ, КОМУ ВАЖНА ЧЕСТНАЯ И ДОСТОВЕРНАЯ ИНФОРМАЦИЯ</p>
         <p class="support-choice-desc">Помогите развивать независимую медианалитику без обязательств и регулярных платежей.</p>
         <div class="support-choice-action">
           <label class="support-amount-label" for="donateInput">Сумма поддержки, ₽</label>
