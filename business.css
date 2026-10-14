@@ -95,17 +95,17 @@ a{color:inherit;text-decoration:none}
 /* Non-blocking, purely demonstrational hand-off from form to report. */
 .business-start--loading .business-start-inner{opacity:0;transform:translateY(-12px);pointer-events:none}
 .business-start--loading .business-loading{opacity:1}
-.business-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(510px,calc(100% - 40px));padding:31px 34px 28px;background:#fff;border:1px solid #d6dddd;box-shadow:0 19px 55px rgba(23,47,61,.085);opacity:0;transition:opacity .4s ease;text-align:left}
+.business-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(760px,calc(100% - 40px));padding:36px 38px 30px;background:#fff;border:1px solid #d6dddd;box-shadow:0 19px 55px rgba(23,47,61,.085);opacity:0;transition:opacity .4s ease;text-align:left}
 .business-loading-emblem{display:flex;align-items:center;gap:5px;height:29px;margin-bottom:25px}
 .business-loading-emblem span{display:block;width:5px;height:12px;border-radius:4px;background:#268499;animation:business-loading-bars .9s ease-in-out infinite alternate}
 .business-loading-emblem span:nth-child(2){height:22px;animation-delay:.16s;background:#29afc3}
 .business-loading-emblem span:nth-child(3){height:16px;animation-delay:.32s;background:#d5ac6d}
 .business-loading-overline{margin:0 0 11px;color:#3e8693;font-size:10px;letter-spacing:.11em;font-weight:850}
-.business-loading h2{margin:0 0 15px;color:#1a303c;font:750 clamp(23px,3vw,31px)/1.2 Montserrat,Inter,sans-serif;letter-spacing:-.045em}
+.business-loading h2{margin:0 0 24px;color:#1a303c;font:750 clamp(20px,2.5vw,30px)/1.22 Montserrat,Inter,sans-serif;letter-spacing:-.044em;white-space:nowrap}
 .business-loading-current{color:#5d7580;font-size:13px;line-height:1.6;margin:0 0 21px;min-height:22px}
 .business-loading-track{height:3px;width:100%;background:#e3e8e6;overflow:hidden;border-radius:6px}
 .business-loading-progress{display:block;width:100%;height:100%;background:linear-gradient(90deg,#27718c,#26b9c9);transform:scaleX(0);transform-origin:left center;animation:business-loading-track 2.45s cubic-bezier(.38,0,.2,1) both}
-.business-loading-milestones{display:flex;justify-content:space-between;gap:9px;margin:15px 0 20px;color:#99a6ac;font-size:10px;font-weight:750}
+.business-loading-milestones{display:flex;justify-content:space-between;gap:9px;margin:15px 0 0;color:#99a6ac;font-size:11px;font-weight:750}
 .business-loading-milestones span{transition:color .26s ease}
 .business-loading-milestones span.is-current{color:#257b90}
 .business-loading-milestones span.is-done{color:#3c8b77}
@@ -115,30 +115,37 @@ a{color:inherit;text-decoration:none}
 .business-start--compact{display:none}
 body.business-open>.site-header{display:none}
 /* Two genuinely different zones: navigation / editorial work. */
+/* The public header uses 80% scale. Reset it ONLY inside the opened
+   workspace: zoom was shrinking the 248px rail and 100vh to 80% height. */
+@media(min-width:1100px){
+  body.business-open{zoom:1!important}
+}
 .business-results{display:grid;grid-template-columns:248px minmax(0,1fr);width:100%;min-height:100svh}
 .business-results.is-opening{animation:business-desk-enter .5s cubic-bezier(.22,.8,.28,1) both}
 @keyframes business-desk-enter{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
-.business-rail{position:sticky;top:0;align-self:start;height:100svh;overflow-y:auto;padding:35px 16px 20px;background:var(--rail);color:#d8e4ec;display:flex;flex-direction:column;gap:0;border-right:1px solid #283847}
-.rail-top{padding:0 12px 37px}
-.rail-brand{display:block;color:#ebf4f8;font:800 13px/1.4 Montserrat,Inter,sans-serif;letter-spacing:.035em}
+.business-rail{position:sticky;top:0;align-self:start;height:100vh;height:100dvh;min-height:100vh;overflow-y:auto;padding:35px 16px 23px;background:var(--rail);color:#d8e4ec;display:flex;flex-direction:column;gap:0;border-right:1px solid #283847}
+.rail-top{padding:0 12px 28px}
+.rail-brand{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;color:#ebf4f8;font:800 13px/1.4 Montserrat,Inter,sans-serif;letter-spacing:.025em}
+.rail-pro{display:inline-block;border:1px solid #a4804a;border-radius:4px;background:#342a1b;color:#efd09b;padding:3px 6px;font:800 10px/1.3 Montserrat,Inter,sans-serif;letter-spacing:.04em}
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .rail-product{margin-top:9px;color:#8fa6b6;font:700 10px/1.5 Inter,sans-serif;letter-spacing:.13em}
 .rail-product strong{color:#d6b784;font-weight:800}
 .rail-context{padding:18px 12px 21px;margin:0 1px 14px;border-block:1px solid #2c3c4b;display:flex;flex-direction:column;gap:6px;min-width:0}
 .rail-context-label{color:#859cad;font-size:9px;letter-spacing:.1em;font-weight:800}
 .rail-context strong{color:#e8f1f6;font-size:14px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}
-.rail-context>span:last-child{color:#93a7b6;font-size:11px;line-height:1.4}
+#railIndustry{color:#93a7b6;font-size:11px;line-height:1.4}
 .business-result-tabs{display:flex;flex-direction:column;gap:3px;min-width:0}
 .business-result-tab{width:100%;display:flex;gap:12px;align-items:center;min-height:48px;padding:11px 12px;background:transparent;color:#9cafc0;border:1px solid transparent;border-radius:6px;text-align:left;font-size:13px;font-weight:700;transition:background .16s,color .16s}
 .business-result-tab:hover{background:#1b2b3b;color:#eff7fa}
 .business-result-tab--active,.business-result-tab[aria-selected="true"]{background:#233747;color:#f2f9fa;border-left:2px solid #53d5e5;padding-left:11px}
 .rail-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:20px;font-size:18px;line-height:1;color:#9bbac7}
 .business-result-tab--active .rail-icon{color:#55d2df}
-.rail-bottom{margin-top:auto;display:flex;flex-direction:column;gap:17px;padding:26px 12px 0}
+.rail-bottom{margin-top:auto;display:flex;flex-direction:column;gap:0;padding:24px 10px 0}
 .rail-demo{font-size:10px;font-weight:800;letter-spacing:.09em;color:#aabdca;display:flex;gap:8px;align-items:center}
-.rail-edit{background:transparent;border:0;padding:0;text-align:left;color:#e4c997;font-size:12px;font-weight:750;line-height:1.5}
-.rail-edit:hover{color:#fff0c5}
-.rail-back{font-size:11px;color:#90a8b9}
-.rail-back:hover{color:#d1edf5}
+.rail-edit{display:inline-flex;align-items:center;gap:9px;align-self:flex-start;margin:12px 0 0;background:transparent;border:1px solid #5a6d72;border-radius:6px;padding:8px 10px;text-align:left;color:#e4c997;font-size:11px;font-weight:750;line-height:1.4;transition:border-color .2s,background .2s,color .2s}
+.rail-edit:hover,.rail-edit:focus-visible{color:#fff0c5;border-color:#c7a877;background:#28323b}
+.rail-back{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:45px;width:100%;padding:11px 12px;border:1px solid #507084;border-radius:8px;background:linear-gradient(180deg,#273b4d,#1d3041);box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 4px 0 #09121c,0 9px 15px rgba(0,0,0,.24);font-size:12px;font-weight:800;line-height:1.3;color:#e7f4f9;text-align:center;transition:transform .17s,background .17s,border-color .17s,box-shadow .17s}
+.rail-back:hover,.rail-back:focus-visible{color:#fff;border-color:#66d7eb;background:linear-gradient(180deg,#305267,#234052);transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 0 #09121c,0 12px 20px rgba(0,0,0,.28)}
 .business-paper{min-width:0;min-height:100svh;background:var(--paper);padding:33px clamp(26px,5.4vw,94px) 85px}
 .paper-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:16px;border-bottom:1px solid #d1d7d7}
 .paper-location{color:#7b8b94;font-size:10px;font-weight:800;letter-spacing:.13em}
@@ -282,7 +289,7 @@ body.business-open>.site-header{display:none}
   .business-atmosphere-map{opacity:.35}
   .business-start-inner{width:100%}
   .business-loading{width:calc(100% - 26px);padding:26px 21px}
-  .business-loading h2{font-size:24px}
+  .business-loading h2{font-size:clamp(17px,4.7vw,24px);white-space:normal;line-height:1.34}
   .business-profile{grid-template-columns:1fr;padding:18px;gap:18px}
   .business-btn{width:100%}
   .business-results{display:flex;flex-direction:column}
@@ -290,15 +297,17 @@ body.business-open>.site-header{display:none}
   .rail-top{padding:3px 3px 14px}
   .rail-brand{font-size:12px}
   .rail-product{font-size:9px;margin-top:4px}
-  .rail-context{display:none}
+  .rail-context{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:8px 3px 13px;margin:0;border:0}
+  .rail-context-label,#railIndustry{display:none}
+  .rail-context strong{flex:1 1 130px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
   .business-result-tabs{flex-direction:row;gap:5px;margin:0 -3px;overflow-x:auto;padding-bottom:9px;scrollbar-width:thin}
   .business-result-tab{min-height:39px;white-space:nowrap;width:auto;flex:0 0 auto;font-size:12px;padding:8px 11px}
   .business-result-tab--active{border-left:1px solid transparent;border-bottom:2px solid #5cd7e6;padding:8px 11px}
   .rail-icon{display:none}
-  .rail-bottom{position:static;margin:0;padding:7px 3px 12px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+  .rail-bottom{position:static;margin:0;padding:5px 3px 14px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
   .rail-demo{display:none}
-  .rail-edit{display:inline-flex;font-size:11px}
-  .rail-back{font-size:11px}
+  .rail-edit{display:inline-flex;font-size:11px;margin:0 0 0 auto;padding:7px 9px}
+  .rail-back{min-height:37px;font-size:11px;padding:8px 11px}
   .business-paper{padding:22px 19px 58px;min-height:calc(100svh - 100px)}
   .paper-toolbar{align-items:flex-start}
   .paper-location{font-size:9px;line-height:1.7;max-width:160px}
@@ -342,6 +351,7 @@ body.business-open>.site-header{display:none}
   .business-section--pr.is-revealing .memo-intro,
   .business-section--pr.is-revealing .business-opportunity{animation:none!important}
   .business-btn,.business-result-tab,.mention-item{transition:none}
+  .rail-edit,.rail-back{transition:none!important}
   .business-loading-emblem span,.business-loading-progress{animation:none!important}
   .business-loading-progress{transform:scaleX(1)}
   .business-start-inner,.business-loading{transition:none!important}
