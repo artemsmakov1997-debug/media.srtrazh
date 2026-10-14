@@ -10,22 +10,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=desk8">
-<script defer src="business.js?v=desk8"></script>
+<link rel="stylesheet" href="business.css?v=desk9">
+<script defer src="business.js?v=desk9"></script>
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <a class="brand" href="index.html"><span class="brand-name">МЕДИА.<span class="brand-cyan">СТРАЖ</span></span><span class="brand-pro">PRO</span></a>
-    <a class="header-back" href="index.html">← На главную</a>
+    <a class="brand" href="index.html"><span class="brand-name">МЕДИА.СТРАЖ</span><span class="brand-pro">PRO</span></a>
+    <a class="header-back" href="index.html"><span aria-hidden="true">←</span><span>Вернуться к рейтингу</span></a>
   </div>
 </header>
 <main class="business-shell">
-  <section class="business-start" id="businessStart" aria-labelledby="businessTitle">
+  <section class="business-start" id="businessStart" aria-label="Параметры демонстрационного бизнес-обзора">
     <div class="business-start-inner">
-      <p class="start-eyebrow">МЕДИА.СТРАЖ / INTELLIGENCE DESK</p>
-      <h1 id="businessTitle">Важные новости.<br><span>Точные решения.</span></h1>
-      <p class="business-start-lead">Рабочее пространство для анализа упоминаний, отраслевых инфоповодов и возможностей вашей компании в СМИ.</p>
       <form id="profileForm" class="business-profile">
         <div class="business-field">
           <label for="companyName">Компания</label>
@@ -42,6 +39,19 @@
         <button class="business-btn" type="submit">Открыть кабинет <span aria-hidden="true">↗</span></button>
       </form>
       <p class="business-start-note"><span class="demo-dot" aria-hidden="true"></span> Демонстрационный интерфейс. Данные не поступают из реальных СМИ.</p>
+    </div>
+    <div id="businessLoading" class="business-loading" hidden role="status" aria-live="polite" aria-atomic="true">
+      <div class="business-loading-emblem" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p class="business-loading-overline">МЕДИА.СТРАЖ / PRO</p>
+      <h2>Готовим ваш обзор</h2>
+      <p class="business-loading-current" id="loadingStage">Проверяем параметры компании</p>
+      <div class="business-loading-track" aria-hidden="true"><span class="business-loading-progress"></span></div>
+      <div class="business-loading-milestones" aria-hidden="true">
+        <span class="is-current" data-load-step="0">Параметры</span>
+        <span data-load-step="1">Публикации</span>
+        <span data-load-step="2">Аналитика</span>
+      </div>
+      <p class="business-loading-disclaimer">Демонстрационная подготовка данных — без запросов к СМИ и внешним источникам.</p>
     </div>
   </section>
 
