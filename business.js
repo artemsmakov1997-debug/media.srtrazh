@@ -171,7 +171,7 @@
         link.href=entry.url;link.target='_blank';link.rel='noopener noreferrer';
         action.append(link);
       }else{
-        const button=node('button','Источник недоступен','mention-source-button');
+        const button=node('button','Показать источник','mention-source-button');
         button.type='button';button.disabled=true;button.title='Демонстрационная запись: ссылки на реальную публикацию нет';
         action.append(button);
       }
