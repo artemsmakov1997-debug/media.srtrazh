@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=desk11">
+<link rel="stylesheet" href="business.css?v=desk12">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
 <script defer src="business.js?v=desk9"></script>
 </head>
@@ -70,30 +70,27 @@
       <p class="business-start-note"><span class="demo-dot" aria-hidden="true"></span> Демонстрационный интерфейс. Данные не поступают из реальных СМИ.</p>
     </div>
     <div id="businessLoading" class="business-loading" hidden role="status" aria-live="polite" aria-atomic="true">
-      <div class="business-loading-emblem" aria-hidden="true"><span></span><span></span><span></span></div>
-      <p class="business-loading-overline">МЕДИА.СТРАЖ / PRO</p>
-      <h2>Готовим ваш обзор</h2>
-      <p class="business-loading-current" id="loadingStage">Проверяем параметры компании</p>
+      <h2>Готовим медиаобзор вашей компании</h2>
+      <span id="loadingStage" class="visually-hidden">Проверяем параметры компании</span>
       <div class="business-loading-track" aria-hidden="true"><span class="business-loading-progress"></span></div>
-      <div class="business-loading-milestones" aria-hidden="true">
+      <div class="business-loading-milestones" aria-label="Этапы подготовки демонстрационного обзора">
         <span class="is-current" data-load-step="0">Параметры</span>
         <span data-load-step="1">Публикации</span>
         <span data-load-step="2">Аналитика</span>
       </div>
-      <p class="business-loading-disclaimer">Демонстрационная подготовка данных — без запросов к СМИ и внешним источникам.</p>
     </div>
   </section>
 
   <div id="businessResults" class="business-results" hidden>
     <aside class="business-rail" aria-label="Навигация аналитического кабинета">
       <div class="rail-top">
-        <a class="rail-brand" href="index.html">МЕДИА.<span>СТРАЖ</span></a>
-        <div class="rail-product">INTELLIGENCE <strong>PRO</strong></div>
+        <a class="rail-brand" href="index.html">МЕДИА.<span>СТРАЖ</span> <span class="rail-pro">PRO</span></a>
       </div>
       <div class="rail-context">
         <span class="rail-context-label">РАБОЧЕЕ ПРОСТРАНСТВО</span>
         <strong id="railCompany"></strong>
         <span id="railIndustry"></span>
+        <button type="button" id="editProfile" class="rail-edit">Изменить компанию <span aria-hidden="true">↗</span></button>
       </div>
       <nav class="business-result-tabs" role="tablist" aria-label="Разделы аналитического кабинета" aria-orientation="vertical">
         <button type="button" id="tabOverview" role="tab" aria-controls="overview" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="overview"><span class="rail-icon" aria-hidden="true">◫</span><span>Обзор</span></button>
@@ -102,9 +99,7 @@
         <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>Рекомендации</span></button>
       </nav>
       <div class="rail-bottom">
-        <div class="rail-demo"><span class="demo-dot" aria-hidden="true"></span> ДЕМОНСТРАЦИЯ</div>
-        <button type="button" id="editProfile" class="rail-edit">Изменить компанию <span aria-hidden="true">↗</span></button>
-        <a href="index.html" class="rail-back">← Вернуться к рейтингу</a>
+        <a href="index.html" class="rail-back"><span aria-hidden="true">←</span> Вернуться к рейтингу</a>
       </div>
     </aside>
 
