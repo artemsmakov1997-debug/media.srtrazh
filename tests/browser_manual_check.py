@@ -458,7 +458,10 @@ def pro_business_navigation_ui(browser, base):
             assert abs(business_back_box[coordinate] - analysis_back_box[coordinate]) <= 3
         assert page.locator(".business-atmosphere .ambient-term").count() == 7
         assert page.locator(".business-atmosphere").get_attribute("aria-hidden") == "true"
-        assert page.locator(".ambient-term").first.evaluate("el => getComputedStyle(el).animationName") == "ambient-float"
+        assert page.locator(".ambient-term").first.evaluate("el => getComputedStyle(el).animationName") == "ambient-drift-left"
+        assert page.locator(".ambient-term").first.evaluate("el => getComputedStyle(el).animationDirection") == "normal"
+        assert page.locator("#profileForm").evaluate("el => parseFloat(getComputedStyle(el).maxWidth)") == 1160
+        assert page.locator("#businessStart .business-start-inner").evaluate("el => parseFloat(getComputedStyle(el).width)") > 940
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         assert page.locator("#businessTitle, .start-eyebrow, .business-start-lead").count() == 0
         assert page.locator("#profileForm").is_visible()
@@ -591,6 +594,7 @@ def pro_business_navigation_ui(browser, base):
             p.goto(base + "/business.html")
             assert not p.locator("#businessResults").is_visible()
             assert p.locator(".business-atmosphere").is_visible()
+            assert p.locator(".ambient-term").first.evaluate("el => getComputedStyle(el).animationName") == "ambient-drift-left"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
