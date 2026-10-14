@@ -140,18 +140,21 @@
   }
 
   function renderMentions(){
-    const days=periodDays();
-    const records=mentions.filter(m=>m.daysAgo<=days);
+    const days=Number($('mentionsPeriod').value);
+    const query=$('mentionsSearch').value.trim().toLocaleLowerCase('ru-RU');
+    const tone=$('mentionsTone').value;
+    const all=mentions.filter(m=>m.daysAgo<=days);
     const counts={positive:0,negative:0,neutral:0};
-    records.forEach(m=>counts[m.tone]++);
-    $('totalMentions').textContent=say(records.length);
+    all.forEach(m=>counts[m.tone]++);
+    $('totalMentions').textContent=say(all.length);
     $('positiveCount').textContent=say(counts.positive);
     $('negativeCount').textContent=say(counts.negative);
     $('neutralCount').textContent=say(counts.neutral);
-    $('mentionsCount').textContent=records.length+' из '+records.length;
+    const records=all.filter(m=>(tone==='all'||m.tone===tone)&&(!query||(m.title+' '+m.text+' '+sources[mentions.indexOf(m)%sources.length]).toLocaleLowerCase('ru-RU').includes(query)));
+    $('mentionsCount').textContent=records.length+' из '+all.length;
     const feed=$('mentionsBody');
     feed.replaceChildren();
-    records.forEach((entry,i)=>{
+    records.forEach(entry=>{
       const article=node('article',null,'mention-item');
       article.setAttribute('role','listitem');
       const main=node('div',null,'mention-primary');
@@ -159,15 +162,38 @@
       meta.append(node('span',sources[mentions.indexOf(entry)%sources.length],'mention-source-name'));
       const date=new Date(Date.now()-entry.daysAgo*86400000);
       meta.append(node('time',dateFormat.format(date)+' МСК','mention-source-time'));
-      const title=node('h3',entry.title,'mention-title');
-      const body=entry.text.replace('Компания',activeCompany).replace('компания',activeCompany);
-      main.append(meta,title,node('p',body,'mention-excerpt'));
+      main.append(meta,node('h3',entry.title,'mention-title'));
       const aside=node('div',null,'mention-aside');
       aside.append(node('span',entry.label,'business-sentiment '+entry.tone));
-      article.append(main,aside);
+      const action=node('div',null,'mention-source-action');
+      if(entry.url && /^https:\/\//.test(entry.url)){
+        const link=node('a','Показать источник ↗','mention-source-button');
+        link.href=entry.url;link.target='_blank';link.rel='noopener noreferrer';
+        action.append(link);
+      }else{
+        const button=node('button','Источник недоступен','mention-source-button');
+        button.type='button';button.disabled=true;button.title='Демонстрационная запись: ссылки на реальную публикацию нет';
+        action.append(button);
+      }
+      article.append(main,aside,action);
       feed.append(article);
     });
-    if(!records.length)feed.append(node('p','В демонстрационной подборке нет упоминаний за выбранный период.','business-empty'));
+    if(!records.length)feed.append(node('p','По заданным параметрам публикаций не найдено.','business-empty'));
+    const bins=Array.from({length:Math.min(days,15)},()=>0);
+    all.forEach(m=>{const index=Math.min(bins.length-1,Math.floor((days-1-m.daysAgo)/days*bins.length));if(index>=0)bins[index]++;});
+    const max=Math.max(1,...bins),width=420,height=136,base=height-14;
+    let d='M 0 '+base;
+    bins.forEach((n,i)=>{const x=(i+1)*width/bins.length,y=base-(n/max)*(height-36);d+=' H '+x+' V '+y;});
+    const area=d+' V '+base+' H 0 Z';
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('viewBox','0 0 420 136');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-hidden','true');
+    const baseline=document.createElementNS(ns,'line');baseline.setAttribute('x1','0');baseline.setAttribute('x2','420');baseline.setAttribute('y1',String(base));baseline.setAttribute('y2',String(base));baseline.setAttribute('stroke','#ccd8da');svg.append(baseline);
+    const fill=document.createElementNS(ns,'path');fill.setAttribute('d',area);fill.setAttribute('fill','rgba(35,184,208,.09)');svg.append(fill);
+    const line=document.createElementNS(ns,'path');line.setAttribute('d',d);line.setAttribute('fill','none');line.setAttribute('stroke','#268ca2');line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-linejoin','round');svg.append(line);
+    $('mentionsStairChart').replaceChildren(svg);
+    $('mentionsStairChart').setAttribute('aria-label','Динамика '+all.length+' демонстрационных упоминаний за '+days+' дней');
+    $('chartFrom').textContent=days+' дней назад';
+    $('chartTo').textContent='Сегодня';
   }
 
   function renderTrends(){
@@ -332,7 +358,10 @@
       setTimeout(showCabinet,2480)
     );
   });
-  $('period').addEventListener('change',()=>{
+  $('mentionsSearch').addEventListener('input',renderMentions);
+  $('mentionsTone').addEventListener('change',renderMentions);
+  $('mentionsPeriod').addEventListener('change',()=>{ $('period').value=$('mentionsPeriod').value;renderOverview();renderMentions();renderTrends();renderPR(); });
+  $('period').addEventListener('change',()=>{ $('mentionsPeriod').value=$('period').value;
     if($('businessResults').hidden)return;
     renderOverview();renderMentions();renderTrends();renderPR();
     if(activeTab==='opportunities')activateTab('opportunities');
