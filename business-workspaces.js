@@ -176,15 +176,7 @@
     document.querySelector('[data-tab="pressReleases"]').click();
     $('releaseTitle').focus();
   }
-  $('releaseCheck').addEventListener('click', () => {
-    updateChecklist();
-    const missing = Object.entries(fields()).filter(([name,v]) => !v && name !== 'quote').map(([name]) => ({
-      title:'заголовок',lead:'лид',body:'основной текст',about:'справку о компании'
-    })[name]);
-    $('releaseFeedback').textContent = missing.length ?
-      'Для полной структуры заполните: ' + missing.join(', ') + '. Отдельно проверьте факты, источники и цитаты.' :
-      'Основные части заполнены. Это проверка структуры, не достоверности: проверьте факты, ссылки, цифры и согласование цитат.';
-  });
+  // The staged editorial review is owned by business-v3.js.
   const fullText = () => {
     const d = fields();
     return [d.title,d.lead,d.body,d.quote ? 'Цитата: ' + d.quote : '',d.about ? 'О компании: ' + d.about : ''].filter(Boolean).join('\n\n');
