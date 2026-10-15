@@ -61,6 +61,7 @@ function resetEditorialFlow(){
  $('releaseFeedback').textContent='';
 }
 inputs.forEach(id=>$(id).addEventListener('input',resetEditorialFlow));
+document.addEventListener('ms-release-draft-changed',resetEditorialFlow);
 outletsToggle.addEventListener('click',()=>{
  const open=outletsPopover.hidden;
  outletsPopover.hidden=!open;outletsToggle.setAttribute('aria-expanded',String(open));
