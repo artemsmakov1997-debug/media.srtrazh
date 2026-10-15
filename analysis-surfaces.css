@@ -1,0 +1,48 @@
+/* Business-neutral editorial analysis surfaces, preserving original page background.
+   The same dark-graphite intensity as the revised Method page. */
+.section-panel {
+  background:linear-gradient(146deg,#111e2d 0%,#101b29 72%,#0d1724 100%);
+  border-color:rgba(112,159,183,.28);
+  box-shadow:0 13px 30px rgba(2,12,23,.18),inset 0 1px 0 rgba(198,230,241,.035);
+}
+.mode-card[data-mode="automatic"] {
+  background:linear-gradient(145deg,#182b3c,#142538);
+  border-color:rgba(77,168,190,.42);
+}
+.mode-card[data-mode="automatic"]:hover,
+.mode-card[data-mode="automatic"].active {
+  background:linear-gradient(145deg,#1d3547,#172d40);
+}
+.mode-card[data-mode="manual"] {
+  background:linear-gradient(145deg,#27251f,#201f1c);
+  border-color:rgba(189,152,95,.48);
+}
+.mode-card[data-mode="manual"]:hover,
+.mode-card[data-mode="manual"].active {
+  background:linear-gradient(145deg,#30291f,#26221b);
+}
+#automaticPanel .controls, #automaticPanel .source,
+#automaticPanel .publication,
+#manualPanel .manual-form, #manualPanel .manual-annotated {
+  background:linear-gradient(145deg,#17293a,#132334);
+  border-color:rgba(109,153,177,.28);
+  box-shadow:inset 0 1px 0 rgba(216,236,247,.024);
+}
+#automaticPanel .publication:hover {
+  border-color:rgba(104,189,204,.45);
+}
+#automaticPanel select, #manualPanel input, #manualPanel textarea {
+  background:#0d1a29;
+  border-color:#395266;
+}
+#manualPanel .manual-scan { background:#0e2130; }
+#manualPanel .manual-trigger { background:rgba(34,211,238,.16); }
+#automaticPanel .auto-modal-section {
+  background:linear-gradient(155deg,#182839,#122335);
+  border-color:rgba(101,150,181,.30);
+}
+.notice{background:#102333;border-color:#36586a;}
+@media(max-width:760px){
+  .section-panel {box-shadow:0 8px 23px rgba(2,12,23,.14);}
+  .publication {box-shadow:none!important;}
+}
