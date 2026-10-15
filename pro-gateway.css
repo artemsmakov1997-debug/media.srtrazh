@@ -80,15 +80,95 @@
 }
 .pro-gateway-cta:hover { filter:brightness(1.07); }
 .pro-gateway-cta:focus-visible { outline:3px solid #f7f9ff; outline-offset:3px; }
+/* Mobile dialog: compact, bounded to the viewport, with internal scrolling.
+   Preserve desktop proportions and the cyan/amber research/business distinction. */
 @media (max-width: 640px) {
-  .pro-gateway-overlay { padding: 12px; align-items: center; }
-  .pro-gateway-dialog { padding: 26px 18px 18px; max-height: calc(100dvh - 24px); }
-  .pro-gateway-title { margin: 0 0 22px; font-size: clamp(22px, 6vw, 30px); line-height: 1.2; text-align: center; }
-  .pro-gateway-options { grid-template-columns: 1fr; }
-  .pro-gateway-option { padding: 18px; gap: 12px; }
-  .pro-gateway-benefits { font-size: 14px; text-align: left; }
-  .pro-gateway-close { right: 12px; top: 12px; }
+  .pro-gateway-overlay {
+    padding: 8px;
+    align-items: center;
+    justify-items: stretch;
+    overflow: hidden;
+  }
+  .pro-gateway-dialog {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    margin: 0 auto;
+    padding: 22px 14px 14px;
+    border-radius: 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pro-gateway-close {
+    right: 9px;
+    top: 9px;
+    width: 31px;
+    height: 31px;
+    border-radius: 7px;
+    font-size: 21px;
+  }
+  .pro-gateway-title {
+    margin: 8px auto 16px;
+    padding: 0 17px;
+    max-width: 100%;
+    font-size: clamp(18px, 4.9vw, 23px);
+    line-height: 1.22;
+    letter-spacing: -.035em;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  .pro-gateway-options {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    min-width: 0;
+  }
+  .pro-gateway-option {
+    min-width: 0;
+    padding: 14px;
+    gap: 10px;
+    border-radius: 11px;
+  }
+  .pro-gateway-option h3 { font-size: 19px; line-height: 1.2; }
+  .pro-gateway-audience {
+    margin-top: 7px;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
+  .pro-gateway-benefits {
+    padding-left: 17px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .pro-gateway-benefits li + li { margin-top: 6px; }
+  .pro-gateway-cta {
+    min-height: 42px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
 }
+@media (max-width: 360px) {
+  .pro-gateway-dialog { padding: 19px 11px 12px; }
+  .pro-gateway-title { padding: 0 19px; font-size: 18px; }
+  .pro-gateway-option { padding: 12px; }
+  .pro-gateway-option h3 { font-size: 18px; }
+  .pro-gateway-audience { font-size: 10.5px; }
+  .pro-gateway-benefits { font-size: 12px; }
+}
+@media (max-width: 640px) and (max-height: 560px) {
+  .pro-gateway-dialog { max-height: calc(100dvh - 12px); padding-top: 17px; }
+  .pro-gateway-title { margin-bottom: 12px; font-size: 18px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pro-gateway-option { transition: none; }
   .pro-gateway-option:hover { transform: none; }
