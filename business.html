@@ -84,7 +84,9 @@
   </section>
 
   <div id="businessResults" class="business-results" hidden>
-    <aside class="business-rail" aria-label="Навигация аналитического кабинета">
+    <div class="business-mobile-header"><button type="button" id="businessMenuToggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="businessRail"><span aria-hidden="true">☰</span></button><strong>МЕДИА.СТРАЖ <em>PRO</em></strong><span id="businessMobileCompany"></span></div>
+    <button type="button" id="businessMenuBackdrop" class="business-menu-backdrop" aria-label="Закрыть меню" hidden></button>
+    <aside class="business-rail" id="businessRail" aria-label="Навигация аналитического кабинета">
       <div class="rail-top">
         <a class="rail-brand" href="index.html"><span class="rail-brand-name">МЕДИА.<span>СТРАЖ</span></span><span class="rail-pro">PRO</span></a>
       </div>
@@ -95,9 +97,9 @@
         <button type="button" id="editProfile" class="rail-edit">Изменить компанию <span aria-hidden="true">↗</span></button>
       </div>
       <nav class="business-result-tabs" role="tablist" aria-label="Разделы аналитического кабинета" aria-orientation="vertical">
+        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>ИИ-ассистент</span></button>
         <button type="button" id="tabMentions" role="tab" aria-controls="mentions" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="mentions"><span class="rail-icon" aria-hidden="true">≡</span><span>Упоминания</span></button>
         <button type="button" id="tabTrends" role="tab" aria-controls="trends" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="trends"><span class="rail-icon" aria-hidden="true">↗</span><span>Инфоповоды</span></button>
-        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>ИИ-ассистент</span></button>
         <button type="button" id="tabPressReleases" role="tab" aria-controls="pressReleases" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="pressReleases"><span class="rail-icon" aria-hidden="true">▤</span><span>Пресс-релизы</span></button>
       </nav>
       <div class="rail-bottom">
