@@ -100,9 +100,9 @@
       discuss.type = 'button'; draft.type = 'button';
       discuss.addEventListener('click', () => {
         addChat('user', 'Как реализовать идею «' + idea.title + '»?');
-        addChat('assistant', 'Предлагаемый порядок действий (демо):\\n' +
-          data.actions[i].map((step, number) => (number + 1) + '. ' + step).join('\\n') +
-          '\\nПеред публикацией проверьте факты и первоисточники.');
+        addChat('assistant', 'Предлагаемый порядок действий (демо):\n' +
+          data.actions[i].map((step, number) => (number + 1) + '. ' + step).join('\n') +
+          '\nПеред публикацией проверьте факты и первоисточники.');
         $('aiChatInput').focus();
       });
       draft.addEventListener('click', () => startFromIdea(i));
