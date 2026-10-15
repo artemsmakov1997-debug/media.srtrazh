@@ -364,6 +364,18 @@ def pro_business_navigation_ui(browser, base):
         page.on("pageerror", lambda error: page_errors.append(str(error)))
         for route in ("index.html", "archive.html", "about.html", "method.html", "help.html"):
             page.goto(base + "/" + route)
+            if route == "method.html":
+                # Page backdrop is untouched; brighter colors belong to method blocks.
+                assert page.evaluate(
+                    "getComputedStyle(document.documentElement).getPropertyValue('--bg-body').trim()"
+                ) == "#05070b"
+                surfaces = page.locator(".container > .section").evaluate_all(
+                    "els => els.map(el => getComputedStyle(el).backgroundImage)")
+                assert len(surfaces) == 3 and len(set(surfaces)) == 3, surfaces
+                cards = page.locator("#pipelineGrid .pipeline-card").evaluate_all(
+                    "els => els.map(el => getComputedStyle(el).backgroundImage)")
+                assert all("gradient" in bg for bg in cards), cards
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
             page.locator("a.pro-nav-link").click()
             assert page.locator(".pro-gateway-dialog").is_visible(), route
             assert page.locator(".pro-gateway-option--research").get_attribute("href") == "analysis.html"
@@ -704,6 +716,10 @@ def pro_business_navigation_ui(browser, base):
             p.goto(base + "/about.html")
             assert p.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 24
             p.goto(base + "/method.html")
+            assert p.locator(".container > .section").count() == 3
+            assert p.locator(".container > .section").first.evaluate(
+                "el => getComputedStyle(el).backgroundImage.includes('gradient')")
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             for title in p.locator(".section .section-title").all():
                 assert title.evaluate("el => el.scrollWidth <= el.clientWidth + 1"), title.inner_text()
             for card in p.locator("#pipelineGrid .pipeline-card").all():
