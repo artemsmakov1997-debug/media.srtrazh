@@ -460,6 +460,12 @@ def pro_business_navigation_ui(browser, base):
         analysis_back_box = page.locator(".site-header .header-back").bounding_box()
         analysis_zoom = page.evaluate("getComputedStyle(document.body).zoom")
         page.goto(base + "/index.html")
+        # Main public surfaces must feel layered and brighter than flat black,
+        # without changing the compact geometry or existing rating layout.
+        assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg-body').trim()") == "#0c1726"
+        for surface in (".hero-text", ".hero-counter", ".current-rating-section", ".media-card", ".rating-appeal-strip"):
+            assert "gradient" in page.locator(surface).first.evaluate(
+                "el => getComputedStyle(el).backgroundImage"), surface
         # Desktop defaults to compact interface size without horizontal overflow.
         assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
