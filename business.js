@@ -377,6 +377,7 @@
     start.classList.remove('business-start--compact');
     document.body.classList.remove('business-open');
     setMenu(false);
+    document.dispatchEvent(new Event('ms-business-exit'));
     window.scrollTo({top:0,behavior:'auto'});
     $('companyName').focus();
   });
