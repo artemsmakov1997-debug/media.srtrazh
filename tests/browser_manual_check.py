@@ -545,7 +545,7 @@ def pro_business_navigation_ui(browser, base):
         page.locator(".opportunity-action-plan summary").nth(1).click()
         assert page.locator(".opportunity-action-plan").nth(1).get_attribute("open") is not None
         assert page.locator(".opportunity-action-plan li").count() == 9
-        assert "демонстрационный кабинет" in page.locator(".business-data-warning").inner_text().lower()
+        assert not page.locator(".business-data-warning").is_visible()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
         assert page.locator("#profileForm").is_visible()
