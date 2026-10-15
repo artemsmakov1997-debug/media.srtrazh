@@ -145,7 +145,7 @@
     }
   </style>
   <script src="analysis.js?v=20261013-terminology" defer></script>
-  <script src="manual-analysis.js?v=inline-comments-1" defer></script>
+  <script src="manual-analysis.js?v=scan2" defer></script>
 <style id="pro-header-unification">
  .site-header .header-inner { width:100%; max-width:1200px; min-height:76px; padding:12px 20px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; box-sizing:border-box; }
  .site-header .brand { font:800 1.02rem/1.25 Montserrat,sans-serif; letter-spacing:.04em; color:#e5e7eb; white-space:nowrap; text-decoration:none; }
@@ -252,6 +252,50 @@
   @media (max-width: 350px) {
     .publication-actions { grid-template-columns: 1fr; }
   }
+/* Desktop editorial cards: source belongs at the right-hand bottom edge. */
+@media (min-width: 761px) {
+  .publication { display:flex; flex-direction:column; }
+  .publication .publication-actions { width:100%; margin-top:auto; padding-top:20px; justify-content:flex-start; }
+  .publication .publication-actions .source-link { margin-left:auto; flex:none; }
+}
+/* The overlay mirrors only the text the user supplied; the analysis stays in-browser. */
+.manual-text-frame { position:relative; margin-bottom:18px; }
+.manual-text-frame > #manualText { display:block; width:100%; margin-bottom:0; }
+.manual-scan[hidden] { display:none!important; }
+.manual-scan {
+  position:absolute; inset:0; z-index:2; overflow:hidden;
+  border:1px solid rgba(34,211,238,.55); border-radius:6px;
+  background:#07121c; box-shadow:inset 0 0 0 1px rgba(34,211,238,.09);
+  pointer-events:none; padding:15px 16px;
+}
+.manual-scan-head {
+  position:relative; z-index:3; display:flex; align-items:center; gap:9px;
+  font:700 10px/1.4 Inter,sans-serif; letter-spacing:.1em;
+  color:#9feef6; text-transform:uppercase; margin-bottom:13px;
+}
+.manual-scan-dot { width:7px; height:7px; border-radius:50%; background:#48d8ec; box-shadow:0 0 13px #48d8ec; }
+.manual-scan-preview {
+  position:relative; z-index:1; max-height:calc(100% - 34px); overflow:hidden;
+  font:400 13px/1.85 Inter,sans-serif; white-space:pre-wrap; overflow-wrap:anywhere;
+  background:linear-gradient(105deg,#6c8998 3%,#adcfdb 29%,#e5fdff 43%,#6fd6ec 50%,#a0becb 65%,#748d9b 96%);
+  background-size:235% 100%; background-position:100% 0;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:manual-scan-text 2.1s linear infinite;
+}
+.manual-scan-beam {
+  position:absolute; z-index:2; left:0; right:0; top:0; height:37px;
+  border-bottom:1px solid rgba(93,224,241,.7);
+  background:linear-gradient(to bottom,transparent,rgba(26,186,208,.10),rgba(26,186,208,.03));
+  box-shadow:0 8px 28px rgba(64,208,233,.08);
+  animation:manual-scan-line 2.3s cubic-bezier(.45,0,.45,1) infinite;
+}
+@keyframes manual-scan-text { from{background-position:100% 0} to{background-position:-130% 0} }
+@keyframes manual-scan-line { from{transform:translateY(-40px)} to{transform:translateY(300px)} }
+@media (prefers-reduced-motion:reduce) {
+  .manual-scan-preview { animation:none; background:none; color:#c2e7ee; }
+  .manual-scan-beam { animation:none; top:auto; bottom:0; height:2px; }
+}
+
 /* Entrance animation on initial page load only. */
 @keyframes ms-analysis-header-fade{from{opacity:0}to{opacity:1}}
 @keyframes ms-analysis-arrive{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
@@ -344,7 +388,14 @@
       <input id="manualTitle" maxlength="200000" spellcheck="false">
       <div id="manualTitleEvidence" class="manual-annotated" role="region" aria-labelledby="manualTitleLabel" tabindex="0" hidden></div>
       <label id="manualTextLabel" for="manualText">Текст публикации</label>
-      <textarea id="manualText" required maxlength="200000" spellcheck="false" placeholder="Вставьте полный текст статьи…"></textarea>
+      <div class="manual-text-frame">
+        <textarea id="manualText" required maxlength="200000" spellcheck="false" placeholder="Вставьте полный текст статьи…"></textarea>
+        <div id="manualScan" class="manual-scan" aria-hidden="true" hidden>
+          <div class="manual-scan-head"><span class="manual-scan-dot"></span><span>Проверяем текст · сопоставляем маркеры</span></div>
+          <div id="manualScanPreview" class="manual-scan-preview"></div>
+          <div class="manual-scan-beam"></div>
+        </div>
+      </div>
       <div id="manualTextEvidence" class="manual-annotated" role="region" aria-labelledby="manualTextLabel" tabindex="0" hidden></div>
       <p class="muted">Заголовок и текст вместе — до 200 000 символов.</p>
       <div class="manual-actions">
