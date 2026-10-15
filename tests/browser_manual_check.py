@@ -481,13 +481,13 @@ def pro_business_navigation_ui(browser, base):
         )
         page.locator("#businessResults").wait_for(state="visible", timeout=8000)
         assert not page.locator("#businessLoading").is_visible()
-        assert "Тестовая компания" in page.locator("#companyDisplay").inner_text()
-        assert page.locator("#overview").is_visible()
+        assert page.locator("#overview").count() == 0
+        assert page.locator("#opportunities").is_visible()
+        assert page.locator("#aiSummaryCompany").inner_text() == "Тестовая компания"
+        assert page.locator("#aiMentionsTotal").inner_text() == "4"
+        assert page.locator("#aiNegativeTotal").inner_text() == "1"
+        assert page.locator("#aiPublishedTotal").inner_text() == "Нет данных"
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#overviewTotal").inner_text() == "4"
-        assert page.locator("#overviewPositive").inner_text() == "1"
-        assert page.locator("#overviewNegative").inner_text() == "1"
-        assert page.locator("#overviewNeutral").inner_text() == "2"
         assert page.locator(".business-rail").is_visible()
         assert page.evaluate("getComputedStyle(document.body).zoom") == "1"
         rail_box = page.locator(".business-rail").bounding_box()
@@ -503,7 +503,6 @@ def pro_business_navigation_ui(browser, base):
             "el => getComputedStyle(el).boxShadow"
         ) != "none"
         assert page.locator(".business-paper").evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(247, 247, 243)"
-        assert page.locator("#overview .overview-presence").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         page.locator('[data-open="mentions"]').click()
         assert page.locator("#mentions").is_visible()
         assert page.locator("#mentions .business-mentions-summary").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
@@ -546,28 +545,29 @@ def pro_business_navigation_ui(browser, base):
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#assistantCards .ai-card").count() == 3
+        assert page.locator("#assistantCards .ai-card").count() == 4
         assert "ДЕМО" in page.locator("#opportunities .workspace-demo-label").inner_text()
         page.locator('[data-ai-prompt="Предложи PR-план"]').click()
         assert page.locator("#aiChatMessages .ai-message").count() == 3
         assert "PR-план" in page.locator("#aiChatMessages").inner_text()
-        page.locator("#assistantCards .ai-card-primary").first.click()
+        page.locator("#assistantCards .ai-card-primary").nth(2).click()
         assert page.locator("#pressReleases").is_visible()
-        assert "РЕДАКЦИОННЫЕ ЗАМЕТКИ" in page.locator("#releaseBody").input_value()
-        page.locator("#releaseTitle").fill("Тестовый заголовок")
-        page.locator("#releaseLead").fill("Проверенный факт для черновика")
-        page.locator("#releaseSave").click()
-        assert page.locator("#releaseDrafts .release-draft").count() == 1
-        assert "Тестовый заголовок" in page.locator("#releaseDrafts").inner_text()
+        assert page.locator("#releaseTitle").is_visible()
+        assert page.locator("#releaseDocx").count() == 1
+        page.locator("#releaseTitle").fill("Тестовая компания представила новый отраслевой проект")
+        page.locator("#releaseLead").fill("Тестовая компания сообщила о проекте в Москве. Подробности и все показатели будут подтверждены после внутренней проверки.")
+        page.locator("#releaseBody").fill("Компания представила тестовый проект с установленным сроком запуска. Параметры проекта и результаты должны быть проверены представителями организации до направления информации в редакции. Этот текст нужен исключительно для автоматической проверки работы пользовательского интерфейса.")
         page.locator("#releaseCheck").click()
-        assert "факты" in page.locator("#releaseFeedback").inner_text().lower()
+        assert "Орфография" in page.locator("#releaseFeedback").inner_text()
+        page.locator("#releaseMediaList .release-media-item").first.wait_for(state="visible", timeout=6000)
+        assert page.locator("#releaseMediaList .release-media-item").count() == 3
+        page.locator("#releaseSelectAll").uncheck()
+        assert page.locator("#releaseCompose").is_disabled()
+        page.locator("#releaseMediaList .release-media-item input").first.check()
+        assert page.locator("#releaseSelectionCount").inner_text() == "1 выбрано"
         with page.expect_download() as docx_info:
             page.locator("#releaseDownload").click()
         assert docx_info.value.suggested_filename.endswith(".docx")
-        page.locator("#releaseNew").click()
-        assert page.locator("#releaseTitle").input_value() == ""
-        page.locator("#releaseDrafts .release-draft").first.click()
-        assert page.locator("#releaseTitle").input_value() == "Тестовый заголовок"
         assert not page.locator(".business-data-warning").is_visible()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
@@ -641,20 +641,22 @@ def pro_business_navigation_ui(browser, base):
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessResults").wait_for(state="visible", timeout=8000)
             assert not p.locator("#businessLoading").is_visible()
-            assert p.locator("#overview").is_visible()
-            assert p.locator("#overviewTotal").inner_text() == "4"
+            assert p.locator("#opportunities").is_visible()
+            assert p.locator("#aiMentionsTotal").inner_text() == "4"
+            assert p.locator("#assistantCards .ai-card").count() == 4
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.locator("#businessMenuToggle").click()
+            assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "true"
             p.get_by_role("tab", name="Инфоповоды").click()
             assert p.locator("#trendsGrid .business-trend").count() == 3
+            assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "false"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            p.locator('[data-tab="opportunities"]').click()
-            assert p.locator("#opportunities").is_visible()
-            assert p.locator("#assistantCards .ai-card").count() == 3
+            p.locator("#businessMenuToggle").click()
             p.get_by_role("tab", name="Пресс-релизы").click()
             assert p.locator("#releaseTitle").is_visible()
+            assert p.locator("#releaseMediaList .release-media-item").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
-            assert p.locator("#editProfile").is_visible()
+            p.locator("#businessMenuToggle").click()
             p.locator("#editProfile").click()
             assert p.locator("#profileForm").is_visible()
         finally:
