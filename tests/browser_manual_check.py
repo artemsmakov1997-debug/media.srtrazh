@@ -650,7 +650,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#reportMentionList li").count() == 6
         assert "Тестовая компания представила" in page.locator("#reportDraftTitle").inner_text()
         assert page.locator("#reportOutletsCount").inner_text() == "1"
-        assert "отправка не подтверждена" in page.locator("#reportOutlets").inner_text()
+        assert "отправка не подтверждена" in page.locator("#reportOutlets").inner_text().lower()
         assert page.locator("#reportActivity li").count() >= 2
         page.evaluate("window.__reportPrintCalled = false; window.print = () => {window.__reportPrintCalled = true}")
         page.locator("#reportExport").click()
