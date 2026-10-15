@@ -567,7 +567,17 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#pressReleases").is_visible()
         assert page.locator("#releaseTitle").is_visible()
         assert page.locator("#releaseDocx").count() == 1
+        # Even a draft with missing facts must show the media-selection CTA after review.
+        # Preparing the actual email remains guarded by the existing content checks.
+        assert not page.locator("#releaseDistribution").is_visible()
+        page.locator("#releaseCheck").click()
+        page.locator("#releaseDistribution").wait_for(state="visible", timeout=8000)
+        assert page.locator("#releaseOpenOutlets").is_visible()
+        assert "есть замечания" in page.locator("#releaseReviewState").inner_text()
+        page.locator("#releaseOpenOutlets").click()
+        assert page.locator("#releaseOutletsPopover").is_visible()
         page.locator("#releaseTitle").fill("Тестовая компания представила новый отраслевой проект")
+        assert not page.locator("#releaseDistribution").is_visible()
         page.locator("#releaseLead").fill("Тестовая компания сообщила о проекте в Москве. Подробности и все показатели будут подтверждены после внутренней проверки.")
         page.locator("#releaseBody").fill("Компания представила тестовый проект с установленным сроком запуска. Параметры проекта и результаты должны быть проверены представителями организации до направления информации в редакции. Этот текст нужен исключительно для автоматической проверки работы пользовательского интерфейса.")
         assert not page.locator("#releaseReview").is_visible()
