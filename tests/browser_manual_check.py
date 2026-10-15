@@ -486,7 +486,12 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#aiSummaryCompany").inner_text() == "Тестовая компания"
         assert page.locator("#aiMentionsTotal").inner_text() == "4"
         assert page.locator("#aiNegativeTotal").inner_text() == "1"
-        assert page.locator("#aiPublishedTotal").inner_text() == "Нет данных"
+        assert page.locator("#overviewTonePercent").inner_text() == "25%"
+        assert page.get_by_role("tab", name="Обзор").is_visible()
+        assert page.locator("#overviewSignals .overview-signal").count() == 3
+        assert page.locator("#overviewSolutions .overview-solution").count() == 4
+        assert page.locator("#overviewAssistantTrigger").is_visible()
+        assert not page.locator("#overviewAssistantPanel").is_visible()
         assert not page.locator("#mentions").is_visible()
         assert page.locator(".business-rail").is_visible()
         assert page.evaluate("getComputedStyle(document.body).zoom") == "1"
@@ -547,6 +552,9 @@ def pro_business_navigation_ui(browser, base):
         page.get_by_role("tab", name="Инфоповоды").click()
         page.locator("#trendsGrid .business-trend-action").nth(1).click()
         assert page.locator("#opportunities").is_visible()
+        assert page.locator("#overviewAssistantPanel").is_visible()
+        page.locator("#overviewAssistantClose").click()
+        assert not page.locator("#overviewAssistantPanel").is_visible()
         page.get_by_role("tab", name="Инфоповоды").click()
         page.locator("#trendsGrid .business-trend-action").first.click()
         assert page.locator("#pressReleases").is_visible()
@@ -555,15 +563,21 @@ def pro_business_navigation_ui(browser, base):
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#assistantCards .ai-card").count() == 4
-        assert "ДЕМО" in page.locator("#opportunities .workspace-demo-label").inner_text()
+        assert page.locator("#overviewSignals .overview-signal").count() == 3
+        assert page.locator("#overviewSolutions .overview-solution").count() == 4
+        assert "ДЕМОНСТРАЦИОННЫЕ" in page.locator("#opportunities .overview-demo").inner_text()
         # The earlier Trends → Assistant action already added a chat exchange.
         # Assert two new messages rather than assuming the conversation is empty.
         messages_before = page.locator("#aiChatMessages .ai-message").count()
+        page.locator("#overviewAssistantTrigger").click()
+        assert page.locator("#overviewAssistantPanel").is_visible()
+        assert page.locator("#overviewAssistantTrigger").get_attribute("aria-expanded") == "true"
         page.locator('[data-ai-prompt="Предложи PR-план"]').click()
         assert page.locator("#aiChatMessages .ai-message").count() == messages_before + 2
         assert "Предварительный PR-план" in page.locator("#aiChatMessages .ai-message").last.inner_text()
-        page.locator("#assistantCards .ai-card-primary").nth(2).click()
+        page.locator("#overviewAssistantClose").click()
+        assert page.locator("#overviewAssistantTrigger").get_attribute("aria-expanded") == "false"
+        page.locator("#overviewSolutions .overview-solution").nth(1).click()
         assert page.locator("#pressReleases").is_visible()
         assert page.locator("#releaseTitle").is_visible()
         assert page.locator("#releaseDocx").count() == 1
@@ -673,7 +687,13 @@ def pro_business_navigation_ui(browser, base):
             assert not p.locator("#businessLoading").is_visible()
             assert p.locator("#opportunities").is_visible()
             assert p.locator("#aiMentionsTotal").inner_text() == "4"
-            assert p.locator("#assistantCards .ai-card").count() == 4
+            assert p.locator("#overviewSignals .overview-signal").count() == 3
+            assert p.locator("#overviewSolutions .overview-solution").count() == 4
+            p.locator("#overviewAssistantTrigger").click()
+            assert p.locator("#overviewAssistantPanel").is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.locator("#overviewAssistantClose").click()
+            assert not p.locator("#overviewAssistantPanel").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
             assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "true"
