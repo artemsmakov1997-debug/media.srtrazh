@@ -12,10 +12,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="business.css?v=desk23">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk26"></script>
-<link rel="stylesheet" href="business-workspaces.css?v=ws7">
+<script defer src="business.js?v=desk27"></script>
+<link rel="stylesheet" href="business-workspaces.css?v=ws8">
 <script defer src="business-workspaces.js?v=ws5"></script>
 <script defer src="business-v3.js?v=v4"></script>
+<link rel="stylesheet" href="business-report.css?v=r1">
+<script defer src="business-report.js?v=r1"></script>
 </head>
 <body>
 <header class="site-header">
@@ -101,6 +103,7 @@
         <button type="button" id="tabMentions" role="tab" aria-controls="mentions" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="mentions"><span class="rail-icon" aria-hidden="true">≡</span><span>Упоминания</span></button>
         <button type="button" id="tabTrends" role="tab" aria-controls="trends" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="trends"><span class="rail-icon" aria-hidden="true">↗</span><span>Инфоповоды</span></button>
         <button type="button" id="tabPressReleases" role="tab" aria-controls="pressReleases" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="pressReleases"><span class="rail-icon" aria-hidden="true">▤</span><span>Пресс-релизы</span></button>
+        <button type="button" id="tabReport" role="tab" aria-controls="report" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="report"><span class="rail-icon" aria-hidden="true">▥</span><span>Отчёт</span></button>
       </nav>
       <div class="rail-bottom">
         <a href="index.html" class="rail-back"><span aria-hidden="true">←</span> Вернуться к рейтингу</a>
@@ -152,11 +155,6 @@
       </section>
 
       <section class="business-section business-section--overview" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0">
-        <header class="overview-heading">
-          <div><p class="overview-eyebrow">СИТУАЦИЯ В МЕДИАПОЛЕ</p><h2>Обзор компании</h2><p>Ключевые показатели, сигналы и следующие шаги — в одном месте.</p></div>
-          <span class="overview-demo">ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ</span>
-        </header>
-
         <section class="overview-section overview-section--analytics" aria-labelledby="overviewAnalyticsTitle">
           <div class="overview-section-heading"><div class="overview-section-name"><span class="overview-step">01</span><div><h3 id="overviewAnalyticsTitle">Текущая аналитика</h3><p id="overviewAnalyticsSubtitle">Упоминания и тональность за выбранный период</p></div></div><button type="button" data-open="mentions" class="overview-inline-link">Все упоминания <span aria-hidden="true">↗</span></button></div>
           <div class="overview-metrics">
@@ -221,6 +219,44 @@
             </div>
           </div>
         </div>
+
+      </section>
+      <section class="business-section business-section--report" id="report" role="tabpanel" aria-labelledby="tabReport" tabindex="0" hidden>
+        <header class="report-header">
+          <div><p class="report-kicker">МЕДИА.СТРАЖ PRO / ИТОГИ РАБОТЫ</p><h2>Отчёт</h2><p id="reportCompany">Организация · отрасль · период</p></div>
+          <button type="button" id="reportExport" class="report-export"> <span aria-hidden="true">↧</span> Сохранить PDF</button>
+        </header>
+        <p class="report-disclaimer">Демонстрационный аналитический отчёт. Публикации и показатели условные. Учитываются только действия в этом браузере; факт рассылки и выхода публикаций пока не отслеживается.</p>
+        <div class="report-meta"><span id="reportDate"></span><span id="reportPeriod"></span></div>
+        <section class="report-block" aria-labelledby="reportStatsTitle">
+          <div class="report-block-heading"><span>01</span><h3 id="reportStatsTitle">Медиаприсутствие</h3></div>
+          <div class="report-metrics">
+            <div><span>Упоминания</span><strong id="reportMentions">—</strong></div>
+            <div><span>Положительные</span><strong id="reportPositive">—</strong></div>
+            <div><span>Нейтральные</span><strong id="reportNeutral">—</strong></div>
+            <div><span>Отрицательные</span><strong id="reportNegative">—</strong></div>
+          </div>
+          <div class="report-grid">
+            <div><h4>Публикации выборки</h4><ol id="reportMentionList" class="report-data-list"></ol></div>
+            <div><h4>Отраслевые инфоповоды</h4><ol id="reportTrendList" class="report-data-list"></ol></div>
+          </div>
+        </section>
+        <section class="report-block" aria-labelledby="reportPrTitle">
+          <div class="report-block-heading"><span>02</span><h3 id="reportPrTitle">Подготовленные материалы</h3></div>
+          <div class="report-draft-meta"><strong id="reportDraftTitle">Пресс-релиз не подготовлен</strong><span id="reportDraftStatus"></span></div>
+          <p id="reportDraftSummary" class="report-draft-summary">После заполнения редактора сведения о текущем материале появятся здесь.</p>
+          <div class="report-check-grid">
+            <div><span>Редакторская проверка</span><strong id="reportReviewStatus">Не выполнена</strong></div>
+            <div><span>Выбранные редакции</span><strong id="reportOutletsCount">0</strong></div>
+          </div>
+          <p id="reportOutlets" class="report-outlets-note">Список редакций пока не выбран.</p>
+        </section>
+        <section class="report-block" aria-labelledby="reportActivityTitle">
+          <div class="report-block-heading"><span>03</span><h3 id="reportActivityTitle">Действия в текущей сессии</h3></div>
+          <ol id="reportActivity" class="report-activity"></ol>
+          <p class="report-outcome">Доставка писем, ответы редакций и опубликованные материалы: <strong>нет подтверждённых данных</strong>.</p>
+        </section>
+        <div class="report-footer"><span>МЕДИА.СТРАЖ PRO · аналитический прототип</span><span>Сформировано в браузере</span></div>
       </section>
     </div>
     <button type="button" id="overviewAssistantTrigger" class="overview-assistant-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="overviewAssistantPanel" hidden><span class="overview-assistant-trigger-icon" aria-hidden="true">✳</span><span>Спросить ассистента</span></button>
