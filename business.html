@@ -12,9 +12,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="business.css?v=desk23">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk14"></script>
-<link rel="stylesheet" href="business-workspaces.css?v=ws1">
-<script defer src="business-workspaces.js?v=ws2"></script>
+<script defer src="business.js?v=desk25"></script>
+<link rel="stylesheet" href="business-workspaces.css?v=ws3">
+<script defer src="business-workspaces.js?v=ws3"></script>
 </head>
 <body>
 <header class="site-header">
@@ -94,10 +94,9 @@
         <button type="button" id="editProfile" class="rail-edit">Изменить компанию <span aria-hidden="true">↗</span></button>
       </div>
       <nav class="business-result-tabs" role="tablist" aria-label="Разделы аналитического кабинета" aria-orientation="vertical">
-        <button type="button" id="tabOverview" role="tab" aria-controls="overview" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="overview"><span class="rail-icon" aria-hidden="true">◫</span><span>Обзор</span></button>
         <button type="button" id="tabMentions" role="tab" aria-controls="mentions" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="mentions"><span class="rail-icon" aria-hidden="true">≡</span><span>Упоминания</span></button>
         <button type="button" id="tabTrends" role="tab" aria-controls="trends" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="trends"><span class="rail-icon" aria-hidden="true">↗</span><span>Инфоповоды</span></button>
-        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>ИИ-ассистент</span></button>
+        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>ИИ-ассистент</span></button>
         <button type="button" id="tabPressReleases" role="tab" aria-controls="pressReleases" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="pressReleases"><span class="rail-icon" aria-hidden="true">▤</span><span>Пресс-релизы</span></button>
       </nav>
       <div class="rail-bottom">
@@ -107,7 +106,7 @@
 
     <div class="business-paper">
       <div class="paper-toolbar">
-        <div class="paper-location">МЕДИААНАЛИТИКА <span aria-hidden="true">/</span> <span id="paperLocation">ОБЗОР</span></div>
+        <div class="paper-location">МЕДИААНАЛИТИКА <span aria-hidden="true">/</span> <span id="paperLocation">ИИ-АССИСТЕНТ</span></div>
         <div class="business-period">
           <label for="period">Период</label>
           <select id="period">
@@ -123,47 +122,6 @@
         <p id="industryDisplay"></p>
       </div>
       <p class="business-data-warning"><strong>Демонстрационный кабинет.</strong> Все публикации, цифры и рекомендации условные; реальный мониторинг и ИИ-анализ пока не подключены.</p>
-
-      <section class="business-section business-overview" id="overview" role="tabpanel" aria-labelledby="tabOverview" tabindex="0">
-        <div class="overview-head">
-          <p class="section-number">КРАТКИЙ ОБЗОР / 01</p>
-          <h2>Главное за период</h2>
-          <p class="section-intro">Медиаприсутствие, растущая отраслeвая тема и направление коммуникации — на одной странице.</p>
-        </div>
-
-        <div class="report-row overview-presence">
-          <div class="report-left"><span class="report-number">01</span><span class="report-category">МЕДИАПРИСУТСТВИЕ</span></div>
-          <div class="report-content">
-            <div class="presence-major"><strong id="overviewTotal">0</strong><span>упоминаний</span></div>
-            <div class="presence-sentiments">
-              <span><b id="overviewPositive">0</b> положительных</span>
-              <span><b id="overviewNegative">0</b> отрицательных</span>
-              <span><b id="overviewNeutral">0</b> нейтральных</span>
-            </div>
-            <button type="button" class="report-link" data-open="mentions">Все публикации <span aria-hidden="true">↗</span></button>
-          </div>
-        </div>
-
-        <div class="report-row overview-signal">
-          <div class="report-left"><span class="report-number">02</span><span class="report-category">ГЛАВНЫЙ СИГНАЛ</span></div>
-          <div class="report-content">
-            <h3 id="overviewSignalTitle"></h3>
-            <div class="signal-growth"><strong id="overviewSignalGrowth">+0%</strong><span>к предыдущему сопоставимому периоду</span></div>
-            <p id="overviewSignalDetail"></p>
-            <button type="button" class="report-link" data-open="trends">Все инфоповоды <span aria-hidden="true">↗</span></button>
-          </div>
-        </div>
-
-        <div class="report-row overview-direction">
-          <div class="report-left"><span class="report-number">03</span><span class="report-category">PR-ВОЗМОЖНОСТЬ</span></div>
-          <div class="report-content">
-            <h3 id="overviewPRTitle"></h3>
-            <p id="overviewPRRationale"></p>
-            <button type="button" class="report-link" data-open="opportunities">Открыть рекомендации <span aria-hidden="true">↗</span></button>
-          </div>
-        </div>
-        <p class="report-disclaimer">Аналитические выводы представлены исключительно для демонстрации будущего продукта.</p>
-      </section>
 
       <section class="business-section" id="mentions" role="tabpanel" aria-labelledby="tabMentions" tabindex="0" hidden>
         
@@ -190,10 +148,20 @@
         <div class="business-trends" id="trendsGrid"></div>
       </section>
 
-      <section class="business-section business-section--assistant" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0" hidden>
+      <section class="business-section business-section--assistant" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0">
         <div class="ai-intro">
           <div class="ai-headline"><span class="ai-mark" aria-hidden="true">✳</span><div><p class="ai-overline">КОММУНИКАЦИОННАЯ СТРАТЕГИЯ</p><h2>ИИ-ассистент</h2><p>От наблюдений за медиаполем — к конкретным PR-действиям.</p></div></div>
           <span class="workspace-demo-label">ДЕМО · СЦЕНАРИИ БЕЗ ИИ</span>
+        </div>
+        <div class="ai-snapshot" aria-label="Сводка по организации">
+          <div class="ai-snapshot-heading"><div><span>МЕДИАПРОФИЛЬ · ПОСЛЕДНИЕ 30 ДНЕЙ</span><h3 id="aiSummaryCompany">Организация</h3></div><button type="button" data-open="mentions" class="ai-summary-link">Все упоминания ↗</button></div>
+          <div class="ai-metrics">
+            <div class="ai-metric"><span>УПОМИНАНИЯ</span><strong id="aiMentionsTotal">—</strong><small id="aiMentionsTone">тональность</small></div>
+            <div class="ai-metric"><span>НЕГАТИВНЫЕ</span><strong id="aiNegativeTotal">—</strong><small>требуют оценки контекста</small></div>
+            <div class="ai-metric"><span>ИНФОПОВОДЫ</span><strong id="aiTrendTotal">—</strong><small>условные отраслевые темы</small></div>
+            <div class="ai-metric"><span>ПРЕСС-РЕЛИЗЫ</span><strong id="aiPublishedTotal" class="ai-unavailable">Нет данных</strong><small>учёт публикаций не подключён</small></div>
+          </div>
+          <div class="ai-snapshot-lower"><div><span class="ai-chart-title">ДИНАМИКА УПОМИНАНИЙ</span><div id="aiOverviewChart" class="ai-overview-chart" role="img" aria-label="Динамика упоминаний по демонстрационной выборке"></div></div><div class="ai-trend-snapshot"><span>ПОПУЛЯРНЫЙ ИНФОПОВОД</span><strong id="aiTopTrend">—</strong><button type="button" data-open="trends">Перейти к темам ↗</button></div></div>
         </div>
         <div class="ai-workspace">
           <div class="ai-main">
@@ -214,20 +182,27 @@
       </section>
 
       <section class="business-section business-section--releases" id="pressReleases" role="tabpanel" aria-labelledby="tabPressReleases" tabindex="0" hidden>
-        <div class="release-topline"><div><p class="release-overline">РЕДАКЦИОННАЯ МАСТЕРСКАЯ</p><h2>Пресс-релизы</h2><p>Создавайте и редактируйте материалы, сохраняйте черновики и проверяйте готовность к публикации.</p></div><span class="workspace-demo-label">РЕДАКТОР · ЛОКАЛЬНЫЕ ЧЕРНОВИКИ</span></div>
-        <div class="release-workspace">
-          <aside class="release-sidebar"><div class="release-sidebar-head"><strong>Материалы</strong><button type="button" id="releaseNew" class="release-new" aria-label="Новый черновик">+</button></div><div id="releaseDrafts" class="release-drafts" aria-label="Сохранённые черновики"></div><p class="release-storage-note">Черновики сохраняются только в этом браузере.</p></aside>
-          <div class="release-editor">
-            <div class="release-editor-header"><span class="release-status" id="releaseStatus">Новый черновик</span><div class="release-editor-actions"><button type="button" id="releaseSave" class="release-button release-button--primary">Сохранить</button><button type="button" id="releaseDownload" class="release-button">Скачать DOCX</button></div></div>
-            <div class="release-document">
-              <label for="releaseTitle">ЗАГОЛОВОК</label><textarea id="releaseTitle" rows="2" maxlength="240" placeholder="Что произошло и почему это важно?"></textarea>
-              <label for="releaseLead">ЛИД</label><textarea id="releaseLead" rows="3" placeholder="Главная новость: кто, что, где, когда и почему это важно."></textarea>
-              <label for="releaseBody">ОСНОВНОЙ ТЕКСТ</label><textarea id="releaseBody" rows="9" placeholder="Факты, детали, контекст, подтверждённые показатели..."></textarea>
-              <label for="releaseQuote">ЦИТАТА (ЕСЛИ ЕСТЬ)</label><textarea id="releaseQuote" rows="3" placeholder="Согласованная цитата и имя спикера."></textarea>
-              <label for="releaseAbout">СПРАВКА О КОМПАНИИ</label><textarea id="releaseAbout" rows="3" placeholder="Проверенное описание компании и контакты пресс-службы."></textarea>
-            </div>
+        <div class="release-topline"><div><p class="release-overline">РЕДАКЦИОННАЯ МАСТЕРСКАЯ</p><h2>Пресс-релиз</h2><p>Напишите текст самостоятельно или загрузите тезисы в формате DOCX. Перед отправкой проверьте факты и согласуйте цитаты.</p></div><span class="workspace-demo-label">ПРОТОТИП · БЕЗ АВТОРАССЫЛКИ</span></div>
+        <div class="release-focused">
+          <div class="release-write-panel">
+            <div class="release-upload"><div><strong>Загрузить тезисы из Word</strong><p>DOCX до 2 МБ. Из тезисов создаётся структурированный черновик, без вымышленных фактов.</p></div><label class="release-upload-button" for="releaseDocx">Выбрать .docx<input type="file" id="releaseDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label></div>
+            <div id="releaseImportStatus" class="release-import-status" role="status"></div>
+            <form id="releaseEditorForm" class="release-document" spellcheck="true">
+              <label for="releaseTitle">ЗАГОЛОВОК</label><textarea id="releaseTitle" rows="2" maxlength="240" spellcheck="true" placeholder="Главное событие — конкретно и без оценочных эпитетов"></textarea>
+              <label for="releaseLead">ЛИД</label><textarea id="releaseLead" rows="3" spellcheck="true" placeholder="Кто, что, где, когда и почему это важно"></textarea>
+              <label for="releaseBody">ОСНОВНОЙ ТЕКСТ</label><textarea id="releaseBody" rows="10" spellcheck="true" placeholder="Детали, проверенные цифры и факты; каждый абзац развивает новость"></textarea>
+              <label for="releaseQuote">ЦИТАТА И СПИКЕР (НЕОБЯЗАТЕЛЬНО)</label><textarea id="releaseQuote" rows="3" spellcheck="true" placeholder="Только согласованная цитата; не придумывайте высказывания"></textarea>
+              <label for="releaseAbout">СПРАВКА О КОМПАНИИ</label><textarea id="releaseAbout" rows="3" spellcheck="true" placeholder="Краткая проверенная информация и контакты пресс-службы"></textarea>
+            </form>
+            <div class="release-toolbar"><button type="button" id="releaseCheck" class="release-button release-button--primary">Проверить текст</button><button type="button" id="releaseCopy" class="release-button">Копировать</button><button type="button" id="releaseDownload" class="release-button">Скачать DOCX</button><span id="releaseStatus" class="release-status">Черновик · сохраняется только в этой вкладке</span></div>
+            <div class="release-review"><h3>Редакторская проверка</h3><p>Орфография — стандартная проверка браузера. Логика — локальные эвристики структуры; это не проверка фактов и не языковая модель.</p><ul id="releaseChecklist" class="release-checklist"><li>Заголовок</li><li>Лид</li><li>Основной текст</li><li>Цитата и спикер</li><li>Справка</li></ul><div id="releaseFeedback" class="release-feedback" role="status" aria-live="polite">Заполните текст и нажмите «Проверить текст».</div></div>
           </div>
-          <aside class="release-tools"><div class="release-tools-header"><span class="release-tools-icon" aria-hidden="true">✳</span><div><strong>Редакторский контроль</strong><span>Проверка структуры, не фактов</span></div></div><p>Проверьте материал перед отправкой в СМИ.</p><ul id="releaseChecklist" class="release-checklist"><li>Заголовок</li><li>Лид</li><li>Основной текст</li><li>Цитата / спикер</li><li>Справка о компании</li></ul><button type="button" class="release-tool-button" id="releaseCheck">Проверить структуру</button><div id="releaseFeedback" class="release-feedback" role="status" aria-live="polite">Содержательные факты, ссылки и цитаты необходимо проверить вручную.</div><button type="button" class="release-tool-button release-tool-button--subtle" id="releaseCopy">Копировать текст</button></aside>
+          <div class="release-distribution">
+            <div class="release-distribution-heading"><div><h3>Отраслевые редакции</h3><p id="releaseIndustryHeading">Адресаты по выбранной отрасли</p></div><span id="releaseSelectionCount">0 выбрано</span></div>
+            <div class="release-selector"><label><input type="checkbox" id="releaseSelectAll" checked> Выбрать все издания</label></div>
+            <div id="releaseMediaList" class="release-media-list" aria-label="Редакции для рассылки"><p>Загружаем проверенные открытые контакты…</p></div>
+            <div class="release-mail-actions"><button type="button" class="release-button release-button--primary" id="releaseCompose">Подготовить письмо выбранным редакциям ↗</button><p id="releaseMailStatus" role="status">Откроется почтовая программа с адресатами и текстом. Перед отправкой проверьте письмо; сайт ничего не отправляет автоматически.</p></div>
+          </div>
         </div>
       </section>
     </div>
