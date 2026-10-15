@@ -113,6 +113,9 @@ async function checkLogic(){
  $('releaseReviewState').textContent=canProceed
    ? 'Проверка завершена · можно выбрать редакции'
    : 'Проверка завершена · есть замечания к тексту';
+ $('releaseReadinessNote').textContent=canProceed
+   ? 'Выберите профильные издания. Письмо будет создано в вашей почтовой программе — без автоматической отправки.'
+   : 'Издания можно выбрать сейчас. Перед подготовкой письма исправьте обязательные замечания и удалите служебные пометки.';
  // Editorial comments must never hide the next step. The actual email
  // composition still validates required fields and removes template markers.
  distribution.hidden=false;
