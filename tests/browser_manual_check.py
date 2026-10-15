@@ -503,8 +503,10 @@ def pro_business_navigation_ui(browser, base):
             "el => getComputedStyle(el).boxShadow"
         ) != "none"
         assert page.locator(".business-paper").evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(247, 247, 243)"
+        assert page.locator("#overview .overview-presence").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         page.locator('[data-open="mentions"]').click()
         assert page.locator("#mentions").is_visible()
+        assert page.locator("#mentions .business-mentions-summary").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert page.locator("#mentionsBody .mention-item").count() == 4
         assert page.locator("#totalMentions").inner_text() == "4"
         assert page.locator("#positiveCount").inner_text() == "1"
@@ -515,6 +517,8 @@ def pro_business_navigation_ui(browser, base):
         # A tab must switch visible content, not just scroll down the same page.
         page.get_by_role("tab", name="Инфоповоды").click()
         assert page.locator("#trends").is_visible()
+        assert page.locator("#trends .business-trends-explainer").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
+        assert page.locator("#trends .business-trends").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#trendsGrid .business-trend").count() == 3
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
@@ -537,6 +541,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#neutralCount").inner_text() == "3"
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
+        assert page.locator("#opportunities .memo-method").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
         assert "demo" in page.locator(".memo-header").inner_text().lower()
