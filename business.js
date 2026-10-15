@@ -222,31 +222,18 @@
   }
 
   function renderPR(){
-    const data=samples[activeIndustry],pr=$('opportunitiesGrid');
-    const days=periodDays();
-    pr.replaceChildren();
-    data.opportunities.slice(0,3).forEach((idea,i)=>{
-      const signal=data.trends[i],figures=trendNumbers(signal,days);
-      const rate=growthPercent(figures);
-      const card=node('article',null,'business-opportunity');
-      const top=node('div',null,'opportunity-top');
-      top.append(node('span',idea.kind,'opportunity-kind'),
-        node('span',String(i+1).padStart(2,'0')+' / 03','opportunity-index'));
-      card.append(top,node('h3',idea.title),node('p',idea.detail));
-      const evidence=node('div',null,'opportunity-evidence');
-      evidence.append(node('span','ПОВОД','opportunity-evidence-label'),
-        node('span',signal.title+' · +'+rate+'% за '+days+' дн. (демо)','opportunity-evidence-text'));
-      card.append(evidence);
-      const details=node('details',null,'opportunity-action-plan');
-      if(i===0)details.open=true;
-      const summary=node('summary','Посмотреть план действий');
-      details.append(summary);
-      const steps=node('ol');
-      prActions[activeIndustry][i].forEach(step=>steps.append(node('li',step)));
-      details.append(steps);
-      card.append(details);
-      pr.append(card);
-    });
+    // Send the same demo evidence shown in Mentions and Trends to the new
+    // editorial workspaces. No server-side model is connected at this stage.
+    document.dispatchEvent(new CustomEvent('ms-business-data',{detail:{
+      company:activeCompany,
+      industry:activeIndustry,
+      industryLabel:$('industry').selectedOptions[0].textContent,
+      days:periodDays(),
+      mentions, sources,
+      trends:samples[activeIndustry].trends,
+      opportunities:samples[activeIndustry].opportunities,
+      actions:prActions[activeIndustry]
+    }}));
   }
 
   const tabs=[...document.querySelectorAll('.business-result-tab')];
