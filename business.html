@@ -12,10 +12,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="business.css?v=desk23">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk25"></script>
-<link rel="stylesheet" href="business-workspaces.css?v=ws3">
-<script defer src="business-workspaces.js?v=ws3"></script>
-<script defer src="business-v3.js?v=v1"></script>
+<script defer src="business.js?v=desk26"></script>
+<link rel="stylesheet" href="business-workspaces.css?v=ws4">
+<script defer src="business-workspaces.js?v=ws4"></script>
+<script defer src="business-v3.js?v=v2"></script>
 </head>
 <body>
 <header class="site-header">
@@ -185,7 +185,6 @@
       </section>
 
       <section class="business-section business-section--releases" id="pressReleases" role="tabpanel" aria-labelledby="tabPressReleases" tabindex="0" hidden>
-        <div class="release-topline"><div><p class="release-overline">РЕДАКЦИОННАЯ МАСТЕРСКАЯ</p><h2>Пресс-релиз</h2><p>Напишите текст самостоятельно или загрузите тезисы в формате DOCX. Перед отправкой проверьте факты и согласуйте цитаты.</p></div><span class="workspace-demo-label">ПРОТОТИП · БЕЗ АВТОРАССЫЛКИ</span></div>
         <div hidden aria-hidden="true"><button type="button" id="releaseNew"></button><button type="button" id="releaseSave"></button><div id="releaseDrafts"></div></div>
         <div class="release-focused">
           <div class="release-write-panel">
@@ -199,13 +198,27 @@
               <label for="releaseAbout">СПРАВКА О КОМПАНИИ</label><textarea id="releaseAbout" rows="3" spellcheck="true" placeholder="Краткая проверенная информация и контакты пресс-службы"></textarea>
             </form>
             <div class="release-toolbar"><button type="button" id="releaseCheck" class="release-button release-button--primary">Проверить текст</button><button type="button" id="releaseCopy" class="release-button">Копировать</button><button type="button" id="releaseDownload" class="release-button">Скачать DOCX</button><span id="releaseStatus" class="release-status">Черновик · сохраняется только в этой вкладке</span></div>
-            <div class="release-review"><h3>Редакторская проверка</h3><p>Орфография — стандартная проверка браузера. Логика — локальные эвристики структуры; это не проверка фактов и не языковая модель.</p><ul id="releaseChecklist" class="release-checklist"><li>Заголовок</li><li>Лид</li><li>Основной текст</li><li>Цитата и спикер</li><li>Справка</li></ul><div id="releaseFeedback" class="release-feedback" role="status" aria-live="polite">Заполните текст и нажмите «Проверить текст».</div></div>
+            <div class="release-review" id="releaseReview" hidden aria-label="Результаты редакторской проверки">
+              <div class="release-review-heading"><span class="release-review-symbol" aria-hidden="true">✳</span><div><h3>Редакторская проверка</h3><p id="releaseReviewState" role="status">Проверяем основные элементы материала…</p></div></div>
+              <ul id="releaseChecklist" class="release-checklist" aria-label="Результаты проверки">
+                <li>Заголовок</li><li>Лид</li><li>Основной текст</li><li>Цитата и спикер</li><li>Справка о компании</li>
+              </ul>
+              <div id="releaseFeedback" class="release-feedback" role="status" aria-live="polite"></div>
+            </div>
           </div>
-          <div class="release-distribution">
-            <div class="release-distribution-heading"><div><h3>Отраслевые редакции</h3><p id="releaseIndustryHeading">Адресаты по выбранной отрасли</p></div><span id="releaseSelectionCount">0 выбрано</span></div>
-            <div class="release-selector"><label><input type="checkbox" id="releaseSelectAll" checked> Выбрать все издания</label></div>
-            <div id="releaseMediaList" class="release-media-list" aria-label="Редакции для рассылки"><p>Загружаем проверенные открытые контакты…</p></div>
-            <div class="release-mail-actions"><button type="button" class="release-button release-button--primary" id="releaseCompose">Подготовить письмо выбранным редакциям ↗</button><p id="releaseMailStatus" role="status">Откроется почтовая программа с адресатами и текстом. Перед отправкой проверьте письмо; сайт ничего не отправляет автоматически.</p></div>
+          <div class="release-distribution" id="releaseDistribution" hidden>
+            <div class="release-distribution-heading">
+              <div><span class="release-step-label">СЛЕДУЮЩИЙ ШАГ</span><h3>Подбор редакций</h3><p id="releaseIndustryHeading">Адресаты по выбранной отрасли</p></div>
+              <span id="releaseSelectionCount">0 выбрано</span>
+            </div>
+            <button type="button" id="releaseOpenOutlets" class="release-outlets-toggle" aria-expanded="false" aria-controls="releaseOutletsPopover">
+              <span>Выбрать издания для рассылки</span><span class="release-outlets-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div id="releaseOutletsPopover" class="release-outlets-popover" hidden>
+              <div class="release-selector"><label><input type="checkbox" id="releaseSelectAll" checked> Выбрать все издания</label></div>
+              <div id="releaseMediaList" class="release-media-list" aria-label="Редакции для рассылки"><p>Загружаем открытые контакты…</p></div>
+              <div class="release-mail-actions"><button type="button" class="release-button release-button--primary" id="releaseCompose">Подготовить письмо выбранным редакциям ↗</button><p id="releaseMailStatus" role="status">Откроется почтовая программа с адресатами и текстом. Сайт ничего не отправляет автоматически.</p></div>
+            </div>
           </div>
         </div>
       </section>
