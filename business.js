@@ -196,6 +196,9 @@
       content.append(node('h3',trend.title),node('p',trend.detail));
       const bar=node('div',null,'business-trend-bar'),fill=node('div',null,'business-trend-bar-fill');
       card.style.setProperty('--trend-order',String(i));
+      card.style.setProperty('--trend-enter-delay',i*90+'ms');
+      card.style.setProperty('--trend-bar-delay',(160+i*105)+'ms');
+      card.style.setProperty('--trend-metric-delay',(100+i*95)+'ms');
       fill.style.width=Math.max(6,Math.round(figures.current/maximum*100))+'%';
       bar.append(fill);content.append(bar);
       const action=node('button','Использовать возможность ↗','business-trend-action');
