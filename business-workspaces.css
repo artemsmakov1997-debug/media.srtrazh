@@ -199,3 +199,79 @@
 }
 @media(max-width:370px){.ai-snapshot-heading{flex-direction:column}.ai-metric strong{font-size:24px}.ai-count{display:none}.ai-chat{min-width:0}}
 @media(prefers-reduced-motion:reduce){.business-results .business-rail{transition:none}}
+
+
+/* Editorial UI refinement: opportunity handoffs and staged release workflow. */
+#trends .business-trend{position:relative;align-items:start}
+#trends .business-trend-content{padding-bottom:1px}
+#trends .business-trend-bar{margin-top:15px}
+#trends .business-trend-action{
+  display:inline-flex;align-items:center;gap:7px;margin-top:17px;
+  border:0;border-bottom:1px solid transparent;background:transparent;
+  color:#29788b;font:750 11px/1.4 Inter,Arial,sans-serif;letter-spacing:.002em;
+  padding:4px 0;cursor:pointer;text-align:left;transition:color .18s,border-color .18s;
+}
+#trends .business-trend-action:hover{border-color:#348b9e;color:#164b60}
+#trends .business-trend-action:focus-visible{outline:2px solid #438da0;outline-offset:3px;border-radius:3px}
+@keyframes ms-trend-arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ms-trend-graph{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes ms-trend-number{from{opacity:.35}to{opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+ #trends:not([hidden]) .business-trend{animation:ms-trend-arrive .54s cubic-bezier(.17,.7,.25,1) both;animation-delay:calc(var(--trend-order,0)*90ms)}
+ #trends:not([hidden]) .business-trend-bar-fill{transform-origin:left;animation:ms-trend-graph .74s cubic-bezier(.16,.72,.18,1) both;animation-delay:calc(160ms + var(--trend-order,0)*105ms)}
+ #trends:not([hidden]) .business-trend-growth{animation:ms-trend-number .55s ease both;animation-delay:calc(100ms + var(--trend-order,0)*95ms)}
+}
+
+.business-results .business-section--releases{padding-top:27px}
+.business-results .release-focused{display:grid;grid-template-columns:minmax(0,1fr);max-width:980px;margin:0 auto;gap:18px}
+.business-results .release-write-panel{min-width:0}
+.business-results .release-review[hidden],
+.business-results .release-distribution[hidden],
+.business-results .release-outlets-popover[hidden]{display:none!important}
+.business-results .release-review{border-top:1px solid #e4eeec;padding:24px 27px 25px;background:#f8fbfa}
+.release-review-heading{display:flex;align-items:center;gap:12px;margin-bottom:17px}
+.release-review-symbol{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:#e7f0ee;color:#318696;font-size:22px;flex:none}
+.release-review-heading h3{font-size:14px;font-weight:750;color:#263e4b;margin:0 0 5px}
+.release-review-heading p{font-size:11px;color:#82949b;margin:0;line-height:1.5}
+.business-results .release-review .release-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px;margin-bottom:16px}
+.release-review .release-checklist li{display:flex;align-items:center;min-height:39px;padding:10px 5px 10px 29px;margin:0;color:#798991;transition:color .2s}
+.release-review .release-checklist li::before{content:"○";left:4px;top:9px;color:#95a9aa;transition:color .2s,transform .22s;font-size:16px}
+.release-review .release-checklist li.is-checking::before{content:"⋯";color:#398b9b;animation:ms-check-pulse .4s ease infinite alternate}
+.release-review .release-checklist li.is-complete::before{content:"✓";color:#29926e;font-size:15px;animation:ms-check-on .36s cubic-bezier(.18,.75,.22,1) both}
+.release-review .release-checklist li.is-complete{color:#306c59}
+.release-review .release-checklist li.is-warning{color:#94623b}
+.release-review .release-checklist li.is-warning::before{content:"!";font-size:13px;font-weight:800;color:#bb864d}
+.release-review .release-checklist li.is-optional::before{content:"–";color:#a0acad;font-size:17px}
+.release-review .release-feedback{margin:0;padding-top:15px;border-top:1px solid #e2ebea;color:#70848c;white-space:pre-line;line-height:1.8;font-size:11px}
+@keyframes ms-check-on{from{opacity:0;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
+@keyframes ms-check-pulse{from{opacity:.45}to{opacity:1}}
+.business-results .release-distribution{padding:20px 25px 23px;border:1px solid #cbdedc;background:#fff;box-shadow:0 14px 32px rgba(28,53,65,.065);overflow:visible}
+.release-step-label{display:block;margin:0 0 8px;color:#358697;font-size:10px;font-weight:800;letter-spacing:.09em}
+.release-distribution-heading{margin:0 0 13px}
+.release-outlets-toggle{display:flex;justify-content:space-between;align-items:center;gap:18px;width:100%;background:#f3f8f7;border:1px solid #d0e1df;border-radius:8px;padding:14px 16px;color:#2b5261;font:750 12px/1.4 Inter,Arial,sans-serif;cursor:pointer;text-align:left}
+.release-outlets-toggle:hover{background:#e8f3f3;border-color:#a5c9cc}
+.release-outlets-toggle:focus-visible{outline:2px solid #348da0;outline-offset:3px}
+.release-outlets-chevron{display:inline-block;font-size:21px;line-height:1;transition:transform .2s}
+.release-outlets-toggle[aria-expanded="true"] .release-outlets-chevron{transform:rotate(180deg)}
+.release-outlets-popover{position:relative;margin-top:8px;border:1px solid #dbe8e6;border-radius:9px;background:#fff;box-shadow:0 15px 30px rgba(28,53,65,.08);padding:4px 18px 18px}
+.release-outlets-popover .release-media-list{max-height:380px;overflow-y:auto;overscroll-behavior:contain}
+.release-outlets-popover .release-mail-actions{padding-top:15px}
+@keyframes ms-release-stage{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+ .business-results .release-review:not([hidden]){animation:ms-release-stage .42s ease-out both}
+ .business-results .release-distribution.is-arriving:not([hidden]){animation:ms-release-stage .48s ease-out both}
+ .business-results .release-outlets-popover:not([hidden]){animation:ms-release-stage .27s ease-out both}
+}
+@media(max-width:720px){
+ #trends .business-trend-action{font-size:11px;margin-top:12px}
+ .business-results .release-review{padding:19px 16px}
+ .business-results .release-review .release-checklist{grid-template-columns:1fr}
+ .business-results .release-distribution{padding:17px 15px}
+ .release-outlets-popover{padding:4px 12px 12px}
+ .release-distribution-heading{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ #trends .business-trend,#trends .business-trend-growth,#trends .business-trend-bar-fill,
+ .release-review .release-checklist li::before,.business-results .release-review,
+ .business-results .release-distribution,.business-results .release-outlets-popover{animation:none!important;transition:none!important}
+}
