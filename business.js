@@ -249,7 +249,7 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.body.classList.contains('business-menu-open'))setMenu(false);});
   window.addEventListener('resize',()=>{if(window.innerWidth>720 && document.body.classList.contains('business-menu-open'))setMenu(false);});
   const tabs=[...document.querySelectorAll('.business-result-tab')];
-  const panels=['opportunities','mentions','trends','pressReleases'];
+  const panels=['opportunities','mentions','trends','pressReleases','report'];
   function activateTab(name,focus=false){
     if(!panels.includes(name))return;
     activeTab=name;
