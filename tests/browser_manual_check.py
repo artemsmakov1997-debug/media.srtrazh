@@ -524,7 +524,7 @@ def pro_business_navigation_ui(browser, base):
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
         initial_growth = page.locator(".business-trend-growth").first.inner_text()
         assert initial_growth.startswith("+") and initial_growth.endswith("%")
-        page.select_option("#mentionsPeriod", "7")
+        page.select_option("#period", "7")
         assert page.locator("#trendPeriodLabel").inner_text() == "7 дней"
         assert page.locator(".business-trend-growth").first.inner_text() != initial_growth
         page.get_by_role("tab", name="Упоминания").click()
