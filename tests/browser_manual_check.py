@@ -519,8 +519,10 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#trends .business-trends-explainer").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert page.locator("#trends .business-trends").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#trendsGrid .business-trend").count() == 3
+        assert page.locator("#trendsGrid .business-trend").count() == 5
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
+        assert page.locator("#trendsGrid .business-trend-action").count() == 5
+        assert page.locator("#trendsGrid .business-trend").first.evaluate("el => getComputedStyle(el).animationName") == "ms-trend-arrive"
         initial_growth = page.locator(".business-trend-growth").first.inner_text()
         assert initial_growth.startswith("+") and initial_growth.endswith("%")
         # The period picker is intentionally available only in Mentions.
@@ -542,6 +544,14 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#positiveCount").inner_text() == "2"
         assert page.locator("#negativeCount").inner_text() == "1"
         assert page.locator("#neutralCount").inner_text() == "3"
+        page.get_by_role("tab", name="Инфоповоды").click()
+        page.locator("#trendsGrid .business-trend-action").nth(1).click()
+        assert page.locator("#opportunities").is_visible()
+        page.get_by_role("tab", name="Инфоповоды").click()
+        page.locator("#trendsGrid .business-trend-action").first.click()
+        assert page.locator("#pressReleases").is_visible()
+        assert page.locator("#releaseTitle").input_value().startswith("Экспертный комментарий:")
+        assert "ПРОЕКТ МАТЕРИАЛА" in page.locator("#releaseBody").input_value()
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
@@ -557,8 +567,15 @@ def pro_business_navigation_ui(browser, base):
         page.locator("#releaseTitle").fill("Тестовая компания представила новый отраслевой проект")
         page.locator("#releaseLead").fill("Тестовая компания сообщила о проекте в Москве. Подробности и все показатели будут подтверждены после внутренней проверки.")
         page.locator("#releaseBody").fill("Компания представила тестовый проект с установленным сроком запуска. Параметры проекта и результаты должны быть проверены представителями организации до направления информации в редакции. Этот текст нужен исключительно для автоматической проверки работы пользовательского интерфейса.")
+        assert not page.locator("#releaseReview").is_visible()
+        assert not page.locator("#releaseDistribution").is_visible()
         page.locator("#releaseCheck").click()
+        page.locator("#releaseDistribution").wait_for(state="visible", timeout=8000)
         assert "Орфография" in page.locator("#releaseFeedback").inner_text()
+        assert page.locator("#releaseChecklist li.is-complete").count() >= 3
+        assert not page.locator("#releaseOutletsPopover").is_visible()
+        page.locator("#releaseOpenOutlets").click()
+        assert page.locator("#releaseOutletsPopover").is_visible()
         page.locator("#releaseMediaList .release-media-item").first.wait_for(state="visible", timeout=6000)
         assert page.locator("#releaseMediaList .release-media-item").count() == 3
         page.locator("#releaseSelectAll").uncheck()
@@ -648,12 +665,14 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#businessMenuToggle").click()
             assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "true"
             p.get_by_role("tab", name="Инфоповоды").click()
-            assert p.locator("#trendsGrid .business-trend").count() == 3
+            assert p.locator("#trendsGrid .business-trend").count() == 5
             assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "false"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
             p.get_by_role("tab", name="Пресс-релизы").click()
             assert p.locator("#releaseTitle").is_visible()
+            assert not p.locator("#releaseReview").is_visible()
+            assert not p.locator("#releaseDistribution").is_visible()
             assert p.locator("#releaseMediaList .release-media-item").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
