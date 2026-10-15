@@ -427,3 +427,11 @@ body.overview-assistant-open{overflow:hidden}
  .business-results .overview-solution,.business-results .overview-tone-bar span{transition:none}
  .business-results .overview-assistant-panel,.business-results .overview-assistant-backdrop{animation:none!important}
 }
+
+
+/* A transform on the dashboard container would anchor fixed dialog panels
+   to the page section instead of the viewport. Keep entry motion opacity-only. */
+@keyframes overview-results-fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+ .business-results.is-opening{animation:overview-results-fade .36s ease-out both}
+}
