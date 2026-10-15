@@ -13,9 +13,9 @@
 <link rel="stylesheet" href="business.css?v=desk23">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
 <script defer src="business.js?v=desk26"></script>
-<link rel="stylesheet" href="business-workspaces.css?v=ws5">
-<script defer src="business-workspaces.js?v=ws4"></script>
-<script defer src="business-v3.js?v=v3"></script>
+<link rel="stylesheet" href="business-workspaces.css?v=ws6">
+<script defer src="business-workspaces.js?v=ws5"></script>
+<script defer src="business-v3.js?v=v4"></script>
 </head>
 <body>
 <header class="site-header">
@@ -97,7 +97,7 @@
         <button type="button" id="editProfile" class="rail-edit">Изменить компанию <span aria-hidden="true">↗</span></button>
       </div>
       <nav class="business-result-tabs" role="tablist" aria-label="Разделы аналитического кабинета" aria-orientation="vertical">
-        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>ИИ-ассистент</span></button>
+        <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="true" tabindex="0" class="business-result-tab business-result-tab--active" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>Обзор</span></button>
         <button type="button" id="tabMentions" role="tab" aria-controls="mentions" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="mentions"><span class="rail-icon" aria-hidden="true">≡</span><span>Упоминания</span></button>
         <button type="button" id="tabTrends" role="tab" aria-controls="trends" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="trends"><span class="rail-icon" aria-hidden="true">↗</span><span>Инфоповоды</span></button>
         <button type="button" id="tabPressReleases" role="tab" aria-controls="pressReleases" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="pressReleases"><span class="rail-icon" aria-hidden="true">▤</span><span>Пресс-релизы</span></button>
@@ -109,7 +109,7 @@
 
     <div class="business-paper">
       <div class="paper-toolbar">
-        <div class="paper-location">МЕДИААНАЛИТИКА <span aria-hidden="true">/</span> <span id="paperLocation">ИИ-АССИСТЕНТ</span></div>
+        <div class="paper-location">МЕДИААНАЛИТИКА <span aria-hidden="true">/</span> <span id="paperLocation">ОБЗОР</span></div>
         <div class="business-period">
           <label for="period">Период</label>
           <select id="period">
@@ -151,37 +151,36 @@
         <div class="business-trends" id="trendsGrid"></div>
       </section>
 
-      <section class="business-section business-section--assistant" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0">
-        <div class="ai-intro">
-          <div class="ai-headline"><span class="ai-mark" aria-hidden="true">✳</span><div><p class="ai-overline">КОММУНИКАЦИОННАЯ СТРАТЕГИЯ</p><h2>ИИ-ассистент</h2><p>От наблюдений за медиаполем — к конкретным PR-действиям.</p></div></div>
-          <span class="workspace-demo-label">ДЕМО · СЦЕНАРИИ БЕЗ ИИ</span>
-        </div>
-        <div class="ai-snapshot" aria-label="Сводка по организации">
-          <div class="ai-snapshot-heading"><div><span>МЕДИАПРОФИЛЬ · ПОСЛЕДНИЕ 30 ДНЕЙ</span><h3 id="aiSummaryCompany">Организация</h3></div><button type="button" data-open="mentions" class="ai-summary-link">Все упоминания ↗</button></div>
-          <div class="ai-metrics">
-            <div class="ai-metric"><span>УПОМИНАНИЯ</span><strong id="aiMentionsTotal">—</strong><small id="aiMentionsTone">тональность</small></div>
-            <div class="ai-metric"><span>НЕГАТИВНЫЕ</span><strong id="aiNegativeTotal">—</strong><small>требуют оценки контекста</small></div>
-            <div class="ai-metric"><span>ИНФОПОВОДЫ</span><strong id="aiTrendTotal">—</strong><small>условные отраслевые темы</small></div>
-            <div class="ai-metric"><span>ПРЕСС-РЕЛИЗЫ</span><strong id="aiPublishedTotal" class="ai-unavailable">Нет данных</strong><small>учёт публикаций не подключён</small></div>
+      <section class="business-section business-section--overview" id="opportunities" role="tabpanel" aria-labelledby="tabOpportunities" tabindex="0">
+        <header class="overview-heading">
+          <div><p class="overview-eyebrow">СИТУАЦИЯ В МЕДИАПОЛЕ</p><h2>Обзор компании</h2><p>Ключевые показатели, сигналы и следующие шаги — в одном месте.</p></div>
+          <span class="overview-demo">ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ</span>
+        </header>
+
+        <section class="overview-section overview-section--analytics" aria-labelledby="overviewAnalyticsTitle">
+          <div class="overview-section-heading"><div class="overview-section-name"><span class="overview-step">01</span><div><h3 id="overviewAnalyticsTitle">Текущая аналитика</h3><p id="overviewAnalyticsSubtitle">Упоминания и тональность за выбранный период</p></div></div><button type="button" data-open="mentions" class="overview-inline-link">Все упоминания <span aria-hidden="true">↗</span></button></div>
+          <div class="overview-metrics">
+            <div class="overview-metric"><span class="overview-metric-label">УПОМИНАНИЯ</span><strong id="aiMentionsTotal">—</strong><small id="aiSummaryCompany">Организация</small></div>
+            <div class="overview-metric"><span class="overview-metric-label">ТОНАЛЬНОСТЬ</span><strong id="overviewTonePercent">—</strong><small id="aiMentionsTone">Позитив / нейтрально / негатив</small><div class="overview-tone-bar" aria-hidden="true"><span id="overviewTonePositive"></span><span id="overviewToneNeutral"></span><span id="overviewToneNegative"></span></div></div>
+            <div class="overview-metric"><span class="overview-metric-label">НЕГАТИВНЫЕ</span><strong id="aiNegativeTotal">—</strong><small>Упоминания для проверки</small></div>
+            <div class="overview-metric"><span class="overview-metric-label">ИНФОПОВОДЫ</span><strong id="aiTrendTotal">—</strong><small>Темы в отраслевой подборке</small></div>
           </div>
-          <div class="ai-snapshot-lower"><div><span class="ai-chart-title">ДИНАМИКА УПОМИНАНИЙ</span><div id="aiOverviewChart" class="ai-overview-chart" role="img" aria-label="Динамика упоминаний по демонстрационной выборке"></div></div><div class="ai-trend-snapshot"><span>ПОПУЛЯРНЫЙ ИНФОПОВОД</span><strong id="aiTopTrend">—</strong><button type="button" data-open="trends">Перейти к темам ↗</button></div></div>
-        </div>
-        <div class="ai-workspace">
-          <div class="ai-main">
-            <div class="ai-insights-heading"><div><h3>Возможности для продвижения</h3><p id="aiContextLabel">На основе демонстрационных упоминаний и инфоповодов</p></div><span class="ai-count">03 / ПРЕДЛОЖЕНИЯ</span></div>
-            <div id="assistantCards" class="ai-cards" aria-live="polite"></div>
-            <div class="ai-evidence-note"><span aria-hidden="true">ⓘ</span> Выводы составлены по условным примерам. Перед публикацией необходимо проверить источники и факты.</div>
+          <div class="overview-insight-grid">
+            <div class="overview-chart-wrap"><div class="overview-mini-label">ДИНАМИКА УПОМИНАНИЙ</div><div id="aiOverviewChart" class="ai-overview-chart" role="img" aria-label="Динамика демонстрационных упоминаний"></div><div class="overview-chart-foot"><span id="overviewChartPeriod">Последние 30 дней</span><span>Демо</span></div></div>
+            <div class="overview-top-topic"><span class="overview-mini-label">НАИБОЛЕЕ ЗАМЕТНАЯ ТЕМА</span><strong id="aiTopTrend">—</strong><p>Потенциальный повод для экспертного комментария</p><button type="button" data-open="trends" class="overview-inline-link">Посмотреть инфоповоды <span aria-hidden="true">↗</span></button></div>
           </div>
-          <aside class="ai-chat" aria-label="Демонстрационный чат PR-ассистента">
-            <header class="ai-chat-header"><span class="ai-chat-avatar" aria-hidden="true">✳</span><div><strong>PR-ассистент</strong><span>Демонстрационный диалог, без подключения ИИ</span></div></header>
-            <div id="aiChatMessages" class="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
-            <div class="ai-chat-bottom">
-              <div class="ai-suggestions"><button type="button" data-ai-prompt="Предложи PR-план">PR-план</button><button type="button" data-ai-prompt="Что делать с негативом?">Работа с негативом</button><button type="button" data-ai-prompt="Найди инфоповод">Найти инфоповод</button></div>
-              <form id="aiChatForm" class="ai-chat-form"><label class="visually-hidden" for="aiChatInput">Сообщение PR-ассистенту</label><textarea id="aiChatInput" rows="2" maxlength="700" placeholder="Спросите о возможностях продвижения..."></textarea><button type="submit" aria-label="Отправить сообщение">➤</button></form>
-              <p class="ai-chat-disclaimer">Ответы формируются по локальным демонстрационным правилам, не генеративной моделью.</p>
-            </div>
-          </aside>
-        </div>
+        </section>
+
+        <section class="overview-section overview-section--signals" aria-labelledby="overviewSignalsTitle">
+          <div class="overview-section-heading"><div class="overview-section-name"><span class="overview-step">02</span><div><h3 id="overviewSignalsTitle">Возможности и сигналы</h3><p id="aiContextLabel">Только то, что может потребовать внимания</p></div></div><button type="button" data-open="trends" class="overview-inline-link">Все инфоповоды <span aria-hidden="true">↗</span></button></div>
+          <div id="overviewSignals" class="overview-signals" aria-live="polite"></div>
+          <p class="overview-note">Предложения основаны на условной выборке. Перед действиями необходимо проверить первоисточники и факты.</p>
+        </section>
+
+        <section class="overview-section overview-section--solutions" aria-labelledby="overviewSolutionsTitle">
+          <div class="overview-section-heading"><div class="overview-section-name"><span class="overview-step">03</span><div><h3 id="overviewSolutionsTitle">Готовые решения</h3><p>Выберите действие и продолжите работу с материалом</p></div></div></div>
+          <div id="overviewSolutions" class="overview-solutions"></div>
+        </section>
       </section>
 
       <section class="business-section business-section--releases" id="pressReleases" role="tabpanel" aria-labelledby="tabPressReleases" tabindex="0" hidden>
@@ -224,6 +223,17 @@
         </div>
       </section>
     </div>
+    <button type="button" id="overviewAssistantTrigger" class="overview-assistant-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="overviewAssistantPanel" hidden><span class="overview-assistant-trigger-icon" aria-hidden="true">✳</span><span>Спросить ассистента</span></button>
+    <button type="button" id="overviewAssistantBackdrop" class="overview-assistant-backdrop" aria-label="Закрыть PR-ассистента" hidden></button>
+          <aside id="overviewAssistantPanel" class="ai-chat overview-assistant-panel" role="dialog" aria-modal="true" aria-label="PR-ассистент" hidden>
+            <header class="ai-chat-header"><span class="ai-chat-avatar" aria-hidden="true">✳</span><div><strong>PR-ассистент</strong><span>Демонстрационный диалог, без подключения ИИ</span></div><button type="button" id="overviewAssistantClose" class="overview-assistant-close" aria-label="Закрыть ассистента">×</button></header>
+            <div id="aiChatMessages" class="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <div class="ai-chat-bottom">
+              <div class="ai-suggestions"><button type="button" data-ai-prompt="Предложи PR-план">PR-план</button><button type="button" data-ai-prompt="Что делать с негативом?">Работа с негативом</button><button type="button" data-ai-prompt="Найди инфоповод">Найти инфоповод</button></div>
+              <form id="aiChatForm" class="ai-chat-form"><label class="visually-hidden" for="aiChatInput">Сообщение PR-ассистенту</label><textarea id="aiChatInput" rows="2" maxlength="700" placeholder="Спросите о возможностях продвижения..."></textarea><button type="submit" aria-label="Отправить сообщение">➤</button></form>
+              <p class="ai-chat-disclaimer">Ответы формируются по локальным демонстрационным правилам, не генеративной моделью.</p>
+            </div>
+          </aside>
   </div>
 </main>
 </body>
