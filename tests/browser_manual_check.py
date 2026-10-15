@@ -529,7 +529,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#positiveCount").inner_text() == "1"
         assert page.locator("#negativeCount").inner_text() == "0"
         assert page.locator("#neutralCount").inner_text() == "1"
-        page.select_option("#period", "90")
+        page.select_option("#mentionsPeriod", "90")
         assert page.locator("#mentionsBody .mention-item").count() == 6
         assert page.locator("#totalMentions").inner_text() == "6"
         assert page.locator("#positiveCount").inner_text() == "2"
