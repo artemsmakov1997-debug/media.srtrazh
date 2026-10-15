@@ -173,6 +173,7 @@
     });
     $('releaseFeedback').textContent = 'Тема перенесена из ИИ-ассистента. Это редакционные заметки, не готовый пресс-релиз.';
     $('releaseStatus').textContent = 'На основе идеи · не сохранено';
+    document.dispatchEvent(new Event('ms-release-draft-changed'));
     document.querySelector('[data-tab="pressReleases"]').click();
     $('releaseTitle').focus();
   }
