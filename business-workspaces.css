@@ -217,9 +217,9 @@
 @keyframes ms-trend-graph{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes ms-trend-number{from{opacity:.35}to{opacity:1}}
 @media(prefers-reduced-motion:no-preference){
- #trends:not([hidden]) .business-trend{animation:ms-trend-arrive .54s cubic-bezier(.17,.7,.25,1) both;animation-delay:calc(var(--trend-order,0)*90ms)}
- #trends:not([hidden]) .business-trend-bar-fill{transform-origin:left;animation:ms-trend-graph .74s cubic-bezier(.16,.72,.18,1) both;animation-delay:calc(160ms + var(--trend-order,0)*105ms)}
- #trends:not([hidden]) .business-trend-growth{animation:ms-trend-number .55s ease both;animation-delay:calc(100ms + var(--trend-order,0)*95ms)}
+ #trends:not([hidden]) .business-trend{animation:ms-trend-arrive .54s cubic-bezier(.17,.7,.25,1) both;animation-delay:var(--trend-enter-delay,0ms)}
+ #trends:not([hidden]) .business-trend-bar-fill{transform-origin:left;animation:ms-trend-graph .74s cubic-bezier(.16,.72,.18,1) both;animation-delay:var(--trend-bar-delay,160ms)}
+ #trends:not([hidden]) .business-trend-growth{animation:ms-trend-number .55s ease both;animation-delay:var(--trend-metric-delay,100ms)}
 }
 
 .business-results .business-section--releases{padding-top:27px}
