@@ -47,20 +47,100 @@ function renderActions(){
  });
  $('aiContextLabel').textContent='Рекомендации по условной выборке · '+company.industryLabel;
 }
-function checkLogic(){
- const v=inputs.map(x=>$(x).value.trim()),notes=[];
- if(v[0].length<15)notes.push('Заголовок: укажите конкретное событие вместо общего заявления.');
- if(v[0].length>125)notes.push('Рассмотрите сокращение слишком длинного заголовка.');
- if(v[1].length<60)notes.push('Лид: укажите кто, что, где, когда и почему событие важно.');
- if(v[2].length<180)notes.push('Основной текст: дополните фактуру, условия и контекст.');
- if(/лучший|уникальн|революционн|беспрецедентн/iu.test(v[0]+' '+v[1]))notes.push('Удалите неподтверждённые оценочные эпитеты.');
- if(!v[4])notes.push('Добавьте справку о компании и контакт для уточнения информации.');
- if(!v[3])notes.push('Цитата отсутствует — это допустимо, но прямую речь нельзя придумывать.');
- notes.push('Орфография: проверьте подчёркивания браузера через контекстное меню.');
- notes.push('Смысл, достоверность фактов, цитаты, причинно-следственные связи и правовые требования нужно проверить вручную.');
- $('releaseFeedback').textContent=notes.join('\n');$('releaseFeedback').style.whiteSpace='pre-line';
+let reviewVersion=0;
+const review=$('releaseReview'),distribution=$('releaseDistribution'),outletsPopover=$('releaseOutletsPopover'),outletsToggle=$('releaseOpenOutlets');
+function closeOutlets(){
+ outletsPopover.hidden=true;
+ outletsToggle.setAttribute('aria-expanded','false');
+}
+function resetEditorialFlow(){
+ reviewVersion++;
+ review.hidden=true;distribution.hidden=true;closeOutlets();
+ Array.from($('releaseChecklist').children).forEach(li=>li.classList.remove('is-complete','is-checking','is-warning','is-optional'));
+ $('releaseReviewState').textContent='Проверяем основные элементы материала…';
+ $('releaseFeedback').textContent='';
+}
+inputs.forEach(id=>$(id).addEventListener('input',resetEditorialFlow));
+outletsToggle.addEventListener('click',()=>{
+ const open=outletsPopover.hidden;
+ outletsPopover.hidden=!open;outletsToggle.setAttribute('aria-expanded',String(open));
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!outletsPopover.hidden)closeOutlets();});
+document.addEventListener('click',event=>{
+ if(!outletsPopover.hidden&&!distribution.contains(event.target))closeOutlets();
+});
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function checkLogic(){
+ const version=++reviewVersion;
+ review.hidden=false;distribution.hidden=true;closeOutlets();
+ const v=inputs.map(x=>$(x).value.trim());
+ const placeholders=/РЕДАКЦИОННЫЕ ЗАМЕТКИ|ТЕЗИСЫ ИЗ WORD|\[(?:Уточните|Заполните|Добавьте|Дополните|Согласуйте)/iu.test(getText());
+ const tests=[
+  {ok:v[0].length>=15&&v[0].length<=125,required:true},
+  {ok:v[1].length>=60,required:true},
+  {ok:v[2].length>=180,required:true},
+  {ok:Boolean(v[3]),required:false},
+  {ok:Boolean(v[4]),required:false}
+ ];
+ const notes=[];
+ if(!tests[0].ok)notes.push('Заголовок: уточните конкретный факт (15–125 символов).');
+ if(!tests[1].ok)notes.push('Лид: добавьте кто, что, где, когда и почему это важно.');
+ if(!tests[2].ok)notes.push('Основной текст: дополните факты и контекст.');
+ if(!v[3])notes.push('Цитата необязательна; при наличии согласуйте её со спикером.');
+ if(!v[4])notes.push('Рекомендуем добавить справку о компании и контакты.');
+ if(placeholders)notes.push('В документе остались редакционные пометки — замените их фактами.');
+ if(/лучший|уникальн|революционн|беспрецедентн/iu.test(v[0]+' '+v[1]))
+   notes.push('Проверьте рекламные эпитеты и возможность их подтвердить.');
+ notes.push('Орфография проверяется браузером; достоверность, причинно-следственные связи и цитаты требуют ручной проверки.');
+ $('releaseReviewState').textContent='Анализируем структуру и полноту…';
+ $('releaseFeedback').textContent='';
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const items=Array.from($('releaseChecklist').children);
+ items.forEach(li=>li.classList.remove('is-complete','is-checking','is-warning','is-optional'));
+ for(let i=0;i<items.length;i++){
+  if(version!==reviewVersion)return;
+  const li=items[i];li.classList.add('is-checking');
+  await wait(reduced?0:190);
+  if(version!==reviewVersion)return;
+  li.classList.remove('is-checking');
+  li.classList.add(tests[i].ok?'is-complete':tests[i].required?'is-warning':'is-optional');
+ }
+ if(version!==reviewVersion)return;
+ $('releaseFeedback').textContent=notes.join('\n');
+ $('releaseFeedback').style.whiteSpace='pre-line';
+ const canProceed=tests.filter(x=>x.required).every(x=>x.ok)&&!placeholders;
+ $('releaseReviewState').textContent=canProceed?'Структура проверена · можно выбрать редакции':'Есть замечания · исправьте текст и повторите проверку';
+ if(canProceed){
+  distribution.hidden=false;
+  distribution.classList.remove('is-arriving');
+  void distribution.offsetWidth;
+  distribution.classList.add('is-arriving');
+ }
 }
 $('releaseCheck').addEventListener('click',checkLogic);
+
+document.addEventListener('ms-trend-action',event=>{
+ if(!company||!event.detail?.trend)return;
+ const {trend,destination}=event.detail;
+ if(destination==='release'){
+  const filled=inputs.some(id=>$(id).value.trim());
+  if(filled&&!window.confirm('Заменить текущий текст проектом по выбранному инфоповоду? Несохранённые изменения будут потеряны.'))return;
+  $('releaseTitle').value='Экспертный комментарий: '+trend.title;
+  $('releaseLead').value='[Заполните: кто из экспертов компании комментирует тему, по какому поводу и почему это важно для читателя.]';
+  $('releaseBody').value='ПРОЕКТ МАТЕРИАЛА — ТРЕБУЕТ РЕДАКТУРЫ\n\nТема: '+trend.title+'.\nОтраслевой контекст (демо): '+trend.detail+
+    '\n\n[Добавьте проверенные факты, дату, предмет события, результаты и подтверждающие ссылки.]\n\n[Опишите собственную экспертизу компании и практический вывод для аудитории.]';
+  $('releaseQuote').value='';$('releaseAbout').value='';
+  resetEditorialFlow();
+  $('releaseStatus').textContent='Проект по инфоповоду · не готов к публикации';
+  document.querySelector('[data-tab="pressReleases"]').click();
+  $('releaseTitle').focus();
+ }else{
+  document.querySelector('[data-tab="opportunities"]').click();
+  $('aiChatInput').value='Какие PR-действия рекомендуются по инфоповоду «'+trend.title+'»? '+trend.detail;
+  $('aiChatForm').requestSubmit();
+  $('aiChatInput').focus();
+ }
+});
 const recipients=()=>db.filter(x=>company&&x.industry===company.industry);
 function updateSelect(){
  const items=recipients(),count=items.filter(x=>selected.has(x.id)).length;
@@ -141,7 +221,7 @@ $('releaseDocx').addEventListener('change',async event=>{
   $('releaseBody').value='ТЕЗИСЫ ИЗ WORD — НЕ ГОТОВЫЙ РЕЛИЗ\n\n'+lines.map((x,i)=>(i+1)+'. '+x).join('\n')+'\n\n[Дополните проверенные факты и контекст]';
   $('releaseQuote').value='';$('releaseAbout').value='';
   $('releaseImportStatus').textContent='Тезисы извлечены из '+file.name+'. Это структурированный редактируемый каркас, а не генерация ИИ.';
-  $('releaseStatus').textContent='Требуется редактура';checkLogic();
+  $('releaseStatus').textContent='Требуется редактура';resetEditorialFlow();
  }catch(e){$('releaseImportStatus').textContent='Ошибка чтения: '+e.message;}
  finally{event.target.value='';}
 });
