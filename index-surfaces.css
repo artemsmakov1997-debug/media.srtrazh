@@ -1,26 +1,7 @@
-/* МЕДИА.СТРАЖ — softer atmospheric surfaces for the public homepage.
-   Separate surfaces by depth rather than by heavy outlines or loud neon.
-   No change to content, breakpoints, sliders, or modal behavior. */
-:root {
-  --bg-body: #0c1726;
-  --bg-panel: #152637;
-  --bg-panel-soft: #192e41;
-  --shadow-card: 0 15px 38px rgba(2,12,24,.27);
-}
-body {
-  background:
-    radial-gradient(ellipse 65% 36% at 11% 6%, rgba(52,135,174,.20), transparent 75%),
-    radial-gradient(ellipse 55% 32% at 91% 20%, rgba(51,100,170,.16), transparent 76%),
-    radial-gradient(ellipse 58% 33% at 13% 65%, rgba(31,158,155,.095), transparent 78%),
-    radial-gradient(ellipse 50% 28% at 91% 91%, rgba(202,143,75,.075), transparent 75%),
-    linear-gradient(180deg,#0d1929 0%,#101e2f 43%,#0c1828 100%);
-}
-.header-inner {
-  background: linear-gradient(180deg,rgba(23,40,59,.97),rgba(17,33,51,.95));
-  border-bottom:1px solid rgba(105,163,191,.18);
-  box-shadow:0 12px 28px rgba(4,17,30,.24);
-}
-/* Intro panels: blue-grey editorial glass with two different light sources. */
+/* МЕДИА.СТРАЖ — isolated backgrounds on homepage cards only.
+   Do not repaint body, navigation, rating container or footer.
+   Keep original site background and layout unchanged. */
+/* Hero and demo counter have their own restrained blue-slate treatments. */
 .hero-text {
   background:
     radial-gradient(ellipse 70% 105% at 0% 0%,rgba(52,156,190,.19),transparent 77%),
@@ -46,24 +27,7 @@ body {
 }
 .counter-demo-note,.counter-demo-sm {color:#99acb9;}
 .counter-label,.counter-label-sm{color:#b6c6d2;}
-.section-divider {
-  margin:21px 0 25px;
-  opacity:1;
-  background:linear-gradient(90deg,transparent,rgba(91,173,198,.40) 14%,rgba(143,176,201,.26) 65%,transparent);
-}
-/* The rating area now reads as its own calm section, not floating on black. */
-.current-rating-section {
-  background:
-    radial-gradient(ellipse 70% 80% at 97% 0%,rgba(42,124,162,.15),transparent 75%),
-    radial-gradient(ellipse 60% 65% at 2% 100%,rgba(47,143,148,.09),transparent 82%),
-    linear-gradient(155deg,rgba(24,44,63,.98),rgba(16,33,51,.98));
-  border:1px solid rgba(121,174,196,.21);
-  border-radius:22px;
-  padding:24px;
-  box-shadow:0 20px 50px rgba(2,15,28,.16),inset 0 1px 0 rgba(210,240,249,.05);
-}
-.rating-header h2{color:#bed2db;}
-/* Card colors are a degree lighter than the section to keep depth without black. */
+/* Individual media cards are slightly lighter; rating section stays transparent. */
 .media-card {
   background:
     radial-gradient(ellipse 72% 70% at 100% 0%,rgba(71,153,187,.15),transparent 79%),
@@ -99,11 +63,6 @@ body {
   border-color:rgba(133,172,192,.27);
   box-shadow:0 12px 31px rgba(3,17,30,.14),inset 0 1px 0 rgba(216,234,245,.04);
 }
-footer {
-  border-top-color:rgba(124,168,191,.19);
-  background:linear-gradient(180deg,rgba(21,40,60,.26),rgba(16,35,52,.60));
-  color:#adc1cc;
-}
 @media (hover:hover) and (pointer:fine){
   .media-card:hover {
     border-color:rgba(99,202,225,.67);
@@ -111,7 +70,6 @@ footer {
   }
 }
 @media (max-width:767px){
-  .current-rating-section {padding:15px 13px 17px;border-radius:18px;}
   .section-divider{margin:16px 0 19px;}
   .media-card{box-shadow:0 9px 23px rgba(3,15,29,.22);}
   .hero-text,.hero-counter-mobile{box-shadow:0 10px 25px rgba(3,15,29,.18);}
