@@ -110,13 +110,17 @@ async function checkLogic(){
  $('releaseFeedback').textContent=notes.join('\n');
  $('releaseFeedback').style.whiteSpace='pre-line';
  const canProceed=tests.filter(x=>x.required).every(x=>x.ok)&&!placeholders;
- $('releaseReviewState').textContent=canProceed?'Структура проверена · можно выбрать редакции':'Есть замечания · исправьте текст и повторите проверку';
- if(canProceed){
-  distribution.hidden=false;
-  distribution.classList.remove('is-arriving');
-  void distribution.offsetWidth;
-  distribution.classList.add('is-arriving');
- }
+ $('releaseReviewState').textContent=canProceed
+   ? 'Проверка завершена · можно выбрать редакции'
+   : 'Проверка завершена · есть замечания к тексту';
+ // Editorial comments must never hide the next step. The actual email
+ // composition still validates required fields and removes template markers.
+ distribution.hidden=false;
+ distribution.classList.remove('is-arriving');
+ void distribution.offsetWidth;
+ distribution.classList.add('is-arriving');
+ $('releaseOpenOutlets').focus({preventScroll:true});
+ distribution.scrollIntoView({behavior:reduced?'auto':'smooth',block:'nearest'});
 }
 $('releaseCheck').addEventListener('click',checkLogic);
 
