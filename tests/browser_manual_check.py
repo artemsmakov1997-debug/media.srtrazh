@@ -473,12 +473,9 @@ def pro_business_navigation_ui(browser, base):
         page.locator('#profileForm button[type="submit"]').click()
         page.locator("#businessLoading").wait_for(state="visible")
         assert not page.locator("#businessResults").is_visible()
-        assert page.locator("#businessLoading h2").inner_text() == "Готовим медиаобзор вашей компании"
+        assert page.locator("#businessLoading h2").count() == 0
         assert page.locator(".business-loading-milestones span").count() == 3
         assert page.locator(".business-loading-emblem, .business-loading-overline, .business-loading-current, .business-loading-disclaimer").count() == 0
-        assert page.locator("#businessLoading h2").evaluate(
-            "el => {const range=document.createRange();range.selectNodeContents(el);return range.getClientRects().length}"
-        ) == 1
         assert "business-loading-track" in page.locator(".business-loading-progress").evaluate(
             "el => getComputedStyle(el).animationName"
         )
@@ -617,7 +614,7 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
             p.locator("#businessLoading").wait_for(state="visible")
-            assert p.locator("#businessLoading h2").inner_text() == "Готовим медиаобзор вашей компании"
+            assert p.locator("#businessLoading h2").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessResults").wait_for(state="visible", timeout=8000)
             assert not p.locator("#businessLoading").is_visible()
