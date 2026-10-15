@@ -6,46 +6,123 @@ const $=id=>document.getElementById(id),make=(tag,text,cls)=>{const e=document.c
 let company=null,db=[],selected=new Set();
 const inputs=['releaseTitle','releaseLead','releaseBody','releaseQuote','releaseAbout'];
 const getText=()=>inputs.map(id=>$(id).value.trim()).filter(Boolean).join('\n\n');
-function snapshot(){
-  const mentions=company.mentions.filter(m=>m.daysAgo<30), negative=mentions.filter(m=>m.tone==='negative').length;
-  $('aiSummaryCompany').textContent=company.company;
-  $('aiMentionsTotal').textContent=mentions.length;
-  $('aiNegativeTotal').textContent=negative;
-  $('aiTrendTotal').textContent=company.trends.length;
-  $('aiPublishedTotal').textContent='Нет данных';
-  const plus=mentions.filter(m=>m.tone==='positive').length;
-  $('aiMentionsTone').textContent=plus+' полож. · '+negative+' отриц.';
-  $('aiTopTrend').textContent=company.trends[0]?.title||'Не определён';
-  const bins=Array.from({length:15},()=>0);
-  mentions.forEach(m=>{let i=Math.floor((29-m.daysAgo)/2);bins[Math.max(0,Math.min(14,i))]++;});
-  const max=Math.max(1,...bins);let d='M0 80';
-  bins.forEach((v,i)=>{d+=' H'+Math.round((i+1)*400/15)+' V'+Math.round(80-v/max*65);});
-  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),line=document.createElementNS(ns,'path');
-  svg.setAttribute('viewBox','0 0 400 95');svg.setAttribute('preserveAspectRatio','none');
-  line.setAttribute('d',d);line.setAttribute('fill','none');line.setAttribute('stroke','#2589a2');line.setAttribute('stroke-width','2.4');
-  svg.append(line);$('aiOverviewChart').replaceChildren(svg);
+/* One coherent overview instead of separate AI tiles competing with a chat. */
+const overviewTrigger=$('overviewAssistantTrigger'),overviewBackdrop=$('overviewAssistantBackdrop'),
+  overviewPanel=$('overviewAssistantPanel'),overviewClose=$('overviewAssistantClose');
+let previousFocus=null;
+function toggleAssistant(open){
+ const shouldOpen=Boolean(open);
+ if(shouldOpen&&!company)return;
+ if(shouldOpen)previousFocus=document.activeElement;
+ overviewPanel.hidden=!shouldOpen;
+ overviewBackdrop.hidden=!shouldOpen;
+ overviewTrigger.setAttribute('aria-expanded',String(shouldOpen));
+ document.body.classList.toggle('overview-assistant-open',shouldOpen);
+ if(shouldOpen)$('aiChatInput').focus();
+ else if(previousFocus&&document.contains(previousFocus)&&!previousFocus.closest('[hidden]'))previousFocus.focus();
+ else overviewTrigger.focus();
 }
-function renderActions(){
- const neg=company.mentions.filter(m=>m.daysAgo<company.days&&m.tone==='negative').length;
- const topics=company.trends[0]?.title||'отраслевые новости';
- const list=[
- ['ЭКСПЕРТНЫЙ КОММЕНТАРИЙ','Предложить комментарий по теме «'+topics+'»','Подготовьте подтверждённую экспертную позицию для профильных СМИ.','План комментария','chat'],
- ['РЕПУТАЦИЯ','Проверить негативные сообщения',neg?'Условно отрицательных сообщений за период: '+neg+'. Сверьте первоисточники и подготовьте ответ.':'В демонстрационной выборке негатив отсутствует. Подготовьте сценарий реакции заранее.','Отработка негатива','chat'],
- ['ПРЕСС-РЕЛИЗ','Подготовить пресс-релиз','Если у организации есть подтверждённый новостной повод, подготовьте текст и выберите адресатов.','Перейти в редактор','release'],
- ['СОБСТВЕННЫЕ РЕСУРСЫ','Опубликовать экспертный материал','Используйте отраслевой контекст для блога, сайта или социальной сети компании.','План публикации','chat']
- ];
- const cards=$('assistantCards');cards.replaceChildren();
- list.forEach(([kind,title,description,label,mode],i)=>{
-  const card=make('article',null,'ai-card'),top=make('div',null,'ai-card-top'),actions=make('div',null,'ai-card-actions'),b=make('button',label+' ↗','ai-card-primary');
-  top.append(make('span',kind,'ai-card-kind'),make('span','0'+(i+1),'ai-card-index'));
-  b.type='button';b.addEventListener('click',()=>{
-   if(mode==='release'){document.querySelector('[data-tab="pressReleases"]').click();$('releaseTitle').focus();}
-   else{const value=mode==='chat'&&i===1?'Как отработать негатив?':(i===0?'Предложи PR-план для экспертного комментария':'Предложи PR-план для публикации на ресурсах компании');
-    $('aiChatInput').value=value;$('aiChatForm').requestSubmit();}
-  });
-  actions.append(b);card.append(top,make('h3',title),make('p',description),make('div','Основание: условные упоминания и демонстрационная отраслeвая повестка.','ai-card-source'),actions);cards.append(card);
+overviewTrigger.addEventListener('click',()=>toggleAssistant(overviewPanel.hidden));
+overviewClose.addEventListener('click',()=>toggleAssistant(false));
+overviewBackdrop.addEventListener('click',()=>toggleAssistant(false));
+document.addEventListener('keydown',event=>{
+ if(overviewPanel.hidden)return;
+ if(event.key==='Escape'){event.preventDefault();toggleAssistant(false);return;}
+ if(event.key!=='Tab')return;
+ const focusable=Array.from(overviewPanel.querySelectorAll('button:not([disabled]),textarea:not([disabled]),a[href]')).filter(el=>el.getClientRects().length);
+ if(!focusable.length)return;
+ const first=focusable[0],last=focusable[focusable.length-1];
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+});
+document.addEventListener('ms-tab-open',()=>{overviewTrigger.hidden=false;});
+document.addEventListener('ms-business-exit',()=>{toggleAssistant(false);overviewTrigger.hidden=true;});
+function askAssistant(question){
+ toggleAssistant(true);
+ if(question){$('aiChatInput').value=question;$('aiChatForm').requestSubmit();}
+}
+function openTab(tab){document.querySelector('[data-tab="'+tab+'"]').click();}
+function snapshot(){
+ const days=company.days;
+ const mentions=company.mentions.filter(m=>m.daysAgo<days);
+ const negative=mentions.filter(m=>m.tone==='negative').length;
+ const positive=mentions.filter(m=>m.tone==='positive').length;
+ const neutral=mentions.length-positive-negative;
+ const total=mentions.length,percent=total?Math.round(positive/total*100):0;
+ $('aiSummaryCompany').textContent=company.company;
+ $('aiMentionsTotal').textContent=total.toLocaleString('ru-RU');
+ $('aiNegativeTotal').textContent=negative.toLocaleString('ru-RU');
+ $('aiTrendTotal').textContent=company.trends.length;
+ $('aiMentionsTone').textContent='+'+positive+' / ='+neutral+' / −'+negative;
+ $('overviewTonePercent').textContent=total?percent+'%':'—';
+ $('overviewTonePositive').style.width=(total?100*positive/total:0)+'%';
+ $('overviewToneNeutral').style.width=(total?100*neutral/total:0)+'%';
+ $('overviewToneNegative').style.width=(total?100*negative/total:0)+'%';
+ $('overviewAnalyticsSubtitle').textContent='Упоминания и тональность за '+days+' дней';
+ $('overviewChartPeriod').textContent='Последние '+days+' дней';
+ $('aiTopTrend').textContent=company.trends[0]?.title||'Нет отраслевых данных';
+ // Distribute available demo mentions into equal period buckets; never fabricate events.
+ const bins=Array.from({length:15},()=>0);
+ mentions.forEach(m=>{
+   const i=Math.floor((days-1-m.daysAgo)/days*15);
+   bins[Math.max(0,Math.min(14,i))]++;
  });
- $('aiContextLabel').textContent='Рекомендации по условной выборке · '+company.industryLabel;
+ const max=Math.max(1,...bins);let path='M0 78';
+ bins.forEach((value,i)=>{path+=' H'+Math.round((i+1)*400/15)+' V'+Math.round(78-value/max*61);});
+ const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),line=document.createElementNS(ns,'path');
+ svg.setAttribute('viewBox','0 0 400 95');svg.setAttribute('preserveAspectRatio','none');
+ line.setAttribute('d',path);line.setAttribute('fill','none');line.setAttribute('stroke','#2589a2');
+ line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-linejoin','round');
+ svg.append(line);$('aiOverviewChart').replaceChildren(svg);
+ $('aiOverviewChart').setAttribute('aria-label','Динамика '+total+' демонстрационных упоминаний за '+days+' дней');
+}
+function renderSignals(){
+ const count=company.mentions.filter(m=>m.daysAgo<company.days&&m.tone==='negative').length;
+ const first=company.trends[0],container=$('overviewSignals');container.replaceChildren();
+ const signals=[{
+  kind:'ВОЗМОЖНОСТЬ',tone:'opportunity',
+  title:'Растущий интерес к теме «'+first.title+'»',
+  detail:'Отраслевая повестка (демо). Можно предложить комментарий, если у компании есть подтверждённая экспертиза.',
+  label:'Обсудить',act:()=>askAssistant('Как использовать инфоповод «'+first.title+'» для экспертного комментария?')
+ }];
+ if(count>0)signals.push({
+  kind:'ТРЕБУЕТ ВНИМАНИЯ',tone:'attention',
+  title:'Проверить отрицательные упоминания',
+  detail:'В выбранном периоде '+count+' условных негативных сообщений. Сначала изучите первоисточники, затем решайте, нужна ли реакция.',
+  label:'Изучить',act:()=>openTab('mentions')
+ });
+ const relevant=company.trends[1];
+ if(relevant)signals.push({
+  kind:'ИДЕЯ ДЛЯ КОНТЕНТА',tone:'neutral',
+  title:'Экспертный материал о теме «'+relevant.title+'»',
+  detail:'Возможный ракурс для собственных каналов. Перед публикацией проверьте данные и сформулируйте полезный для аудитории вывод.',
+  label:'Разобрать',act:()=>askAssistant('Предложи план материала для ресурсов компании на тему «'+relevant.title+'».')
+ });
+ signals.slice(0,3).forEach((s,i)=>{
+  const row=make('article',null,'overview-signal overview-signal--'+s.tone),body=make('div',null,'overview-signal-copy'),
+   meta=make('div',null,'overview-signal-kicker'),action=make('button',s.label+' ↗','overview-signal-action');
+  meta.append(make('span',s.kind),make('span','0'+(i+1),'overview-signal-index'));
+  body.append(meta,make('h4',s.title),make('p',s.detail));action.type='button';action.addEventListener('click',s.act);
+  row.append(body,action);container.append(row);
+ });
+ $('aiContextLabel').textContent='Выделены из условных упоминаний и отраслевых тем';
+}
+function renderSolutions(){
+ const solutions=[
+  {icon:'↗',title:'Экспертный комментарий',desc:'Подготовить позицию по отраслевой теме',act:()=>askAssistant('Предложи структуру экспертного комментария по теме «'+company.trends[0].title+'».')},
+  {icon:'▤',title:'Пресс-релиз',desc:'Написать и проверить новостной материал',act:()=>openTab('pressReleases')},
+  {icon:'◎',title:'Реакция на негатив',desc:'Разобрать ситуацию и подготовить ответ',act:()=>askAssistant('Предложи порядок проверки и отработки негативных публикаций о компании.')},
+  {icon:'✎',title:'Материал для сайта',desc:'Создать план публикации для собственных каналов',act:()=>askAssistant('Предложи план публикации для сайта компании на основе актуальных отраслевых тем.')}
+ ];
+ const root=$('overviewSolutions');root.replaceChildren();
+ solutions.forEach(s=>{
+  const button=make('button',null,'overview-solution'),head=make('span',null,'overview-solution-head'),
+    content=make('span',null,'overview-solution-content');
+  button.type='button';
+  head.append(make('span',s.icon,'overview-solution-icon'),make('span','↗','overview-solution-arrow'));
+  content.append(make('strong',s.title),make('small',s.desc));
+  button.append(head,content);button.addEventListener('click',s.act);root.append(button);
+ });
 }
 let reviewVersion=0;
 const review=$('releaseReview'),distribution=$('releaseDistribution'),outletsPopover=$('releaseOutletsPopover'),outletsToggle=$('releaseOpenOutlets');
@@ -143,10 +220,8 @@ document.addEventListener('ms-trend-action',event=>{
   document.querySelector('[data-tab="pressReleases"]').click();
   $('releaseTitle').focus();
  }else{
-  document.querySelector('[data-tab="opportunities"]').click();
-  $('aiChatInput').value='Какие PR-действия рекомендуются по инфоповоду «'+trend.title+'»? '+trend.detail;
-  $('aiChatForm').requestSubmit();
-  $('aiChatInput').focus();
+  openTab('opportunities');
+  askAssistant('Какие PR-действия рекомендуются по инфоповоду «'+trend.title+'»? '+trend.detail);
  }
 });
 const recipients=()=>db.filter(x=>company&&x.industry===company.industry);
@@ -236,7 +311,7 @@ $('releaseDocx').addEventListener('change',async event=>{
 document.addEventListener('ms-business-data',e=>{
  const next=e.detail;if(!next?.company)return;
  const isNew=!company||next.company!==company.company||next.industry!==company.industry;
- company=next;snapshot();renderActions();
+ company=next;snapshot();renderSignals();renderSolutions();
  if(isNew)selected=new Set(recipients().map(x=>x.id));
  renderOutlets();
 });
