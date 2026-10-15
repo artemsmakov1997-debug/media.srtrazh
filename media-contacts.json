@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "verified_date": "2026-10-15",
+  "notes": "Publicly listed institutional editorial or general contacts; publication is never guaranteed. Confirm suitability and terms before pitching.",
+  "outlets": [
+    {
+      "id": "medvestnik",
+      "industry": "medtech",
+      "name": "Медвестник",
+      "email": "edition@medvestnik.ru",
+      "type": "Отраслевое медицинское СМИ",
+      "contactType": "Редакция",
+      "source": "https://medvestnik.ru/pages/contacts.html"
+    },
+    {
+      "id": "doctorru",
+      "industry": "medtech",
+      "name": "Доктор.Ру",
+      "email": "redactor@journaldoctor.ru",
+      "type": "Медицинский журнал",
+      "contactType": "Редакция",
+      "source": "https://journaldoctor.ru/contacts/"
+    },
+    {
+      "id": "medreview",
+      "industry": "medtech",
+      "name": "Русский медицинский журнал",
+      "email": "article@doctormedia.ru",
+      "type": "Профессиональное медицинское издание",
+      "contactType": "Приём статей",
+      "source": "https://www.medreview.rmj.ru/about/contacts/"
+    },
+    {
+      "id": "metalinfo",
+      "industry": "industry",
+      "name": "Металлоснабжение и сбыт",
+      "email": "info@metalinfo.ru",
+      "type": "Металлургия и промышленность",
+      "contactType": "Общий адрес редакции",
+      "source": "https://www.metalinfo.ru/ru/contacts/"
+    },
+    {
+      "id": "promweekly",
+      "industry": "industry",
+      "name": "Промышленный еженедельник",
+      "email": "promweekly@promweekly.ru",
+      "type": "Промышленность",
+      "contactType": "Редакция",
+      "source": "https://www.promweekly.ru/contacts.php"
+    },
+    {
+      "id": "expert",
+      "industry": "industry",
+      "name": "Эксперт",
+      "email": "expert@expert.ru",
+      "type": "Деловое издание",
+      "contactType": "Редакция",
+      "source": "https://expert.ru/kontakty"
+    },
+    {
+      "id": "prohotel",
+      "industry": "hospitality",
+      "name": "ProHotel.Ru",
+      "email": "press@prohotel.ru",
+      "type": "Отели и индустрия гостеприимства",
+      "contactType": "Редакция",
+      "source": "https://prohotel.ru/site/contacts/"
+    },
+    {
+      "id": "frontdesk",
+      "industry": "hospitality",
+      "name": "Frontdesk.ru",
+      "email": "news@frontdesk.ru",
+      "type": "Отраслевое сообщество (не зарегистрированное СМИ)",
+      "contactType": "Новости и статьи",
+      "source": "https://www.frontdesk.ru/about",
+      "note": "Размещение корпоративных пресс-релизов может быть платным; проверьте условия."
+    },
+    {
+      "id": "hotelier",
+      "industry": "hospitality",
+      "name": "Hotelier.PRO",
+      "email": "info@hotelier.pro",
+      "type": "Отраслевой блог (не зарегистрированное СМИ)",
+      "contactType": "Общий контакт",
+      "source": "https://hotelier.pro/upload/mediakit-hotelier.pro.pdf",
+      "note": "Контакт указан для сотрудничества/рекламы; условия публикации необходимо уточнить."
+    }
+  ]
+}
