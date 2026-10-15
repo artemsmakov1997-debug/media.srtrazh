@@ -447,6 +447,6 @@ body.business-open>.site-header{display:none}
 .business-results #overview .overview-presence{border-top:0}
 .business-results #trends .business-trends-explainer{border-top:0;padding-top:0}
 .business-results #trends .business-trends{border-top:0}
-.business-results #opportunities .memo-method{border-top:0}
+.business-results #opportunities .memo-method{border:0}
 .business-results #mentions .business-mentions-summary{border-top:0}
 .business-results #overview,.business-results #trends,.business-results #opportunities{padding-top:24px}
