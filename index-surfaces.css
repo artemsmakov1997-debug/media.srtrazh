@@ -4,62 +4,62 @@
 /* Hero and demo counter have their own restrained blue-slate treatments. */
 .hero-text {
   background:
-    radial-gradient(ellipse 70% 105% at 0% 0%,rgba(52,156,190,.19),transparent 77%),
-    radial-gradient(ellipse 65% 90% at 100% 100%,rgba(53,105,181,.13),transparent 79%),
-    linear-gradient(145deg,#192e45 0%,#12253b 70%,#112034 100%);
+    radial-gradient(ellipse 70% 105% at 0% 0%,rgba(52,156,190,.09),transparent 77%),
+    radial-gradient(ellipse 65% 90% at 100% 100%,rgba(53,105,181,.065),transparent 79%),
+    linear-gradient(145deg,#142438 0%,#101d2e 70%,#0e1b2c 100%);
   border-color:rgba(117,178,207,.27);
   box-shadow:0 16px 39px rgba(2,13,28,.23),inset 0 1px 0 rgba(210,238,250,.06);
 }
 .hero-text::before {
-  background:radial-gradient(circle,rgba(69,205,229,.14),transparent 70%);
+  background:radial-gradient(circle,rgba(69,205,229,.075),transparent 70%);
 }
 .hero-counter,
 .hero-counter-mobile {
   background:
-    radial-gradient(ellipse at 100% 0%,rgba(206,119,112,.16),transparent 62%),
-    radial-gradient(ellipse at 0% 100%,rgba(59,133,173,.14),transparent 65%),
-    linear-gradient(150deg,#203149 0%,#17263c 100%);
+    radial-gradient(ellipse at 100% 0%,rgba(206,119,112,.09),transparent 62%),
+    radial-gradient(ellipse at 0% 100%,rgba(59,133,173,.075),transparent 65%),
+    linear-gradient(150deg,#19283e 0%,#132338 100%);
   border-color:rgba(120,155,190,.28);
   box-shadow:0 16px 39px rgba(2,13,28,.22),inset 0 1px 0 rgba(221,231,249,.05);
 }
 .hero-counter::after {
-  background:radial-gradient(circle,rgba(245,133,119,.15),transparent 71%);
+  background:radial-gradient(circle,rgba(245,133,119,.085),transparent 71%);
 }
 .counter-demo-note,.counter-demo-sm {color:#99acb9;}
 .counter-label,.counter-label-sm{color:#b6c6d2;}
 /* Individual media cards are slightly lighter; rating section stays transparent. */
 .media-card {
   background:
-    radial-gradient(ellipse 72% 70% at 100% 0%,rgba(71,153,187,.15),transparent 79%),
-    radial-gradient(ellipse 65% 75% at 0% 100%,rgba(28,127,141,.085),transparent 80%),
-    linear-gradient(150deg,#1a3147 0%,#162b40 52%,#12263a 100%);
-  border-color:rgba(124,175,197,.25);
+    radial-gradient(ellipse 72% 70% at 100% 0%,rgba(71,153,187,.085),transparent 79%),
+    radial-gradient(ellipse 65% 75% at 0% 100%,rgba(28,127,141,.045),transparent 80%),
+    linear-gradient(150deg,#16293d 0%,#132538 52%,#101e2f 100%);
+  border-color:rgba(124,175,197,.21);
   box-shadow:0 12px 26px rgba(3,15,28,.22),inset 0 1px 0 rgba(224,243,251,.045);
 }
-.media-card::before{background:linear-gradient(180deg,rgba(241,250,253,.035),transparent 30%);}
+.media-card::before{background:linear-gradient(180deg,rgba(241,250,253,.023),transparent 30%);}
 .logo-icon {
-  background:rgba(145,198,219,.09);
+  background:rgba(145,198,219,.065);
   border-color:rgba(151,202,221,.25);
 }
 .small-graph{
-  background:linear-gradient(180deg,#13273b,#102235);
+  background:linear-gradient(180deg,#102033,#0c1b2d);
   border:1px solid rgba(117,177,204,.09);
 }
 .media-details{color:#d0dce3;}
 .media-type,.media-meta{color:#acbdc8;}
 .link-button{
-  background:linear-gradient(180deg,rgba(32,68,87,.88),rgba(20,51,70,.9));
+  background:linear-gradient(180deg,rgba(27,56,75,.88),rgba(17,44,62,.9));
   border-color:rgba(75,181,208,.37);
 }
 .full-list-button {
-  background:linear-gradient(180deg,#264359,#1b3348);
+  background:linear-gradient(180deg,#20384e,#172b40);
   border-color:rgba(127,180,205,.43);
   box-shadow:inset 0 1px 0 rgba(240,251,255,.045);
 }
 .rating-appeal-strip {
   background:
-    radial-gradient(ellipse 75% 95% at 100% 0%,rgba(181,130,81,.11),transparent 80%),
-    linear-gradient(115deg,#203043,#172b40);
+    radial-gradient(ellipse 75% 95% at 100% 0%,rgba(181,130,81,.07),transparent 80%),
+    linear-gradient(115deg,#19293d,#142336);
   border-color:rgba(133,172,192,.27);
   box-shadow:0 12px 31px rgba(3,17,30,.14),inset 0 1px 0 rgba(216,234,245,.04);
 }
