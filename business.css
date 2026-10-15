@@ -450,3 +450,34 @@ body.business-open>.site-header{display:none}
 .business-results #opportunities .memo-method{border:0}
 .business-results #mentions .business-mentions-summary{border-top:0}
 .business-results #overview,.business-results #trends,.business-results #opportunities{padding-top:24px}
+
+/* Mobile navigation: five tabs are always visible without a nested
+   horizontal scroll area, preventing overlap during tap and keyboard use. */
+@media(max-width:720px){
+  .business-rail .business-result-tabs{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+    overflow:visible;
+    margin:0;
+    padding:2px 0 11px;
+    position:relative;
+    z-index:1;
+  }
+  .business-rail .business-result-tab{
+    min-width:0;
+    width:100%;
+    min-height:43px;
+    white-space:normal;
+    text-align:center;
+    justify-content:center;
+    line-height:1.25;
+    padding:8px 4px;
+    font-size:11px;
+  }
+  .business-rail .business-result-tab--active{
+    border-bottom:2px solid #5cd7e6;
+    border-left:1px solid transparent;
+    padding:8px 4px;
+  }
+}
