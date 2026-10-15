@@ -305,6 +305,14 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         assert abs(details_box["y"] - source_box["y"]) < 2
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.set_viewport_size({"width": 1280, "height": 900})
+        # On desktop the source action belongs to the card's bottom-right.
+        source = page.locator(".publication .source-link")
+        card_box = page.locator(".publication").bounding_box()
+        source_box = source.bounding_box()
+        details_box = page.locator(".publication .auto-details-button").bounding_box()
+        assert abs((source_box["x"] + source_box["width"]) -
+                   (card_box["x"] + card_box["width"] - 20)) < 4
+        assert source_box["x"] > details_box["x"] + details_box["width"]
         page.locator(".auto-details-button").click()
         page.locator("#automaticModal").wait_for(state="visible")
         auto_marks = page.locator("#automaticModal mark")
@@ -315,7 +323,12 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.locator('[data-mode="manual"]').click()
         page.locator("#manualText").fill(document["text"])
         page.locator("#manualSubmit").click()
+        # An animated, accessible visual preview is shown only while the worker
+        # is running and then removed when the annotated result is ready.
+        page.locator("#manualScan").wait_for(state="visible", timeout=5000)
+        assert "головорезов" in page.locator("#manualScanPreview").inner_text()
         page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+        assert not page.locator("#manualScan").is_visible()
         assert page.locator("#manualTextEvidence").inner_text() == document["text"]
         assert page.locator("#manualTextEvidence mark").count() == 12
         def hover_fragment(text):
@@ -355,6 +368,10 @@ def pro_business_navigation_ui(browser, base):
             assert page.locator(".pro-gateway-dialog").is_visible(), route
             assert page.locator(".pro-gateway-option--research").get_attribute("href") == "analysis.html"
             assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
+            assert "linear-gradient" in page.locator(".pro-gateway-option--research .pro-gateway-cta").evaluate(
+                "el => getComputedStyle(el).backgroundImage")
+            assert "linear-gradient" in page.locator(".pro-gateway-option--business .pro-gateway-cta").evaluate(
+                "el => getComputedStyle(el).backgroundImage")
             page.locator(".pro-gateway-close").click()
             assert not page.locator(".pro-gateway-dialog").is_visible(), route
             # Desktop navigation names illuminate when hovered.
@@ -387,8 +404,15 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит дорого, независимость бесценна"
         assert page.locator(".support-kicker, .support-hero-intro, .support-formats-intro").count() == 0
         assert page.locator(".support-choice-index").count() == 0
-        assert page.locator(".support-choice-desc").first.evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 14
-        assert page.locator(".support-typing-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 45
+        # Technical type hierarchy is deliberately more compact on desktop.
+        desc_type = page.locator(".support-choice-desc").first.evaluate(
+            "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
+        assert 12 <= desc_type["size"] <= 13.5, desc_type
+        assert "IBM Plex Mono" in desc_type["family"], desc_type
+        hero_type = page.locator(".support-typing-title").evaluate(
+            "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
+        assert 28 <= hero_type["size"] <= 45, hero_type
+        assert "Unbounded" in hero_type["family"], hero_type
         assert page.locator(".typing-line--second").evaluate("el => getComputedStyle(el).textShadow") != "none"
         assert page.locator('.support-choice--research a[href="analysis.html"]').count() == 1
         assert page.locator('.support-choice--business a[href="business.html"]').count() == 1
