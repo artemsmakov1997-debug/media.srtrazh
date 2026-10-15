@@ -856,7 +856,24 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#burgerBtn").click()
             p.locator(".nav-links.open .pro-nav-link").click()
             assert p.locator(".pro-gateway-dialog").is_visible()
-            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            # Compact chooser must fit narrow phones without horizontal clipping,
+            # while the dialog itself scrolls when the screen is short.
+            for width, height in ((320, 640), (375, 812), (430, 780), (375, 520)):
+                p.set_viewport_size({"width": width, "height": height})
+                assert p.evaluate("document.documentElement.scrollWidth <= innerWidth"), (width, height)
+                dialog = p.locator(".pro-gateway-dialog")
+                dialog_rect = dialog.bounding_box()
+                assert dialog_rect["x"] >= -1 and dialog_rect["x"] + dialog_rect["width"] <= width + 1, (width, dialog_rect)
+                assert dialog_rect["y"] >= -1 and dialog_rect["y"] + dialog_rect["height"] <= height + 1, (height, dialog_rect)
+                assert dialog.evaluate("el => el.scrollWidth <= el.clientWidth + 1"), (width, height)
+                for card in p.locator(".pro-gateway-option").all():
+                    bounds = card.bounding_box()
+                    assert bounds["x"] >= dialog_rect["x"] and bounds["x"] + bounds["width"] <= dialog_rect["x"] + dialog_rect["width"] + 1, bounds
+                assert p.locator(".pro-gateway-option h3").first.evaluate(
+                    "el => parseFloat(getComputedStyle(el).fontSize)") <= 19
+                assert p.locator(".pro-gateway-benefits").first.evaluate(
+                    "el => parseFloat(getComputedStyle(el).fontSize)") <= 12.5
+            p.set_viewport_size({"width": 375, "height": 812})
             p.keyboard.press("Escape")
             p.goto(base + "/business.html")
             assert not p.locator("#businessResults").is_visible()
