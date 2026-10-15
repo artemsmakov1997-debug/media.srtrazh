@@ -17,7 +17,7 @@
   <meta property="og:description" content="Помогите независимому рейтингу российских СМИ оставаться свободным от рекламных и государственных интересов." />
   <meta property="og:type" content="website" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Unbounded:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -1987,6 +1987,58 @@
     #supportFormats .support-choice { opacity:1; transform:none; animation:none !important; }
     #supportFormats .support-choice .support-btn,
     #supportFormats .support-choice .support-plan-link { transition:none !important; }
+  }
+</style>
+
+<style id="support-tech-typography">
+  /* Desktop-only: restrained cyberpunk typography using Cyrillic-compatible fonts. */
+  @media (min-width: 768px) {
+    .hero-support .support-typing-title {
+      font-family: "Unbounded", "Montserrat", sans-serif !important;
+      font-size: clamp(28px, 3.2vw, 44px) !important;
+      font-weight: 700 !important;
+      line-height: 1.34 !important;
+      letter-spacing: -.045em !important;
+    }
+    #supportFormats .support-choice-title,
+    .section-title {
+      font-family: "Unbounded", "Montserrat", sans-serif !important;
+      font-size: 18px !important;
+      line-height: 1.38 !important;
+      letter-spacing: -.035em !important;
+      font-weight: 700 !important;
+    }
+    #supportFormats .support-choice-desc,
+    .section-subtitle {
+      font-family: "IBM Plex Mono", "Courier New", monospace !important;
+      font-size: 12.5px !important;
+      line-height: 1.7 !important;
+      letter-spacing: -.025em !important;
+    }
+    #supportFormats .support-choice-audience {
+      font-family: "IBM Plex Mono", "Courier New", monospace !important;
+      font-size: 10.5px !important;
+      letter-spacing: .01em !important;
+      line-height: 1.5 !important;
+    }
+    #supportFormats .support-amount-label,
+    #supportFormats .support-plan-status,
+    #supportFormats .input-hint {
+      font-family: "IBM Plex Mono", "Courier New", monospace !important;
+      font-size: 10.5px !important;
+      letter-spacing: -.01em !important;
+    }
+    #supportFormats .support-choice .support-btn,
+    #supportFormats .support-choice .support-plan-link {
+      font-family: "IBM Plex Mono", "Courier New", monospace !important;
+      font-size: 11.5px !important;
+      letter-spacing: -.03em !important;
+    }
+    #supportFormats .support-plan-price {
+      font-family: "Unbounded", "Montserrat", sans-serif !important;
+      font-size: 15px !important;
+      letter-spacing: -.04em !important;
+    }
   }
 </style>
 </head>
