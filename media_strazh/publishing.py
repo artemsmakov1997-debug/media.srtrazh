@@ -8,6 +8,7 @@ import tempfile
 
 from .analysis import VERSION, taxonomy
 from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
+from .business import business_snapshot
 from .sources import SOURCES, normalize_url, resolve_source
 from .storage import utcnow
 
@@ -161,12 +162,13 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
     runtime = runtime_assets(runtime_dir)
     runtime_paths = {Path("vendor/pyodide") / name for name in runtime}
     allowed = {Path(path.name) for path in assets} | runtime_paths | {
-        Path("data/analysis.json"), Path("data/manual-engine.json")}
+        Path("data/analysis.json"), Path("data/manual-engine.json"), Path("data/business.json")}
     if destination.exists():
         for path in destination.rglob("*"):
             if path.is_symlink() or (not path.is_dir() and path.relative_to(destination) not in allowed):
                 raise ValueError("В каталоге сборки есть посторонние файлы; используйте пустой каталог.")
     report = snapshot(store, limit)  # Validate before modifying any earlier output.
+    business = business_snapshot(store)
     destination.mkdir(parents=True, exist_ok=True)
     for path in assets:
         shutil.copy2(path, destination / path.name)
@@ -176,6 +178,7 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
         shutil.copy2(path, runtime_destination / name)
     _write_json(destination / "data" / "manual-engine.json", engine_bundle())
     _write_json(destination / "data" / "analysis.json", report)
+    _write_json(destination / "data" / "business.json", business)
     return {"output": str(destination), "totals": report["totals"],
             "algorithm_version": report["algorithm_version"], "manual_analysis": True}
 

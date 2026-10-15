@@ -27,6 +27,8 @@ import test_contextual_rhetoric
 import test_latest_media_rhetoric
 import test_quantitative_cues
 import test_event_terminology
+import test_oct15_rhetoric
+from browser_fixtures import business_evidence_fixture
 
 
 def examples():
@@ -43,7 +45,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -55,6 +57,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_latest_media_rhetoric.LatestMediaRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_quantitative_cues.QuantitativeCueTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_event_terminology.EventTerminologyTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_oct15_rhetoric.OctoberRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -281,7 +284,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        assert page.locator("#marker option").count() == 12  # Ten candidate types, an informational layer, and all.
+        assert page.locator("#marker option").count() == 13  # Ten candidate types, an informational layer, and all.
         marker = expected["findings"][0]["category"]
         page.select_option("#marker", marker)
         assert page.locator(".publication").count() == 1
@@ -355,9 +358,112 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
 
 
 
+def real_business_ui(browser, base, errors, requests):
+    """Real-data loading, identity ambiguity, empty/error states and DOCX limits."""
+    import io
+    import struct
+    import zipfile
+
+    fixture = business_evidence_fixture()
+    fixture["articles"][0]["watchlists"] = ["mc21"]
+    fixture["articles"][0]["excerpt"] = "Медицинский центр «XXI век» опубликовал расписание."
+    context = browser.new_context(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
+    try:
+        page = context.new_page()
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+        held = []
+        page.route("**/data/business.json", lambda route: held.append(route))
+        page.goto(base + "/business.html")
+        with page.expect_request("**/data/business.json"):
+            page.locator('#profileForm button[type="submit"]').click()
+        assert page.locator("#businessLoading").is_visible()
+        assert page.locator("#companyName").is_disabled()
+        assert not page.locator("#businessResults").is_visible()
+        held.pop().fulfill(json=fixture)
+        page.locator("#businessResults").wait_for(state="visible")
+        assert page.locator("#aiMentionsTotal").inner_text() == "1"
+        assert page.locator("#aiNegativeTotal").inner_text() == "—"
+        assert "Обновлено" in page.locator("#aiContextLabel").text_content()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+        # Exact half-open windows, no future records, no invented sentiment and
+        # a known watchlist's context requirement overrides generic name tokens.
+        metrics = page.evaluate("""fixture => {
+          const api=MediaStrazhBusiness,end=Date.parse(fixture.generated_at);
+          const sample=structuredClone(fixture),first=sample.articles[0];
+          first.published_at=new Date(end-7*86400000).toISOString();
+          const boundary=api.analyze(sample,'XXI век','medtech',7,end).selected.length;
+          first.published_at=new Date(end+1000).toISOString();
+          const future=api.analyze(sample,'XXI век','medtech',30,end).selected.length;
+          first.published_at=new Date(end).toISOString();
+          const now=api.analyze(sample,'XXI век','medtech',7,end).selected.length;
+          first.watchlists=[];first.names=['xxi век'];
+          const homonym=api.analyze(sample,'XXI век','medtech',30,end).selected.length;
+          return {boundary,future,now,homonym,tones:api.analyze(fixture,'Тест','medtech',30,end).selected.every(r=>r.tone==='unknown')};
+        }""", fixture)
+        assert metrics == {"boundary": 0, "future": 0, "now": 1, "homonym": 0, "tones": True}
+
+        page.locator("#businessMenuToggle").click()
+        page.get_by_role("tab", name="Пресс-релизы").click()
+        xml = b'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>' + b'x' * (3 * 1024 * 1024 + 1) + b'</w:t></w:r></w:p></w:body></w:document>'
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("word/document.xml", xml)
+        archive = bytearray(buffer.getvalue())
+        # False central size: the streaming bound, not only metadata, must stop it.
+        central = archive.index(b"PK\x01\x02")
+        struct.pack_into("<I", archive, central + 24, 1000)
+        page.locator("#releaseDocx").set_input_files({"name": "oversized.docx", "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "buffer": bytes(archive)})
+        page.wait_for_function("document.getElementById('releaseImportStatus').textContent.includes('Слишком большой')")
+        assert page.locator("#releaseBody").input_value() == ""
+
+        # A pending import cannot overwrite another company's blank editor.
+        tiny = io.BytesIO()
+        with zipfile.ZipFile(tiny, "w") as archive:
+            archive.writestr("word/document.xml", xml.split(b'<w:t>', 1)[0] + b'<w:t>Imported text</w:t></w:r></w:p></w:body></w:document>')
+        page.evaluate("""() => {
+          const original=File.prototype.arrayBuffer;
+          File.prototype.arrayBuffer=function(){return this.name==='delayed.docx'
+            ? new Promise(resolve=>{window.resumeBusinessImport=()=>original.call(this).then(resolve);})
+            : original.call(this);};
+        }""")
+        page.locator("#releaseDocx").set_input_files({"name": "delayed.docx", "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "buffer": tiny.getvalue()})
+        page.locator("#businessMenuToggle").click()
+        page.locator("#editProfile").click()
+        page.locator("#companyName").fill("Новая компания")
+        with page.expect_request("**/data/business.json"):
+            page.locator('#profileForm button[type="submit"]').click()
+        empty = copy.deepcopy(fixture)
+        empty["articles"] = []
+        empty["coverage"]["published"] = 0
+        held.pop().fulfill(json=empty)
+        page.locator("#businessResults").wait_for(state="visible")
+        page.evaluate("async () => {await resumeBusinessImport();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}")
+        assert page.locator("#releaseBody").input_value() == ""
+        assert "Открываем Word" not in page.locator("#releaseImportStatus").text_content()
+        assert page.locator("#aiMentionsTotal").inner_text() == "0"
+        page.locator("#overviewAssistantTrigger").click()
+        page.locator("#aiChatInput").fill("Предложи план")
+        page.locator('#aiChatForm button[type="submit"]').click()
+        assert "недостаточно" in page.locator("#aiChatMessages").inner_text().lower()
+        page.locator("#overviewAssistantClose").click()
+        page.locator("#businessMenuToggle").click()
+        page.locator("#editProfile").click()
+        with page.expect_request("**/data/business.json"):
+            page.locator('#profileForm button[type="submit"]').click()
+        held.pop().fulfill(status=503, body="unavailable")
+        page.wait_for_function("document.querySelector('.business-start-note').textContent.includes('503')")
+        assert not page.locator("#businessResults").is_visible()
+        assert page.locator('#profileForm button[type="submit"]').is_enabled()
+    finally:
+        context.close()
+
+
 def pro_business_navigation_ui(browser, base):
     """PRO chooser, gated Business start, mentions and period filtering."""
     context = browser.new_context(viewport={"width": 1280, "height": 900})
+    context.route("**/data/business.json", lambda route: route.fulfill(json=business_evidence_fixture()))
     try:
         page = context.new_page()
         page_errors = []
@@ -527,8 +633,7 @@ def pro_business_navigation_ui(browser, base):
         page.locator("#companyName").fill("Тестовая компания")
         page.select_option("#industry", "hospitality")
         page.locator('#profileForm button[type="submit"]').click()
-        page.locator("#businessLoading").wait_for(state="visible")
-        assert not page.locator("#businessResults").is_visible()
+
         assert page.locator("#businessLoading h2").count() == 0
         assert page.locator(".business-loading-milestones span").count() == 3
         assert page.locator(".business-loading-emblem, .business-loading-overline, .business-loading-current, .business-loading-disclaimer").count() == 0
@@ -541,10 +646,10 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#opportunities").is_visible()
         assert page.locator("#aiSummaryCompany").inner_text() == "Тестовая компания"
         assert page.locator("#aiMentionsTotal").inner_text() == "4"
-        assert page.locator("#aiNegativeTotal").inner_text() == "1"
-        assert page.locator("#overviewTonePercent").inner_text() == "25%"
+        assert page.locator("#aiNegativeTotal").inner_text() == "—"
+        assert page.locator("#overviewTonePercent").inner_text() == "—"
         assert page.get_by_role("tab", name="Обзор").is_visible()
-        assert page.locator("#overviewSignals .overview-signal").count() == 3
+        assert page.locator("#overviewSignals .overview-signal").count() == 2
         assert page.locator("#overviewSolutions .overview-solution").count() == 4
         assert page.locator("#overviewAssistantTrigger").is_visible()
         assert not page.locator("#overviewAssistantPanel").is_visible()
@@ -569,9 +674,9 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#mentions .business-mentions-summary").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert page.locator("#mentionsBody .mention-item").count() == 4
         assert page.locator("#totalMentions").inner_text() == "4"
-        assert page.locator("#positiveCount").inner_text() == "1"
-        assert page.locator("#negativeCount").inner_text() == "1"
-        assert page.locator("#neutralCount").inner_text() == "2"
+        assert page.locator("#positiveCount").inner_text() == "—"
+        assert page.locator("#negativeCount").inner_text() == "—"
+        assert page.locator("#neutralCount").inner_text() == "—"
         assert not page.locator("#trends").is_visible()
         assert not page.locator("#opportunities").is_visible()
         # A tab must switch visible content, not just scroll down the same page.
@@ -580,9 +685,9 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#trends .business-trends-explainer").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert page.locator("#trends .business-trends").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#trendsGrid .business-trend").count() == 5
-        assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
-        assert page.locator("#trendsGrid .business-trend-action").count() == 5
+        assert page.locator("#trendsGrid .business-trend").count() == 4
+        assert "Туризм и поездки" in page.locator("#trendsGrid").inner_text()
+        assert page.locator("#trendsGrid .business-trend-action").count() == 4
         assert page.locator("#trendsGrid .business-trend").first.evaluate("el => getComputedStyle(el).animationName") == "ms-trend-arrive"
         initial_growth = page.locator(".business-trend-growth").first.inner_text()
         assert initial_growth.startswith("+") and initial_growth.endswith("%")
@@ -596,15 +701,15 @@ def pro_business_navigation_ui(browser, base):
         page.get_by_role("tab", name="Упоминания").click()
         assert page.locator("#mentionsBody .mention-item").count() == 2
         assert page.locator("#totalMentions").inner_text() == "2"
-        assert page.locator("#positiveCount").inner_text() == "1"
-        assert page.locator("#negativeCount").inner_text() == "0"
-        assert page.locator("#neutralCount").inner_text() == "1"
+        assert page.locator("#positiveCount").inner_text() == "—"
+        assert page.locator("#negativeCount").inner_text() == "—"
+        assert page.locator("#neutralCount").inner_text() == "—"
         page.select_option("#mentionsPeriod", "90")
         assert page.locator("#mentionsBody .mention-item").count() == 6
         assert page.locator("#totalMentions").inner_text() == "6"
-        assert page.locator("#positiveCount").inner_text() == "2"
-        assert page.locator("#negativeCount").inner_text() == "1"
-        assert page.locator("#neutralCount").inner_text() == "3"
+        assert page.locator("#positiveCount").inner_text() == "—"
+        assert page.locator("#negativeCount").inner_text() == "—"
+        assert page.locator("#neutralCount").inner_text() == "—"
         page.get_by_role("tab", name="Инфоповоды").click()
         page.locator("#trendsGrid .business-trend-action").nth(1).click()
         assert page.locator("#opportunities").is_visible()
@@ -619,7 +724,7 @@ def pro_business_navigation_ui(browser, base):
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#overviewSignals .overview-signal").count() == 3
+        assert page.locator("#overviewSignals .overview-signal").count() == 2
         assert page.locator("#overviewSolutions .overview-solution").count() == 4
         assert page.locator("#opportunities .overview-heading").count() == 0
         assert page.get_by_role("tab", name="Отчёт").count() == 1
@@ -631,7 +736,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#overviewAssistantTrigger").get_attribute("aria-expanded") == "true"
         page.locator('[data-ai-prompt="Предложи PR-план"]').click()
         assert page.locator("#aiChatMessages .ai-message").count() == messages_before + 2
-        assert "Предварительный PR-план" in page.locator("#aiChatMessages .ai-message").last.inner_text()
+        assert "Рабочий план" in page.locator("#aiChatMessages .ai-message").last.inner_text()
         page.locator("#overviewAssistantClose").click()
         assert page.locator("#overviewAssistantTrigger").get_attribute("aria-expanded") == "false"
         page.locator("#overviewSolutions .overview-solution").nth(1).click()
@@ -675,10 +780,10 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#report").is_visible()
         assert not page.locator("#pressReleases").is_visible()
         assert page.locator("#reportMentions").inner_text() == "6"
-        assert page.locator("#reportPositive").inner_text() == "2"
-        assert page.locator("#reportNeutral").inner_text() == "3"
-        assert page.locator("#reportNegative").inner_text() == "1"
-        assert page.locator("#reportTrendList li").count() == 5
+        assert page.locator("#reportPositive").inner_text() == "—"
+        assert page.locator("#reportNeutral").inner_text() == "—"
+        assert page.locator("#reportNegative").inner_text() == "—"
+        assert page.locator("#reportTrendList li").count() == 4
         assert page.locator("#reportMentionList li").count() == 6
         assert "Тестовая компания представила" in page.locator("#reportDraftTitle").inner_text()
         assert page.locator("#reportOutletsCount").inner_text() == "1"
@@ -695,6 +800,7 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".site-header .header-back").is_visible()
 
         mobile = browser.new_context(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
+        mobile.route("**/data/business.json", lambda route: route.fulfill(json=business_evidence_fixture()))
         try:
             p = mobile.new_page()
             p.on("pageerror", lambda error: page_errors.append(str(error)))
@@ -759,14 +865,14 @@ def pro_business_navigation_ui(browser, base):
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#companyName").fill("Тест")
             p.locator('#profileForm button[type="submit"]').click()
-            p.locator("#businessLoading").wait_for(state="visible")
+
             assert p.locator("#businessLoading h2").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessResults").wait_for(state="visible", timeout=8000)
             assert not p.locator("#businessLoading").is_visible()
             assert p.locator("#opportunities").is_visible()
             assert p.locator("#aiMentionsTotal").inner_text() == "4"
-            assert p.locator("#overviewSignals .overview-signal").count() == 3
+            assert p.locator("#overviewSignals .overview-signal").count() == 2
             assert p.locator("#overviewSolutions .overview-solution").count() == 4
             p.locator("#overviewAssistantTrigger").click()
             assert p.locator("#overviewAssistantPanel").is_visible()
@@ -777,7 +883,7 @@ def pro_business_navigation_ui(browser, base):
             p.locator("#businessMenuToggle").click()
             assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "true"
             p.get_by_role("tab", name="Инфоповоды").click()
-            assert p.locator("#trendsGrid .business-trend").count() == 5
+            assert p.locator("#trendsGrid .business-trend").count() == 4
             assert p.locator("#businessMenuToggle").get_attribute("aria-expanded") == "false"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
@@ -791,7 +897,7 @@ def pro_business_navigation_ui(browser, base):
             p.get_by_role("tab", name="Отчёт").click()
             assert p.locator("#report").is_visible()
             assert p.locator("#reportMentions").inner_text() == "4"
-            assert p.locator("#reportTrendList li").count() == 5
+            assert p.locator("#reportTrendList li").count() == 4
             assert p.locator("#reportExport").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
@@ -1089,12 +1195,12 @@ def main():
             page.select_option("#platform", "")
             page.select_option("#source", "rt")
             assert page.locator(".publication").count() == 1
-            assert page.locator("#marker option").count() == 12
+            assert page.locator("#marker option").count() == 13
             page.select_option("#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
             page.select_option("#marker", "fear")
             assert page.locator(".publication").count() == 0
-            assert page.locator("#marker option").count() == 12  # Options do not vanish when results are empty.
+            assert page.locator("#marker option").count() == 13  # Options do not vanish when results are empty.
             page.select_option("#marker", "")
             page.select_option("#platform", "telegram")
             assert page.locator(".publication").count() == 0
@@ -1159,6 +1265,7 @@ def main():
             terminology_layer_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
+            real_business_ui(browser, base, errors, requests)
             pro_business_navigation_ui(browser, base)
             assert not errors, errors
             from urllib.parse import unquote

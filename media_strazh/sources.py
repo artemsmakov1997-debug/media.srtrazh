@@ -32,7 +32,8 @@ class Source:
 
 SOURCES = {
     "rt": Source("rt", "RT на русском", "russian.rt.com", "https://russian.rt.com/rss",
-                 ("article__text", "article__body"), ("article__summary",)),
+                 ("article__text", "article__body"), ("article__summary",),
+                 allowed_hosts=("russiatoday.ru", "www.russiatoday.ru")),
     "tass": Source("tass", "ТАСС", "tass.ru", "https://tass.ru/rss/v2.xml",
                    ("news-content__text", "news-content__content", "text-block",
                     "text-content", "article__text", "article-body", "NewsContent_content",
