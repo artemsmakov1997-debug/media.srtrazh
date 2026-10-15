@@ -2018,11 +2018,12 @@
       letter-spacing: 0 !important;
     }
     #supportFormats .support-choice-audience {
-      font-family: "IBM Plex Mono", "Courier New", monospace !important;
-      font-size: 12.5px !important;
-      font-weight: 600 !important;
+      font-family: "Inter", "Montserrat", sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
       letter-spacing: 0 !important;
-      line-height: 1.55 !important;
+      line-height: 1.58 !important;
+      text-transform: none !important;
     }
     #supportFormats .support-amount-label,
     #supportFormats .support-plan-status,
@@ -2045,6 +2046,16 @@
       font-size: 16px !important;
       line-height: 1.4 !important;
       letter-spacing: -.04em !important;
+    }
+  }
+  @media (max-width: 767px) {
+    #supportFormats .support-choice-audience {
+      font-family: "Inter", "Montserrat", sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0 !important;
+      line-height: 1.58 !important;
+      text-transform: none !important;
     }
   }
 </style>
@@ -2092,7 +2103,7 @@
     <div class="support-grid">
       <article class="support-card support-choice support-choice--donation">
         <h2 class="support-choice-title">Любая сумма</h2>
-        <p class="support-choice-audience">ВСЕМ, КОМУ ВАЖНА ЧЕСТНАЯ И ДОСТОВЕРНАЯ ИНФОРМАЦИЯ</p>
+        <p class="support-choice-audience">Всем, кому важна честная и достоверная информация</p>
         <p class="support-choice-desc">Помогите развивать независимую медианалитику без обязательств и регулярных платежей.</p>
         <div class="support-choice-action">
           <label class="support-amount-label" for="donateInput">Сумма поддержки, ₽</label>
@@ -2112,7 +2123,7 @@
 
       <article class="support-card support-choice support-choice--research">
         <h2 class="support-choice-title">Исследования</h2>
-        <p class="support-choice-audience">ИССЛЕДОВАТЕЛЯМ · ЖУРНАЛИСТАМ · ПРЕПОДАВАТЕЛЯМ</p>
+        <p class="support-choice-audience">Исследователям · журналистам · преподавателям</p>
         <p class="support-choice-desc">Глубокий анализ медиатекстов, объяснение маркеров воздействия и самостоятельная проверка публикаций.</p>
         <div class="support-choice-action">
           <span class="support-amount-label">Стоимость подписки</span>
@@ -2124,7 +2135,7 @@
 
       <article class="support-card support-choice support-choice--business">
         <h2 class="support-choice-title">Бизнес</h2>
-        <p class="support-choice-audience">ПРЕДПРИНИМАТЕЛЯМ · МАРКЕТОЛОГАМ · PR-КОМАНДАМ</p>
+        <p class="support-choice-audience">Предпринимателям · маркетологам · PR-командам</p>
         <p class="support-choice-desc">Мониторинг упоминаний компании, отраслевые тренды и PR-возможности для роста узнаваемости.</p>
         <div class="support-choice-action">
           <span class="support-amount-label">Стоимость подписки</span>
