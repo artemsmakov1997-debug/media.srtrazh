@@ -416,11 +416,16 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".support-typing-title").get_attribute("aria-label") == "Развитие стоит дорого, независимость бесценна"
         assert page.locator(".support-kicker, .support-hero-intro, .support-formats-intro").count() == 0
         assert page.locator(".support-choice-index").count() == 0
-        # Technical type hierarchy is deliberately more compact on desktop.
+        # Tarot-style plan headings remain technical, but descriptions must
+        # be legible at the page's 80% desktop scale.
         desc_type = page.locator(".support-choice-desc").first.evaluate(
+            "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily, color:getComputedStyle(el).color })")
+        assert 14.5 <= desc_type["size"] <= 16, desc_type
+        assert "Inter" in desc_type["family"], desc_type
+        label_type = page.locator(".support-choice-audience").first.evaluate(
             "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
-        assert 12 <= desc_type["size"] <= 13.5, desc_type
-        assert "IBM Plex Mono" in desc_type["family"], desc_type
+        assert label_type["size"] >= 12, label_type
+        assert "IBM Plex Mono" in label_type["family"], label_type
         hero_type = page.locator(".support-typing-title").evaluate(
             "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
         assert 28 <= hero_type["size"] <= 45, hero_type
@@ -462,6 +467,11 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
+        assert "gradient" in page.locator(".section-panel").first.evaluate(
+            "el => getComputedStyle(el).backgroundImage")
+        assert "gradient" in page.locator('.mode-card[data-mode="automatic"]').evaluate(
+            "el => getComputedStyle(el).backgroundImage")
+        assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()") == "#05070b"
         analysis_header = page.locator(".site-header .header-inner").evaluate(
             "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
         )
