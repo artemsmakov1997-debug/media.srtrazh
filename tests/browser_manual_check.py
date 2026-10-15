@@ -589,7 +589,8 @@ def pro_business_navigation_ui(browser, base):
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#overviewSignals .overview-signal").count() == 3
         assert page.locator("#overviewSolutions .overview-solution").count() == 4
-        assert "ДЕМОНСТРАЦИОННЫЕ" in page.locator("#opportunities .overview-demo").inner_text()
+        assert page.locator("#opportunities .overview-heading").count() == 0
+        assert page.get_by_role("tab", name="Отчёт").count() == 1
         # The earlier Trends → Assistant action already added a chat exchange.
         # Assert two new messages rather than assuming the conversation is empty.
         messages_before = page.locator("#aiChatMessages .ai-message").count()
@@ -636,6 +637,24 @@ def pro_business_navigation_ui(browser, base):
         with page.expect_download() as docx_info:
             page.locator("#releaseDownload").click()
         assert docx_info.value.suggested_filename.endswith(".docx")
+        # The summary reflects the whole chosen period and only recorded
+        # in-browser actions, never implying emails were sent or articles placed.
+        page.get_by_role("tab", name="Отчёт").click()
+        assert page.locator("#report").is_visible()
+        assert not page.locator("#pressReleases").is_visible()
+        assert page.locator("#reportMentions").inner_text() == "6"
+        assert page.locator("#reportPositive").inner_text() == "2"
+        assert page.locator("#reportNeutral").inner_text() == "3"
+        assert page.locator("#reportNegative").inner_text() == "1"
+        assert page.locator("#reportTrendList li").count() == 5
+        assert page.locator("#reportMentionList li").count() == 6
+        assert "Тестовая компания представила" in page.locator("#reportDraftTitle").inner_text()
+        assert page.locator("#reportOutletsCount").inner_text() == "1"
+        assert "отправка не подтверждена" in page.locator("#reportOutlets").inner_text()
+        assert page.locator("#reportActivity li").count() >= 2
+        page.evaluate("window.__reportPrintCalled = false; window.print = () => {window.__reportPrintCalled = true}")
+        page.locator("#reportExport").click()
+        assert page.evaluate("window.__reportPrintCalled === true")
         assert not page.locator(".business-data-warning").is_visible()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
