@@ -436,3 +436,7 @@ body.business-open>.site-header{display:none}
 .releases-empty h2{font:650 clamp(27px,3vw,39px)/1.2 Inter,sans-serif;letter-spacing:-.04em;margin:20px 0 12px}
 .releases-empty p{font-size:14px;line-height:1.65;color:#667c86;margin:0}
 @media(max-width:720px){.releases-empty{margin:25px 0 0;padding:25px}}
+
+/* Entrance header must not move: navigation geometry is shared with Analysis. */
+@keyframes ms-header-fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:no-preference){body:not(.business-open)>.site-header{animation:ms-header-fade .55s ease-out both}}
