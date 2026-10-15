@@ -524,7 +524,7 @@ def pro_business_navigation_ui(browser, base):
         assert "Путешествия с питомцами" in page.locator("#trendsGrid").inner_text()
         initial_growth = page.locator(".business-trend-growth").first.inner_text()
         assert initial_growth.startswith("+") and initial_growth.endswith("%")
-        page.select_option("#period", "7")
+        page.select_option("#mentionsPeriod", "7")
         assert page.locator("#trendPeriodLabel").inner_text() == "7 дней"
         assert page.locator(".business-trend-growth").first.inner_text() != initial_growth
         page.get_by_role("tab", name="Упоминания").click()
@@ -541,15 +541,29 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator("#neutralCount").inner_text() == "3"
         page.locator('[data-tab="opportunities"]').click()
         assert page.locator("#opportunities").is_visible()
-        assert page.locator("#opportunities .memo-method").evaluate("el => getComputedStyle(el).borderTopWidth") == "0px"
         assert not page.locator("#mentions").is_visible()
-        assert page.locator("#opportunitiesGrid .business-opportunity").count() == 3
-        assert "demo" in page.locator(".memo-header").inner_text().lower()
-        assert "report-reveal" in page.locator(".business-opportunity").first.evaluate("el => getComputedStyle(el).animationName")
-        assert page.locator(".opportunity-action-plan").first.get_attribute("open") is not None
-        page.locator(".opportunity-action-plan summary").nth(1).click()
-        assert page.locator(".opportunity-action-plan").nth(1).get_attribute("open") is not None
-        assert page.locator(".opportunity-action-plan li").count() == 9
+        assert page.locator("#assistantCards .ai-card").count() == 3
+        assert "ДЕМО" in page.locator("#opportunities .workspace-demo-label").inner_text()
+        page.locator('[data-ai-prompt="Предложи PR-план"]').click()
+        assert page.locator("#aiChatMessages .ai-message").count() == 3
+        assert "PR-план" in page.locator("#aiChatMessages").inner_text()
+        page.locator("#assistantCards .ai-card-primary").first.click()
+        assert page.locator("#pressReleases").is_visible()
+        assert "РЕДАКЦИОННЫЕ ЗАМЕТКИ" in page.locator("#releaseBody").input_value()
+        page.locator("#releaseTitle").fill("Тестовый заголовок")
+        page.locator("#releaseLead").fill("Проверенный факт для черновика")
+        page.locator("#releaseSave").click()
+        assert page.locator("#releaseDrafts .release-draft").count() == 1
+        assert "Тестовый заголовок" in page.locator("#releaseDrafts").inner_text()
+        page.locator("#releaseCheck").click()
+        assert "факты" in page.locator("#releaseFeedback").inner_text().lower()
+        with page.expect_download() as docx_info:
+            page.locator("#releaseDownload").click()
+        assert docx_info.value.suggested_filename.endswith(".docx")
+        page.locator("#releaseNew").click()
+        assert page.locator("#releaseTitle").input_value() == ""
+        page.locator("#releaseDrafts .release-draft").first.click()
+        assert page.locator("#releaseTitle").input_value() == "Тестовый заголовок"
         assert not page.locator(".business-data-warning").is_visible()
         page.locator("#editProfile").click()
         assert not page.locator("#businessResults").is_visible()
@@ -631,7 +645,10 @@ def pro_business_navigation_ui(browser, base):
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator('[data-tab="opportunities"]').click()
             assert p.locator("#opportunities").is_visible()
-            assert p.locator(".business-opportunity").count() == 3
+            assert p.locator("#assistantCards .ai-card").count() == 3
+            p.get_by_role("tab", name="Пресс-релизы").click()
+            assert p.locator("#releaseTitle").is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert p.locator("#editProfile").is_visible()
             p.locator("#editProfile").click()
