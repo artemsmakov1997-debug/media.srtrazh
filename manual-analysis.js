@@ -8,6 +8,7 @@
   let pending = null;
   let deadline = null;
   let currentResult = null;
+  let scanStartedAt = 0;
   const tooltip = el('manualTooltip');
   const annotations = new WeakMap();
   let tooltipTarget = null;
@@ -22,6 +23,15 @@
     el('manualEdit').disabled = value;
     el('manualDownload').disabled = value;
     el('manualForm').setAttribute('aria-busy', String(value));
+    const scan = el('manualScan');
+    scan.hidden = !value;
+    if (value) {
+      scanStartedAt = performance.now();
+      // Only a bounded visual mirror is shown; all analysis remains in the worker.
+      el('manualScanPreview').textContent = el('manualText').value.slice(0, 2400);
+    } else {
+      el('manualScanPreview').textContent = '';
+    }
   }
 
   function finish() {
@@ -223,8 +233,16 @@
           el('manualState').textContent = message.state === 'loading' ?
             'Загружаем анализатор для первого запуска…' : 'Анализируем…';
         } else if (message.type === 'result') {
-          finish();
-          show(message.result);
+          // Keep the scanner perceptible even for fast local analyses.
+          // A reset cancels this presentation because pending becomes null.
+          const present = () => {
+            if (pending !== message.id) return;
+            finish();
+            show(message.result);
+          };
+          const remaining = Math.max(0, 520 - (performance.now() - scanStartedAt));
+          if (remaining) setTimeout(present, remaining);
+          else present();
         } else if (message.type === 'error') {
           fail(message.message);
           if (message.kind === 'loading') stopWorker();
