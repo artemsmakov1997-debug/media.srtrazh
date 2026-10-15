@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="business.css?v=desk17">
+<link rel="stylesheet" href="business.css?v=desk18">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk12"></script>
+<script defer src="business.js?v=desk13"></script>
 </head>
 <body>
 <header class="site-header">
@@ -96,6 +96,7 @@
         <button type="button" id="tabMentions" role="tab" aria-controls="mentions" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="mentions"><span class="rail-icon" aria-hidden="true">≡</span><span>Упоминания</span></button>
         <button type="button" id="tabTrends" role="tab" aria-controls="trends" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="trends"><span class="rail-icon" aria-hidden="true">↗</span><span>Инфоповоды</span></button>
         <button type="button" id="tabOpportunities" role="tab" aria-controls="opportunities" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="opportunities"><span class="rail-icon" aria-hidden="true">✳</span><span>Рекомендации</span></button>
+        <button type="button" id="tabPressReleases" role="tab" aria-controls="pressReleases" aria-selected="false" tabindex="-1" class="business-result-tab" data-tab="pressReleases"><span class="rail-icon" aria-hidden="true">▤</span><span>Пресс-релизы</span></button>
       </nav>
       <div class="rail-bottom">
         <a href="index.html" class="rail-back"><span aria-hidden="true">←</span> Вернуться к рейтингу</a>
@@ -200,6 +201,13 @@
         <div class="memo-method"><span class="memo-method-rule" aria-hidden="true"></span><span>ТЕМЫ</span><span aria-hidden="true">→</span><span>ВОЗМОЖНОСТИ</span><span aria-hidden="true">→</span><span>ПЛАН ДЕЙСТВИЙ</span></div>
         <div class="business-opportunities" id="opportunitiesGrid"></div>
         <p class="report-disclaimer">Планы собраны из демонстрационных шаблонов. Это не результат анализа реальных данных искусственным интеллектом.</p>
+      </section>
+      <section class="business-section business-section--releases" id="pressReleases" role="tabpanel" aria-labelledby="tabPressReleases" tabindex="0" hidden>
+        <div class="releases-empty">
+          <span class="releases-eyebrow">МЕДИА.СТРАЖ PRO / 05</span>
+          <h2>Пресс-релизы</h2>
+          <p>Раздел в разработке. Здесь появится рабочее пространство для пресс-релизов.</p>
+        </div>
       </section>
     </div>
   </div>
