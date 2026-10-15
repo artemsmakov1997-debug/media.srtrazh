@@ -752,6 +752,13 @@ def pro_business_navigation_ui(browser, base):
             assert p.locator("#releaseMediaList .release-media-item").count() == 3
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.locator("#businessMenuToggle").click()
+            p.get_by_role("tab", name="Отчёт").click()
+            assert p.locator("#report").is_visible()
+            assert p.locator("#reportMentions").inner_text() == "4"
+            assert p.locator("#reportTrendList li").count() == 5
+            assert p.locator("#reportExport").is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            p.locator("#businessMenuToggle").click()
             p.locator("#editProfile").click()
             assert p.locator("#profileForm").is_visible()
         finally:
