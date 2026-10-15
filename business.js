@@ -100,7 +100,7 @@
   const dateFormat = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   let activeIndustry='medtech';
   let activeCompany='';
-  let activeTab='overview';
+  let activeTab='opportunities';
   const periodDays=()=>Number($('period').value);
   // Synthetic demo trend counts, with a previous period to calculate growth
   // mathematically for each filter. No real article data or live AI is used.
@@ -117,27 +117,6 @@
     return {current:trend.count,previous:Math.max(1,Math.round(trend.count/(1+rise)))};
   }
   const growthPercent = totals => Math.round((totals.current-totals.previous)/totals.previous*100);
-
-  function renderOverview(){
-    const days=periodDays();
-    const records=mentions.filter(m=>m.daysAgo<=days);
-    const counts={positive:0,negative:0,neutral:0};
-    records.forEach(m=>counts[m.tone]++);
-    $('overviewTotal').textContent=say(records.length);
-    $('overviewPositive').textContent=say(counts.positive);
-    $('overviewNegative').textContent=say(counts.negative);
-    $('overviewNeutral').textContent=say(counts.neutral);
-    const data=samples[activeIndustry];
-    // All trend counts are fabricated demonstration values; percentage
-    // is computed from each synthetic pair of adjacent comparison periods.
-    const signal=data.trends[0];
-    const stats=trendNumbers(signal,days);
-    $('overviewSignalTitle').textContent=signal.title;
-    $('overviewSignalGrowth').textContent='+'+growthPercent(stats)+'%';
-    $('overviewSignalDetail').textContent=signal.detail;
-    $('overviewPRTitle').textContent=data.opportunities[0].title;
-    $('overviewPRRationale').textContent=data.opportunities[0].detail;
-  }
 
   function renderMentions(){
     const days=Number($('mentionsPeriod').value);
@@ -236,12 +215,27 @@
     }}));
   }
 
+  const menuToggle=$('businessMenuToggle'),menuBackdrop=$('businessMenuBackdrop'),rail=$('businessRail');
+  function setMenu(open){
+    const on=Boolean(open);
+    document.body.classList.toggle('business-menu-open',on);
+    menuToggle.setAttribute('aria-expanded',String(on));
+    menuToggle.setAttribute('aria-label',on?'Закрыть меню':'Открыть меню');
+    menuBackdrop.hidden=!on;
+    if(on)rail.querySelector('.business-result-tab--active')?.focus();
+    else if(document.activeElement && rail.contains(document.activeElement))menuToggle.focus();
+  }
+  menuToggle.addEventListener('click',()=>setMenu(!document.body.classList.contains('business-menu-open')));
+  menuBackdrop.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.body.classList.contains('business-menu-open'))setMenu(false);});
+  window.addEventListener('resize',()=>{if(window.innerWidth>720 && document.body.classList.contains('business-menu-open'))setMenu(false);});
   const tabs=[...document.querySelectorAll('.business-result-tab')];
-  const panels=['overview','mentions','trends','opportunities','pressReleases'];
+  const panels=['opportunities','mentions','trends','pressReleases'];
   function activateTab(name,focus=false){
     if(!panels.includes(name))return;
     activeTab=name;
     $('businessResults').classList.toggle('is-mentions',name==='mentions');
+    document.dispatchEvent(new CustomEvent('ms-tab-open',{detail:{name}}));
     tabs.forEach(tab=>{
       const on=tab.dataset.tab===name;
       tab.classList.toggle('business-result-tab--active',on);
@@ -250,6 +244,7 @@
       if(on&&focus)tab.focus();
     });
     panels.forEach(panel=>$(panel).hidden=(panel!==name));
+    setMenu(false);
     const label= tabs.find(tab=>tab.dataset.tab===name);
     $('paperLocation').textContent=label?label.textContent.trim().toUpperCase():'ОБЗОР';
     const pr=$('opportunities');
@@ -305,14 +300,14 @@
   function showCabinet(){
     if(!isPreparing)return;
     cancelPreparation();
-    renderOverview();renderMentions();renderTrends();renderPR();
+    renderMentions();renderTrends();renderPR();
     start.classList.add('business-start--compact');
     $('businessResults').hidden=false;
     $('businessResults').classList.remove('is-opening');
     void $('businessResults').offsetWidth;
     $('businessResults').classList.add('is-opening');
     document.body.classList.add('business-open');
-    activateTab('overview');
+    activateTab('opportunities');
     $('businessResults').scrollIntoView({behavior:'auto',block:'start'});
   }
 
@@ -322,8 +317,7 @@
     activeCompany=$('companyName').value.trim();
     if(!activeCompany){$('companyName').focus();return;}
     activeIndustry=$('industry').value;
-    $('companyDisplay').textContent=activeCompany;
-    $('industryDisplay').textContent=$('industry').selectedOptions[0].textContent;
+    $('businessMobileCompany').textContent=activeCompany;
     $('railCompany').textContent=activeCompany;
     $('railIndustry').textContent=$('industry').selectedOptions[0].textContent;
     openButton.disabled=true;
@@ -348,10 +342,10 @@
   });
   $('mentionsSearch').addEventListener('input',renderMentions);
   $('mentionsTone').addEventListener('change',renderMentions);
-  $('mentionsPeriod').addEventListener('change',()=>{ $('period').value=$('mentionsPeriod').value;renderOverview();renderMentions();renderTrends();renderPR(); });
+  $('mentionsPeriod').addEventListener('change',()=>{ $('period').value=$('mentionsPeriod').value;renderMentions();renderTrends();renderPR(); });
   $('period').addEventListener('change',()=>{ $('mentionsPeriod').value=$('period').value;
     if($('businessResults').hidden)return;
-    renderOverview();renderMentions();renderTrends();renderPR();
+    renderMentions();renderTrends();renderPR();
     if(activeTab==='opportunities')activateTab('opportunities');
   });
   document.querySelectorAll('[data-open]').forEach(btn=>{
@@ -363,6 +357,7 @@
     $('businessResults').classList.remove('is-opening');
     start.classList.remove('business-start--compact');
     document.body.classList.remove('business-open');
+    setMenu(false);
     window.scrollTo({top:0,behavior:'auto'});
     $('companyName').focus();
   });
