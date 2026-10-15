@@ -557,9 +557,12 @@ def pro_business_navigation_ui(browser, base):
         assert not page.locator("#mentions").is_visible()
         assert page.locator("#assistantCards .ai-card").count() == 4
         assert "ДЕМО" in page.locator("#opportunities .workspace-demo-label").inner_text()
+        # The earlier Trends → Assistant action already added a chat exchange.
+        # Assert two new messages rather than assuming the conversation is empty.
+        messages_before = page.locator("#aiChatMessages .ai-message").count()
         page.locator('[data-ai-prompt="Предложи PR-план"]').click()
-        assert page.locator("#aiChatMessages .ai-message").count() == 3
-        assert "PR-план" in page.locator("#aiChatMessages").inner_text()
+        assert page.locator("#aiChatMessages .ai-message").count() == messages_before + 2
+        assert "Предварительный PR-план" in page.locator("#aiChatMessages .ai-message").last.inner_text()
         page.locator("#assistantCards .ai-card-primary").nth(2).click()
         assert page.locator("#pressReleases").is_visible()
         assert page.locator("#releaseTitle").is_visible()
