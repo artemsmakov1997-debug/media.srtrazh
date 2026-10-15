@@ -440,3 +440,13 @@ body.business-open>.site-header{display:none}
 /* Entrance header must not move: navigation geometry is shared with Analysis. */
 @keyframes ms-header-fade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:no-preference){body:not(.business-open)>.site-header{animation:ms-header-fade .55s ease-out both}}
+
+/* One and only one divider immediately beneath the workspace breadcrumb.
+   Keep the internal separators between data items intact. */
+.business-results .paper-toolbar{border-bottom:1px solid #d1d7d7}
+.business-results #overview .overview-presence{border-top:0}
+.business-results #trends .business-trends-explainer{border-top:0;padding-top:0}
+.business-results #trends .business-trends{border-top:0}
+.business-results #opportunities .memo-method{border-top:0}
+.business-results #mentions .business-mentions-summary{border-top:0}
+.business-results #overview,.business-results #trends,.business-results #opportunities{padding-top:24px}
