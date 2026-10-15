@@ -415,3 +415,10 @@ body.business-open>.site-header{display:none}
 .business-results.is-mentions .business-mentions-summary{border-top:0;margin-top:0}
 .business-results.is-mentions .paper-toolbar{justify-content:flex-start}
 @media(prefers-reduced-motion:reduce){.business-start-inner,body:not(.business-open)>.site-header{animation:none!important}}
+
+/* Keep the loading panel above the animated intake form. */
+.business-start--loading .business-start-inner{animation:none!important;opacity:0!important;visibility:hidden;pointer-events:none}
+.business-loading{z-index:4}
+.business-start--loading .business-loading:not([hidden]){display:block;opacity:1;visibility:visible}
+.business-loading-track{min-height:4px;background:#dbe7e9}
+.business-loading-progress{background:linear-gradient(90deg,#22748d,#19b2cc)}
