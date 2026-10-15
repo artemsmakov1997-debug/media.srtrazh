@@ -1,4 +1,4 @@
-/* Business V3: demo briefing, editorial quality cues, verified contact selector.
+/* Business V3: corpus briefing, editorial quality cues, verified contact selector.
    Email is composed locally; no publication or automatic sending is performed. */
 (() => {
 'use strict';
@@ -44,24 +44,24 @@ function askAssistant(question){
 function openTab(tab){document.querySelector('[data-tab="'+tab+'"]').click();}
 function snapshot(){
  const days=company.days;
- const mentions=company.mentions.filter(m=>m.daysAgo<days);
+ const mentions=company.selected;
  const negative=mentions.filter(m=>m.tone==='negative').length;
  const positive=mentions.filter(m=>m.tone==='positive').length;
- const neutral=mentions.length-positive-negative;
+ const neutral=mentions.filter(m=>m.tone==='neutral').length;
  const total=mentions.length,percent=total?Math.round(positive/total*100):0;
  $('aiSummaryCompany').textContent=company.company;
  $('aiMentionsTotal').textContent=total.toLocaleString('ru-RU');
- $('aiNegativeTotal').textContent=negative.toLocaleString('ru-RU');
+ $('aiNegativeTotal').textContent='—';
  $('aiTrendTotal').textContent=company.trends.length;
- $('aiMentionsTone').textContent='+'+positive+' / ='+neutral+' / −'+negative;
- $('overviewTonePercent').textContent=total?percent+'%':'—';
+ $('aiMentionsTone').textContent='Без оценки тональности: '+total;
+ $('overviewTonePercent').textContent='—';
  $('overviewTonePositive').style.width=(total?100*positive/total:0)+'%';
  $('overviewToneNeutral').style.width=(total?100*neutral/total:0)+'%';
  $('overviewToneNegative').style.width=(total?100*negative/total:0)+'%';
- $('overviewAnalyticsSubtitle').textContent='Упоминания и тональность за '+days+' дней';
+ $('overviewAnalyticsSubtitle').textContent='Совпадения названия за '+days+' дней';
  $('overviewChartPeriod').textContent='Последние '+days+' дней';
- $('aiTopTrend').textContent=company.trends[0]?.title||'Нет отраслевых данных';
- // Distribute available demo mentions into equal period buckets; never fabricate events.
+ $('aiTopTrend').textContent=company.trends[0]?.title||'Нет тем в собранных материалах';
+ // Chart only selected, dated publications; missing periods remain empty.
  const bins=Array.from({length:15},()=>0);
  mentions.forEach(m=>{
    const i=Math.floor((days-1-m.daysAgo)/days*15);
@@ -74,21 +74,21 @@ function snapshot(){
  line.setAttribute('d',path);line.setAttribute('fill','none');line.setAttribute('stroke','#2589a2');
  line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-linejoin','round');
  svg.append(line);$('aiOverviewChart').replaceChildren(svg);
- $('aiOverviewChart').setAttribute('aria-label','Динамика '+total+' демонстрационных упоминаний за '+days+' дней');
+ $('aiOverviewChart').setAttribute('aria-label','Динамика '+total+' совпадений названия в собранных публикациях за '+days+' дней');
 }
 function renderSignals(){
- const count=company.mentions.filter(m=>m.daysAgo<company.days&&m.tone==='negative').length;
+ const count=company.selected.filter(m=>m.tone==='negative').length;
  const first=company.trends[0],container=$('overviewSignals');container.replaceChildren();
- const signals=[{
+ const signals=first?[{
   kind:'ВОЗМОЖНОСТЬ',tone:'opportunity',
-  title:'Растущий интерес к теме «'+first.title+'»',
-  detail:'Отраслевая повестка (демо). Можно предложить комментарий, если у компании есть подтверждённая экспертиза.',
+  title:'Тема в собранных материалах: «'+first.title+'»',
+  detail:first.count+' публикаций в текущей выборке. Проверьте первоисточники и наличие у компании подтверждённой экспертизы.',
   label:'Обсудить',act:()=>askAssistant('Как использовать инфоповод «'+first.title+'» для экспертного комментария?')
- }];
+ }]:[];
  if(count>0)signals.push({
   kind:'ТРЕБУЕТ ВНИМАНИЯ',tone:'attention',
   title:'Проверить отрицательные упоминания',
-  detail:'В выбранном периоде '+count+' условных негативных сообщений. Сначала изучите первоисточники, затем решайте, нужна ли реакция.',
+  detail:'В выбранном периоде '+count+' проверенных негативных сообщений. Сначала изучите первоисточники, затем решайте, нужна ли реакция.',
   label:'Изучить',act:()=>openTab('mentions')
  });
  const relevant=company.trends[1];
@@ -105,11 +105,12 @@ function renderSignals(){
   body.append(meta,make('h4',s.title),make('p',s.detail));action.type='button';action.addEventListener('click',s.act);
   row.append(body,action);container.append(row);
  });
- $('aiContextLabel').textContent='Выделены из условных упоминаний и отраслевых тем';
+ if(!signals.length)container.append(make('p','Пока недостаточно собранных материалов для выбора темы.','business-empty'));
+ $('aiContextLabel').textContent='Обновлено: '+new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(company.generated_at))+' МСК. Выборка: '+company.coverage.published+' публикаций. Тональность не оценена.'+(company.coverage.limited?' Подборка ограничена.':'');
 }
 function renderSolutions(){
  const solutions=[
-  {icon:'↗',title:'Экспертный комментарий',desc:'Подготовить позицию по отраслевой теме',act:()=>askAssistant('Предложи структуру экспертного комментария по теме «'+company.trends[0].title+'».')},
+  {icon:'↗',title:'Экспертный комментарий',desc:'Подготовить позицию по отраслевой теме',act:()=>askAssistant('Предложи структуру экспертного комментария по теме «'+(company.trends[0]?.title||'требуется выбрать тему с подтверждёнными источниками')+'».')},
   {icon:'▤',title:'Пресс-релиз',desc:'Написать и проверить новостной материал',act:()=>openTab('pressReleases')},
   {icon:'◎',title:'Реакция на негатив',desc:'Разобрать ситуацию и подготовить ответ',act:()=>askAssistant('Предложи порядок проверки и отработки негативных публикаций о компании.')},
   {icon:'✎',title:'Материал для сайта',desc:'Создать план публикации для собственных каналов',act:()=>askAssistant('Предложи план публикации для сайта компании на основе актуальных отраслевых тем.')}
@@ -137,8 +138,8 @@ function resetEditorialFlow(){
  $('releaseReviewState').textContent='Проверяем основные элементы материала…';
  $('releaseFeedback').textContent='';
 }
-inputs.forEach(id=>$(id).addEventListener('input',resetEditorialFlow));
-document.addEventListener('ms-release-draft-changed',resetEditorialFlow);
+inputs.forEach(id=>$(id).addEventListener('input',()=>{cancelImport();resetEditorialFlow();}));
+document.addEventListener('ms-release-draft-changed',()=>{cancelImport();resetEditorialFlow();});
 outletsToggle.addEventListener('click',()=>{
  const open=outletsPopover.hidden;
  outletsPopover.hidden=!open;outletsToggle.setAttribute('aria-expanded',String(open));
@@ -210,9 +211,10 @@ document.addEventListener('ms-trend-action',event=>{
  if(destination==='release'){
   const filled=inputs.some(id=>$(id).value.trim());
   if(filled&&!window.confirm('Заменить текущий текст проектом по выбранному инфоповоду? Несохранённые изменения будут потеряны.'))return;
+  cancelImport();
   $('releaseTitle').value='Экспертный комментарий: '+trend.title;
   $('releaseLead').value='[Заполните: кто из экспертов компании комментирует тему, по какому поводу и почему это важно для читателя.]';
-  $('releaseBody').value='ПРОЕКТ МАТЕРИАЛА — ТРЕБУЕТ РЕДАКТУРЫ\n\nТема: '+trend.title+'.\nОтраслевой контекст (демо): '+trend.detail+
+  $('releaseBody').value='ПРОЕКТ МАТЕРИАЛА — ТРЕБУЕТ РЕДАКТУРЫ\n\nТема: '+trend.title+'.\nКонтекст собранных публикаций: '+trend.detail+'\nИсточники: '+(trend.evidence||[]).map(item=>item.url).join('\n')+
     '\n\n[Добавьте проверенные факты, дату, предмет события, результаты и подтверждающие ссылки.]\n\n[Опишите собственную экспертизу компании и практический вывод для аудитории.]';
   $('releaseQuote').value='';$('releaseAbout').value='';
   resetEditorialFlow();
@@ -267,6 +269,12 @@ $('releaseCompose').addEventListener('click',()=>{
  $('releaseMailStatus').textContent='Создан черновик письма: '+outlets.length+' адресатов в BCC. Проверьте текст и контакты в почтовой программе, затем подтвердите отправку. Автоматической отправки нет.';
  window.location.href=url;
 });
+let importVersion=0,importPending=false;
+function cancelImport(){
+ importVersion++;
+ if(importPending){importPending=false;$('releaseImportStatus').textContent='Импорт отменён: компания или редактор изменились.';}
+}
+document.addEventListener('ms-business-exit',cancelImport);
 async function docxText(file){
  if(!/\.docx$/iu.test(file.name)||file.size>2*1024*1024)throw Error('Нужен .docx до 2 МБ.');
  const buf=await file.arrayBuffer(),v=new DataView(buf);let end=-1;
@@ -278,13 +286,24 @@ async function docxText(file){
   const size=v.getUint32(at+20,true),method=v.getUint16(at+10,true),n=v.getUint16(at+28,true),ext=v.getUint16(at+30,true),comment=v.getUint16(at+32,true),local=v.getUint32(at+42,true);
   const name=new TextDecoder().decode(new Uint8Array(buf,at+46,n));
   if(name==='word/document.xml'){
-   if(size>3*1024*1024)throw Error('Слишком большой текст в документе.');
+   const expandedSize=v.getUint32(at+24,true),maximum=3*1024*1024;
+   if(size>maximum||expandedSize>maximum)throw Error('Слишком большой текст в документе.');
    const start=local+30+v.getUint16(local+26,true)+v.getUint16(local+28,true);
    if(start+size>buf.byteLength)throw Error('Архив повреждён.');
    let bytes=new Uint8Array(buf,start,size);
    if(method===8){if(typeof DecompressionStream!=='function')throw Error('Нужен браузер с поддержкой распаковки DOCX.');
-    bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+    const chunks=[];let total=0;
+    try{
+     while(true){const part=await reader.read();if(part.done)break;
+      total+=part.value.byteLength;
+      if(total>maximum){await reader.cancel();throw Error('Слишком большой текст в документе.');}
+      chunks.push(part.value);
+     }
+    }finally{reader.releaseLock();}
+    bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
    }else if(method!==0)throw Error('Тип сжатия DOCX не поддерживается.');
+   if(bytes.length!==expandedSize)throw Error('Некорректный размер текста в документе.');
    const xml=new DOMParser().parseFromString(new TextDecoder().decode(bytes),'application/xml');
    if(xml.getElementsByTagName('parsererror').length)throw Error('Ошибка содержимого Word.');
    const ns='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -298,19 +317,22 @@ async function docxText(file){
 }
 $('releaseDocx').addEventListener('change',async event=>{
  const file=event.target.files?.[0];if(!file)return;$('releaseImportStatus').textContent='Открываем Word…';
- try{const text=await docxText(file),lines=text.split('\n').filter(x=>x.trim());
+ const version=++importVersion;
+ importPending=true;
+ try{const text=await docxText(file);if(version!==importVersion)return;const lines=text.split('\n').filter(x=>x.trim());
   $('releaseTitle').value='[Уточните заголовок] '+lines[0].slice(0,180);
   $('releaseLead').value='[Заполните лид: кто, что, где, когда и почему это важно]';
   $('releaseBody').value='ТЕЗИСЫ ИЗ WORD — НЕ ГОТОВЫЙ РЕЛИЗ\n\n'+lines.map((x,i)=>(i+1)+'. '+x).join('\n')+'\n\n[Дополните проверенные факты и контекст]';
   $('releaseQuote').value='';$('releaseAbout').value='';
   $('releaseImportStatus').textContent='Тезисы извлечены из '+file.name+'. Это структурированный редактируемый каркас, а не генерация ИИ.';
   $('releaseStatus').textContent='Требуется редактура';resetEditorialFlow();
- }catch(e){$('releaseImportStatus').textContent='Ошибка чтения: '+e.message;}
- finally{event.target.value='';}
+ }catch(e){if(version===importVersion)$('releaseImportStatus').textContent='Ошибка чтения: '+e.message;}
+ finally{if(version===importVersion){importPending=false;event.target.value='';}}
 });
 document.addEventListener('ms-business-data',e=>{
  const next=e.detail;if(!next?.company)return;
  const isNew=!company||next.company!==company.company||next.industry!==company.industry;
+ if(isNew)cancelImport();
  company=next;snapshot();renderSignals();renderSolutions();
  if(isNew)selected=new Set(recipients().map(x=>x.id));
  renderOutlets();

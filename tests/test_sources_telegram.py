@@ -81,6 +81,16 @@ class ExpandedSourceTests(unittest.TestCase):
             self.assertEqual(SOURCES[publisher].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].publisher, publisher)
             self.assertEqual(SOURCES[publisher + "_telegram"].platform, "telegram")
+
+    def test_rt_first_party_rss_redirect_is_scoped_to_verified_alias(self):
+        source = SOURCES["rt"]
+        target = "https://russiatoday.ru/rss"
+        self.assertEqual(normalize_url(target, source), target)
+        redirect = PublisherRedirects(source, lambda before, after: None)
+        request = redirect.redirect_request(Request(source.feed_url), None, 301, "Moved", {}, target)
+        self.assertEqual(request.full_url, target)
+        with self.assertRaises(FetchError):
+            redirect.redirect_request(Request(source.feed_url), None, 301, "Moved", {}, "https://russiatoday.ru.evil.test/rss")
         self.assertNotIn("other", SOURCES)
 
     def test_user_selected_channels_and_lentach_attribution(self):

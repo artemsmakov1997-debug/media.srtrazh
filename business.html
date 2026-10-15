@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PRO для бизнеса — МЕДИА.СТРАЖ</title>
-<meta name="description" content="Рабочий кабинет медианалитики: упоминания, растущие инфоповоды и PR-записки. Демонстрационная версия.">
+<meta name="description" content="Рабочий кабинет медианалитики: упоминания, растущие инфоповоды и PR-записки. Анализ собранных публикаций СМИ.">
 <link rel="canonical" href="https://media-strazh.ru/business.html">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,12 +12,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="business.css?v=desk23">
 <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
-<script defer src="business.js?v=desk27"></script>
+<script defer src="business-data.js?v=real1"></script>
+<script defer src="business.js?v=real1"></script>
 <link rel="stylesheet" href="business-workspaces.css?v=ws8">
-<script defer src="business-workspaces.js?v=ws5"></script>
-<script defer src="business-v3.js?v=v4"></script>
+<script defer src="business-workspaces.js?v=real1"></script>
+<script defer src="business-v3.js?v=real1"></script>
 <link rel="stylesheet" href="business-report.css?v=r1">
-<script defer src="business-report.js?v=r1"></script>
+<script defer src="business-report.js?v=real1"></script>
 </head>
 <body>
 <header class="site-header">
@@ -27,7 +28,7 @@
   </div>
 </header>
 <main class="business-shell">
-  <section class="business-start" id="businessStart" aria-label="Параметры демонстрационного бизнес-обзора">
+  <section class="business-start" id="businessStart" aria-label="Параметры бизнес-обзора">
     <div class="business-atmosphere" aria-hidden="true">
       <svg class="business-atmosphere-map" viewBox="0 0 1600 820" preserveAspectRatio="xMidYMid slice" focusable="false">
         <g class="signal-tracks" fill="none" stroke-linecap="round">
@@ -60,24 +61,24 @@
       <form id="profileForm" class="business-profile">
         <div class="business-field">
           <label for="companyName">Компания</label>
-          <input id="companyName" name="companyName" maxlength="80" required placeholder="Введите название компании" autocomplete="organization">
+          <input id="companyName" name="companyName" value="Медицинский центр «XXI век»" title="Название компании; варианты написания можно разделить точкой с запятой" maxlength="160" required placeholder="Введите название компании" autocomplete="organization">
         </div>
         <div class="business-field">
           <label for="industry">Отрасль</label>
           <select id="industry" name="industry" required>
-            <option value="medtech">Медицинское оборудование</option>
+            <option value="medtech">Медицина и медицинское оборудование</option>
             <option value="industry">Промышленность и производство</option>
             <option value="hospitality">Гостиничный бизнес</option>
           </select>
         </div>
         <button class="business-btn" type="submit">Открыть кабинет <span aria-hidden="true">↗</span></button>
       </form>
-      <p class="business-start-note"><span class="demo-dot" aria-hidden="true"></span> Демонстрационный интерфейс. Данные не поступают из реальных СМИ.</p>
+      <p class="business-start-note"><span class="demo-dot" aria-hidden="true"></span> Пилот по собранным публикациям СМИ. Покрытие ограничено; тональность пока не оценивается.</p>
     </div>
     <div id="businessLoading" class="business-loading" hidden role="status" aria-live="polite" aria-atomic="true">
       <span id="loadingStage" class="visually-hidden">Проверяем параметры компании</span>
       <div class="business-loading-track" aria-hidden="true"><span class="business-loading-progress"></span></div>
-      <div class="business-loading-milestones" aria-label="Этапы подготовки демонстрационного обзора">
+      <div class="business-loading-milestones" aria-label="Этапы подготовки обзора">
         <span class="is-current" data-load-step="0">Параметры</span>
         <span data-load-step="1">Публикации</span>
         <span data-load-step="2">Аналитика</span>
@@ -127,7 +128,7 @@
         <h1 id="companyDisplay"></h1>
         <p id="industryDisplay"></p>
       </div>
-      <p class="business-data-warning"><strong>Демонстрационный кабинет.</strong> Все публикации, цифры и рекомендации условные; реальный мониторинг и ИИ-анализ пока не подключены.</p>
+      <p class="business-data-warning"><strong>Пилот на реальных публикациях.</strong> Совпадение названия требует проверки; одноимённые организации возможны. Тональность не оценивалась. <span id="businessCoverage"></span></p>
 
       <section class="business-section" id="mentions" role="tabpanel" aria-labelledby="tabMentions" tabindex="0" hidden>
         
@@ -139,7 +140,7 @@
         </div>
         <div class="mentions-chart-panel"><span class="mentions-chart-label">ДИНАМИКА УПОМИНАНИЙ</span><div id="mentionsStairChart" class="mentions-stair-chart" role="img" aria-label="Диаграмма динамики публикаций за выбранный период"></div><div class="mentions-chart-axis"><span id="chartFrom"></span><span id="chartTo"></span></div></div></div>
         <div class="mentions-table-heading"><h3>Сообщения СМИ</h3><span id="mentionsCount" role="status" aria-live="polite"></span></div>
-        <div class="mentions-filters" role="search" aria-label="Поиск и фильтрация упоминаний"><label class="mentions-search"><span class="visually-hidden">Поиск по публикациям</span><input id="mentionsSearch" type="search" placeholder="Поиск по заголовку, источнику..." autocomplete="off"></label><label class="mentions-filter"><span>Период</span><select id="mentionsPeriod"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select></label><label class="mentions-filter"><span>Тональность</span><select id="mentionsTone"><option value="all">Все</option><option value="positive">Положительная</option><option value="neutral">Нейтральная</option><option value="negative">Отрицательная</option></select></label></div>
+        <div class="mentions-filters" role="search" aria-label="Поиск и фильтрация упоминаний"><label class="mentions-search"><span class="visually-hidden">Поиск по публикациям</span><input id="mentionsSearch" type="search" placeholder="Поиск по заголовку, источнику..." autocomplete="off"></label><label class="mentions-filter"><span>Период</span><select id="mentionsPeriod"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select></label><label class="mentions-filter"><span>Тональность</span><select id="mentionsTone"><option value="all">Все</option><option value="unknown">Без оценки</option><option value="positive" disabled>Положительная</option><option value="neutral" disabled>Нейтральная</option><option value="negative" disabled>Отрицательная</option></select></label></div>
         <div class="mentions-table-columns" aria-hidden="true"><span>ПУБЛИКАЦИЯ</span><span>ТОНАЛЬНОСТЬ</span><span>ИСТОЧНИК</span></div>
         <div class="business-mentions-feed" id="mentionsBody" role="list" aria-label="Полный список упоминаний"></div>
       </section>
@@ -148,9 +149,9 @@
         <header class="business-section-head">
           <p class="section-number">ДИНАМИКА ПОВЕСТКИ / 03</p>
           <h2>Растущие инфоповоды</h2>
-          <p class="section-intro">Темы, набирающие популярность в отрасли. Их можно использовать как основу для экспертных комментариев и материалов.</p>
+          <p class="section-intro">Темы в собранных отраслевых публикациях. Их можно проверить как основу для экспертных комментариев и материалов.</p>
         </header>
-        <p class="business-trends-explainer">Сравниваем выбранные <strong id="trendPeriodLabel">30 дней</strong> с предыдущим аналогичным периодом. Все показатели условные.</p>
+        <p class="business-trends-explainer">Темы определяются по ключевым словам в собранных материалах за <strong id="trendPeriodLabel">30 дней</strong>. Это частичная выборка; рост не вычисляется без достаточной истории.</p>
         <div class="business-trends" id="trendsGrid"></div>
       </section>
 
@@ -164,7 +165,7 @@
             <div class="overview-metric"><span class="overview-metric-label">ИНФОПОВОДЫ</span><strong id="aiTrendTotal">—</strong><small>Темы в отраслевой подборке</small></div>
           </div>
           <div class="overview-insight-grid">
-            <div class="overview-chart-wrap"><div class="overview-mini-label">ДИНАМИКА УПОМИНАНИЙ</div><div id="aiOverviewChart" class="ai-overview-chart" role="img" aria-label="Динамика демонстрационных упоминаний"></div><div class="overview-chart-foot"><span id="overviewChartPeriod">Последние 30 дней</span><span>Демо</span></div></div>
+            <div class="overview-chart-wrap"><div class="overview-mini-label">ДИНАМИКА УПОМИНАНИЙ</div><div id="aiOverviewChart" class="ai-overview-chart" role="img" aria-label="Динамика совпадений названия в собранных материалах"></div><div class="overview-chart-foot"><span id="overviewChartPeriod">Последние 30 дней</span><span>Выборка СМИ</span></div></div>
             <div class="overview-top-topic"><span class="overview-mini-label">НАИБОЛЕЕ ЗАМЕТНАЯ ТЕМА</span><strong id="aiTopTrend">—</strong><p>Потенциальный повод для экспертного комментария</p><button type="button" data-open="trends" class="overview-inline-link">Посмотреть инфоповоды <span aria-hidden="true">↗</span></button></div>
           </div>
         </section>
@@ -172,7 +173,7 @@
         <section class="overview-section overview-section--signals" aria-labelledby="overviewSignalsTitle">
           <div class="overview-section-heading"><div class="overview-section-name"><span class="overview-step">02</span><div><h3 id="overviewSignalsTitle">Возможности и сигналы</h3><p id="aiContextLabel">Только то, что может потребовать внимания</p></div></div><button type="button" data-open="trends" class="overview-inline-link">Все инфоповоды <span aria-hidden="true">↗</span></button></div>
           <div id="overviewSignals" class="overview-signals" aria-live="polite"></div>
-          <p class="overview-note">Предложения основаны на условной выборке. Перед действиями необходимо проверить первоисточники и факты.</p>
+          <p class="overview-note">Предложения основаны на собранных материалах; они не подтверждают события в вашей компании. Перед действиями необходимо проверить первоисточники и факты.</p>
         </section>
 
         <section class="overview-section overview-section--solutions" aria-labelledby="overviewSolutionsTitle">
@@ -226,7 +227,7 @@
           <div><p class="report-kicker">МЕДИА.СТРАЖ PRO / ИТОГИ РАБОТЫ</p><h2>Отчёт</h2><p id="reportCompany">Организация · отрасль · период</p></div>
           <button type="button" id="reportExport" class="report-export"> <span aria-hidden="true">↧</span> Сохранить PDF</button>
         </header>
-        <p class="report-disclaimer">Демонстрационный аналитический отчёт. Публикации и показатели условные. Учитываются только действия в этом браузере; факт рассылки и выхода публикаций пока не отслеживается.</p>
+        <p class="report-disclaimer">Отчёт по совпадениям названия в собранных СМИ. Покрытие ограничено, тональность не оценивалась. Действия и черновики учитываются в этом браузере; отправка писем и выход публикаций не подтверждаются.</p>
         <div class="report-meta"><span id="reportDate"></span><span id="reportPeriod"></span></div>
         <section class="report-block" aria-labelledby="reportStatsTitle">
           <div class="report-block-heading"><span>01</span><h3 id="reportStatsTitle">Медиаприсутствие</h3></div>
@@ -262,12 +263,12 @@
     <button type="button" id="overviewAssistantTrigger" class="overview-assistant-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="overviewAssistantPanel" hidden><span class="overview-assistant-trigger-icon" aria-hidden="true">✳</span><span>Спросить ассистента</span></button>
     <button type="button" id="overviewAssistantBackdrop" class="overview-assistant-backdrop" aria-label="Закрыть PR-ассистента" hidden></button>
           <aside id="overviewAssistantPanel" class="ai-chat overview-assistant-panel" role="dialog" aria-modal="true" aria-label="PR-ассистент" hidden>
-            <header class="ai-chat-header"><span class="ai-chat-avatar" aria-hidden="true">✳</span><div><strong>PR-ассистент</strong><span>Демонстрационный диалог, без подключения ИИ</span></div><button type="button" id="overviewAssistantClose" class="overview-assistant-close" aria-label="Закрыть ассистента">×</button></header>
+            <header class="ai-chat-header"><span class="ai-chat-avatar" aria-hidden="true">✳</span><div><strong>PR-ассистент</strong><span>Сценарный диалог по собранным материалам</span></div><button type="button" id="overviewAssistantClose" class="overview-assistant-close" aria-label="Закрыть ассистента">×</button></header>
             <div id="aiChatMessages" class="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
             <div class="ai-chat-bottom">
               <div class="ai-suggestions"><button type="button" data-ai-prompt="Предложи PR-план">PR-план</button><button type="button" data-ai-prompt="Что делать с негативом?">Работа с негативом</button><button type="button" data-ai-prompt="Найди инфоповод">Найти инфоповод</button></div>
               <form id="aiChatForm" class="ai-chat-form"><label class="visually-hidden" for="aiChatInput">Сообщение PR-ассистенту</label><textarea id="aiChatInput" rows="2" maxlength="700" placeholder="Спросите о возможностях продвижения..."></textarea><button type="submit" aria-label="Отправить сообщение">➤</button></form>
-              <p class="ai-chat-disclaimer">Ответы формируются по локальным демонстрационным правилам, не генеративной моделью.</p>
+              <p class="ai-chat-disclaimer">Ответы формируются по локальным сценарным правилам, не генеративной моделью.</p>
             </div>
           </aside>
   </div>

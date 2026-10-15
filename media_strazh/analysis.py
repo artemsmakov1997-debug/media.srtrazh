@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.6.0"
+VERSION = "rules-0.7.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -30,6 +30,8 @@ TAXONOMY = (
 )
 LABELS = {key: label for key, label, _ in TAXONOMY}
 LABELS["event_terminology"] = "Выбор обозначения события"
+LABELS["actor_terminology"] = "Обозначение участника"
+INFORMATIONAL = {"event_terminology", "actor_terminology"}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
@@ -163,6 +165,25 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "contemporary_regime_label":
+        return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+                and (not HISTORICAL_LITERAL.search(sentence) or bool(CURRENT_TARGET.search(sentence))))
+    if rule.context_requirement == "unnamed_official_report":
+        tail = text[end:end + 120]
+        name = r"[А-ЯЁA-Z][а-яёa-z’'-]+\s+[А-ЯЁA-Z][а-яёa-z’'-]+"
+        if re.match(r"\s*[,—:(-]?\s*" + name, tail):
+            return False
+        prefix = text[max(sentence_span["start"], start - 100):start]
+        if re.search(name + r"\s*,\s*$", prefix):
+            return False
+        return bool(re.search(r"\b(?:по\s+(?:словам|данным)|со\s+ссылкой\s+на|"
+                              r"(?:сославшись|ссылаясь)\s+на|заявил[а-яё]*|сообщил[а-яё]*|"
+                              r"сказал[а-яё]*|рассказал[а-яё]*|отметил[а-яё]*)\s*$", prefix, re.I)
+                    or re.match(r"\s*:\s*[«\"“]", tail)
+                    or re.match(r"\s*[,—:-]?\s*(?:(?:недавно|сегодня|вчера|также|анонимно)\s+){0,2}"
+                                r"(?:заявил[а-яё]*|сообщил[а-яё]*|рассказал[а-яё]*|сказал[а-яё]*|"
+                                r"отметил[а-яё]*|пояснил[а-яё]*|подтвердил[а-яё]*|добавил[а-яё]*|"
+                                r"считает|полагает|говорит|сообщает|утверждает|предупредил[а-яё]*)\b", tail, re.I))
     if rule.context_requirement == "russian_ukrainian_terminology":
         # A publisher's identity never supplies the conflict context. Limit it
         # to nearby text; explicit other wars and technical acronyms take priority.
@@ -330,8 +351,8 @@ def taxonomy():
     return [
         {"id": key, "label": label, "coverage": "candidate_rules" if supported else "not_evaluated"}
         for key, label, supported in TAXONOMY
-    ] + [{"id": "event_terminology", "label": LABELS["event_terminology"],
-          "coverage": "context_notices"}]
+    ] + [{"id": key, "label": LABELS[key], "coverage": "context_notices"}
+         for key in sorted(INFORMATIONAL)]
 
 
 def validate_document(document):
@@ -453,7 +474,7 @@ def analyze(document):
     for informational in (False, True):
         for field, value in (("title", title), ("text", text)):
             for rule, pattern in COMPILED_RULES:
-                if (rule.category == "event_terminology") != informational:
+                if (rule.category in INFORMATIONAL) != informational:
                     continue
                 if field not in rule.fields:
                     continue
@@ -475,12 +496,12 @@ def analyze(document):
                     if rule.id == "context.quotation_omission":
                         # Editing is observable; distortion is not established.
                         evidence["context"]["quotation_edited"] = True
-                    if rule.category == "event_terminology":
+                    if rule.category in INFORMATIONAL:
                         evidence["context"]["informational_notice"] = True
                     spans.append(match.span())
                     findings.append({
                         "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],
-                        "status": "context_only" if rule.id == "context.quotation_omission" or rule.category == "event_terminology" else _status(evidence),
+                        "status": "context_only" if rule.id == "context.quotation_omission" or rule.category in INFORMATIONAL else _status(evidence),
                         "explanation": rule.explanation,
                         "review_question": rule.review_question, "evidence": [evidence],
                     })

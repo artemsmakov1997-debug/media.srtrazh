@@ -1,4 +1,4 @@
-/* MЕДИА.СТРАЖ PRO: client-only reporting. Figures are demo data; activity is session-local. */
+/* MЕДИА.СТРАЖ PRO: client-only reporting. Real corpus matches; activity is session-local. */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -11,7 +11,7 @@
   let data = null;
   let activity = [];
   const stamp = () => new Intl.DateTimeFormat('ru-RU', {
-    day: '2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
+    timeZone:'Europe/Moscow',day: '2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
   }).format(new Date());
   const storageKey = () => 'media-strazh-report-actions-v1:' +
     encodeURIComponent((data.company+':'+data.industry).toLocaleLowerCase('ru-RU'));
@@ -35,32 +35,33 @@
   const count = n => Number(n).toLocaleString('ru-RU');
   function render() {
     if (!data) return;
-    const mentions=data.mentions.filter(m => m.daysAgo <= data.days);
-    const byTone = tone => mentions.filter(m => m.tone === tone).length;
+    const mentions=data.selected;
     $('reportCompany').textContent=data.company+' · '+data.industryLabel;
     $('reportDate').textContent='Сформировано: '+stamp();
     $('reportPeriod').textContent='Период: '+data.days+' дней';
     $('reportMentions').textContent=count(mentions.length);
-    $('reportPositive').textContent=count(byTone('positive'));
-    $('reportNeutral').textContent=count(byTone('neutral'));
-    $('reportNegative').textContent=count(byTone('negative'));
+    $('reportPositive').textContent='—';
+    $('reportNeutral').textContent='—';
+    $('reportNegative').textContent='—';
 
     const ml=$('reportMentionList');ml.replaceChildren();
-    if(!mentions.length)ml.append(make('li','В условной выборке за период упоминаний нет.'));
+    if(!mentions.length)ml.append(make('li','В собранных материалах за период совпадений названия нет. Это не означает отсутствия публикаций во всех СМИ.'));
     else mentions.forEach(m=>{
       const li=make('li'),title=make('strong',m.title);
-      const source=data.sources[data.mentions.indexOf(m)%data.sources.length];
-      const tone={positive:'положительная',neutral:'нейтральная',negative:'отрицательная'}[m.tone]||'неизвестна';
-      li.append(title,make('small',source+' · '+tone+' · '+m.daysAgo+' дн. назад'));
+      const source=m.source;
+      const link=make('a','Открыть источник ↗');link.href=m.url;link.target='_blank';link.rel='noopener noreferrer';
+      li.append(title,make('small',source+' · тональность не оценена · '+new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(new Date(m.published_at))+' МСК'),link);
       ml.append(li);
     });
 
     const tl=$('reportTrendList');tl.replaceChildren();
     data.trends.forEach(t=>{
       const li=make('li');
-      li.append(make('strong',t.title),make('small','Демонстрационный рост: '+t.growth));
+      li.append(make('strong',t.title),make('small',t.count+' публикаций в выборке; изменение: '+t.growth));
       tl.append(li);
     });
+
+    if(!data.trends.length)tl.append(make('li','В выборке нет материалов по настроенным отраслевым темам.'));
 
     const title=$('releaseTitle').value.trim(),lead=$('releaseLead').value.trim(),
       body=$('releaseBody').value.trim();
@@ -123,7 +124,7 @@
   $('releaseDocx').addEventListener('change',event=>{
     if(event.target.files?.length)note('Выбран Word-файл для импорта тезисов');
   });
-  $('aiChatForm').addEventListener('submit',()=>note('Запрос к демонстрационному PR-ассистенту'));
+  $('aiChatForm').addEventListener('submit',()=>note('Запрос к сценарному PR-помощнику'));
   $('reportExport').addEventListener('click',()=>{
     if(!data)return;
     render();

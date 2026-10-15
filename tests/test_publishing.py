@@ -45,6 +45,18 @@ class PublishingTests(unittest.TestCase):
         return collect_once(self.store, [SOURCES[name] for name in ("rt", "tass", "ria")],
                             client_factory=self.network, now=lambda: NOW)
 
+    def test_business_sidecar_keeps_neutral_articles_independently_of_analysis_limit(self):
+        self.collect()
+        output = self.path / "business-site"
+        build_site(self.store, output, limit=1, runtime_dir=self.runtime)
+        analysis = json.loads((output / "data/analysis.json").read_text())
+        business = json.loads((output / "data/business.json").read_text())
+        self.assertEqual(len(analysis["articles"]), 1)
+        self.assertEqual(len(business["articles"]), 3)
+        self.assertEqual(business["schema_version"], "business-evidence-1.0")
+        self.assertTrue((output / "business-data.js").is_file())
+        self.assertTrue(all("text" not in record for record in business["articles"]))
+
     def save_item(self, source_id, number, published_at=NOW, source=None):
         source = source or SOURCES[source_id]
         path = f"/{source.channel}/{number}" if source.platform == "telegram" else f"/news/{number}"

@@ -264,7 +264,7 @@ function modalExcerpt(sentence, evidences) {
     mark.tabIndex = 0;
     mark.dataset.label = [...new Set(matches.map(s => s.finding.label))].join(' · ');
     mark.dataset.explanation = [...new Set(matches.map(s =>
-      (s.finding.category === 'event_terminology'
+      (s.finding.evidence?.some(e => e.context?.informational_notice)
         ? 'Информационная отметка — не признак манипуляции'
         : s.finding.rule_id === 'context.quotation_omission'
         ? 'Сокращение цитаты — требуется сверка с оригиналом'
