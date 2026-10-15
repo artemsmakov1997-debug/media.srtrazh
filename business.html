@@ -15,6 +15,7 @@
 <script defer src="business.js?v=desk25"></script>
 <link rel="stylesheet" href="business-workspaces.css?v=ws3">
 <script defer src="business-workspaces.js?v=ws3"></script>
+<script defer src="business-v3.js?v=v1"></script>
 </head>
 <body>
 <header class="site-header">
@@ -183,6 +184,7 @@
 
       <section class="business-section business-section--releases" id="pressReleases" role="tabpanel" aria-labelledby="tabPressReleases" tabindex="0" hidden>
         <div class="release-topline"><div><p class="release-overline">РЕДАКЦИОННАЯ МАСТЕРСКАЯ</p><h2>Пресс-релиз</h2><p>Напишите текст самостоятельно или загрузите тезисы в формате DOCX. Перед отправкой проверьте факты и согласуйте цитаты.</p></div><span class="workspace-demo-label">ПРОТОТИП · БЕЗ АВТОРАССЫЛКИ</span></div>
+        <div hidden aria-hidden="true"><button type="button" id="releaseNew"></button><button type="button" id="releaseSave"></button><div id="releaseDrafts"></div></div>
         <div class="release-focused">
           <div class="release-write-panel">
             <div class="release-upload"><div><strong>Загрузить тезисы из Word</strong><p>DOCX до 2 МБ. Из тезисов создаётся структурированный черновик, без вымышленных фактов.</p></div><label class="release-upload-button" for="releaseDocx">Выбрать .docx<input type="file" id="releaseDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label></div>
