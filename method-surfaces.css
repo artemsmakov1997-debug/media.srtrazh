@@ -1,0 +1,112 @@
+/* МЕДИА.СТРАЖ / Методика — отделяем содержательные блоки от тёмного фона.
+   Не меняем фон body, шапку, навигацию, модальные окна и сетку страницы. */
+
+/* Три главы методики — вариации спокойного синего графита, а не чёрные пластины. */
+.container > .section {
+  background:
+    radial-gradient(ellipse 75% 100% at 2% 0%,rgba(73,159,192,.115),transparent 80%),
+    linear-gradient(145deg,#192d40 0%,#14283b 64%,#102236 100%);
+  border-color:rgba(133,180,202,.26);
+  box-shadow:0 16px 35px rgba(2,12,24,.20),inset 0 1px 0 rgba(215,240,250,.055);
+}
+.container > .section:nth-of-type(2) {
+  background:
+    radial-gradient(ellipse 67% 100% at 100% 4%,rgba(36,174,181,.13),transparent 80%),
+    linear-gradient(145deg,#173449 0%,#142b3e 55%,#122638 100%);
+  border-color:rgba(111,185,196,.29);
+}
+.container > .section:nth-of-type(3) {
+  background:
+    radial-gradient(ellipse 75% 110% at 95% 0%,rgba(79,120,181,.14),transparent 81%),
+    linear-gradient(153deg,#1b3048 0%,#172a40 58%,#112437 100%);
+  border-color:rgba(136,166,204,.25);
+}
+.container > .section .section-rule {
+  background:linear-gradient(90deg,rgba(121,191,213,.50),rgba(129,169,197,.20) 58%,transparent);
+}
+.container > .section .section-title {color:#f0f5f9;}
+.container > .section .section-title .accent {color:#55dbed;}
+
+/* Конвейер: каждый шаг выше по тону, чем окружающая секция. */
+body #pipelineGrid .pipeline-card {
+  background:
+    radial-gradient(ellipse 82% 90% at 0% 0%,rgba(89,180,206,.10),transparent 83%),
+    linear-gradient(147deg,#223b52 0%,#192f45 100%) !important;
+  border-color:rgba(140,190,212,.31) !important;
+  box-shadow:0 10px 23px rgba(4,19,35,.20),inset 0 1px 0 rgba(237,250,255,.045) !important;
+}
+body #pipelineGrid .pipeline-card.is-active,
+body #pipelineGrid .pipeline-card:hover {
+  background:
+    radial-gradient(ellipse 85% 90% at 0% 0%,rgba(80,198,220,.14),transparent 81%),
+    linear-gradient(145deg,#27475e,#1c364e) !important;
+  border-color:rgba(97,221,236,.75) !important;
+  box-shadow:0 10px 25px rgba(4,19,35,.23),inset 0 1px 0 rgba(237,250,255,.06) !important;
+}
+.pipeline-card .pipe-step {color:#9cbfcc;}
+.pipeline-card .pipe-title {color:#eef6f8;}
+.pipeline-card .pipe-text {color:#b9ccd5;}
+.pipeline-card .pipe-num {color:#68deed;}
+.pipeline-card .pipe-more {
+  border-color:rgba(103,194,216,.42);
+  background:rgba(27,65,86,.85);
+  color:#e7f9fd;
+}
+
+/* Пример аналитики становится читаемым рабочим столом, а не чёрной рамкой. */
+.container > .section .live-card {
+  background:
+    radial-gradient(ellipse 75% 85% at 100% 0%,rgba(71,174,188,.11),transparent 80%),
+    linear-gradient(145deg,#20394e,#192f44 80%,#172c42);
+  border-color:rgba(117,181,203,.31);
+  box-shadow:0 12px 30px rgba(3,18,32,.22),inset 0 1px 0 rgba(218,246,250,.05);
+}
+.live-card .live-body-text {
+  background:linear-gradient(155deg,rgba(14,34,53,.89),rgba(17,42,61,.91));
+  border-color:rgba(114,169,194,.28);
+  color:#e6f2f7;
+}
+.live-card .live-source-badge,
+.live-card .trigger-tag,
+.live-card .live-next-btn {
+  background:rgba(26,62,83,.87);
+  border-color:rgba(96,176,196,.37);
+}
+.live-card .live-triggers-label,
+.live-card .live-time {color:#b0c3ce;}
+
+/* Каталог приёмов: ясные карточки, цветовые метки остаются смысловыми. */
+.container > .section .manip-card {
+  background:
+    radial-gradient(ellipse 75% 70% at 100% 0%,rgba(76,155,185,.10),transparent 84%),
+    linear-gradient(145deg,#21374d,#1a3045 70%,#172a40);
+  border-color:rgba(122,169,191,.28);
+  box-shadow:0 8px 21px rgba(4,17,30,.18),inset 0 1px 0 rgba(221,242,251,.045);
+}
+.container > .section .manip-card:hover,
+.container > .section .manip-card:focus-visible {
+  border-color:rgba(99,197,216,.68);
+  box-shadow:0 12px 27px rgba(4,18,33,.25);
+}
+.manip-card .manip-title {color:#edf5f9;}
+.manip-card .manip-label,
+.manip-card .manip-preview {color:#b7c8d2;}
+.manip-card .manip-arrow {
+  background:rgba(39,73,94,.90);
+  border-color:rgba(142,187,208,.27);
+  color:#d3e7ef;
+}
+.manip-load-more {
+  background:linear-gradient(135deg,#27485e,#1b384d);
+  border-color:rgba(105,199,218,.45);
+}
+
+/* В мобильной версии оставляем исходные размеры, отступы и поведение карточек. */
+@media (max-width:767px) {
+  .container > .section {
+    box-shadow:0 9px 23px rgba(3,15,29,.16),inset 0 1px 0 rgba(222,248,253,.04);
+  }
+  body #pipelineGrid .pipeline-card {
+    box-shadow:0 4px 13px rgba(2,16,29,.19),inset 0 1px 0 rgba(237,250,255,.035) !important;
+  }
+}
