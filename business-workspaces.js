@@ -79,38 +79,6 @@
   document.querySelectorAll('[data-ai-prompt]').forEach(btn => btn.addEventListener('click', () => {
     submitChat(btn.dataset.aiPrompt);
   }));
-  function renderCards() {
-    const list = $('assistantCards');
-    list.replaceChildren();
-    const counts = mentionCounts();
-    $('aiContextLabel').textContent = 'Условные данные: ' + counts.total +
-      ' упоминаний за ' + data.days + ' дней · отрасль «' + data.industryLabel + '»';
-    data.opportunities.slice(0, 3).forEach((idea, i) => {
-      const trend = data.trends[i];
-      const card = make('article', null, 'ai-card');
-      const top = make('div', null, 'ai-card-top');
-      top.append(make('span', idea.kind, 'ai-card-kind'), make('span', '0' + (i + 1), 'ai-card-index'));
-      const title = make('h3', idea.title), description = make('p', idea.detail);
-      const evidence = make('div', null, 'ai-card-source');
-      evidence.append(make('b', 'Основание (демо): '),
-        document.createTextNode('тема «' + trend.title + '»; ' + counts.total + ' условных упоминаний в выбранном периоде.'));
-      const actions = make('div', null, 'ai-card-actions');
-      const discuss = make('button', 'Обсудить идею ↗');
-      const draft = make('button', 'В черновик →', 'ai-card-primary');
-      discuss.type = 'button'; draft.type = 'button';
-      discuss.addEventListener('click', () => {
-        addChat('user', 'Как реализовать идею «' + idea.title + '»?');
-        addChat('assistant', 'Предлагаемый порядок действий (демо):\n' +
-          data.actions[i].map((step, number) => (number + 1) + '. ' + step).join('\n') +
-          '\nПеред публикацией проверьте факты и первоисточники.');
-        $('aiChatInput').focus();
-      });
-      draft.addEventListener('click', () => startFromIdea(i));
-      actions.append(discuss, draft);
-      card.append(top, title, description, evidence, actions);
-      list.append(card);
-    });
-  }
   const fields = () => Object.fromEntries(Object.entries(inputs).map(([k, el]) => [k, el.value.trim()]));
   function fill(draft) {
     for (const [key, input] of Object.entries(inputs)) input.value = draft[key] || '';
@@ -250,6 +218,5 @@
       resetChat();
       $('releaseFeedback').textContent='Проверка структуры не заменяет редакторскую проверку фактов и источников.';
     }
-    renderCards();
   });
 })();
