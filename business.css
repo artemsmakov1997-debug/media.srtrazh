@@ -403,3 +403,15 @@ body.business-open>.site-header{display:none}
 /* Mentions is a compact data screen without the global report masthead. */
 .business-results.is-mentions .paper-masthead,.business-results.is-mentions .business-data-warning{display:none}
 .business-results.is-mentions .business-mentions-summary{margin-top:18px}
+
+/* First visit: a restrained page entrance; keep progress and interactive controls unchanged. */
+@keyframes ms-page-arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+  body:not(.business-open)>.site-header{animation:ms-page-arrive .55s ease-out both}
+  .business-start-inner{animation:ms-page-arrive .75s cubic-bezier(.2,.7,.2,1) .08s both}
+}
+/* Mentions: only the toolbar divider; filters remain within the table. */
+.business-results.is-mentions .business-period{display:none}
+.business-results.is-mentions .business-mentions-summary{border-top:0;margin-top:0}
+.business-results.is-mentions .paper-toolbar{justify-content:flex-start}
+@media(prefers-reduced-motion:reduce){.business-start-inner,body:not(.business-open)>.site-header{animation:none!important}}
