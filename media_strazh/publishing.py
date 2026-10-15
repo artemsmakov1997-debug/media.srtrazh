@@ -157,7 +157,7 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
         if relative.parts[0] != "_site":
             raise ValueError("Внутри репозитория используйте каталог _site.")
     assets = [path for path in ROOT.iterdir() if path.is_file() and not path.is_symlink()
-              and (path.suffix.lower() in STATIC_SUFFIXES or path.name in {"CNAME", "robots.txt"})]
+              and (path.suffix.lower() in STATIC_SUFFIXES or path.name in {"CNAME", "robots.txt", "media-contacts.json"})]
     runtime = runtime_assets(runtime_dir)
     runtime_paths = {Path("vendor/pyodide") / name for name in runtime}
     allowed = {Path(path.name) for path in assets} | runtime_paths | {
