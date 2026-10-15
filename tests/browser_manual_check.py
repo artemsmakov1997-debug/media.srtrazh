@@ -423,9 +423,11 @@ def pro_business_navigation_ui(browser, base):
         assert 14.5 <= desc_type["size"] <= 16, desc_type
         assert "Inter" in desc_type["family"], desc_type
         label_type = page.locator(".support-choice-audience").first.evaluate(
-            "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
-        assert label_type["size"] >= 12, label_type
-        assert "IBM Plex Mono" in label_type["family"], label_type
+            "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily, transform:getComputedStyle(el).textTransform })")
+        assert label_type["size"] >= 13, label_type
+        assert "Inter" in label_type["family"], label_type
+        assert label_type["transform"] == "none", label_type
+        assert "Всем, кому важна" in page.locator(".support-choice-audience").first.inner_text()
         hero_type = page.locator(".support-typing-title").evaluate(
             "el => ({ size:parseFloat(getComputedStyle(el).fontSize), family:getComputedStyle(el).fontFamily })")
         assert 28 <= hero_type["size"] <= 45, hero_type
