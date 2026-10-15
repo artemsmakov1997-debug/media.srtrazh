@@ -250,7 +250,7 @@
   }
 
   const tabs=[...document.querySelectorAll('.business-result-tab')];
-  const panels=['overview','mentions','trends','opportunities'];
+  const panels=['overview','mentions','trends','opportunities','pressReleases'];
   function activateTab(name,focus=false){
     if(!panels.includes(name))return;
     activeTab=name;
