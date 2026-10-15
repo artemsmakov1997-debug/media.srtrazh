@@ -275,3 +275,23 @@
  .release-review .release-checklist li::before,.business-results .release-review,
  .business-results .release-distribution,.business-results .release-outlets-popover{animation:none!important;transition:none!important}
 }
+/* Editorial next step: a prominent primary action after every completed review. */
+.business-results .release-outlets-toggle{
+  background:#203f50;
+  color:#fff;
+  border-color:#203f50;
+  font-size:13px;
+  padding:15px 18px;
+  box-shadow:0 8px 18px rgba(25,59,75,.10);
+}
+.business-results .release-outlets-toggle:hover{
+  color:#fff;
+  background:#2b5c6c;
+  border-color:#2b5c6c;
+}
+.business-results .release-outlets-toggle:focus-visible{
+  outline:3px solid #5ac5d0;
+  outline-offset:3px;
+}
+.business-results .release-outlets-chevron{color:#bcdee5}
+.release-readiness-note{font-size:11px;line-height:1.6;color:#6a808b;margin:0 0 15px}
