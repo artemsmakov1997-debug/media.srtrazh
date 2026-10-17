@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.7.0"
+VERSION = "rules-0.8.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -143,7 +143,7 @@ OTHER_SVO = re.compile(
 # Recognize attribution, not credibility. The same cue applies to all listed
 # political speakers; their party, publisher and position never determine truth.
 POLITICAL_SPEAKER_REPORT = re.compile(
-    r"\b(?:(?:президент|премьер(?:-министр)?|министр|депутат|сенатор|лидер)"
+    r"\b(?:(?:президент|премьер(?:-министр)?|министр|депутат|сенатор|лидер|политик)"
     r"(?:\s+[а-яёa-z-]+){0,4}|Трамп|Путин|Зеленский|Макрон|Байден|Обама|"
     r"Шольц|Мерц|Стармер|Си\s+Цзиньпин)\s+"
     r"(?:(?:вновь|снова|резко|публично|также|сегодня|вчера|недавно)\s+){0,3}"
@@ -157,6 +157,34 @@ POLITICAL_PRESCRIPTION_TARGET = re.compile(
     r"президент[а-яё]*|Зеленск[а-яё]*)\b", re.I,
 )
 
+# These restrictions distinguish a human-targeted metaphor from a literal
+# discussion of props, pests or ownership. The attack words themselves are not
+# literal-context exclusions, unlike an undifferentiated animal word list.
+LITERAL_ATTACK_CONTEXT = re.compile(
+    r"\b(?:биолог[а-яё]*|зоолог[а-яё]*|энтомолог[а-яё]*|паразитолог[а-яё]*|"
+    r"ветеринар[а-яё]*|дератизаци[а-яё]*|дезинсекци[а-яё]*|инсектицид[а-яё]*|"
+    r"помещени[а-яё]*|подвал[а-яё]*|квартир[а-яё]*|посев[а-яё]*|волос[а-яё]*|"
+    r"педикул[а-яё]*|ветклиник[а-яё]*|приют[а-яё]*|зоопарк[а-яё]*|"
+    r"собак[а-яё]*|щен[а-яё]*|кошк[а-яё]*|кот(?:а|у|ом|е|ы|ов|ам|ами|ах)?|"
+    r"врач[а-яё]*|лечени[а-яё]*|пациент[а-яё]*|"
+    r"металлург[а-яё]*|топлив[а-яё]*|коксохим[а-яё]*|литейн[а-яё]*)\b", re.I,
+)
+PERSON_REFERENCE = r"(?:президент[а-яё]*|политик[а-яё]*|депутат[а-яё]*|министр[а-яё]*|люд[а-яё]*|граждан[а-яё]*|оппонент[а-яё]*)"
+
+
+def _human_attack_context(text, start, end, sentence_span, event_context):
+    sentence = sentence_span["text"]
+    if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+        return False
+    nearby = text[max(0, start - 900):min(len(text), end + 200)] + "\n" + event_context
+    prefix = text[max(sentence_span["start"], start - 100):start]
+    direct = bool(re.search(r"\b" + PERSON_REFERENCE + r"\s*(?:[—:-]|это|назвали|называют|считают)\s*$", prefix, re.I))
+    paragraph_start = max(text.rfind("\n", 0, start) + 1, start - 400)
+    literal_scope = text[paragraph_start:sentence_span["start"] + len(sentence)]
+    if LITERAL_ATTACK_CONTEXT.search(literal_scope) and not direct:
+        return False
+    return direct or bool(POLITICAL_CONTEXT.search(nearby))
+
 
 def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     if field not in rule.fields:
@@ -165,6 +193,29 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "human_attack":
+        return _human_attack_context(text, start, end, sentence_span, event_context)
+    if rule.context_requirement == "bogus_nickname":
+        # An adjective modifying a prop, document or institution is not a
+        # substituted personal name, even in a political news report.
+        tail = text[end:end + 65]
+        if re.match(r"\s+(?:[а-яё-]+\s+){0,2}(?:реквизит[а-яё]*|декораци[а-яё]*|"
+                    r"макет[а-яё]*|меч[а-яё]*|оружи[а-яё]*|пистолет[а-яё]*|нож[а-яё]*|"
+                    r"трон[а-яё]*|корон[а-яё]*|банкнот[а-яё]*|деньг[а-яё]*|денег|"
+                    r"дворец[а-яё]*|фасад[а-яё]*|выбор[а-яё]*|демократи[а-яё]*|"
+                    r"паспорт[а-яё]*|пропуск[а-яё]*|документ[а-яё]*|удостоверени[а-яё]*)\b", tail, re.I):
+            return False
+        return _human_attack_context(text, start, end, sentence_span, event_context)
+    if rule.context_requirement == "attributed_political_evaluation":
+        # Require an explicit attribution in this bounded paragraph. A nearby
+        # politician elsewhere in the article does not supply a source.
+        left = max(text.rfind("\n", 0, start) + 1, start - 400)
+        paragraph = text[left:sentence_span["start"] + len(sentence)]
+        report = POLITICAL_SPEAKER_REPORT.search(paragraph)
+        speaker_colon = re.search(r"\b(?:Трамп|Путин|Зеленский|Макрон|Байден|Мерц|Стармер)\s*:\s*[«\"“]", paragraph)
+        return bool((report or speaker_colon) and POLITICAL_PRESCRIPTION_TARGET.search(paragraph)
+                    and not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+                    and not re.search(r"\b(?:компани[а-яё]*|банк[а-яё]*|клуб[а-яё]*|футбол[а-яё]*|спортивн[а-яё]*)\b", paragraph, re.I))
     if rule.context_requirement == "contemporary_regime_label":
         return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
                 and (not HISTORICAL_LITERAL.search(sentence) or bool(CURRENT_TARGET.search(sentence))))
@@ -411,7 +462,12 @@ def _evidence(field, text, start, end, quotes):
     sentence = _sentence(text, start, end)
     # Negation is local, not a semantic parse. A comma/colon breaks this scope.
     prefix = re.split(r"[,;:]", text[sentence["start"]:start])[-1][-60:]
-    negated = bool(re.search(r"\bне\s+(?:(?!только\b)\w+\s+){0,2}$", prefix, re.I))
+    negated = bool(re.search(r"\bне\s+(?!(?:только|меньше|больше|менее|более|хуже|лучше)\b)(?:\w+\s+){0,2}$", prefix, re.I))
+    # Not forgiving/supporting a target does not negate the target's epithet.
+    # Explicit denial below still takes priority; this is a bounded local cue.
+    if re.search(r"\bне\s+(?:должен|должна|должны|следует|нужно|надо)\s+"
+                 r"(?:прощать|жалеть|поддерживать|защищать)\s*$", prefix, re.I):
+        negated = False
     discussed = bool(re.search(
         r'\b(?:слово|слова|выражение|фраза|формулировка|формулировку|термин|ярлык|тезис|лозунг|слоган|клише|цитата|пример|эмодзи|символ|значок)\s*[:«"“„—-]?\s*$', prefix, re.I,
     ))
@@ -424,7 +480,7 @@ def _evidence(field, text, start, end, quotes):
     denied = denied or bool(re.search(
         r"\b(?:(?:нельзя|неверно|неправильно)\s+(?:считать|утверждать)|"
         r"(?:опроверг[а-яё]*|отверг[а-яё]*)\s+(?:утверждени[ея]|тезис|предположени[ея]|версию))"
-        r"\s*,\s*(?:что|будто)\s+(?:[а-яё]+\s+){0,3}[«\"“„]?\s*$",
+        r"\s*,\s*(?:что|будто)\s+(?:[а-яё]+\s+){0,3}(?:[—:-]\s*)?[«\"“„]?\s*$",
         text[sentence["start"]:start][-180:], re.I,
     ))
     statement_prefix = text[sentence["start"]:start][-220:]
@@ -489,7 +545,7 @@ def analyze(document):
                         truncated = True
                         break
                     evidence = _evidence(field, value, *match.span(), quotes[field])
-                    if rule.id == "authority.prominent_prescriptive_quote":
+                    if rule.id in {"authority.prominent_prescriptive_quote", "authority.attributed_political_evaluation"}:
                         # This rule requires attributed speech even without literal
                         # quotation marks. Denial/discussion still take priority.
                         evidence["context"]["reported_speech"] = True
