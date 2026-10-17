@@ -525,6 +525,34 @@ def pro_business_navigation_ui(browser, base):
                     "els => els.map(el => getComputedStyle(el).backgroundImage)")
                 assert all("gradient" in bg for bg in cards), cards
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+                # Each Подробнее button opens a single succinct explanation,
+                # while the second stage keeps its three rating colors.
+                more = page.locator("#pipelineGrid .pipe-more")
+                assert more.count() == 3
+                initial = more.first.evaluate("el => getComputedStyle(el).backgroundColor")
+                more.first.hover()
+                page.wait_for_timeout(250)
+                highlighted = more.first.evaluate("el => getComputedStyle(el).backgroundColor")
+                assert highlighted != initial, (initial, highlighted)
+                for i in range(3):
+                    more.nth(i).click()
+                    dialog = page.locator("#ratingModal")
+                    assert dialog.get_attribute("aria-hidden") == "false"
+                    assert not page.locator("#ratingModalFlow, #ratingModal .flow-step").count()
+                    assert len(page.locator("#ratingModalDesc").inner_text()) > 75
+                    if i == 1:
+                        description = page.locator("#ratingModalDesc").inner_text()
+                        assert "24 часа" in description
+                        assert "100%" in description
+                        assert "доля публикаций" in description
+                        assert page.locator("#ratingModalScale .scale-item").count() == 3
+                        assert page.locator("#ratingModalScale .green").count() == 1
+                        assert page.locator("#ratingModalScale .yellow").count() == 1
+                        assert page.locator("#ratingModalScale .red").count() == 1
+                    else:
+                        assert not page.locator("#ratingModalScale").is_visible()
+                    page.locator("#ratingModalClose").click()
+                    assert dialog.get_attribute("aria-hidden") == "true"
             page.locator("a.pro-nav-link").click()
             assert page.locator(".pro-gateway-dialog").is_visible(), route
             assert page.locator(".pro-gateway-option--research").get_attribute("href") == "analysis.html"
@@ -886,6 +914,10 @@ def pro_business_navigation_ui(browser, base):
             for card in p.locator("#pipelineGrid .pipeline-card").all():
                 bg = card.evaluate("el => getComputedStyle(el).backgroundImage")
                 assert "linear-gradient" in bg, bg
+            p.locator("#pipelineGrid .pipe-more").nth(1).click()
+            assert p.locator("#ratingModalScale .scale-item").count() == 3
+            assert "24 часа" in p.locator("#ratingModalDesc").inner_text()
+            p.locator("#ratingModalClose").click()
             # Archive category left, Details right, same horizontal row.
             p.goto(base + "/archive.html")
             assert p.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
