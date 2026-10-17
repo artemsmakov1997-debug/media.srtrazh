@@ -1632,7 +1632,6 @@
     </div>
     <div class="modal-body">
       <p class="modal-desc" id="ratingModalDesc"></p>
-      <div class="flow-steps" id="ratingModalFlow"></div>
       <div class="scale-row" id="ratingModalScale"></div>
     </div>
   </div>
@@ -1957,15 +1956,12 @@
   /* ── Pipeline modal ── */
   var pipelineDetails = [
     { label:'шаг 01', title:'Сбор и подготовка',
-      desc:'Система собирает публикации из подключённых источников, очищает их и приводит к единому формату перед анализом.',
-      flow:[{title:'Получение материалов',text:'Используются RSS-ленты, открытые API и парсинг страниц СМИ, где это технически возможно.'},{title:'Очистка и структура',text:'Удаляются техническая разметка и лишние элементы; отдельно фиксируются источник, время, заголовок, текст и ссылка.'},{title:'Подготовка данных',text:'Дубли и технический мусор отсеиваются, а текст нормализуется для последующего NLP-анализа.'}] },
+      desc:'Система собирает публикации из доступных открытых источников, удаляет техническую разметку и дубликаты, сохраняет данные об издании, времени и ссылке. После этого материалы приводятся к единому формату для анализа.' },
     { label:'шаг 02', title:'Анализ и оценка',
-      desc:'ИИ ищет признаки манипулятивной подачи с учётом контекста, а затем рассчитывает показатели каждой публикации.',
-      flow:[{title:'Поиск маркеров',text:'Система отмечает эмоциональные слова, давление срочностью, обобщения, фрейминг, анонимные ссылки и псевдостатистику.'},{title:'Контекстная проверка',text:'Один и тот же термин может быть нейтральным или манипулятивным — модель учитывает соседние фразы и общий тон сообщения.'},{title:'Расчёт индексов',text:'Система анализирует все материалы издания, вышедшие за последние 24 часа: они принимаются за 100%. Затем рассчитывается доля публикаций, в которых выявлены признаки манипулятивной подачи. По этой доле определяется цвет рейтинга.'}],
+      desc:'Для каждого СМИ анализируются все публикации за последние 24 часа. Общее число материалов принимается за 100%. Затем рассчитывается доля публикаций с выявленными признаками манипулятивной подачи: именно она определяет цвет рейтинга по шкале ниже.',
       scale:[{color:'green',range:'< 25%',label:'Зелёный рейтинг'},{color:'yellow',range:'25–50%',label:'Жёлтый рейтинг'},{color:'red',range:'> 50%',label:'Красный рейтинг'}] },
     { label:'шаг 03', title:'Рейтинг и архив',
-      desc:'Показатели отдельных публикаций агрегируются по изданиям и времени, после чего обновляются рейтинг и архив проекта.',
-      flow:[{title:'Агрегация',text:'Результаты публикаций собираются в показатели по СМИ и временным периодам.'},{title:'Обновление рейтинга',text:'По итогам расчётов изданию присваивается актуальный уровень манипулятивности и обновляется динамика показателей.'},{title:'Архив материалов',text:'Сообщения сохраняются в архиве, чтобы можно было открыть текст и увидеть основания для оценки.'}] },
+      desc:'Результаты анализа формируют рейтинг СМИ по доле публикаций с признаками манипулятивной подачи. Сведения о материалах, их оценках и выявленных маркерах сохраняются в архиве, чтобы можно было просмотреть основания для выводов.' },
   ];
 
   var ratingModal      = document.getElementById('ratingModal');
@@ -1973,7 +1969,6 @@
   var ratingModalLabel = document.getElementById('ratingModalLabel');
   var ratingModalTitle = document.getElementById('ratingModalTitle');
   var ratingModalDesc  = document.getElementById('ratingModalDesc');
-  var ratingModalFlow  = document.getElementById('ratingModalFlow');
   var ratingModalScale = document.getElementById('ratingModalScale');
 
   function openPipelineModal(id) {
@@ -1982,9 +1977,6 @@
     ratingModalLabel.textContent = d.label;
     ratingModalTitle.textContent = d.title;
     ratingModalDesc.textContent  = d.desc;
-    ratingModalFlow.innerHTML = d.flow.map(function (item, index) {
-      return '<div class="flow-step"><div class="flow-num">' + String(index+1).padStart(2,'0') + '</div><div><div class="flow-title">' + escHtml(item.title) + '</div><div class="flow-text">' + escHtml(item.text) + '</div></div></div>';
-    }).join('');
     if (Array.isArray(d.scale) && d.scale.length) {
       ratingModalScale.innerHTML = d.scale.map(function (item) {
         return '<div class="scale-item ' + escAttr(item.color) + '"><span>' + escHtml(item.range) + '</span>' + escHtml(item.label) + '</div>';
