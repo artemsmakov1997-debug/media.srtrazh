@@ -51,6 +51,30 @@ body #pipelineGrid .pipeline-card:hover {
   border-color:rgba(103,194,216,.42);
   background:rgba(22,49,68,.88);
   color:#e7f9fd;
+  transition:background-color .2s ease,color .2s ease,border-color .2s ease,
+             box-shadow .2s ease,transform .2s ease;
+}
+/* Subtle cyan hover glow, not an always-on neon highlight. */
+@media (hover:hover) and (pointer:fine) {
+  body #pipelineGrid .pipeline-card .pipe-more:hover {
+    background:#19506a;
+    color:#fff;
+    border-color:rgba(103,232,251,.92);
+    box-shadow:0 0 0 1px rgba(62,200,224,.16),0 0 18px rgba(34,211,238,.20);
+    transform:translateY(-1px);
+  }
+}
+body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
+  background:#19506a;
+  color:#fff;
+  border-color:#68e2f3;
+  box-shadow:0 0 0 3px rgba(34,211,238,.25);
+  outline:2px solid #a2edfa;
+  outline-offset:3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pipeline-card .pipe-more {transition:none;}
+  body #pipelineGrid .pipeline-card .pipe-more:hover {transform:none;}
 }
 
 /* Пример аналитики: сдержанный контраст между блоком и самим текстом. */
