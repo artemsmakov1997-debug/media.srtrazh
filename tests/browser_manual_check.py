@@ -28,6 +28,7 @@ import test_latest_media_rhetoric
 import test_quantitative_cues
 import test_event_terminology
 import test_oct15_rhetoric
+import test_hostile_rhetoric
 from browser_fixtures import business_evidence_fixture
 
 
@@ -45,7 +46,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric, test_hostile_rhetoric)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -58,6 +59,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_quantitative_cues.QuantitativeCueTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_event_terminology.EventTerminologyTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_oct15_rhetoric.OctoberRhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_hostile_rhetoric.HostileRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -111,6 +113,47 @@ def quantitative_manual_ui(browser, base, errors, requests):
             assert page.locator("#manualText").input_value() == text
             from urllib.parse import unquote
             assert all(text not in unquote(url) and body is None for _, url, body in requests)
+        finally:
+            context.close()
+
+
+def hostile_rhetoric_manual_ui(browser, base, errors, requests):
+    """User passages retain text, overlapping cues, attribution and touch tips."""
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width": 375 if mobile else 1280, "height": 812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            page.goto(base + "/analysis.html")
+            page.locator('[data-mode="manual"]').click()
+            for text, phrase in ((test_hostile_rhetoric.VANNACCI_POST, "Бутафорного"),
+                                 (test_hostile_rhetoric.HOSTILE_POST, "киевскую вошь")):
+                page.locator("#manualText").fill(text)
+                page.locator("#manualSubmit").click()
+                page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+                assert page.locator("#manualTextEvidence").inner_text() == text
+                expected = analyze({"text": text})
+                marks = page.locator("#manualTextEvidence mark")
+                for finding in expected["findings"]:
+                    assert marks.filter(has_text=finding["evidence"][0]["quote"]).count() or all(
+                        page.locator("#manualTextEvidence").evaluate("(el, span) => {let offset=0,covered=0; for(const node of el.childNodes){const length=Array.from(node.textContent).length;if(node.nodeName==='MARK')covered+=Math.max(0,Math.min(span[1],offset+length)-Math.max(span[0],offset));offset+=length;}return covered===span[1]-span[0];}", [e["start"], e["end"]])
+                        for e in finding["evidence"])
+                trigger = marks.filter(has_text=phrase).first
+                if mobile:
+                    trigger.tap()
+                else:
+                    trigger.hover()
+                page.locator("#manualTooltip").wait_for(state="visible")
+                expected_explanation = next(f["explanation"] for f in expected["findings"] if phrase in f["evidence"][0]["quote"])
+                assert expected_explanation in page.locator("#manualTooltip").inner_text()
+                if text == test_hostile_rhetoric.HOSTILE_POST:
+                    assert marks.filter(has_text="не хочет мириться").first.get_attribute("data-status") == "quoted_candidate"
+                assert page.locator("#manualWarnings p").count() == 2
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                page.locator("#manualEdit").click()
+                assert page.locator("#manualText").input_value() == text
         finally:
             context.close()
 
@@ -1279,6 +1322,7 @@ def main():
 
             inline_touch_and_overlap(browser, base, errors, requests)
             quantitative_manual_ui(browser, base, errors, requests)
+            hostile_rhetoric_manual_ui(browser, base, errors, requests)
             terminology_layer_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
