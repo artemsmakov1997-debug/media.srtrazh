@@ -126,8 +126,9 @@ def snapshot(store, limit=100):
         return {
             "schema_version": SCHEMA, "generated_at": utcnow(), "algorithm_version": VERSION,
             "coverage": taxonomy(), "articles": articles,
+            "collection": {key: value for key, value in status["quality"].items() if key != "sources"},
             "totals": {"displayed": len(articles), "analyzed": len(analyzed),
-                       "with_review_candidates": sum(item["summary"]["review_fragments"] > 0
+                       "with_review_candidates": sum(item["summary"].get("candidate_fragments", item["summary"]["review_fragments"]) > 0
                                                      for item in analyzed),
                        "review_fragments": sum(item["summary"]["review_fragments"] for item in analyzed)},
             "sources": [
@@ -137,6 +138,7 @@ def snapshot(store, limit=100):
                  "channel": source.channel,
                  "configuration_error": source.configuration_error,
                  "displayed": sum(item["source_id"] == source.id for item in articles),
+                 "health": next(s for s in status["quality"]["sources"] if s["id"] == source.id),
                  "status": ({
                      key: status_by_id[source.id][key] for key in
                      ("last_attempt_at", "last_success_at", "last_error", "next_attempt_at")

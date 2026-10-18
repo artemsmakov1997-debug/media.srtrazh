@@ -77,6 +77,66 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def annotation_tool_ui(browser, base, errors, requests):
+    """Synthetic browser fixture, separate from the real unlabelled corpus."""
+    from test_benchmark import record
+    from media_strazh.benchmark import evaluate_benchmark
+    rows = [record(1, '📰 Все знают о решении.'), record(2, 'Открыта городская библиотека.')]
+    markup = (ROOT / 'media_strazh/annotation.html').read_text()
+    payload = ('\n'.join(json.dumps(row, ensure_ascii=False) for row in rows) + '\n').encode()
+    for mobile in (False, True):
+        context = browser.new_context(viewport={'width': 375 if mobile else 1280, 'height': 812},
+                                      is_mobile=mobile, has_touch=mobile, accept_downloads=True)
+        try:
+            page = context.new_page()
+            page.on('pageerror', lambda error: errors.append(str(error)))
+            page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
+            page.route('**/annotation-review-fixture.html', lambda route: route.fulfill(body=markup, content_type='text/html'))
+            page.goto(base + '/annotation-review-fixture.html')
+            page.locator('#file').set_input_files({'name': 'development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': payload})
+            page.locator('#workspace').wait_for(state='visible')
+            assert set(page.locator('#category option').evaluate_all('els => els.map(el => el.value)')) == set(rows[0]['annotation_categories'])
+            assert page.locator('#source').is_hidden()
+            assert page.locator('#bodyText').inner_text() == rows[0]['document']['text']
+            page.locator('#reviewer').fill('Synthetic UI reviewer')
+            page.evaluate("""() => {const node=document.querySelector('#bodyText').firstChild,range=document.createRange();
+              const start=node.textContent.indexOf('Все знают');range.setStart(node,start);range.setEnd(node,start+'Все знают'.length);
+              const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}
+            """)
+            page.wait_for_function("document.getElementById('selection').textContent.includes('Все знают')")
+            page.select_option('#category', 'generalization')
+            page.locator('#add').click()
+            assert page.locator('#spans li').count() == 1
+            page.locator('#complete').click()
+            assert 'подтвердите' in page.locator('#message').inner_text()
+            page.locator('#completeCheck').check();page.locator('#complete').click()
+            page.locator('#next').click()
+            assert page.locator('#spans li').count() == 0
+            page.locator('#completeCheck').check();page.locator('#complete').click()
+            assert 'Проверено: 2 из 2' in page.locator('#progress').inner_text()
+            with page.expect_download() as download:
+                page.locator('#export').click()
+            reviewed = [json.loads(line) for line in Path(download.value.path()).read_text().splitlines()]
+            span = reviewed[0]['spans'][0]
+            assert (span['start'], span['end'], span['quote']) == (2, 11, 'Все знают')
+            assert reviewed[1]['fully_annotated'] and reviewed[1]['labels'] == []
+            assert evaluate_benchmark(reviewed)['metrics']['exact_spans_with_status']['tp'] == 1
+            page.locator('#note').fill('Заметка после предыдущей выгрузки.')
+            page.locator('#reopen').click()
+            page.once('dialog', lambda dialog: dialog.accept())
+            page.reload()
+            page.locator('#file').set_input_files({'name': 'reviewed-development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': ('\n'.join(json.dumps(r,ensure_ascii=False) for r in reviewed)+'\n').encode()})
+            page.locator('#workspace').wait_for(state='visible')
+            assert 'Проверено: 1 из 2' in page.locator('#progress').inner_text()
+            assert page.locator('#spans li').count() == 1
+            page.locator('#next').click()
+            assert page.locator('#note').input_value() == 'Заметка после предыдущей выгрузки.'
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            assert page.locator('img').count() == 0
+        finally:
+            context.close()
+
+
 def quantitative_manual_ui(browser, base, errors, requests):
     text = test_quantitative_cues.RADIOSVOBODA_EXCERPT
     expected = analyze({"text": text})["findings"]
@@ -1354,6 +1414,7 @@ def main():
 
             inline_touch_and_overlap(browser, base, errors, requests)
             quantitative_manual_ui(browser, base, errors, requests)
+            annotation_tool_ui(browser, base, errors, requests)
             hostile_rhetoric_manual_ui(browser, base, errors, requests)
             terminology_layer_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)

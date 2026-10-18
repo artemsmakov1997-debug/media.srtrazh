@@ -28,7 +28,7 @@ def telegram_post(post_id, body="Новость: открыта библиоте
             f'<div class="tgme_widget_message_text js-message_text">{body}</div>'
             '<a class="tgme_widget_message_link_preview">Все знают: ужас и катастрофа — чужая карточка</a>'
             '<span class="tgme_widget_message_views">100 000</span>'
-            '<a class="tgme_widget_message_date"><time datetime="2026-10-11T12:00:00+03:00">12:00</time></a></div>')
+            f'<a class="tgme_widget_message_date" href="https://t.me/{channel}/{post_id}"><time datetime="2026-10-11T12:00:00+03:00">12:00</time></a></div>')
 
 
 class ExpandedSourceTests(unittest.TestCase):
@@ -386,9 +386,13 @@ class ExpandedNetworkTests(unittest.TestCase):
                 summary = collect_once(store, [SOURCES[key] for key in ("rt", "tass", "ria")], client_factory=Client, now=lambda: NOW, time_budget_seconds=10)
                 self.assertFalse(summary["success"])
                 self.assertEqual(store.status()["articles_collected"], 1)
-                self.assertEqual(len(store.status()["sources"]), 3)
+                self.assertEqual(len(store.status()["sources"]), 1)
                 self.assertEqual(set(summary["sources"]), {"rt", "tass", "ria"})
                 self.assertIn("бюджет", summary["sources"]["tass"]["errors"][0]["error"])
+                clock.return_value = 0
+                second = collect_once(store, [SOURCES[key] for key in ("rt", "tass", "ria")], client_factory=Client, now=lambda: NOW, time_budget_seconds=10)
+                self.assertEqual(second["sources"]["tass"]["fetched"], 1)
+                self.assertEqual(store.status()["articles_collected"], 2)
 
     def test_crawl_delay_longer_than_deadline_is_deferred_without_sleep(self):
         from urllib.robotparser import RobotFileParser

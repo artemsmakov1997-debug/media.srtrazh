@@ -526,6 +526,14 @@ async function load() {
       '. С фрагментами для проверки: ' +
       report.totals.with_review_candidates +
       '.';
+    if (report.collection) {
+      element('totals').append(document.createTextNode(
+        ' Полный сохранённый корпус: ' + report.collection.collected +
+        '; без даты: ' + report.collection.undated +
+        '; ожидают загрузки: ' + report.collection.pending +
+        '. Охват ограничен собранной выборкой.'
+      ));
+    }
 
     element('sources').replaceChildren();
 
@@ -540,6 +548,14 @@ async function load() {
           'Публикаций в подборке: ' + source.displayed
         )
       );
+      if (source.health) {
+        const labels = {current: 'Тексты получены недавно', partial: 'Частичный сбор с ошибками',
+          error: 'Ошибка сбора', stale: 'Новых текстов давно нет', pending: 'Ожидает проверки'};
+        card.append(node('p', (labels[source.health.state] || source.health.state) +
+          '. В корпусе: ' + source.health.collected + '; опубликовано за 24 часа: ' + source.health.collected_24h +
+          '; без даты: ' + source.health.undated + '; в очереди: ' + source.health.pending + '.', 'muted'));
+        card.append(node('p', 'Последний полученный текст: ' + date(source.health.last_text_at), 'muted'));
+      }
 
       card.append(
         node(

@@ -116,13 +116,26 @@ class Store:
         return inserted
 
     def due(self, source_id, now, limit):
-        # Revisit recently visible articles, without endlessly redownloading the archive.
+        # Reserve half the slots for newest unseen publications, then drain the
+        # oldest due work. A fast feed cannot starve either fresh news or backlog.
         cutoff = later(now, -86400)
-        return [dict(row) for row in self.db.execute("""
+        recent = list(self.db.execute("""
+            SELECT * FROM articles WHERE source_id=? AND next_attempt_at<=?
+              AND current_revision_id IS NULL AND last_seen_at>=? AND failures=0
+            ORDER BY julianday(feed_published_at) DESC,last_seen_at DESC,id DESC LIMIT ?
+        """, (source_id, now, cutoff, max(1, limit // 2))))
+        selected = {row["id"] for row in recent}
+        for row in self.db.execute("""
             SELECT * FROM articles WHERE source_id=? AND next_attempt_at<=?
               AND (current_revision_id IS NULL OR last_seen_at>=?)
             ORDER BY current_revision_id IS NOT NULL, next_attempt_at, id LIMIT ?
-        """, (source_id, now, cutoff, limit))]
+        """, (source_id, now, cutoff, limit + len(recent))):
+            if len(recent) >= limit:
+                break
+            if row["id"] not in selected:
+                recent.append(row)
+                selected.add(row["id"])
+        return [dict(row) for row in recent]
 
     def fail(self, article, error, now, retry_after=0):
         failures = article["failures"] + 1
@@ -207,6 +220,7 @@ class Store:
                             (now, json.dumps(summary, ensure_ascii=False), run_id))
 
     def status(self):
+        from .quality import collection_quality
         last = self.db.execute("SELECT * FROM collection_runs ORDER BY id DESC LIMIT 1").fetchone()
         return {
             "articles_discovered": self.db.execute("SELECT COUNT(*) FROM articles").fetchone()[0],
@@ -214,6 +228,7 @@ class Store:
             "revisions": self.db.execute("SELECT COUNT(*) FROM revisions").fetchone()[0],
             "analyses": self.db.execute("SELECT COUNT(*) FROM analyses").fetchone()[0],
             "pending": self.db.execute("SELECT COUNT(*) FROM articles WHERE current_revision_id IS NULL").fetchone()[0],
+            "quality": collection_quality(self),
             "sources": [dict(row) for row in self.db.execute("SELECT * FROM source_status ORDER BY source_id")],
             "last_run": ({"id": last["id"], "started_at": last["started_at"], "finished_at": last["finished_at"],
                           "summary": json.loads(last["summary_json"]) if last["summary_json"] else None} if last else None),

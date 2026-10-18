@@ -1,0 +1,90 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Разметка проверочного корпуса — МЕДИА.СТРАЖ</title>
+<style>body{font:17px/1.5 system-ui,sans-serif;max-width:1150px;margin:auto;padding:20px;color:#182634;background:#f6f8fa}button,input,select,textarea{font:inherit;max-width:100%;padding:8px;margin:5px 0}button{cursor:pointer}fieldset{margin:15px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:white;padding:18px;border:1px solid #b8c5cc;user-select:text}#message{color:#8c2626}#spans li{margin:12px 0}label{display:block}nav{display:flex;gap:10px;flex-wrap:wrap}a{overflow-wrap:anywhere}.note{color:#405565}textarea{width:95%}</style>
+<h1>Разметка публикаций</h1>
+<p>Форма работает локально. Выберите JSONL из пакета корпуса. Предсказания алгоритма скрыты. Сначала размечайте development; holdout оставьте для проверки зафиксированной версии.</p>
+<label>Файл корпуса или ранее сохранённая разметка <input id="file" type="file" accept=".jsonl,.json"></label>
+<label>Проверяющий <input id="reviewer" maxlength="100" autocomplete="off"></label>
+<button id="export" disabled>Скачать разметку JSONL</button>
+<p id="message" role="status" aria-live="polite"></p>
+<section id="workspace" hidden>
+<p id="progress"></p><nav><button id="prev">Назад</button><label>Документ <input id="number" type="number" min="1" value="1"></label><button id="next">Вперёд</button><button id="unreviewed">Следующий непроверенный</button></nav>
+<h2 id="heading"></h2><p id="identity"></p>
+<label><input id="showSource" type="checkbox"> Показать источник (необязательно для первого чтения)</label><p id="source" hidden></p>
+<h3>Заголовок</h3><pre id="titleText" data-field="title"></pre>
+<h3>Текст</h3><pre id="bodyText" data-field="text"></pre>
+<p class="note">Выделите мышкой или пальцем точные слова в заголовке либо тексте. Затем выберите приём и голос. Один фрагмент может иметь несколько категорий. Отмечайте риторический признак, а не согласие с политической позицией или достоверность новости.</p>
+<fieldset><legend>Добавить фрагмент</legend>
+<p id="selection">Фрагмент ещё не выбран.</p>
+<label>Приём <select id="category"></select></label>
+<label>Голос и контекст <select id="voice"><option value="needs_review">Авторское утверждение</option><option value="quoted_candidate">Цитата или явно переданная речь</option><option value="context_only">Отрицание или обсуждение самой формулировки</option><option value="uncertain">Не уверен — отложить решение</option></select></label>
+<button id="add">Добавить выделенное</button></fieldset>
+<h3>Размеченные фрагменты</h3><ol id="spans"></ol>
+<label>Заметка или причина сомнения <textarea id="note" rows="3" maxlength="3000"></textarea></label>
+<label><input id="completeCheck" type="checkbox"> Я проверил весь документ по всем 10 категориям. Пустой список означает отсутствие признаков этих категорий, а не нейтральность текста.</label>
+<button id="complete">Документ проверен</button><button id="reopen">Вернуть к проверке</button>
+<p>Искажение цитаты и псевдостатистика в этот набор оценок не входят. Если нужны оригинал или внешние данные, запишите это в заметке. Сомнительные фрагменты исключаются из метрик до решения.</p>
+<p class="note">Прогресс хранится в этом браузере по идентификаторам оригиналов. Регулярно скачивайте JSONL — этот файл переносит разметку на другой компьютер. Исходные тексты не редактируются и не отправляются по сети.</p>
+</section>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),categories={fear:'Запугивание',emotional_evaluation:'Эмоциональная оценка',enemy_image:'Образ врага',exaggeration:'Преувеличение',generalization:'Обобщение',appeal_to_authority:'Ссылка на авторитет',vague_source:'Размытый источник',oversimplification:'Упрощение',clickbait:'Кликбейт',euphemism_dysphemism:'Эвфемизмы и дисфемизмы'};
+for(const [id,label] of Object.entries(categories)){$('category').append(new Option(label,id));}
+let rows=[],index=0,selected=null,key='',dirty=false,fileVersion=0;
+const message=text=>$('message').textContent=text;
+const current=()=>rows[index];
+function save(){
+ if(!rows.length)return;
+ current().annotation_changed_at=new Date().toISOString();
+ dirty=true;
+ try{localStorage.setItem(key,JSON.stringify(rows.map(r=>({id:r.id,sha256:r.provenance.sha256,spans:r.spans,labels:r.labels,fully_annotated:r.fully_annotated,reviewer:r.reviewer,reviewed_at:r.reviewed_at,annotation_changed_at:r.annotation_changed_at,note:r.note||''}))));}
+ catch(_){message('Браузер не смог сохранить прогресс. Скачайте JSONL сейчас.');}
+}
+function render(){
+ selected=null;$('selection').textContent='Фрагмент ещё не выбран.';
+ const r=current();$('titleText').textContent=r.document.title||'';$('bodyText').textContent=r.document.text;
+ $('heading').textContent='Публикация '+(index+1)+' из '+rows.length;
+ $('identity').textContent=r.id+' · '+r.split+' · '+(r.fully_annotated?'проверена':'не проверена');
+ $('progress').textContent='Проверено: '+rows.filter(r=>r.fully_annotated).length+' из '+rows.length+'. С сомнениями: '+rows.filter(r=>r.spans.some(s=>s.status==='uncertain')).length;
+ $('number').value=index+1;$('number').max=rows.length;$('note').value=r.note||'';$('completeCheck').checked=!!r.fully_annotated;
+ $('source').replaceChildren();const a=document.createElement('a');a.textContent=r.document.source+' · '+(r.document.published_at||'дата не установлена');
+ try{const url=new URL(r.document.url);if(url.protocol==='https:'&&!url.username&&!url.password){a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch(_){}
+ $('source').append(a);$('source').hidden=!$('showSource').checked;
+ $('spans').replaceChildren();r.spans.forEach((s,i)=>{const li=document.createElement('li'),quote=document.createElement('q'),remove=document.createElement('button');quote.textContent=s.quote;remove.textContent='Удалить';remove.addEventListener('click',()=>{r.spans.splice(i,1);r.fully_annotated=false;save();render();});
+ li.append(quote,document.createTextNode(' — '+categories[s.category]+'; '+s.status+'; '+s.field+' ['+s.start+':'+s.end+'] '),remove);$('spans').append(li);});
+}
+function capture(){
+ const selection=getSelection();if(!selection.rangeCount||selection.isCollapsed)return;
+ const range=selection.getRangeAt(0),element=[...document.querySelectorAll('pre[data-field]')].find(el=>el.contains(range.startContainer)&&el.contains(range.endContainer));
+ if(!element)return;
+ const before=range.cloneRange();before.selectNodeContents(element);before.setEnd(range.startContainer,range.startOffset);
+ const start=Array.from(before.toString()).length,end=start+Array.from(range.toString()).length;
+ if(end<=start)return;selected={field:element.dataset.field,start,end,quote:Array.from(current().document[element.dataset.field]).slice(start,end).join('')};
+ $('selection').textContent='Выбрано: «'+selected.quote+'»';
+}
+document.addEventListener('selectionchange',capture);
+$('file').addEventListener('change',async event=>{try{
+ const file=event.target.files[0];if(!file)return;if(file.size>30*1024*1024)throw Error('Файл превышает 30 МБ.');
+ const version=++fileVersion,text=await file.text();if(version!==fileVersion)return;
+ const next=text.split(/\r?\n/).filter(line=>line.trim()).map(line=>JSON.parse(line));
+ if(!next.length||next.length>1000)throw Error('Ожидается от 1 до 1000 документов.');
+ const ids=new Set();for(const r of next){if(r.schema_version!=='review-corpus-1.0'||typeof r.id!=='string'||ids.has(r.id)||!r.provenance?.sha256||typeof r.document?.text!=='string'||!Array.isArray(r.spans))throw Error('Неверный формат корпуса.');ids.add(r.id);}
+ rows=next;index=0;key='media-strazh-annotations-v1:'+rows.map(r=>r.id+':'+r.provenance.sha256).sort().join('|');
+ try{const saved=JSON.parse(localStorage.getItem(key)||'[]');for(const r of rows){const old=saved.find(x=>x.id===r.id&&x.sha256===r.provenance.sha256);if(old&&((old.annotation_changed_at||old.reviewed_at||'')>(r.annotation_changed_at||r.reviewed_at||''))){Object.assign(r,{spans:old.spans,labels:old.labels,fully_annotated:old.fully_annotated,reviewer:old.reviewer,reviewed_at:old.reviewed_at,annotation_changed_at:old.annotation_changed_at,note:old.note});}}}catch(_){}
+ $('reviewer').value=rows.find(r=>r.reviewer)?.reviewer||'';$('workspace').hidden=false;$('export').disabled=false;dirty=false;message('Файл открыт. Предсказания алгоритма не показываются.');render();
+ }catch(error){message('Ошибка: '+error.message);}});
+$('add').addEventListener('click',()=>{if(!selected){message('Сначала выделите текст.');return;}const r=current(),span={...selected,category:$('category').value,status:$('voice').value};
+ if(r.spans.some(s=>['field','start','end','category','status'].every(key=>s[key]===span[key]))){message('Этот фрагмент уже добавлен.');return;}
+ r.spans.push(span);r.fully_annotated=false;save();render();message('Фрагмент добавлен.');});
+$('complete').addEventListener('click',()=>{if(!$('reviewer').value.trim()||!$('completeCheck').checked){message('Укажите проверяющего и подтвердите проверку всего документа.');return;}
+ const r=current();r.reviewer=$('reviewer').value.trim();r.reviewed_at=new Date().toISOString();r.fully_annotated=true;r.labels=[...new Set(r.spans.filter(s=>s.status==='needs_review').map(s=>s.category))].sort();save();render();message('Документ сохранён как проверенный.');});
+$('reopen').addEventListener('click',()=>{current().fully_annotated=false;save();render();});
+$('note').addEventListener('input',()=>{current().note=$('note').value;save();});
+function move(next){index=Math.max(0,Math.min(rows.length-1,next));render();}
+$('prev').addEventListener('click',()=>move(index-1));$('next').addEventListener('click',()=>move(index+1));$('number').addEventListener('change',()=>move(Number($('number').value)-1));
+$('unreviewed').addEventListener('click',()=>{const next=rows.findIndex((r,i)=>i>index&&!r.fully_annotated);move(next>=0?next:Math.max(0,rows.findIndex(r=>!r.fully_annotated)));});
+$('showSource').addEventListener('change',()=>{$('source').hidden=!$('showSource').checked;});
+$('export').addEventListener('click',()=>{const blob=new Blob([rows.map(r=>JSON.stringify(r)).join('\n')+'\n'],{type:'application/x-ndjson;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='reviewed-'+(rows[0]?.split||'corpus')+'.jsonl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);dirty=false;message('Разметка выгружена. Сохраните файл вместе с manifest.json.');});
+addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
+})();
+</script></html>

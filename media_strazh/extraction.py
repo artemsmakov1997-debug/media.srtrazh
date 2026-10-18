@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from .analysis import validate_document
 from .sources import Source, normalize_url
 
-EXTRACTOR_VERSION = "html-0.4.1"
+EXTRACTOR_VERSION = "html-0.5.0"
 MAX_FEED_ITEMS = 2000
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 BLOCK = {"p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "blockquote", "br", "ul", "ol"}
@@ -133,7 +133,7 @@ def parse_feed(data: bytes, source: Source) -> list[FeedEntry]:
                 title = plain_text(value)
             elif name == "link" and child.attrib.get("rel", "alternate") == "alternate":
                 link = child.attrib.get("href") or value
-            elif name in {"pubdate", "published", "date", "updated"} and not date:
+            elif name in {"pubdate", "published", "date"} and not date:
                 date = timestamp(value)
         if not link or not title:
             continue
@@ -196,7 +196,7 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
             continue
     matched, unlocated = [], []
     for article in structured:
-        location = article.get("url") or article.get("mainEntityOfPage")
+        location = article.get("url") or article.get("mainEntityOfPage") or article.get("@id")
         if isinstance(location, dict):
             location = location.get("@id")
         located_here = False
@@ -210,7 +210,7 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
         body = article.get("articleBody")
         if not isinstance(body, str) or not body.strip():
             continue
-        location = article.get("url") or article.get("mainEntityOfPage")
+        location = article.get("url") or article.get("mainEntityOfPage") or article.get("@id")
         if isinstance(location, dict):
             location = location.get("@id")
         if isinstance(location, str):
@@ -281,15 +281,16 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
     # Some opinion pages provide dates/headlines in JSON-LD without articleBody.
     # Use their metadata without replacing the publisher's main text.
     for article in structured:
-        location = article.get("url") or article.get("mainEntityOfPage")
+        location = article.get("url") or article.get("mainEntityOfPage") or article.get("@id")
         if isinstance(location, dict):
             location = location.get("@id")
-        if not isinstance(location, str):
-            continue
-        try:
-            if normalize_url(urljoin(url, location), source) not in {canonical, normalize_url(url, source)}:
+        if location:
+            try:
+                if not isinstance(location, str) or normalize_url(urljoin(url, location), source) not in {canonical, normalize_url(url, source)}:
+                    continue
+            except ValueError:
                 continue
-        except ValueError:
+        elif len(structured) != 1:
             continue
         if not title and isinstance(article.get("headline"), str):
             title = plain_text(article["headline"])
@@ -298,7 +299,23 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
     if not title:
         title = next((node_text(node) for node in tree.nodes if node.tag == "h1"), "")
     title = title or entry.title
-    date = date or timestamp(metadata.get("article:published_time")) or entry.published_at
+    for key in ("article:published_time", "datepublished", "og:published_time", "pubdate", "publishdate", "parsely-pub-date", "dc.date.issued"):
+        date = date or timestamp(metadata.get(key))
+    # Explicit publication microdata only; never dateModified, a sidebar's time
+    # or a date without an offset. Conflicting publication times stay unknown.
+    times = set()
+    for node in tree.nodes:
+        if "datePublished" not in (node.attrs.get("itemprop") or "").split():
+            continue
+        ancestor, excluded = node.parent, False
+        while ancestor is not None:
+            if ancestor.tag in {"aside", "nav", "footer"} or NOISE.search(ancestor.attrs.get("class") or ""):
+                excluded = True
+            ancestor = ancestor.parent
+        value = timestamp(node.attrs.get("datetime") or node.attrs.get("content"))
+        if value and not excluded:
+            times.add(value)
+    date = date or (next(iter(times)) if len(times) == 1 else "") or timestamp(entry.published_at)
     if len(re.findall(r"[а-яё]", body, re.I)) < 80:
         raise ValueError("Не найден достаточно полный основной текст: RSS-аннотация не используется как замена.")
     document = {"title": title.strip(), "text": body.strip(), "source": source.name,

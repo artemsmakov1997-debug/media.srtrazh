@@ -57,7 +57,30 @@ def preview_posts(html, source):
                           if "tgme_widget_message_forwarded_from" in (node.attrs.get("class") or "").split()), "")
         if forwarded:
             body = forwarded + "\n" + body
-        date = next((timestamp(node.attrs.get("datetime")) for node in children if node.tag == "time"), "")
+        # The first <time> may be a video's duration, not publication time.
+        # Bind the date to this message's footer permalink, not an embedded post.
+        dates, fallback, has_date_link = set(), set(), False
+        for node in children:
+            if node.tag != "time":
+                continue
+            value = timestamp(node.attrs.get("datetime"))
+            parent, link = node.parent, None
+            while parent is not None and parent is not container:
+                if parent.tag == "a" and "tgme_widget_message_date" in (parent.attrs.get("class") or "").split():
+                    link = parent
+                    break
+                parent = parent.parent
+            if link is not None:
+                has_date_link = True
+                try:
+                    if value and normalize_url(link.attrs.get("href", ""), source) == url:
+                        dates.add(value)
+                except ValueError:
+                    pass
+            elif value and not any(_inside(node, text_node) for text_node in content):
+                if "message_video_duration" not in (node.attrs.get("class") or "").split():
+                    fallback.add(value)
+        date = next(iter(dates)) if len(dates) == 1 else next(iter(fallback)) if not has_date_link and len(fallback) == 1 else ""
         title = " ".join(node_text(content[0]).split())[:250]
         posts.append({"entry": FeedEntry(url, title, date), "text": body, "forwarded": bool(forwarded)})
         seen.add(url)
@@ -81,7 +104,7 @@ def extract_post(html, url, source, entry):
     if post is None:
         raise ValueError("Текст запрошенной Telegram-публикации отсутствует в публичном предпросмотре.")
     document = {"title": "", "text": post["text"], "source": source.name,
-                "url": canonical, "published_at": post["entry"].published_at or entry.published_at}
+                "url": canonical, "published_at": post["entry"].published_at or timestamp(entry.published_at)}
     # Telegram has a single message body, not a separate editorial headline.
     # Do not duplicate its first sentence in title-only rhetorical rules.
     validate_document(document)

@@ -36,6 +36,8 @@ def collect_once(store, sources=None, limit=5, revisit_seconds=3600,
         raise ValueError("Бюджет времени сбора должен быть положительным.")
     deadline = None if time_budget_seconds is None else time.monotonic() + time_budget_seconds
     sources = sources or list(SOURCES.values())
+    attempts = {row["source_id"]: row["last_attempt_at"] for row in store.db.execute("SELECT source_id,last_attempt_at FROM source_status")}
+    sources = sorted(sources, key=lambda source: attempts.get(source.id, ""))
     run_id = store.start_run(now())
     summary = {"run_id": run_id, "success": True, "sources": {}}
     # Shared by clients in this cycle: channels on t.me obey the same host pace.
@@ -57,9 +59,13 @@ def collect_once(store, sources=None, limit=5, revisit_seconds=3600,
             summary["sources"][source.id] = result
             continue
         retry_after = 0
+        if deadline is not None and time.monotonic() >= deadline:
+            result["errors"].append({"url": source.feed_url, "error": "Истёк бюджет времени; источник ещё не проверен в этом цикле."})
+            result["deferred_reason"] = "cycle_budget"
+            summary["success"] = False
+            summary["sources"][source.id] = result
+            continue
         try:
-            if deadline is not None and time.monotonic() >= deadline:
-                raise FetchError("Истёк бюджет времени этого цикла сбора; источник будет проверен в следующем запуске.", retry_after=300)
             if source.platform == "telegram":
                 if not source.channel:
                     website = SOURCES[source.publisher]

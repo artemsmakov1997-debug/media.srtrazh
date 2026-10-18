@@ -98,7 +98,10 @@ class PublishingTests(unittest.TestCase):
         self.assertNotIn("document", result["articles"][0])
         before = self.store.status()
         snapshot(self.store)
-        self.assertEqual(self.store.status(), before)
+        after = self.store.status()
+        before["quality"].pop("as_of")
+        after["quality"].pop("as_of")
+        self.assertEqual(after, before)
 
     def test_automatic_analysis_keeps_quoted_signals_in_published_summary(self):
         source = SOURCES["rt"]
@@ -122,7 +125,7 @@ class PublishingTests(unittest.TestCase):
             self.network.responses[url] = page(source, url, BODY + suffix)
         self.collect()
         result = snapshot(self.store)
-        self.assertEqual(result["totals"]["with_review_candidates"], 1)
+        self.assertEqual(result["totals"]["with_review_candidates"], 2)
         self.assertEqual(result["totals"]["review_fragments"], 1)
         ria = next(item for item in result["articles"] if item["source_id"] == "ria")
         self.assertEqual(ria["summary"]["quoted_candidates"], 1)

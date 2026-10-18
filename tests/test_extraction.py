@@ -87,7 +87,7 @@ class ExtractionTests(unittest.TestCase):
 
     def test_canonical_url_must_belong_to_source(self):
         result = self.extract("rt", f'<link rel="canonical" href="https://example.org/wrong"><div class="article__text">{TEXT}</div>')
-        self.assertEqual(result["document"]["url"], "https://russian.rt.com/news/1")
+        self.assertEqual(result["document"]["url"], "https://russiatoday.ru/news/1")
 
     def test_recommendation_jsonld_is_not_used_as_main_article(self):
         data = {"@type": "NewsArticle", "url": "https://ria.ru/news/other", "articleBody": TEXT}
