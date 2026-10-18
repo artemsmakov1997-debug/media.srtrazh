@@ -27,6 +27,14 @@ def main():
     web.add_argument("--db", type=Path, default=DEFAULT_DB)
     evaluation = commands.add_parser("evaluate", help="Оценить кандидатов на полностью размеченном JSONL")
     evaluation.add_argument("--file", type=Path, required=True)
+    benchmark = commands.add_parser("prepare-benchmark", help="Подготовить слепой корпус для ручной проверки")
+    benchmark.add_argument("--db", type=Path, default=DEFAULT_DB)
+    benchmark.add_argument("--output", type=Path, required=True)
+    benchmark.add_argument("--size", type=int, default=240)
+    benchmark.add_argument("--seed", default="pilot-2026-1")
+    assessment = commands.add_parser("evaluate-benchmark", help="Оценить подтверждённые человеком фрагменты и атрибуцию")
+    assessment.add_argument("--file", type=Path, required=True)
+    assessment.add_argument("--split", choices=("development", "holdout"), default="development")
     for name, description in (("collect", "Собрать и проанализировать новости один раз"),
                               ("watch", "Проверять ленты и анализировать новости по расписанию")):
         collection = commands.add_parser(name, help=description)
@@ -78,6 +86,16 @@ def main():
         elif args.command == "evaluate":
             with args.file.open(encoding="utf-8") as corpus:
                 result = evaluate(json.loads(line) for line in corpus if line.strip())
+        elif args.command == "prepare-benchmark":
+            from .benchmark import prepare_benchmark
+            if not args.db.is_file():
+                raise ValueError("База корпуса не найдена.")
+            with Store(args.db) as store:
+                result = prepare_benchmark(store, args.output, args.size, args.seed)
+        elif args.command == "evaluate-benchmark":
+            from .benchmark import evaluate_benchmark
+            with args.file.open(encoding="utf-8") as corpus:
+                result = evaluate_benchmark([json.loads(line) for line in corpus if line.strip()], args.split)
         elif args.command in {"collect", "watch"}:
             overrides = {}
             for item in args.feed or []:

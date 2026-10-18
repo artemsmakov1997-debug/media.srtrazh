@@ -98,7 +98,10 @@ class PublishingTests(unittest.TestCase):
         self.assertNotIn("document", result["articles"][0])
         before = self.store.status()
         snapshot(self.store)
-        self.assertEqual(self.store.status(), before)
+        after = self.store.status()
+        before["quality"].pop("as_of")
+        after["quality"].pop("as_of")
+        self.assertEqual(after, before)
 
     def test_automatic_analysis_keeps_quoted_signals_in_published_summary(self):
         source = SOURCES["rt"]

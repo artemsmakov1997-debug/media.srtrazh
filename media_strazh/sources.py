@@ -31,9 +31,9 @@ class Source:
 
 
 SOURCES = {
-    "rt": Source("rt", "RT на русском", "russian.rt.com", "https://russian.rt.com/rss",
+    "rt": Source("rt", "RT на русском", "russiatoday.ru", "https://russiatoday.ru/rss",
                  ("article__text", "article__body"), ("article__summary",),
-                 allowed_hosts=("russiatoday.ru", "www.russiatoday.ru")),
+                 allowed_hosts=("russian.rt.com", "www.russiatoday.ru")),
     "tass": Source("tass", "ТАСС", "tass.ru", "https://tass.ru/rss/v2.xml",
                    ("news-content__text", "news-content__content", "text-block",
                     "text-content", "article__text", "article-body", "NewsContent_content",
@@ -59,7 +59,7 @@ SOURCES = {
     "novayagazeta": Source("novayagazeta", "Новая газета Европа", "novayagazeta.eu", "https://novayagazeta.eu/rss",
                            ("article-body", "article__body", "article__text"), allowed_hosts=("www.novayagazeta.eu",),
                            body_attributes=(("data-body", "true"),)),
-    "fontanka": Source("fontanka", "Фонтанка.ру", "www.fontanka.ru", "https://www.fontanka.ru/fontanka.rss",
+    "fontanka": Source("fontanka", "Фонтанка.ру", "www.fontanka.ru", "https://www.fontanka.ru/rss-feeds/rss.xml",
                        ("article-body", "article__text", "text-block"), allowed_hosts=("fontanka.ru",)),
     "currenttime": Source("currenttime", "Настоящее Время", "www.currenttime.tv", "https://www.currenttime.tv/api/zrqiteuuir",
                           ("wsw",), allowed_hosts=("currenttime.tv",)),
@@ -188,4 +188,7 @@ def normalize_url(url: str, source: Source) -> str:
     query = [(key, value) for key, value in parse_qsl(parsed.query, keep_blank_values=True)
              if not key.lower().startswith("utm_") and key.lower() not in {"yclid", "gclid", "fbclid"}]
     path = quote(parsed.path or "/", safe="/:@!$&'()*+,;=-._~%")
-    return urlunsplit(("https", parsed.hostname, path, urlencode(sorted(query)), ""))
+    aliases = {"rt": {"russian.rt.com": "russiatoday.ru", "www.russiatoday.ru": "russiatoday.ru"},
+               "fontanka": {"fontanka.ru": "www.fontanka.ru"}}
+    host = aliases.get(source.id, {}).get(parsed.hostname, parsed.hostname)
+    return urlunsplit(("https", host, path, urlencode(sorted(query)), ""))
