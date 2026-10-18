@@ -81,6 +81,34 @@ jobs:
           python3 -m media_strazh prepare-benchmark --db /tmp/media-strazh-pilot.sqlite3 --output /tmp/review-corpus --size 240
           python3 -m media_strazh status --db /tmp/media-strazh-pilot.sqlite3 > /tmp/quality-report/after.json
           python3 -m media_strazh evaluate-benchmark --file /tmp/review-corpus/development.jsonl > /tmp/review-corpus/annotation-status.json
+      - name: Summarize corpus audit
+        if: github.event_name == 'workflow_dispatch' && inputs.benchmark
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from media_strazh.storage import Store
+          root=Path('/tmp/quality-report')
+          audit={}
+          for name in ('before','after'):
+              value=json.loads((root/(name+'.json')).read_text())['quality']
+              audit[name]={key:value[key] for key in ('collected','undated','future_dated')}
+              audit[name]['undated_by_source']={r['id']:r['undated'] for r in value['sources'] if r['undated']}
+          m=json.loads(Path('/tmp/review-corpus/manifest.json').read_text())
+          audit['benchmark']={key:m[key] for key in ('size','splits','platforms','sources','duplicates_excluded','excluded_known_development')}
+          with Store('/tmp/media-strazh-pilot.sqlite3') as store:
+              rows=store.db.execute('SELECT a.source_id,r.canonical_url AS url FROM articles a JOIN revisions r ON r.id=a.current_revision_id WHERE julianday(r.published_at) IS NULL ORDER BY a.source_id,a.id')
+              examples={}
+              for row in rows:
+                  examples.setdefault(row['source_id'],[])
+                  if len(examples[row['source_id']])<2: examples[row['source_id']].append(row['url'])
+              audit['undated_examples']=examples
+          Path('/tmp/review-corpus/audit-summary.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))
+          message=json.dumps(audit,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::notice title=Corpus audit::'+message)
+          manifest=json.dumps(m,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::notice title=Review manifest::'+manifest)
+          PY
       - name: Upload review corpus and quality audit
         if: github.event_name == 'workflow_dispatch' && inputs.benchmark
         uses: actions/upload-artifact@v4

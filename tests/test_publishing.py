@@ -125,7 +125,7 @@ class PublishingTests(unittest.TestCase):
             self.network.responses[url] = page(source, url, BODY + suffix)
         self.collect()
         result = snapshot(self.store)
-        self.assertEqual(result["totals"]["with_review_candidates"], 1)
+        self.assertEqual(result["totals"]["with_review_candidates"], 2)
         self.assertEqual(result["totals"]["review_fragments"], 1)
         ria = next(item for item in result["articles"] if item["source_id"] == "ria")
         self.assertEqual(ria["summary"]["quoted_candidates"], 1)

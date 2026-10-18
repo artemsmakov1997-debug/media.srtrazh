@@ -178,7 +178,7 @@ def extract_article(html: str, url: str, source: Source, entry: FeedEntry) -> di
     canonical, metadata = normalize_url(url, source), {}
     for node in tree.nodes:
         if node.tag == "meta":
-            key = node.attrs.get("property") or node.attrs.get("name") or node.attrs.get("itemprop")
+            key = node.attrs.get("property") or node.attrs.get("name")
             if key and node.attrs.get("content"):
                 metadata[key.lower()] = node.attrs["content"]
         elif node.tag == "link" and "canonical" in (node.attrs.get("rel") or "").split():

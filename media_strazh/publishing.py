@@ -128,7 +128,7 @@ def snapshot(store, limit=100):
             "coverage": taxonomy(), "articles": articles,
             "collection": {key: value for key, value in status["quality"].items() if key != "sources"},
             "totals": {"displayed": len(articles), "analyzed": len(analyzed),
-                       "with_review_candidates": sum(item["summary"]["review_fragments"] > 0
+                       "with_review_candidates": sum(item["summary"].get("candidate_fragments", item["summary"]["review_fragments"]) > 0
                                                      for item in analyzed),
                        "review_fragments": sum(item["summary"]["review_fragments"] for item in analyzed)},
             "sources": [

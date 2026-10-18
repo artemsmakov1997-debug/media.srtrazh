@@ -72,7 +72,7 @@ $('file').addEventListener('change',async event=>{try{
  $('reviewer').value=rows.find(r=>r.reviewer)?.reviewer||'';$('workspace').hidden=false;$('export').disabled=false;dirty=false;message('Файл открыт. Предсказания алгоритма не показываются.');render();
  }catch(error){message('Ошибка: '+error.message);}});
 $('add').addEventListener('click',()=>{if(!selected){message('Сначала выделите текст.');return;}const r=current(),span={...selected,category:$('category').value,status:$('voice').value};
- if(r.spans.some(s=>JSON.stringify(s)===JSON.stringify(span))){message('Этот фрагмент уже добавлен.');return;}
+ if(r.spans.some(s=>['field','start','end','category','status'].every(key=>s[key]===span[key]))){message('Этот фрагмент уже добавлен.');return;}
  r.spans.push(span);r.fully_annotated=false;save();render();message('Фрагмент добавлен.');});
 $('complete').addEventListener('click',()=>{if(!$('reviewer').value.trim()||!$('completeCheck').checked){message('Укажите проверяющего и подтвердите проверку всего документа.');return;}
  const r=current();r.reviewer=$('reviewer').value.trim();r.reviewed_at=new Date().toISOString();r.fully_annotated=true;r.labels=[...new Set(r.spans.filter(s=>s.status==='needs_review').map(s=>s.category))].sort();save();render();message('Документ сохранён как проверенный.');});

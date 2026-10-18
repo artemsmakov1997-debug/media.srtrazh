@@ -35,6 +35,7 @@ def main():
     assessment = commands.add_parser("evaluate-benchmark", help="Оценить подтверждённые человеком фрагменты и атрибуцию")
     assessment.add_argument("--file", type=Path, required=True)
     assessment.add_argument("--split", choices=("development", "holdout"), default="development")
+    assessment.add_argument("--manifest", type=Path, help="Исходный manifest.json; по умолчанию рядом с разметкой")
     for name, description in (("collect", "Собрать и проанализировать новости один раз"),
                               ("watch", "Проверять ленты и анализировать новости по расписанию")):
         collection = commands.add_parser(name, help=description)
@@ -94,8 +95,9 @@ def main():
                 result = prepare_benchmark(store, args.output, args.size, args.seed)
         elif args.command == "evaluate-benchmark":
             from .benchmark import evaluate_benchmark
+            manifest = json.loads((args.manifest or args.file.with_name("manifest.json")).read_text(encoding="utf-8"))
             with args.file.open(encoding="utf-8") as corpus:
-                result = evaluate_benchmark([json.loads(line) for line in corpus if line.strip()], args.split)
+                result = evaluate_benchmark([json.loads(line) for line in corpus if line.strip()], args.split, manifest)
         elif args.command in {"collect", "watch"}:
             overrides = {}
             for item in args.feed or []:

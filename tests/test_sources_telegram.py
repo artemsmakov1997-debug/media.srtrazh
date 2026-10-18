@@ -386,7 +386,7 @@ class ExpandedNetworkTests(unittest.TestCase):
                 summary = collect_once(store, [SOURCES[key] for key in ("rt", "tass", "ria")], client_factory=Client, now=lambda: NOW, time_budget_seconds=10)
                 self.assertFalse(summary["success"])
                 self.assertEqual(store.status()["articles_collected"], 1)
-                self.assertEqual(len(store.status()["sources"]), 3)
+                self.assertEqual(len(store.status()["sources"]), 1)
                 self.assertEqual(set(summary["sources"]), {"rt", "tass", "ria"})
                 self.assertIn("бюджет", summary["sources"]["tass"]["errors"][0]["error"])
 

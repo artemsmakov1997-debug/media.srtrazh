@@ -123,24 +123,29 @@ def _score(tp, fp, fn):
             "f1": 2 * tp / (2 * tp + fp + fn) if 2 * tp + fp + fn else None}
 
 
-def evaluate_benchmark(records, split="development"):
+def evaluate_benchmark(records, split="development", manifest=None):
     if split not in {"development", "holdout"}:
         raise ValueError("Неизвестная часть корпуса.")
     seen, hashes, completed, pending, uncertain = set(), set(), 0, 0, 0
     by_category = {key: [0, 0, 0] for key in sorted(SUPPORTED)}
     statuses = {key: [0, 0, 0] for key in ("needs_review", "quoted_candidate", "context_only")}
+    span_categories = {key: [0, 0, 0] for key in sorted(SUPPORTED)}
+    expected_documents = {row["id"]: row for row in (manifest or {}).get("documents", [])}
     exact, overlap, voice_correct, voice_total, errors = [0, 0, 0], [0, 0, 0], 0, 0, []
     for row in records:
-        if row.get("schema_version") != SCHEMA or row.get("split") not in {"development", "holdout"}:
+        if not isinstance(row, dict) or row.get("schema_version") != SCHEMA or row.get("split") not in {"development", "holdout"} or not isinstance(row.get("id"), str):
             raise ValueError("Ожидается документ подготовленного проверочного корпуса.")
         if row["id"] in seen:
             raise ValueError("Повторяющийся id корпуса.")
         seen.add(row["id"])
+        original = expected_documents.get(row["id"])
+        if manifest is not None and (not original or original["split"] != row["split"]):
+            raise ValueError("Документ или часть корпуса не соответствует исходному манифесту.")
         if row["split"] != split:
             continue
         result = analyze(row["document"])
         digest = result["document"]["sha256"]
-        if digest != row.get("provenance", {}).get("sha256") or digest in hashes:
+        if digest != row.get("provenance", {}).get("sha256") or digest in hashes or (original and digest != original["sha256"]):
             raise ValueError("Изменён оригинал или повторяется документ; разметку нужно проверить заново.")
         hashes.add(digest)
         if row.get("fully_annotated") is not True:
@@ -154,8 +159,10 @@ def evaluate_benchmark(records, split="development"):
         if not isinstance(gold, list):
             raise ValueError("Нужен список размеченных фрагментов.")
         for span in gold:
+            if not isinstance(span, dict):
+                raise ValueError("Некорректный фрагмент разметки.")
             field, start, end = span.get("field"), span.get("start"), span.get("end")
-            value = row["document"].get(field, "")
+            value = row["document"].get(field, "") if isinstance(field, str) else ""
             if (field not in {"title", "text"} or type(start) is not int or type(end) is not int
                     or not 0 <= start < end <= len(value) or span.get("quote") != value[start:end]
                     or span.get("category") not in SUPPORTED or span.get("status") not in {*statuses, "uncertain"}):
@@ -166,7 +173,9 @@ def evaluate_benchmark(records, split="development"):
         if result["summary"]["findings_truncated"]:
             raise ValueError("Усечённый анализ нельзя включать в оценку.")
         completed += 1
-        predicted = [dict(e, category=f["category"], status=f["status"]) for f in result["findings"]
+        if len({(s["field"], s["start"], s["end"], s["category"], s["status"]) for s in gold}) != len(gold):
+            raise ValueError("Повторяющиеся фрагменты разметки.")
+        predicted = [dict(e, category=f["category"], status=f["status"], rule_id=f["rule_id"]) for f in result["findings"]
                      if f["category"] in SUPPORTED for e in f["evidence"]]
         predicted = list({(p["field"], p["start"], p["end"], p["category"], p["status"]): p for p in predicted}.values())
         labels = {p["category"] for p in predicted if p["status"] == "needs_review"}
@@ -199,25 +208,32 @@ def evaluate_benchmark(records, split="development"):
             strict += int(same_voice and iou == 1)
             if same_voice:
                 statuses[target["status"]][0] += 1
+                span_categories[target["category"]][0] += 1
             else:
                 statuses[pred["status"]][1] += 1
                 statuses[target["status"]][2] += 1
+                span_categories[pred["category"]][1] += 1
+                span_categories[target["category"]][2] += 1
         for pi, pred in enumerate(predicted):
             if pi not in used_p:
                 statuses[pred["status"]][1] += 1
+                span_categories[pred["category"]][1] += 1
         for gi, target in enumerate(gold):
             if gi not in used_g:
                 statuses[target["status"]][2] += 1
+                span_categories[target["category"]][2] += 1
         for count, correct in ((exact, strict), (overlap, hit)):
             count[0] += correct; count[1] += len(predicted) - correct; count[2] += len(gold) - correct
         if len(errors) < 200 and (hit != len(gold) or hit != len(predicted)):
             errors.append({"id": row["id"], "url": row["document"].get("url"), "expected": gold, "predicted": predicted})
     if not hashes:
         raise ValueError("В файле нет документов выбранной части корпуса.")
+    pending += sum(row["split"] == split and row["id"] not in seen for row in expected_documents.values())
     return {"algorithm_version": VERSION, "split": split, "reviewed": completed, "pending": pending,
             "unresolved": uncertain, "status": "awaiting_human_review" if not completed else "partial" if pending or uncertain else "reviewed",
             "metrics": {"document_category_author": {key: _score(*value) for key, value in by_category.items()},
                         "exact_spans_with_status": _score(*exact), "overlap_iou_0.5_with_status": _score(*overlap),
                         "by_status": {key: _score(*value) for key, value in statuses.items()},
+                        "spans_by_category": {key: _score(*value) for key, value in span_categories.items()},
                         "voice_accuracy_on_matched_spans": voice_correct / voice_total if voice_total else None} if completed else None,
             "errors": errors, "note": "Метки подтверждены указанным проверяющим; один человек и диагностическая выборка не устанавливают объективную истину или общую точность для всех СМИ."}
