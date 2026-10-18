@@ -106,13 +106,12 @@ jobs:
           Path('/tmp/review-corpus/audit-summary.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))
           message=json.dumps(audit,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice title=Corpus audit::'+message)
-          # GitHub check annotations truncate large messages; send bounded parts.
-          documents=m.pop('documents')
+          # Full originals/manifest stay in the artifact; keep notices concise.
+          import hashlib
+          m.pop('documents')
+          m['manifest_sha256']=hashlib.sha256(Path('/tmp/review-corpus/manifest.json').read_bytes()).hexdigest()
           header=json.dumps(m,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice title=Review manifest header::'+header)
-          for index in range(0,len(documents),15):
-              chunk=json.dumps(documents[index:index+15],ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
-              print('::notice title=Review manifest part '+str(index//15)+'::'+chunk)
           PY
       - name: Upload review corpus and quality audit
         if: github.event_name == 'workflow_dispatch' && inputs.benchmark

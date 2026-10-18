@@ -1,0 +1,83 @@
+{
+  "before": {
+    "collected": 5400,
+    "undated": 516,
+    "future_dated": 0,
+    "undated_by_source": {
+      "tass_telegram": 28,
+      "ria_telegram": 30,
+      "interfax_telegram": 1,
+      "kommersant_telegram": 10,
+      "vedomosti_telegram": 13,
+      "rbc_telegram": 12,
+      "izvestia_telegram": 85,
+      "rg_telegram": 56,
+      "meduza_telegram": 7,
+      "novayagazeta_telegram": 23,
+      "fontanka_telegram": 24,
+      "currenttime_telegram": 29,
+      "dw_telegram": 25,
+      "bbc_telegram": 25,
+      "aif_telegram": 39,
+      "inosmi_telegram": 8,
+      "oldlentach_telegram": 17,
+      "smotri_telegram": 63,
+      "mediazona_telegram": 21
+    }
+  },
+  "after": {
+    "collected": 5400,
+    "undated": 0,
+    "future_dated": 0,
+    "undated_by_source": {}
+  },
+  "benchmark": {
+    "size": 240,
+    "splits": {
+      "holdout": 80,
+      "development": 160
+    },
+    "platforms": {
+      "telegram": 129,
+      "website": 111
+    },
+    "sources": {
+      "ria_telegram": 6,
+      "inosmi": 7,
+      "oldlentach_telegram": 6,
+      "rbc_telegram": 7,
+      "tass_telegram": 6,
+      "izvestia": 5,
+      "interfax": 11,
+      "meduza": 10,
+      "currenttime_telegram": 8,
+      "mediazona_telegram": 7,
+      "interfax_telegram": 6,
+      "novayagazeta": 11,
+      "ria": 9,
+      "aif": 9,
+      "rt": 10,
+      "rg": 10,
+      "fontanka_telegram": 6,
+      "novayagazeta_telegram": 7,
+      "kommersant_telegram": 8,
+      "rg_telegram": 7,
+      "dw": 7,
+      "meduza_telegram": 7,
+      "izvestia_telegram": 7,
+      "currenttime": 8,
+      "aif_telegram": 7,
+      "rt_telegram": 2,
+      "vedomosti": 8,
+      "dw_telegram": 6,
+      "inosmi_telegram": 6,
+      "smotri_telegram": 4,
+      "bbc_telegram": 8,
+      "vedomosti_telegram": 8,
+      "bbc": 6
+    },
+    "duplicates_excluded": 40,
+    "excluded_known_development": 6
+  },
+  "undated_examples": {}
+}

@@ -389,6 +389,10 @@ class ExpandedNetworkTests(unittest.TestCase):
                 self.assertEqual(len(store.status()["sources"]), 1)
                 self.assertEqual(set(summary["sources"]), {"rt", "tass", "ria"})
                 self.assertIn("бюджет", summary["sources"]["tass"]["errors"][0]["error"])
+                clock.return_value = 0
+                second = collect_once(store, [SOURCES[key] for key in ("rt", "tass", "ria")], client_factory=Client, now=lambda: NOW, time_budget_seconds=10)
+                self.assertEqual(second["sources"]["tass"]["fetched"], 1)
+                self.assertEqual(store.status()["articles_collected"], 2)
 
     def test_crawl_delay_longer_than_deadline_is_deferred_without_sleep(self):
         from urllib.robotparser import RobotFileParser
