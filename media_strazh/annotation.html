@@ -30,13 +30,14 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),categories={fear:'Запугивание',emotional_evaluation:'Эмоциональная оценка',enemy_image:'Образ врага',exaggeration:'Преувеличение',generalization:'Обобщение',appeal_to_authority:'Ссылка на авторитет',vague_source:'Размытый источник',oversimplification:'Упрощение',clickbait:'Кликбейт',euphemism_dysphemism:'Эвфемизмы и дисфемизмы'};
 for(const [id,label] of Object.entries(categories)){$('category').append(new Option(label,id));}
-let rows=[],index=0,selected=null,key='',dirty=false;
+let rows=[],index=0,selected=null,key='',dirty=false,fileVersion=0;
 const message=text=>$('message').textContent=text;
 const current=()=>rows[index];
 function save(){
  if(!rows.length)return;
+ current().annotation_changed_at=new Date().toISOString();
  dirty=true;
- try{localStorage.setItem(key,JSON.stringify(rows.map(r=>({id:r.id,sha256:r.provenance.sha256,spans:r.spans,labels:r.labels,fully_annotated:r.fully_annotated,reviewer:r.reviewer,reviewed_at:r.reviewed_at,note:r.note||''}))));}
+ try{localStorage.setItem(key,JSON.stringify(rows.map(r=>({id:r.id,sha256:r.provenance.sha256,spans:r.spans,labels:r.labels,fully_annotated:r.fully_annotated,reviewer:r.reviewer,reviewed_at:r.reviewed_at,annotation_changed_at:r.annotation_changed_at,note:r.note||''}))));}
  catch(_){message('Браузер не смог сохранить прогресс. Скачайте JSONL сейчас.');}
 }
 function render(){
@@ -64,11 +65,12 @@ function capture(){
 document.addEventListener('selectionchange',capture);
 $('file').addEventListener('change',async event=>{try{
  const file=event.target.files[0];if(!file)return;if(file.size>30*1024*1024)throw Error('Файл превышает 30 МБ.');
- const next=(await file.text()).split(/\r?\n/).filter(line=>line.trim()).map(line=>JSON.parse(line));
+ const version=++fileVersion,text=await file.text();if(version!==fileVersion)return;
+ const next=text.split(/\r?\n/).filter(line=>line.trim()).map(line=>JSON.parse(line));
  if(!next.length||next.length>1000)throw Error('Ожидается от 1 до 1000 документов.');
  const ids=new Set();for(const r of next){if(r.schema_version!=='review-corpus-1.0'||typeof r.id!=='string'||ids.has(r.id)||!r.provenance?.sha256||typeof r.document?.text!=='string'||!Array.isArray(r.spans))throw Error('Неверный формат корпуса.');ids.add(r.id);}
  rows=next;index=0;key='media-strazh-annotations-v1:'+rows.map(r=>r.id+':'+r.provenance.sha256).sort().join('|');
- try{const saved=JSON.parse(localStorage.getItem(key)||'[]');for(const r of rows){const old=saved.find(x=>x.id===r.id&&x.sha256===r.provenance.sha256);if(old&&(!r.reviewed_at||(old.reviewed_at||'')>r.reviewed_at)){Object.assign(r,{spans:old.spans,labels:old.labels,fully_annotated:old.fully_annotated,reviewer:old.reviewer,reviewed_at:old.reviewed_at,note:old.note});}}}catch(_){}
+ try{const saved=JSON.parse(localStorage.getItem(key)||'[]');for(const r of rows){const old=saved.find(x=>x.id===r.id&&x.sha256===r.provenance.sha256);if(old&&((old.annotation_changed_at||old.reviewed_at||'')>(r.annotation_changed_at||r.reviewed_at||''))){Object.assign(r,{spans:old.spans,labels:old.labels,fully_annotated:old.fully_annotated,reviewer:old.reviewer,reviewed_at:old.reviewed_at,annotation_changed_at:old.annotation_changed_at,note:old.note});}}}catch(_){}
  $('reviewer').value=rows.find(r=>r.reviewer)?.reviewer||'';$('workspace').hidden=false;$('export').disabled=false;dirty=false;message('Файл открыт. Предсказания алгоритма не показываются.');render();
  }catch(error){message('Ошибка: '+error.message);}});
 $('add').addEventListener('click',()=>{if(!selected){message('Сначала выделите текст.');return;}const r=current(),span={...selected,category:$('category').value,status:$('voice').value};

@@ -10,6 +10,7 @@ from media_strazh.extraction import FeedEntry, extract_article, parse_feed
 from media_strazh.quality import collection_quality
 from media_strazh.sources import SOURCES, normalize_url
 from media_strazh.storage import Store
+from media_strazh.telegram import extract_post, parse_preview
 from test_collector import BODY, NOW, FakeNetwork, page
 
 
@@ -59,6 +60,20 @@ class CollectionQualityTests(unittest.TestCase):
             self.assertEqual([r['url'] for r in result],['https://ria.ru/new2','https://ria.ru/old'])
             store.fail(result[0],ValueError('temporary'),NOW)
             self.assertNotIn(result[0]['id'],[r['id'] for r in store.due('ria',NOW,2)])
+
+    def test_telegram_video_duration_does_not_hide_the_publication_time(self):
+        source=SOURCES['izvestia_telegram'];url='https://t.me/izvestia/253701'
+        html='<div data-post="izvestia/253701"><time class="message_video_duration">00:17</time><div class="tgme_widget_message_text">Сообщение о городских событиях.</div><a class="tgme_widget_message_date" href="'+url+'"><time datetime="2026-10-12T11:52:08+00:00"></time></a></div>'
+        entry=parse_preview(html,source)[0]
+        self.assertEqual(entry.published_at,'2026-10-12T11:52:08+00:00')
+        self.assertEqual(extract_post(html,url,source,entry)['document']['published_at'],entry.published_at)
+        other=html.replace('href="'+url+'"','href="https://t.me/izvestia/253702"')
+        self.assertEqual(parse_preview(other,source)[0].published_at,'')
+
+    def test_embedded_date_does_not_replace_the_post_footer(self):
+        source=SOURCES['aif_telegram'];url='https://t.me/aifonline/1'
+        html='<div data-post="aifonline/1"><div class="tgme_widget_message_text">Текст новости <time datetime="2000-01-01T00:00:00Z"></time></div><a class="tgme_widget_message_date" href="'+url+'"><time datetime="2026-10-10T09:00:00Z"></time></a></div>'
+        self.assertEqual(parse_preview(html,source)[0].published_at,'2026-10-10T09:00:00+00:00')
 
     def test_quality_distinguishes_partial_stale_and_never_checked_sources(self):
         with tempfile.TemporaryDirectory() as directory, Store(Path(directory)/'health.sqlite3') as store:

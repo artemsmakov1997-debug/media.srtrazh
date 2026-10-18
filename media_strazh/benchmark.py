@@ -153,8 +153,12 @@ def evaluate_benchmark(records, split="development", manifest=None):
             continue
         if not isinstance(row.get("reviewer"), str) or not row["reviewer"].strip():
             raise ValueError("У проверенного документа должен быть указан проверяющий.")
-        if set(row.get("annotation_categories") or []) != SUPPORTED:
+        categories = row.get("annotation_categories")
+        if not isinstance(categories, list) or any(not isinstance(c, str) for c in categories) or len(categories) != len(SUPPORTED) or set(categories) != SUPPORTED:
             raise ValueError("Проверены не все поддерживаемые категории.")
+        labels = row.get("labels")
+        if not isinstance(labels, list) or any(not isinstance(c, str) for c in labels) or len(set(labels)) != len(labels):
+            raise ValueError("Нужны явные метки документа; для проверенного отрицательного примера labels=[].")
         gold = row.get("spans")
         if not isinstance(gold, list):
             raise ValueError("Нужен список размеченных фрагментов.")
@@ -163,9 +167,10 @@ def evaluate_benchmark(records, split="development", manifest=None):
                 raise ValueError("Некорректный фрагмент разметки.")
             field, start, end = span.get("field"), span.get("start"), span.get("end")
             value = row["document"].get(field, "") if isinstance(field, str) else ""
-            if (field not in {"title", "text"} or type(start) is not int or type(end) is not int
+            if (not isinstance(field, str) or field not in {"title", "text"} or type(start) is not int or type(end) is not int
                     or not 0 <= start < end <= len(value) or span.get("quote") != value[start:end]
-                    or span.get("category") not in SUPPORTED or span.get("status") not in {*statuses, "uncertain"}):
+                    or not isinstance(span.get("category"), str) or span["category"] not in SUPPORTED
+                    or not isinstance(span.get("status"), str) or span["status"] not in {*statuses, "uncertain"}):
                 raise ValueError("Некорректные координаты, цитата, категория или голос разметки.")
         if any(span["status"] == "uncertain" for span in gold):
             uncertain += 1

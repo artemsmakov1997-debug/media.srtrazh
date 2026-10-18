@@ -95,6 +95,7 @@ def annotation_tool_ui(browser, base, errors, requests):
             page.goto(base + '/annotation-review-fixture.html')
             page.locator('#file').set_input_files({'name': 'development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': payload})
             page.locator('#workspace').wait_for(state='visible')
+            assert set(page.locator('#category option').evaluate_all('els => els.map(el => el.value)')) == set(rows[0]['annotation_categories'])
             assert page.locator('#source').is_hidden()
             assert page.locator('#bodyText').inner_text() == rows[0]['document']['text']
             page.locator('#reviewer').fill('Synthetic UI reviewer')
@@ -120,11 +121,15 @@ def annotation_tool_ui(browser, base, errors, requests):
             assert (span['start'], span['end'], span['quote']) == (2, 11, 'Все знают')
             assert reviewed[1]['fully_annotated'] and reviewed[1]['labels'] == []
             assert evaluate_benchmark(reviewed)['metrics']['exact_spans_with_status']['tp'] == 1
+            page.locator('#note').fill('Заметка после предыдущей выгрузки.')
+            page.locator('#reopen').click()
             page.reload()
-            page.locator('#file').set_input_files({'name': 'development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': payload})
+            page.locator('#file').set_input_files({'name': 'reviewed-development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': ('\n'.join(json.dumps(r,ensure_ascii=False) for r in reviewed)+'\n').encode()})
             page.locator('#workspace').wait_for(state='visible')
-            assert 'Проверено: 2 из 2' in page.locator('#progress').inner_text()
+            assert 'Проверено: 1 из 2' in page.locator('#progress').inner_text()
             assert page.locator('#spans li').count() == 1
+            page.locator('#next').click()
+            assert page.locator('#note').input_value() == 'Заметка после предыдущей выгрузки.'
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert page.locator('img').count() == 0
         finally:

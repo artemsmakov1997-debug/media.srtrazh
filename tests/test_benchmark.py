@@ -83,6 +83,7 @@ class BenchmarkTests(unittest.TestCase):
     def test_unresolved_invalid_and_incomplete_annotations_cannot_claim_accuracy(self):
         row=self.reviewed('Возмутительное решение.')
         with self.assertRaises(ValueError): evaluate_benchmark([dict(row,reviewer='')])
+        with self.assertRaises(ValueError): evaluate_benchmark([dict(row,labels=None)])
         changed=copy.deepcopy(row);changed['document']['text']='Изменённый оригинал.'
         with self.assertRaises(ValueError): evaluate_benchmark([changed])
         f=analyze(row['document'])['findings'][0];e=f['evidence'][0]
