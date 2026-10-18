@@ -123,6 +123,7 @@ def annotation_tool_ui(browser, base, errors, requests):
             assert evaluate_benchmark(reviewed)['metrics']['exact_spans_with_status']['tp'] == 1
             page.locator('#note').fill('Заметка после предыдущей выгрузки.')
             page.locator('#reopen').click()
+            page.once('dialog', lambda dialog: dialog.accept())
             page.reload()
             page.locator('#file').set_input_files({'name': 'reviewed-development.jsonl', 'mimeType': 'application/x-ndjson', 'buffer': ('\n'.join(json.dumps(r,ensure_ascii=False) for r in reviewed)+'\n').encode()})
             page.locator('#workspace').wait_for(state='visible')

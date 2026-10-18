@@ -104,7 +104,7 @@ def extract_post(html, url, source, entry):
     if post is None:
         raise ValueError("Текст запрошенной Telegram-публикации отсутствует в публичном предпросмотре.")
     document = {"title": "", "text": post["text"], "source": source.name,
-                "url": canonical, "published_at": post["entry"].published_at or entry.published_at}
+                "url": canonical, "published_at": post["entry"].published_at or timestamp(entry.published_at)}
     # Telegram has a single message body, not a separate editorial headline.
     # Do not duplicate its first sentence in title-only rhetorical rules.
     validate_document(document)

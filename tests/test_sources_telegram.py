@@ -28,7 +28,7 @@ def telegram_post(post_id, body="Новость: открыта библиоте
             f'<div class="tgme_widget_message_text js-message_text">{body}</div>'
             '<a class="tgme_widget_message_link_preview">Все знают: ужас и катастрофа — чужая карточка</a>'
             '<span class="tgme_widget_message_views">100 000</span>'
-            '<a class="tgme_widget_message_date"><time datetime="2026-10-11T12:00:00+03:00">12:00</time></a></div>')
+            f'<a class="tgme_widget_message_date" href="https://t.me/{channel}/{post_id}"><time datetime="2026-10-11T12:00:00+03:00">12:00</time></a></div>')
 
 
 class ExpandedSourceTests(unittest.TestCase):
