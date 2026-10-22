@@ -1,0 +1,16 @@
+# МЕДИА.СТРАЖ — Слова имеют вес
+
+Готовый ролик: 25 секунд, 1080×1920, 30 кадров/с, со звуком.
+
+- [Скачать ролик MP4, 2,35 МБ](https://github.com/artemsmakov1997-debug/media.srtrazh/raw/refs/heads/download-video-20261023/video-download/media-strazh.mp4?download=1)
+- [Скачать весь комплект ZIP, 13,1 МБ](https://github.com/artemsmakov1997-debug/media.srtrazh/raw/refs/heads/download-video-20261023/video-download/media-strazh-video-kit.zip?download=1)
+- [Обложка](https://github.com/artemsmakov1997-debug/media.srtrazh/raw/refs/heads/download-video-20261023/video-download/cover.jpg?download=1)
+- [Текст публикации](share-copy.txt)
+
+Если MP4 открылся в видеоплеере, нажмите меню ⋮ → Скачать. На странице файла GitHub также можно нажать Download raw file (стрелка вниз).
+
+Комплект ZIP содержит готовый MP4, обложку, текст публикации, редактируемые исходники, инструкции и сведения об источниках музыки и шрифтов.
+
+Эта отдельная ветка предназначена для скачивания. Объединять её с main для получения ролика не требуется.
+
+![Обложка ролика](cover.jpg)
