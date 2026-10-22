@@ -8,7 +8,7 @@ import re
 
 from .rules import RULES
 
-VERSION = "rules-0.8.0"
+VERSION = "rules-0.8.1"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -170,19 +170,101 @@ LITERAL_ATTACK_CONTEXT = re.compile(
     r"металлург[а-яё]*|топлив[а-яё]*|коксохим[а-яё]*|литейн[а-яё]*)\b", re.I,
 )
 PERSON_REFERENCE = r"(?:президент[а-яё]*|политик[а-яё]*|депутат[а-яё]*|министр[а-яё]*|люд[а-яё]*|граждан[а-яё]*|оппонент[а-яё]*)"
+POLITICAL_ACTOR = (
+    r"(?:" + PERSON_REFERENCE + r"|человек[а-яё]*|чиновник[а-яё]*|лидер[а-яё]*|"
+    r"правительств[а-яё]*|власт[а-яё]*|режим[а-яё]*|оппозиц[а-яё]*|сенат[а-яё]*|"
+    r"конгресс[а-яё]*|губернатор[а-яё]*|мэр[а-яё]*|(?:евро)?парламент[а-яё]*|"
+    r"Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|"
+    r"Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*)"
+)
+POLITICAL_ACTOR_CONTEXT = re.compile(r"\b" + POLITICAL_ACTOR + r"\b", re.I)
+LITERAL_PEST_CONTEXT = re.compile(
+    r"\b(?:клоп[а-яё]*|блох[а-яё]*|таракан[а-яё]*|комар[а-яё]*|личинк[а-яё]*|"
+    r"гостиниц[а-яё]*|гостиничн[а-яё]*\s+номер[а-яё]*|депо|метрополитен[а-яё]*)\b", re.I,
+)
+LITERAL_PEST_ACTIVITY = re.compile(
+    r"\b(?:насеком[а-яё]*|беспозвоночн[а-яё]*|членистоног[а-яё]*)\s*,?\s*"
+    r"(?:обита[а-яё]*|живут|размножа[а-яё]*|опыля[а-яё]*|собран[а-яё]*|нов[а-яё]*\s+вид[а-яё]*)\b|"
+    r"\b(?:принести|прин[её]с[а-яё]*|занести|зан[её]с[а-яё]*)\b[^.!?\n]{0,80}"
+    r"\bнасеком[а-яё]*\b[^.!?\n]{0,40}\bдомой\b", re.I,
+)
 
 
-def _human_attack_context(text, start, end, sentence_span, event_context):
+def _direct_person_metaphor(text, start, end, sentence_span):
+    """A nearby official alone is not the target of every noun in the report."""
+    prefix = text[max(sentence_span["start"], start - 140):start]
+    suffix = text[end:min(len(text), end + 140)]
+    names = r"(?:\s+(?-i:[А-ЯЁ][а-яё-]+)){0,2}"
+    copula = (r"\b" + POLITICAL_ACTOR + names +
+              r"\s*(?:[—-]|это|назвали|называют|считают|(?=не\s))\s*(?:не\s+)?[«\"“]?\s*$")
+    naming = (r"\b(?:назва[а-яё]*|называ[а-яё]*|счита[а-яё]*)\s+"
+              r"(?:[а-яё-]+\s+){0,2}" + POLITICAL_ACTOR + names + r"\s*[«\"“]?\s*$")
+    reverse = (r"^\s*[»\"”]?\s+(?:назва[а-яё]*|называ[а-яё]*|счита[а-яё]*)\s+"
+               r"(?:[а-яё-]+\s+){0,2}" + POLITICAL_ACTOR + r"\b")
+    return bool(re.search(copula, prefix, re.I) or re.search(naming, prefix, re.I)
+                or re.search(reverse, suffix, re.I))
+
+
+def _psychological_label_context(text, start, end, sentence_span, event_context):
+    sentence = sentence_span["text"]
+    if LITERAL_CLINICAL_CONTEXT.search(sentence) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+        return False
+    if re.match(r"истерик", text[start:end], re.I):
+        prefix = text[max(sentence_span["start"], start - 100):start]
+        # Reported distress, including inside quotes, is not a political label.
+        # This does not suppress the evaluative phrase «закатил истерику».
+        if re.search(
+            r"\b(?:начал[а-яё]*|случил[а-яё]*|возник[а-яё]*|произош[а-яё]*|пережи[а-яё]*|"
+            r"испытыва[а-яё]*|страда[а-яё]*\s+от|приступ[а-яё]*|"
+            r"впал[а-яё]*\s+в|дов[её]л[а-яё]*\s+до)\s+(?:[а-яё-]+\s+){0,3}$|"
+            r"\bу\s+(?:[а-яё-]+\s+){1,4}$", prefix, re.I,
+        ):
+            return False
+    if POLITICAL_ACTOR_CONTEXT.search(sentence):
+        return True
+    # Resolve only a nearby pronoun in this paragraph or the paired field;
+    # geography or an unrelated party name elsewhere cannot supply a target.
+    paragraph_start = max(text.rfind("\n", 0, sentence_span["start"]) + 1,
+                          sentence_span["start"] - 200)
+    previous = text[paragraph_start:sentence_span["start"]] + "\n" + event_context
+    return bool(re.search(r"\b(?:он|она|они|его|её|ее|их)\b", sentence, re.I)
+                and POLITICAL_ACTOR_CONTEXT.search(previous))
+
+
+def _human_attack_context(text, start, end, sentence_span, event_context, require_actor=False):
     sentence = sentence_span["text"]
     if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
         return False
     nearby = text[max(0, start - 900):min(len(text), end + 200)] + "\n" + event_context
-    prefix = text[max(sentence_span["start"], start - 100):start]
-    direct = bool(re.search(r"\b" + PERSON_REFERENCE + r"\s*(?:[—:-]|это|назвали|называют|считают)\s*$", prefix, re.I))
+    if require_actor:
+        direct = _direct_person_metaphor(text, start, end, sentence_span)
+    else:
+        prefix = text[max(sentence_span["start"], start - 100):start]
+        direct = bool(re.search(r"\b" + PERSON_REFERENCE + r"\s*(?:[—:-]|это|назвали|называют|считают)\s*$", prefix, re.I))
     paragraph_start = max(text.rfind("\n", 0, start) + 1, start - 400)
     literal_scope = text[paragraph_start:sentence_span["start"] + len(sentence)]
     if LITERAL_ATTACK_CONTEXT.search(literal_scope) and not direct:
         return False
+    if require_actor:
+        if (LITERAL_PEST_CONTEXT.search(literal_scope) or LITERAL_PEST_ACTIVITY.search(sentence)) and not direct:
+            return False
+        if direct:
+            return True
+        if not POLITICAL_ACTOR_CONTEXT.search(nearby):
+            return False
+        # For biological nouns, an official in the same report still does not
+        # establish a human target. Require a derogatory modifier or human
+        # behaviour attached to the noun. «Тварь»/«суетливое существо» retain
+        # their separate, ambiguous personal-insult reading after literal guards.
+        phrase = text[start:end]
+        if re.search(r"\b(?:твар[а-яё]*|суетлив[а-яё]*|киевск[а-яё]*|наркотическ[а-яё]*|тифозн[а-яё]*)\b", phrase, re.I):
+            return True
+        tail = text[end:sentence_span["start"] + len(sentence)]
+        return bool(re.match(
+            r"\s*(?:(?:вновь|снова|уже|теперь|якобы)\s+){0,2}"
+            r"(?:уговарива[а-яё]*|обсужда[а-яё]*|заявля[а-яё]*|призыва[а-яё]*|"
+            r"проголосова[а-яё]*|правят|лгут|труслив[а-яё]*)\b", tail, re.I,
+        ))
     return direct or bool(POLITICAL_CONTEXT.search(nearby))
 
 
@@ -193,6 +275,10 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "psychological_label":
+        return _psychological_label_context(text, start, end, sentence_span, event_context)
+    if rule.context_requirement == "human_pest_metaphor":
+        return _human_attack_context(text, start, end, sentence_span, event_context, require_actor=True)
     if rule.context_requirement == "human_attack":
         return _human_attack_context(text, start, end, sentence_span, event_context)
     if rule.context_requirement == "bogus_nickname":
