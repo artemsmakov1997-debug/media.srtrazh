@@ -827,6 +827,22 @@ def pro_business_navigation_ui(browser, base):
         analysis_back_box = page.locator(".site-header .header-back").bounding_box()
         analysis_zoom = page.evaluate("getComputedStyle(document.body).zoom")
         page.goto(base + "/index.html")
+        # The favicon is shared by all public pages and rendered at every
+        # standard browser / PWA size, including the vector version.
+        assert page.locator('link[rel="icon"][type="image/svg+xml"]').get_attribute("href").endswith(
+            "favicon.svg?v=focus1")
+        svg_icon = (site / "favicon.svg").read_text(encoding="utf-8")
+        assert '#13cde0' in svg_icon and '#f7f8fa' in svg_icon and '#000' in svg_icon
+        for icon_name, size in (
+            ("favicon-16x16.png", 16), ("favicon-32x32.png", 32),
+            ("apple-touch-icon.png", 180), ("android-chrome-192x192.png", 192),
+            ("android-chrome-512x512.png", 512),
+        ):
+            data = (site / icon_name).read_bytes()
+            assert data[:8] == bytes.fromhex("89504e470d0a1a0a"), icon_name
+            assert int.from_bytes(data[16:20], "big") == size, icon_name
+            assert int.from_bytes(data[20:24], "big") == size, icon_name
+        assert (site / "favicon.ico").read_bytes().startswith(bytes.fromhex("00000100"))
         # The public page background, navigation and footer are unchanged.
         # Only individual content blocks have brighter layered surfaces.
         assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg-body').trim()") == "#05070b"
