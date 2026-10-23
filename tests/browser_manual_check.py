@@ -30,6 +30,7 @@ import test_event_terminology
 import test_oct15_rhetoric
 import test_hostile_rhetoric
 import test_context_precision
+import test_historical_juxtaposition
 from browser_fixtures import business_evidence_fixture
 
 
@@ -47,7 +48,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -62,6 +63,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_oct15_rhetoric.OctoberRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_hostile_rhetoric.HostileRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_context_precision.ContextPrecisionTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_historical_juxtaposition.HistoricalJuxtapositionTests),
     ])
     try:
         output = io.StringIO()
@@ -334,6 +336,55 @@ def context_precision_ui(browser, base, site, errors, requests):
                     page.locator("#manualDownload").click()
                 assert json.loads(Path(download_info.value.path()).read_text()) == expected
                 page.unroute("**/data/analysis.json")
+        finally:
+            context.close()
+
+
+def historical_juxtaposition_ui(browser, base, site, errors, requests):
+    """The same multi-passage finding is visible in automatic and manual views."""
+    text = test_historical_juxtaposition.USER_TEXT
+    expected = analyze({"text": text})
+    finding = expected["findings"][0]
+    quotes = [e["quote"] for e in finding["evidence"]]
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width": 375 if mobile else 1280, "height": 812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            snapshot = json.loads((site / "data/analysis.json").read_text())
+            item = copy.deepcopy(snapshot["articles"][0])
+            item.update(title="Сопоставление заявлений", summary=expected["summary"], findings=expected["findings"],
+                        display_excerpt=text, findings_omitted=0)
+            snapshot["articles"] = [item]
+            page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+            page.goto(base + "/analysis.html")
+            page.locator(".auto-details-button").click()
+            page.locator("#automaticModal").wait_for(state="visible")
+            assert page.locator("#automaticModal mark").all_text_contents() == quotes
+            assert "Найдено фрагментов для проверки: 4" in page.locator(".publication > .badge").inner_text()
+            mark = page.locator("#automaticModal mark").nth(1)
+            mark.tap() if mobile else mark.hover()
+            page.locator("#automaticTooltip").wait_for(state="visible")
+            assert finding["explanation"] in page.locator("#automaticTooltip").inner_text()
+            page.locator("#automaticModalClose").click()
+            page.locator('[data-mode="manual"]').click()
+            page.locator("#manualText").fill(text)
+            page.locator("#manualSubmit").click()
+            page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+            assert page.locator("#manualTextEvidence").inner_text() == text
+            assert page.locator("#manualTextEvidence mark").all_text_contents() == quotes
+            mark = page.locator("#manualTextEvidence mark").nth(1)
+            mark.tap() if mobile else mark.hover()
+            page.locator("#manualTooltip").wait_for(state="visible")
+            assert finding["explanation"] in page.locator("#manualTooltip").inner_text()
+            assert page.locator("#manualWarnings p").count() == 2
+            with page.expect_download() as download:
+                page.locator("#manualDownload").click()
+            assert json.loads(Path(download.value.path()).read_text()) == expected
+            from urllib.parse import unquote
+            assert all(text not in unquote(url) and body is None for _, url, body in requests)
         finally:
             context.close()
 
@@ -1473,6 +1524,7 @@ def main():
             hostile_rhetoric_manual_ui(browser, base, errors, requests)
             terminology_layer_ui(browser, base, site, errors, requests)
             context_precision_ui(browser, base, site, errors, requests)
+            historical_juxtaposition_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)
