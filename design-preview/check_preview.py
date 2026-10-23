@@ -32,28 +32,41 @@ async def run(runtime, output):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(executable_path=__import__('shutil').which('chromium') or None, headless=True, args=['--no-sandbox'])
-            context = await browser.new_context(viewport={'width':1440, 'height':1000}, accept_downloads=True)
+            context = await browser.new_context(viewport={'width':1440, 'height':1000}, accept_downloads=True, reduced_motion='reduce')
             page = await context.new_page()
             page.on('pageerror', lambda error: results['errors'].append(str(error)))
             page.on('request', lambda request: results['external_requests'].append(request.url) if not request.url.startswith(base) else None)
             for width in [1440, 1280, 1100, 1099, 1024, 768, 390, 360, 320]:
                 await page.set_viewport_size({'width':width, 'height':1000 if width >= 768 else 844})
+                await page.goto(prefix+'before.html', wait_until='networkidle')
+                await page.evaluate('document.fonts.ready')
+                await page.wait_for_selector('.publication')
+                original = await page.evaluate("""() => ({
+                  zoom:getComputedStyle(document.body).zoom,
+                  header:document.querySelector('.site-header').innerHTML,
+                  modes:document.querySelector('.analysis-tabs').innerHTML,
+                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
+                })""")
+                if width in (1440, 390):
+                    await page.screenshot(path=str(output/f'before-{width}.png'))
                 await page.goto(prefix+'after.html', wait_until='networkidle')
                 await page.evaluate('document.fonts.ready')
                 await page.wait_for_selector('.publication')
                 measure = await page.evaluate("""() => ({width:innerWidth,scroll:document.documentElement.scrollWidth,zoom:getComputedStyle(document.body).zoom,firstResultY:document.querySelector('.publication').getBoundingClientRect().y,visible:[...document.querySelectorAll('.publication')].filter(e=>!e.hidden).length,total:document.querySelectorAll('.publication').length})""")
                 assert measure['scroll'] <= width, measure
-                assert measure['zoom'] == '1', measure
-                assert measure['visible'] == min(12, measure['total']), measure
-                assert (await page.locator('#selection').inner_text()).startswith('Найдено публикаций:')
+                preserved = await page.evaluate("""() => ({
+                  zoom:getComputedStyle(document.body).zoom,
+                  header:document.querySelector('.site-header').innerHTML,
+                  modes:document.querySelector('.analysis-tabs').innerHTML,
+                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
+                })""")
+                assert preserved == original, f'Original header or mode layout changed at {width}px'
+                assert measure['visible'] == measure['total'], measure
+                assert await page.locator('.page-heading,.manual-guidance,#listPagination,#sourceDetailsToggle').count() == 0
+                measure['original_header_and_modes'] = 'identical'
                 results['viewports'].append(measure)
                 if width in (1440, 390):
                     await page.screenshot(path=str(output/f'after-{width}.png'))
-                    await page.goto(prefix+'before.html', wait_until='networkidle')
-                    await page.wait_for_selector('.publication')
-                    await page.evaluate('document.fonts.ready')
-                    await page.wait_for_timeout(800)
-                    await page.screenshot(path=str(output/f'before-{width}.png'))
 
             await page.set_viewport_size({'width':1440, 'height':1000})
             await page.goto(prefix+'before.html', wait_until='networkidle')
@@ -66,15 +79,8 @@ async def run(runtime, output):
             assert await page.locator('.publication-title').all_text_contents() == before_rt
             await page.locator('#resetFilters').click()
             assert await page.locator('.publication').count() == before_count
-            assert await page.locator('.publication:visible').count() == min(12, before_count)
-            await page.locator('#previewMore').click()
-            assert await page.locator('.publication:visible').count() == min(24, before_count)
-            results['functional'].append('same data and filtered publications as original; reset; pagination')
-            await page.locator('#sourceDetailsToggle').click()
-            assert await page.locator('#updated').is_visible()
-            assert await page.locator('#totals').is_visible()
-            results['functional'].append('visible update/scope disclosure')
-            await page.locator('#sourceDetailsToggle').click()
+            assert await page.locator('.publication:visible').count() == before_count
+            results['functional'].append('same data and filtered publications as original; reset; original full list')
             await page.locator('.auto-details-button').first.click()
             assert await page.locator('#automaticModal').is_visible()
             await page.keyboard.press('Shift+Tab')
@@ -104,7 +110,7 @@ async def run(runtime, output):
             assert await page.locator('#manualSubmit').is_enabled()
             results['functional'].append('real Wasm analysis; exact Python/JSON parity; tooltip; edit; clear')
 
-            touch = await browser.new_context(viewport={'width':390,'height':844}, has_touch=True)
+            touch = await browser.new_context(viewport={'width':390,'height':844}, has_touch=True, reduced_motion='reduce')
             mobile = await touch.new_page()
             await mobile.goto(prefix+'after.html', wait_until='networkidle')
             assert not await mobile.locator('#filterPanel').get_attribute('open')

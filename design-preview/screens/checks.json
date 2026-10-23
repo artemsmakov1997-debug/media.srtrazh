@@ -3,79 +3,87 @@
     {
       "width": 1440,
       "scroll": 1440,
-      "zoom": "1",
-      "firstResultY": 495.875,
-      "visible": 12,
-      "total": 100
+      "zoom": "0.8",
+      "firstResultY": 300.515625,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 1280,
       "scroll": 1280,
-      "zoom": "1",
-      "firstResultY": 495.875,
-      "visible": 12,
-      "total": 100
+      "zoom": "0.8",
+      "firstResultY": 300.515625,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 1100,
       "scroll": 1100,
-      "zoom": "1",
-      "firstResultY": 495.875,
-      "visible": 12,
-      "total": 100
+      "zoom": "0.8",
+      "firstResultY": 300.515625,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 1099,
       "scroll": 1099,
       "zoom": "1",
-      "firstResultY": 495.875,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 376,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 1024,
       "scroll": 1024,
       "zoom": "1",
-      "firstResultY": 495.875,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 376,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 768,
       "scroll": 768,
       "zoom": "1",
-      "firstResultY": 539.875,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 421,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 390,
       "scroll": 390,
       "zoom": "1",
-      "firstResultY": 414.578125,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 329,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 360,
       "scroll": 360,
       "zoom": "1",
-      "firstResultY": 414.578125,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 329,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     },
     {
       "width": 320,
       "scroll": 320,
       "zoom": "1",
-      "firstResultY": 412.078125,
-      "visible": 12,
-      "total": 100
+      "firstResultY": 339,
+      "visible": 100,
+      "total": 100,
+      "original_header_and_modes": "identical"
     }
   ],
   "functional": [
-    "same data and filtered publications as original; reset; pagination",
-    "visible update/scope disclosure",
+    "same data and filtered publications as original; reset; original full list",
     "original evidence modal; focus containment and restoration",
     "real Wasm analysis; exact Python/JSON parity; tooltip; edit; clear",
     "mobile filter disclosure; empty filter; touch tooltip; warnings",
