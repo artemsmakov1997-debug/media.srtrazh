@@ -6,9 +6,9 @@ import hashlib
 import json
 import re
 
-from .rules import RULES
+from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.8.0"
+VERSION = "rules-0.8.2"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -35,7 +35,32 @@ INFORMATIONAL = {"event_terminology", "actor_terminology"}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
-COMPILED_RULES = [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in RULES]
+COMPILED_RULES = [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in RULES
+                  if rule.context_requirement != "historical_juxtaposition"]
+HISTORICAL_ANCHOR = re.compile(HISTORICAL_JUXTAPOSITION.pattern, re.I)
+# A name/date alone is insufficient. The structural pass requires at least two
+# recurring themes in a nearby current statement and a historical statement.
+PARALLEL_THEMES = {
+    "territory": ("территории и границы", re.compile(r"\b(?:территори|границ|земл|Судет|аннекси)[а-яё]*\b", re.I)),
+    "historical_entitlement": ("историческая принадлежность или справедливость", re.compile(
+        r"\bисторическ[а-яё]*\s+(?:Росси|родин|земл|территори|прав|справедливост)[а-яё]*\b", re.I)),
+    "population_protection": ("защита населения", re.compile(
+        r"\b(?:спас[а-яё]*|защит[а-яё]*|защищ[а-яё]*)\b.{0,65}\b(?:люд[а-яё]*|немц[а-яё]*|народ[а-яё]*|населени[а-яё]*|соотечественник[а-яё]*|граждан[а-яё]*)\b|"
+        r"\b(?:люд[а-яё]*|немц[а-яё]*|народ[а-яё]*|населени[а-яё]*|соотечественник[а-яё]*|граждан[а-яё]*)\b.{0,65}\b(?:спас[а-яё]*|защит[а-яё]*|защищ[а-яё]*)\b|"
+        r"\bпротив\s+(?:наших\s+людей|населени[а-яё]*|наш[а-яё]*\s+(?:граждан[а-яё]*|народ[а-яё]*))\b", re.I)),
+    "security": ("угроза безопасности", re.compile(r"\b(?:угроз[а-яё]*|безопасност[а-яё]*)\b", re.I)),
+    "national_unity": ("воссоединение народа", re.compile(
+        r"\b(?:воссоединени[а-яё]*|(?:единств[а-яё]*|объединени[а-яё]*)\s+народ[а-яё]*)\b", re.I)),
+}
+PARALLEL_DISTANCE = 1800
+PARALLEL_NEIGHBOURS = 5
+REJECTED_PARALLEL = re.compile(
+    r"\b(?:аналог[а-яё]*|сравнен[а-яё]*|сопоставлен[а-яё]*|параллел[а-яё]*)\b.{0,90}"
+    r"\b(?:некорректн[а-яё]*|неуместн[а-яё]*|несостоятельн[а-яё]*|ошибочн[а-яё]*|не\s+доказыва[а-яё]*)\b|"
+    r"\b(?:некорректн[а-яё]*|неуместн[а-яё]*|нельзя|не\s+следует)\b.{0,65}"
+    r"\b(?:сравнива[а-яё]*|сопоставля[а-яё]*|аналог[а-яё]*|параллел[а-яё]*)\b|"
+    r"\b(?:учебн[а-яё]*\s+пример|разбор\s+при[её]ма)\b.{0,65}\b(?:аналог[а-яё]*|сопоставлен[а-яё]*)\b", re.I,
+)
 TITLE_CERTAINTY = re.compile(r"\b(?:доказали|доказано|однозначно|безусловно|гарантированно)\b", re.I)
 BODY_UNCERTAINTY = re.compile(
     r"\b(?:возможн[а-яё]*\s+связ[а-яё]*|предварительн[а-яё]*\s+(?:результат[а-яё]*|данн[а-яё]*)|"
@@ -170,19 +195,101 @@ LITERAL_ATTACK_CONTEXT = re.compile(
     r"металлург[а-яё]*|топлив[а-яё]*|коксохим[а-яё]*|литейн[а-яё]*)\b", re.I,
 )
 PERSON_REFERENCE = r"(?:президент[а-яё]*|политик[а-яё]*|депутат[а-яё]*|министр[а-яё]*|люд[а-яё]*|граждан[а-яё]*|оппонент[а-яё]*)"
+POLITICAL_ACTOR = (
+    r"(?:" + PERSON_REFERENCE + r"|человек[а-яё]*|чиновник[а-яё]*|лидер[а-яё]*|"
+    r"правительств[а-яё]*|власт[а-яё]*|режим[а-яё]*|оппозиц[а-яё]*|сенат[а-яё]*|"
+    r"конгресс[а-яё]*|губернатор[а-яё]*|мэр[а-яё]*|(?:евро)?парламент[а-яё]*|"
+    r"Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|"
+    r"Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*)"
+)
+POLITICAL_ACTOR_CONTEXT = re.compile(r"\b" + POLITICAL_ACTOR + r"\b", re.I)
+LITERAL_PEST_CONTEXT = re.compile(
+    r"\b(?:клоп[а-яё]*|блох[а-яё]*|таракан[а-яё]*|комар[а-яё]*|личинк[а-яё]*|"
+    r"гостиниц[а-яё]*|гостиничн[а-яё]*\s+номер[а-яё]*|депо|метрополитен[а-яё]*)\b", re.I,
+)
+LITERAL_PEST_ACTIVITY = re.compile(
+    r"\b(?:насеком[а-яё]*|беспозвоночн[а-яё]*|членистоног[а-яё]*)\s*,?\s*"
+    r"(?:обита[а-яё]*|живут|размножа[а-яё]*|опыля[а-яё]*|собран[а-яё]*|нов[а-яё]*\s+вид[а-яё]*)\b|"
+    r"\b(?:принести|прин[её]с[а-яё]*|занести|зан[её]с[а-яё]*)\b[^.!?\n]{0,80}"
+    r"\bнасеком[а-яё]*\b[^.!?\n]{0,40}\bдомой\b", re.I,
+)
 
 
-def _human_attack_context(text, start, end, sentence_span, event_context):
+def _direct_person_metaphor(text, start, end, sentence_span):
+    """A nearby official alone is not the target of every noun in the report."""
+    prefix = text[max(sentence_span["start"], start - 140):start]
+    suffix = text[end:min(len(text), end + 140)]
+    names = r"(?:\s+(?-i:[А-ЯЁ][а-яё-]+)){0,2}"
+    copula = (r"\b" + POLITICAL_ACTOR + names +
+              r"\s*(?:[—-]|это|назвали|называют|считают|(?=не\s))\s*(?:не\s+)?[«\"“]?\s*$")
+    naming = (r"\b(?:назва[а-яё]*|называ[а-яё]*|счита[а-яё]*)\s+"
+              r"(?:[а-яё-]+\s+){0,2}" + POLITICAL_ACTOR + names + r"\s*[«\"“]?\s*$")
+    reverse = (r"^\s*[»\"”]?\s+(?:назва[а-яё]*|называ[а-яё]*|счита[а-яё]*)\s+"
+               r"(?:[а-яё-]+\s+){0,2}" + POLITICAL_ACTOR + r"\b")
+    return bool(re.search(copula, prefix, re.I) or re.search(naming, prefix, re.I)
+                or re.search(reverse, suffix, re.I))
+
+
+def _psychological_label_context(text, start, end, sentence_span, event_context):
+    sentence = sentence_span["text"]
+    if LITERAL_CLINICAL_CONTEXT.search(sentence) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+        return False
+    if re.match(r"истерик", text[start:end], re.I):
+        prefix = text[max(sentence_span["start"], start - 100):start]
+        # Reported distress, including inside quotes, is not a political label.
+        # This does not suppress the evaluative phrase «закатил истерику».
+        if re.search(
+            r"\b(?:начал[а-яё]*|случил[а-яё]*|возник[а-яё]*|произош[а-яё]*|пережи[а-яё]*|"
+            r"испытыва[а-яё]*|страда[а-яё]*\s+от|приступ[а-яё]*|"
+            r"впал[а-яё]*\s+в|дов[её]л[а-яё]*\s+до)\s+(?:[а-яё-]+\s+){0,3}$|"
+            r"\bу\s+(?:[а-яё-]+\s+){1,4}$", prefix, re.I,
+        ):
+            return False
+    if POLITICAL_ACTOR_CONTEXT.search(sentence):
+        return True
+    # Resolve only a nearby pronoun in this paragraph or the paired field;
+    # geography or an unrelated party name elsewhere cannot supply a target.
+    paragraph_start = max(text.rfind("\n", 0, sentence_span["start"]) + 1,
+                          sentence_span["start"] - 200)
+    previous = text[paragraph_start:sentence_span["start"]] + "\n" + event_context
+    return bool(re.search(r"\b(?:он|она|они|его|её|ее|их)\b", sentence, re.I)
+                and POLITICAL_ACTOR_CONTEXT.search(previous))
+
+
+def _human_attack_context(text, start, end, sentence_span, event_context, require_actor=False):
     sentence = sentence_span["text"]
     if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
         return False
     nearby = text[max(0, start - 900):min(len(text), end + 200)] + "\n" + event_context
-    prefix = text[max(sentence_span["start"], start - 100):start]
-    direct = bool(re.search(r"\b" + PERSON_REFERENCE + r"\s*(?:[—:-]|это|назвали|называют|считают)\s*$", prefix, re.I))
+    if require_actor:
+        direct = _direct_person_metaphor(text, start, end, sentence_span)
+    else:
+        prefix = text[max(sentence_span["start"], start - 100):start]
+        direct = bool(re.search(r"\b" + PERSON_REFERENCE + r"\s*(?:[—:-]|это|назвали|называют|считают)\s*$", prefix, re.I))
     paragraph_start = max(text.rfind("\n", 0, start) + 1, start - 400)
     literal_scope = text[paragraph_start:sentence_span["start"] + len(sentence)]
     if LITERAL_ATTACK_CONTEXT.search(literal_scope) and not direct:
         return False
+    if require_actor:
+        if (LITERAL_PEST_CONTEXT.search(literal_scope) or LITERAL_PEST_ACTIVITY.search(sentence)) and not direct:
+            return False
+        if direct:
+            return True
+        if not POLITICAL_ACTOR_CONTEXT.search(nearby):
+            return False
+        # For biological nouns, an official in the same report still does not
+        # establish a human target. Require a derogatory modifier or human
+        # behaviour attached to the noun. «Тварь»/«суетливое существо» retain
+        # their separate, ambiguous personal-insult reading after literal guards.
+        phrase = text[start:end]
+        if re.search(r"\b(?:твар[а-яё]*|суетлив[а-яё]*|киевск[а-яё]*|наркотическ[а-яё]*|тифозн[а-яё]*)\b", phrase, re.I):
+            return True
+        tail = text[end:sentence_span["start"] + len(sentence)]
+        return bool(re.match(
+            r"\s*(?:(?:вновь|снова|уже|теперь|якобы)\s+){0,2}"
+            r"(?:уговарива[а-яё]*|обсужда[а-яё]*|заявля[а-яё]*|призыва[а-яё]*|"
+            r"проголосова[а-яё]*|правят|лгут|труслив[а-яё]*)\b", tail, re.I,
+        ))
     return direct or bool(POLITICAL_CONTEXT.search(nearby))
 
 
@@ -193,6 +300,10 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "psychological_label":
+        return _psychological_label_context(text, start, end, sentence_span, event_context)
+    if rule.context_requirement == "human_pest_metaphor":
+        return _human_attack_context(text, start, end, sentence_span, event_context, require_actor=True)
     if rule.context_requirement == "human_attack":
         return _human_attack_context(text, start, end, sentence_span, event_context)
     if rule.context_requirement == "bogus_nickname":
@@ -519,6 +630,93 @@ def _status(evidence):
     return "needs_review"
 
 
+def _parallel_units(title, text):
+    """Bounded sentences/lines with original offsets, never normalized prose."""
+    units = []
+    base = 0
+    for field, value in (("title", title), ("text", text)):
+        for match in re.finditer(r"[^.!?\r\n]+[.!?]*", value):
+            part = match.group()
+            start = match.start() + len(part) - len(part.lstrip())
+            end = match.end() - len(part) + len(part.rstrip())
+            if start == end:
+                continue
+            sentence = value[start:end]
+            named_current = CURRENT_TARGET.search(sentence)
+            current = named_current
+            if current is None and POLITICAL_CONTEXT.search(sentence):
+                current = MODERN_CUE.search(sentence)
+            historical = HISTORICAL_ANCHOR.search(sentence)
+            allowed = len(sentence) <= 600 and not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+            themes = {key for key, (_, pattern) in PARALLEL_THEMES.items()
+                      if allowed and pattern.search(sentence)}
+            units.append({"field": field, "start": start, "end": end,
+                          "document_start": base + start, "document_end": base + end,
+                          "text": sentence, "themes": themes,
+                          "current": bool(allowed and current and not historical
+                                          and not HISTORICAL_LITERAL.search(sentence)),
+                          "historical": bool(allowed and historical and not named_current),
+                          "anchor_start": start + (historical or current).start() if historical or current else start,
+                          "anchor_end": start + (historical or current).end() if historical or current else end})
+        base += len(value) + 1
+    return units
+
+
+def _historical_juxtapositions(title, text, quotes):
+    """Suggest a relation between nearby passages, not a verdict about history.
+
+    Search at most five units either side and 1800 characters. Two matching
+    themes are needed in EACH pair. Publisher identity supplies no context.
+    """
+    units = _parallel_units(title, text)
+    values = {"title": title, "text": text}
+    rule = HISTORICAL_JUXTAPOSITION
+    for index, modern in enumerate(units):
+        if not modern["current"] or len(modern["themes"]) < 2:
+            continue
+        related, shared = [], set()
+        lower, upper = max(0, index - PARALLEL_NEIGHBOURS), min(len(units), index + PARALLEL_NEIGHBOURS + 1)
+        for other in range(lower, upper):
+            historical = units[other]
+            overlap = modern["themes"] & historical["themes"]
+            if not historical["historical"] or len(overlap) < 2:
+                continue
+            gap = max(modern["document_start"], historical["document_start"]) - min(
+                modern["document_end"], historical["document_end"])
+            if gap > PARALLEL_DISTANCE:
+                continue
+            # Another current story is a boundary; do not stitch unrelated leads.
+            if any(unit["current"] for unit in units[min(index, other) + 1:max(index, other)]):
+                continue
+            related.append(other)
+            shared.update(overlap)
+        if not related:
+            continue
+        members = [modern] + [units[i] for i in related]
+        first, last = min(index, *related), max(index, *related)
+        context = units[max(0, first - 1):min(len(units), last + 3)]
+        rejected = any(REJECTED_PARALLEL.search(unit["text"]) for unit in context)
+        # Quoted source statements do not mean their EDITORIAL arrangement was
+        # itself quoted. Only one common outer quote can attribute the relation.
+        quoted_relation = False
+        if len({member["field"] for member in members}) == 1:
+            field = modern["field"]
+            left = min(member["anchor_start"] for member in members)
+            right = max(member["anchor_end"] for member in members)
+            quoted_relation = any(a <= left and right <= b for a, b in quotes[field])
+        evidence = []
+        for member in members:
+            item = _evidence(member["field"], values[member["field"]],
+                             member["start"], member["end"], quotes[member["field"]])
+            item["context"]["historical_analogy"] = True
+            evidence.append(item)
+        yield {"rule_id": rule.id, "category": rule.category, "label": "Историческая аналогия",
+               "status": "context_only" if rejected else "quoted_candidate" if quoted_relation else "needs_review",
+               "explanation": rule.explanation + " Повторяющиеся темы: " +
+                              "; ".join(PARALLEL_THEMES[key][0] for key in sorted(shared)) + ".",
+               "review_question": rule.review_question, "evidence": evidence}
+
+
 def analyze(document):
     """Return exact spans relative to unchanged input, in Unicode code points."""
     title, text = validate_document(document)
@@ -563,6 +761,11 @@ def analyze(document):
                     })
         if informational:
             continue
+        for finding in _historical_juxtapositions(title, text, quotes):
+            if len(findings) >= MAX_FINDINGS:
+                truncated = True
+                break
+            findings.append(finding)
         # Co-occurrence is a review cue, never proof that the claims contradict.
         caveat = BODY_UNCERTAINTY.search(text)
         if caveat:
