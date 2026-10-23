@@ -40,6 +40,16 @@
   });
   describeFilters();
 
+  // The original viewer counts the whole filtered set; only its first page is visible here.
+  function describeResultCount() {
+    const status = byId('selection');
+    if (status.textContent.startsWith('Показано публикаций:')) {
+      status.textContent = status.textContent.replace('Показано публикаций:', 'Найдено публикаций:');
+    }
+  }
+  new MutationObserver(describeResultCount).observe(byId('selection'), {childList: true});
+  describeResultCount();
+
   byId('sourceDetailsToggle').addEventListener('click', () => {
     const hidden = !byId('sourceDetails').hidden;
     byId('sourceDetails').hidden = hidden;

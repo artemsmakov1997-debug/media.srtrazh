@@ -239,7 +239,7 @@ textarea { min-height: 300px; display: block; resize: vertical; }
   .brand { font-size: 12px; }
   .header-back { font-size: 11px; }
   h1 { font-size: 22px; }
-  .mode-card { font-size: 10.5px; }
+  .mode-card { font-size: 12px; white-space: normal; line-height: 1.45; }
   .snapshot-time { max-width: 145px; }
   .text-button { font-size: 10px; }
   .publication-actions { flex-wrap: wrap; }

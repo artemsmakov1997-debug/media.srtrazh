@@ -45,6 +45,7 @@ async def run(runtime, output):
                 assert measure['scroll'] <= width, measure
                 assert measure['zoom'] == '1', measure
                 assert measure['visible'] == min(12, measure['total']), measure
+                assert (await page.locator('#selection').inner_text()).startswith('Найдено публикаций:')
                 results['viewports'].append(measure)
                 if width in (1440, 390):
                     await page.screenshot(path=str(output/f'after-{width}.png'))
