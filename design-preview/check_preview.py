@@ -45,7 +45,7 @@ async def run(runtime, output):
                   zoom:getComputedStyle(document.body).zoom,
                   header:document.querySelector('.site-header').innerHTML,
                   modes:document.querySelector('.analysis-tabs').innerHTML,
-                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
+                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card'+(innerWidth>760?',#controls,#source,#platform,#marker':''))].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
                 })""")
                 if width in (1440, 390):
                     await page.screenshot(path=str(output/f'before-{width}.png'))
@@ -58,7 +58,7 @@ async def run(runtime, output):
                   zoom:getComputedStyle(document.body).zoom,
                   header:document.querySelector('.site-header').innerHTML,
                   modes:document.querySelector('.analysis-tabs').innerHTML,
-                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
+                  boxes:[...document.querySelectorAll('.site-header,.header-inner,.brand,.header-back,.analysis-tabs,.mode-card'+(innerWidth>760?',#controls,#source,#platform,#marker':''))].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,fontSize:s.fontSize,padding:s.padding,gap:s.gap};})
                 })""")
                 assert preserved == original, f'Original header or mode layout changed at {width}px'
                 assert measure['visible'] == measure['total'], measure
@@ -77,7 +77,7 @@ async def run(runtime, output):
             assert await page.locator('.publication').count() == before_count
             await page.select_option('#source', 'rt')
             assert await page.locator('.publication-title').all_text_contents() == before_rt
-            await page.locator('#resetFilters').click()
+            await page.select_option('#source', '')
             assert await page.locator('.publication').count() == before_count
             assert await page.locator('.publication:visible').count() == before_count
             results['functional'].append('same data and filtered publications as original; reset; original full list')

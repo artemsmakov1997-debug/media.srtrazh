@@ -35,17 +35,11 @@
 .preview-filter-summary { display: none; }
 #automaticPanel .preview-filter .controls { margin: 0; }
 .preview-filter-reset {
+  display: none;
   justify-self: start; min-height: 42px; padding: 8px 0; border: 0;
   background: transparent; color: var(--muted); font-size: 12px; cursor: pointer;
 }
 .preview-filter-reset:disabled { opacity: .55; cursor: default; }
-@media (min-width: 761px) {
-  .preview-filter-reset { grid-column: 1 / -1; min-height: 30px; }
-}
-@media (min-width: 1024px) {
-  #automaticPanel .controls { grid-template-columns: minmax(170px, 1fr) minmax(170px, 1fr) minmax(170px, 1fr) auto; }
-  .preview-filter-reset { grid-column: auto; }
-}
 @media (max-width: 760px) {
   /* Keep the existing header, main spacing and two full-size stacked mode buttons. */
   #automaticPanel { padding: 0; border: 0; border-radius: 0; background: transparent; }
@@ -68,7 +62,7 @@
   #automaticPanel .preview-filter .controls {
     padding: 16px; gap: 16px; border: 0; border-top: 1px solid #283442; border-radius: 0 0 12px 12px;
   }
-  .preview-filter-reset { min-height: 44px; font-size: 13px; }
+  .preview-filter-reset { display: block; min-height: 44px; font-size: 13px; }
   #automaticPanel .publication { margin: 12px 0; padding: 16px; border-radius: 12px; }
   .publication .publication-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .publication .publication-actions .auto-details-button, .publication .publication-actions .source-link {
