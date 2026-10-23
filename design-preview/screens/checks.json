@@ -7,7 +7,8 @@
       "firstResultY": 300.515625,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 1280,
@@ -16,7 +17,8 @@
       "firstResultY": 300.515625,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 1100,
@@ -25,7 +27,8 @@
       "firstResultY": 300.515625,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 1099,
@@ -34,7 +37,8 @@
       "firstResultY": 376,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 1024,
@@ -43,7 +47,8 @@
       "firstResultY": 376,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 768,
@@ -52,7 +57,8 @@
       "firstResultY": 376,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 390,
@@ -61,7 +67,8 @@
       "firstResultY": 329,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 360,
@@ -70,7 +77,8 @@
       "firstResultY": 329,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     },
     {
       "width": 320,
@@ -79,7 +87,8 @@
       "firstResultY": 339,
       "visible": 100,
       "total": 100,
-      "original_header_and_modes": "identical"
+      "original_header_and_modes": "identical",
+      "publication_dates": "original values, top right, no overlap or visible label"
     }
   ],
   "functional": [
@@ -88,7 +97,8 @@
     "real Wasm analysis; exact Python/JSON parity; tooltip; edit; clear",
     "mobile filter disclosure; empty filter; touch tooltip; warnings",
     "reduced motion has no running UI animation",
-    "before/after/split comparison and phone size"
+    "before/after/split comparison and phone size",
+    "missing publication date and long source with legal badges fit at 320px"
   ],
   "errors": [],
   "external_requests": []

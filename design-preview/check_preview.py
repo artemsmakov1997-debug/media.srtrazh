@@ -41,6 +41,8 @@ async def run(runtime, output):
                 await page.goto(prefix+'before.html', wait_until='networkidle')
                 await page.evaluate('document.fonts.ready')
                 await page.wait_for_selector('.publication')
+                original_dates = [text.removeprefix('Дата публикации: ')
+                                  for text in await page.locator('.publication > p.muted').all_text_contents()]
                 original = await page.evaluate("""() => ({
                   zoom:getComputedStyle(document.body).zoom,
                   header:document.querySelector('.site-header').innerHTML,
@@ -62,8 +64,22 @@ async def run(runtime, output):
                 })""")
                 assert preserved == original, f'Original header or mode layout changed at {width}px'
                 assert measure['visible'] == measure['total'], measure
+                dates = await page.locator('.publication').evaluate_all("""cards => cards.map(card => {
+                  const time=card.querySelector('.publication-time'),source=card.querySelector('.publication-meta'),title=card.querySelector('.publication-title');
+                  const c=card.getBoundingClientRect(),t=time.getBoundingClientRect(),s=source.getBoundingClientRect();
+                  const clock=time.querySelector('.publication-time-clock');
+                  return {value:time.querySelector('.publication-time-date').textContent+(clock?', '+clock.textContent:''),
+                    contained:t.left>=c.left&&t.right<=c.right&&t.top>=c.top,
+                    topRight:c.right-t.right<=24&&t.top-c.top<=24,
+                    beforeTitle:t.bottom<=title.getBoundingClientRect().top,
+                    sourceSeparate:s.right<=t.left,
+                    hiddenLabel:getComputedStyle(time.querySelector('.publication-time-context')).clipPath==='inset(50%)'};
+                })""")
+                assert [item['value'] for item in dates] == original_dates, 'Published time must stay unchanged'
+                assert all(all(item[key] for key in ['contained','topRight','beforeTitle','sourceSeparate','hiddenLabel']) for item in dates), (width, dates)
                 assert await page.locator('.page-heading,.manual-guidance,#listPagination,#sourceDetailsToggle').count() == 0
                 measure['original_header_and_modes'] = 'identical'
+                measure['publication_dates'] = 'original values, top right, no overlap or visible label'
                 results['viewports'].append(measure)
                 if width in (1440, 390):
                     await page.screenshot(path=str(output/f'after-{width}.png'))
@@ -149,6 +165,25 @@ async def run(runtime, output):
             await page.locator('[data-size="phone"]').click()
             assert await page.locator('#afterPane').evaluate('(e)=>e.getBoundingClientRect().width') == 390
             results['functional'].append('before/after/split comparison and phone size')
+
+            fixture = json.loads((ROOT/'design-preview/analysis/snapshot.json').read_text())
+            item = fixture['articles'][0]
+            item['published_at'] = None
+            item['source'] = 'Очень длинное название редакции для проверки переноса строк · Telegram'
+            marked_source = next(source for source in fixture['sources'] if source.get('publisher_id') == 'meduza')
+            item['source_id'] = marked_source['id']
+            fixture['articles'] = [item]
+            await page.route('**/data/analysis.json', lambda route: route.fulfill(json=fixture))
+            await page.set_viewport_size({'width':320,'height':844})
+            await page.goto(prefix+'after.html', wait_until='networkidle')
+            assert await page.locator('.publication-time-date').inner_text() == 'не указана'
+            assert await page.locator('.publication-time-clock').count() == 0
+            assert await page.locator('.legal-status-tag').count() > 0
+            assert await page.evaluate("""() => {
+              const card=document.querySelector('.publication'),time=card.querySelector('.publication-time').getBoundingClientRect();
+              return document.documentElement.scrollWidth<=innerWidth && [...card.querySelectorAll('.publication-meta,.legal-status-tag')].every(e=>e.getBoundingClientRect().right<=time.left);
+            }""")
+            results['functional'].append('missing publication date and long source with legal badges fit at 320px')
             assert not results['errors'], results['errors']
             assert not results['external_requests'], results['external_requests']
             await browser.close()
