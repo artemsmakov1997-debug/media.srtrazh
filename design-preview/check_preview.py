@@ -1,0 +1,159 @@
+"""Functional and viewport checks for the isolated design preview, without changing source pages."""
+import argparse
+import asyncio
+from http.server import ThreadingHTTPServer
+import importlib.util
+import json
+from pathlib import Path
+import sys
+import threading
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from media_strazh.analysis import analyze
+from media_strazh.browser import DEFAULT_RUNTIME, runtime_assets
+from playwright.async_api import async_playwright
+
+loader = importlib.util.spec_from_file_location('preview_server', ROOT / 'design-preview/serve.py')
+module = importlib.util.module_from_spec(loader)
+loader.loader.exec_module(module)
+
+
+async def run(runtime, output):
+    runtime_assets(runtime)
+    output.mkdir(parents=True, exist_ok=True)
+    server = ThreadingHTTPServer(('127.0.0.1', 0), module.make_handler(ROOT / 'design-preview/analysis/snapshot.json', runtime))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f'http://127.0.0.1:{server.server_port}'
+    prefix = base + '/design-preview/analysis/'
+    results = {'viewports': [], 'functional': [], 'errors': [], 'external_requests': []}
+    document = {'title': '', 'text': 'Все знают: нас ждёт неминуемая катастрофа. Представители киевского режима снова обвиняют всех вокруг.'}
+    expected = analyze(document)
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(executable_path=__import__('shutil').which('chromium') or None, headless=True, args=['--no-sandbox'])
+            context = await browser.new_context(viewport={'width':1440, 'height':1000}, accept_downloads=True)
+            page = await context.new_page()
+            page.on('pageerror', lambda error: results['errors'].append(str(error)))
+            page.on('request', lambda request: results['external_requests'].append(request.url) if not request.url.startswith(base) else None)
+            for width in [1440, 1280, 1100, 1099, 1024, 768, 390, 360, 320]:
+                await page.set_viewport_size({'width':width, 'height':1000 if width >= 768 else 844})
+                await page.goto(prefix+'after.html', wait_until='networkidle')
+                await page.evaluate('document.fonts.ready')
+                await page.wait_for_selector('.publication')
+                measure = await page.evaluate("""() => ({width:innerWidth,scroll:document.documentElement.scrollWidth,zoom:getComputedStyle(document.body).zoom,firstResultY:document.querySelector('.publication').getBoundingClientRect().y,visible:[...document.querySelectorAll('.publication')].filter(e=>!e.hidden).length,total:document.querySelectorAll('.publication').length})""")
+                assert measure['scroll'] <= width, measure
+                assert measure['zoom'] == '1', measure
+                assert measure['visible'] == min(12, measure['total']), measure
+                results['viewports'].append(measure)
+                if width in (1440, 390):
+                    await page.screenshot(path=str(output/f'after-{width}.png'))
+                    await page.goto(prefix+'before.html', wait_until='networkidle')
+                    await page.wait_for_selector('.publication')
+                    await page.evaluate('document.fonts.ready')
+                    await page.wait_for_timeout(800)
+                    await page.screenshot(path=str(output/f'before-{width}.png'))
+
+            await page.set_viewport_size({'width':1440, 'height':1000})
+            await page.goto(prefix+'before.html', wait_until='networkidle')
+            before_count = await page.locator('.publication').count()
+            await page.select_option('#source', 'rt')
+            before_rt = await page.locator('.publication-title').all_text_contents()
+            await page.goto(prefix+'after.html', wait_until='networkidle')
+            assert await page.locator('.publication').count() == before_count
+            await page.select_option('#source', 'rt')
+            assert await page.locator('.publication-title').all_text_contents() == before_rt
+            await page.locator('#resetFilters').click()
+            assert await page.locator('.publication').count() == before_count
+            assert await page.locator('.publication:visible').count() == min(12, before_count)
+            await page.locator('#previewMore').click()
+            assert await page.locator('.publication:visible').count() == min(24, before_count)
+            results['functional'].append('same data and filtered publications as original; reset; pagination')
+            await page.locator('#sourceDetailsToggle').click()
+            assert await page.locator('#updated').is_visible()
+            assert await page.locator('#totals').is_visible()
+            results['functional'].append('visible update/scope disclosure')
+            await page.locator('#sourceDetailsToggle').click()
+            await page.locator('.auto-details-button').first.click()
+            assert await page.locator('#automaticModal').is_visible()
+            await page.keyboard.press('Shift+Tab')
+            assert await page.evaluate('!!document.activeElement.closest("[role=dialog]")')
+            await page.keyboard.press('Escape')
+            assert not await page.locator('#automaticModal').is_visible()
+            assert await page.locator('.auto-details-button').first.evaluate('(e)=>document.activeElement===e')
+            results['functional'].append('original evidence modal; focus containment and restoration')
+            await page.locator('[data-mode="manual"]').click()
+            await page.locator('#manualText').fill(document['text'])
+            await page.screenshot(path=str(output/'manual-input-1440.png'))
+            await page.locator('#manualSubmit').click()
+            await page.wait_for_selector('#manualResult:visible', timeout=45000)
+            assert await page.locator('#manualTextEvidence mark').count() > 0
+            async with page.expect_download() as download_info:
+                await page.locator('#manualDownload').click()
+            download = await download_info.value
+            got = json.loads(Path(await download.path()).read_text())
+            assert got == expected, 'The preview must preserve Python/Wasm result parity.'
+            await page.locator('#manualTextEvidence mark').first.hover()
+            assert await page.locator('#manualTooltip').is_visible()
+            await page.screenshot(path=str(output/'manual-result-1440.png'))
+            await page.locator('#manualEdit').click()
+            assert await page.locator('#manualText').input_value() == document['text']
+            await page.locator('button[type="reset"]').click()
+            assert await page.locator('#manualText').input_value() == ''
+            assert await page.locator('#manualSubmit').is_enabled()
+            results['functional'].append('real Wasm analysis; exact Python/JSON parity; tooltip; edit; clear')
+
+            touch = await browser.new_context(viewport={'width':390,'height':844}, has_touch=True)
+            mobile = await touch.new_page()
+            await mobile.goto(prefix+'after.html', wait_until='networkidle')
+            assert not await mobile.locator('#filterPanel').get_attribute('open')
+            await mobile.locator('#filterPanel summary').click()
+            await mobile.select_option('#source', 'tass'); await mobile.select_option('#platform', 'website')
+            assert 'нет публикаций' in await mobile.locator('#articles').inner_text()
+            await mobile.locator('#resetFilters').click()
+            await mobile.locator('[data-mode="manual"]').tap()
+            await mobile.locator('#manualText').fill(document['text'])
+            await mobile.screenshot(path=str(output/'manual-input-390.png'))
+            await mobile.locator('#manualSubmit').tap()
+            await mobile.wait_for_selector('#manualResult:visible', timeout=45000)
+            await mobile.locator('#manualTextEvidence mark').first.tap()
+            box = await mobile.locator('#manualTooltip').bounding_box()
+            assert box and box['x'] >= 0 and box['x'] + box['width'] <= 390
+            assert await mobile.locator('#manualWarnings').is_visible()
+            await mobile.screenshot(path=str(output/'manual-result-390.png'))
+            results['functional'].append('mobile filter disclosure; empty filter; touch tooltip; warnings')
+            await mobile.locator('[data-mode="automatic"]').tap()
+            await mobile.locator('.auto-details-button').first.tap()
+            await mobile.screenshot(path=str(output/'detail-390.png'))
+            await mobile.keyboard.press('Escape')
+
+            await page.emulate_media(reduced_motion='reduce')
+            await page.goto(prefix+'after.html', wait_until='networkidle')
+            await page.locator('.auto-details-button').first.click()
+            assert await page.evaluate('document.getAnimations().length') == 0
+            results['functional'].append('reduced motion has no running UI animation')
+            await page.keyboard.press('Escape')
+            await page.goto(prefix+'compare.html', wait_until='networkidle')
+            await page.locator('[data-view="before"]').click()
+            assert await page.locator('#beforePane').is_visible()
+            assert not await page.locator('#afterPane').is_visible()
+            await page.locator('[data-view="split"]').click()
+            assert await page.locator('#beforePane').is_visible() and await page.locator('#afterPane').is_visible()
+            await page.locator('[data-size="phone"]').click()
+            assert await page.locator('#afterPane').evaluate('(e)=>e.getBoundingClientRect().width') == 390
+            results['functional'].append('before/after/split comparison and phone size')
+            assert not results['errors'], results['errors']
+            assert not results['external_requests'], results['external_requests']
+            await browser.close()
+    finally:
+        server.shutdown()
+        (output/'checks.json').write_text(json.dumps(results, ensure_ascii=False, indent=2))
+    print(json.dumps(results, ensure_ascii=False, indent=2))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--runtime', type=Path, default=DEFAULT_RUNTIME)
+    parser.add_argument('--output', type=Path, default=ROOT/'design-preview/checks')
+    args = parser.parse_args()
+    asyncio.run(run(args.runtime, args.output))

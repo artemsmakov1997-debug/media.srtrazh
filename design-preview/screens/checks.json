@@ -1,0 +1,87 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "scroll": 1440,
+      "zoom": "1",
+      "firstResultY": 495.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 1280,
+      "scroll": 1280,
+      "zoom": "1",
+      "firstResultY": 495.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 1100,
+      "scroll": 1100,
+      "zoom": "1",
+      "firstResultY": 495.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 1099,
+      "scroll": 1099,
+      "zoom": "1",
+      "firstResultY": 495.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 1024,
+      "scroll": 1024,
+      "zoom": "1",
+      "firstResultY": 495.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 768,
+      "scroll": 768,
+      "zoom": "1",
+      "firstResultY": 539.875,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "zoom": "1",
+      "firstResultY": 414.578125,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "zoom": "1",
+      "firstResultY": 414.578125,
+      "visible": 12,
+      "total": 100
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "zoom": "1",
+      "firstResultY": 412.078125,
+      "visible": 12,
+      "total": 100
+    }
+  ],
+  "functional": [
+    "same data and filtered publications as original; reset; pagination",
+    "visible update/scope disclosure",
+    "original evidence modal; focus containment and restoration",
+    "real Wasm analysis; exact Python/JSON parity; tooltip; edit; clear",
+    "mobile filter disclosure; empty filter; touch tooltip; warnings",
+    "reduced motion has no running UI animation",
+    "before/after/split comparison and phone size"
+  ],
+  "errors": [],
+  "external_requests": []
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><title>До / После — МЕДИА.СТРАЖ</title>
+  <style>
+    :root { color-scheme:dark; font-family:system-ui,sans-serif; background:#05070b; color:#edf3f8; }
+    * { box-sizing:border-box; } body { margin:0; } button,a { font:inherit; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 24px; padding:14px 24px; border-bottom:1px solid #344252; background:#0b111a; }
+    .title { font-size:14px; font-weight:650; } .title p { color:#a8b4c2; font-size:11px; font-weight:400; margin:4px 0 0; }
+    .tools { display:flex; flex-wrap:wrap; gap:12px; align-items:center; } .group { display:flex; padding:3px; border:1px solid #344252; border-radius:8px; gap:3px; }
+    button { border:0; min-height:36px; border-radius:5px; padding:7px 12px; cursor:pointer; background:transparent; color:#a8b4c2; font-size:12px; }
+    button[aria-pressed=true] { background:#1d3a47; color:#b3f5ff; } button:disabled { opacity:.4; cursor:default; }
+    :focus-visible { outline:2px solid #22d3ee; outline-offset:3px; } .open { font-size:12px; color:#a8b4c2; text-underline-offset:4px; }
+    .stage { padding:0; display:grid; min-height:calc(100dvh - 86px); background:#05070b; }
+    .pane { min-width:0; width:100%; margin:auto; height:calc(100dvh - 86px); display:flex; flex-direction:column; }
+    .pane[hidden] { display:none; } .pane header { display:none; padding:8px 16px; font-size:11px; color:#a8b4c2; border-bottom:1px solid #283442; }
+    iframe { border:0; display:block; width:100%; flex:1; background:#05070b; min-height:500px; }
+    body[data-size=phone] .pane { width:min(390px,100%); border-left:1px solid #283442; border-right:1px solid #283442; }
+    body[data-view=split] .stage { grid-template-columns:1fr 1fr; gap:1px; background:#344252; } body[data-view=split] .pane header { display:block; }
+    @media(max-width:700px) { .toolbar { padding:12px 16px; gap:10px; } .title { font-size:13px; } .tools { width:100%; justify-content:space-between; gap:8px; } button { font-size:11px; padding:7px 10px; } .open { display:none; } .pane { height:calc(100dvh - 134px); } }
+  </style>
+</head>
+<body data-view="after" data-size="full">
+<header class="toolbar">
+  <div class="title">МЕДИА.СТРАЖ · Предпросмотр дизайна<p>Одна подборка для обоих вариантов. Рабочий сайт не изменён.</p></div>
+  <div class="tools">
+    <div class="group" role="group" aria-label="Вариант страницы"><button data-view="before" aria-pressed="false">До</button><button data-view="after" aria-pressed="true">После</button><button data-view="split" aria-pressed="false" id="splitButton">Рядом</button></div>
+    <div class="group" role="group" aria-label="Ширина предпросмотра"><button data-size="full" aria-pressed="true">Вся ширина</button><button data-size="phone" aria-pressed="false">Телефон</button></div>
+    <a class="open" href="after.html" target="_blank" rel="noopener">Открыть отдельно ↗</a>
+  </div>
+</header>
+<main class="stage" aria-label="Сравнение дизайна">
+  <section class="pane" id="beforePane" hidden><header>ДО · исходная страница</header><iframe title="Исходный дизайн страницы анализа" src="before.html"></iframe></section>
+  <section class="pane" id="afterPane"><header>ПОСЛЕ · отдельный вариант</header><iframe title="Новый вариант страницы анализа" src="after.html"></iframe></section>
+</main>
+<script>
+  (()=>{
+    const wide=matchMedia('(min-width:1100px)');
+    function view(value){document.body.dataset.view=value;document.getElementById('beforePane').hidden=value==='after';document.getElementById('afterPane').hidden=value==='before';document.querySelectorAll('button[data-view]').forEach(e=>e.setAttribute('aria-pressed',String(e.dataset.view===value)));}
+    document.querySelectorAll('button[data-view]').forEach(e=>e.addEventListener('click',()=>view(e.dataset.view)));
+    document.querySelectorAll('button[data-size]').forEach(e=>e.addEventListener('click',()=>{document.body.dataset.size=e.dataset.size;document.querySelectorAll('button[data-size]').forEach(x=>x.setAttribute('aria-pressed',String(x===e)));}));
+    function resize(){document.getElementById('splitButton').disabled=!wide.matches;if(!wide.matches&&document.body.dataset.view==='split')view('after');}
+    wide.addEventListener('change',resize);resize();
+  })();
+</script>
+</body>
+</html>

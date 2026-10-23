@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="../../">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Анализ публикаций — МЕДИА.СТРАЖ · Предпросмотр</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="design-preview/analysis/fonts.css">
+  <link rel="stylesheet" href="design-preview/analysis/preview.css">
+  <script defer src="analysis.js"></script>
+  <script defer src="manual-analysis.js"></script>
+  <script defer src="design-preview/analysis/preview.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">К содержимому</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html" aria-label="МЕДИА.СТРАЖ — главная">МЕДИА<span>.СТРАЖ</span></a>
+    <span class="workspace-name">Исследования</span>
+    <a class="header-back" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h12"/></svg><span>К рейтингу</span></a>
+  </div>
+</header>
+<main id="main">
+  <div class="page-heading">
+    <div><h1>Анализ публикаций</h1><p>Найдите признаки. Проверьте контекст.</p></div>
+    <a class="method-link" href="method.html">Как работает анализ<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+  </div>
+  <div class="analysis-tabs" role="group" aria-label="Режим анализа">
+    <button class="mode-card active" type="button" data-mode="automatic" aria-pressed="true" aria-controls="automaticPanel">Лента публикаций</button>
+    <button class="mode-card" type="button" data-mode="manual" aria-pressed="false" aria-controls="manualPanel">Самостоятельная проверка</button>
+  </div>
+
+  <section id="automaticPanel" aria-label="Автоматический анализ">
+    <div class="snapshot-bar">
+      <p id="previewUpdated" class="snapshot-time" role="status">Загружаем подборку…</p>
+      <button class="text-button" id="sourceDetailsToggle" type="button" aria-expanded="false" aria-controls="sourceDetails">Охват и источники<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></button>
+    </div>
+    <section id="sourceDetails" class="source-details" aria-label="Охват и состояние источников" hidden>
+      <p id="updated" class="muted">Загружаем подборку…</p>
+      <div id="totals" class="stats-line"></div>
+      <details id="coverageBlock" hidden><summary>Что умеет проверять алгоритм</summary><p id="coverage" class="muted"></p></details>
+      <details class="source-health"><summary>Состояние отдельных источников</summary><div id="sources" class="sources"></div></details>
+    </section>
+    <details id="filterPanel" class="filter-panel" open>
+      <summary class="filter-summary"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Фильтры</span><span id="filterSummary">Все издания и площадки</span><svg class="filter-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+      <div class="controls" id="controls">
+        <div class="control-field"><label for="source">Издание / канал</label>
+          <select id="source">
+            <option value="">Все издания</option><option value="rt">RT на русском</option><option value="tass">ТАСС</option><option value="ria">РИА Новости</option><option value="interfax">Интерфакс</option><option value="kommersant">Коммерсантъ</option><option value="vedomosti">Ведомости</option><option value="rbc">РБК</option><option value="izvestia">Известия</option><option value="rg">Российская газета</option><option value="lenta">Лента.ру</option><option value="meduza">Медуза</option><option value="novayagazeta">Новая газета Европа</option><option value="fontanka">Фонтанка</option><option value="currenttime">Настоящее Время</option><option value="dw">DW на русском</option><option value="bbc">BBC News Русская служба</option><option value="aif">Аргументы и факты</option><option value="inosmi">ИноСМИ</option><option value="smotri">СМОТРИ</option><option value="mediazona">Медиазона</option><option value="other">Другие источники</option>
+          </select>
+        </div>
+        <div class="control-field"><label for="platform">Площадка</label><select id="platform"><option value="">Все площадки</option><option value="website">Сайты изданий</option><option value="telegram">Telegram</option></select></div>
+        <div class="control-field"><label for="marker">Маркер анализа</label><select id="marker"><option value="">Все маркеры</option></select></div>
+        <button class="reset-filters" id="resetFilters" type="button" disabled>Сбросить</button>
+      </div>
+    </details>
+    <div class="results-heading"><p id="selection" role="status" aria-live="polite">Ожидаем результаты</p><span>Публикации с отметками анализа</span></div>
+    <div id="loadError" hidden><p id="error" class="error" role="alert" hidden></p><button class="button secondary" id="retrySnapshot" type="button">Повторить загрузку</button></div>
+    <div id="articles" aria-busy="true"><p class="loading-message">Загружаем публикации…</p></div>
+    <div class="list-pagination" id="listPagination" hidden><span id="shownCounter"></span><button class="button secondary" id="previewMore" type="button">Показать ещё</button></div>
+    <div class="analysis-limitations"><p>Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.</p><p>Отсутствие признаков не означает нейтральность текста.</p></div>
+  </section>
+
+  <section id="manualPanel" aria-label="Самостоятельная проверка" hidden>
+    <div class="manual-layout">
+      <div>
+        <noscript><p class="error">Для ручного анализа включите JavaScript в браузере.</p></noscript>
+        <form id="manualForm" class="manual-form" autocomplete="off">
+          <label id="manualTitleLabel" for="manualTitle">Заголовок <span class="optional">необязательно</span></label>
+          <input id="manualTitle" maxlength="200000" spellcheck="false" placeholder="Заголовок публикации">
+          <div id="manualTitleEvidence" class="manual-annotated" role="region" aria-labelledby="manualTitleLabel" tabindex="0" hidden></div>
+          <label id="manualTextLabel" for="manualText">Текст публикации</label>
+          <div class="manual-text-frame">
+            <textarea id="manualText" required maxlength="200000" spellcheck="false" aria-describedby="manualLimit" placeholder="Вставьте текст статьи или сообщения…"></textarea>
+            <div id="manualScan" class="manual-scan" aria-hidden="true" hidden><div class="manual-scan-head"><span class="manual-scan-dot"></span>Проверяем текст…</div><div id="manualScanPreview" class="manual-scan-preview"></div><div class="manual-scan-beam"></div></div>
+          </div>
+          <div id="manualTextEvidence" class="manual-annotated" role="region" aria-labelledby="manualTextLabel" tabindex="0" hidden></div>
+          <p class="field-help" id="manualLimit">Заголовок и текст вместе — до 200 000 символов.</p>
+          <div class="manual-actions">
+            <button class="button" id="manualSubmit" type="submit">Проанализировать<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5"/></svg></button>
+            <button class="button secondary" id="manualEdit" type="button" hidden>Редактировать</button>
+            <button class="button quiet" type="reset">Очистить</button>
+            <button id="manualDownload" class="button secondary" type="button" hidden>Скачать JSON</button>
+          </div>
+          <p id="manualState" class="manual-state" role="status" aria-live="polite"></p>
+          <p id="manualError" class="error" role="alert" hidden></p><p id="manualNotice" class="muted" role="status" hidden></p>
+        </form>
+        <section id="manualResult" class="analysis-limitations" hidden aria-label="Ограничения результата анализа"><div id="manualWarnings"><p>Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.</p><p>Отсутствие признаков не означает нейтральность текста.</p></div></section>
+      </div>
+      <aside class="manual-guidance" aria-label="Как читать результат">
+        <h2>Сначала признак.<br>Затем контекст.</h2>
+        <p>Анализатор выделит фрагменты, которые стоит проверить внимательнее.</p>
+        <p><span class="example-mark">Выделенный фрагмент</span></p>
+        <p>Наведите курсор или нажмите на выделение, чтобы прочитать пояснение. С клавиатуры — Tab и Enter.</p>
+        <div class="privacy-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3"/></svg><p>Текст обрабатывается на вашем устройстве и не отправляется на сервер.</p></div>
+      </aside>
+    </div>
+  </section>
+</main>
+<footer class="site-footer"><span>МЕДИА.СТРАЖ</span><a href="method.html">Методика и ограничения</a></footer>
+<div id="automaticModal" class="auto-modal-overlay" hidden><div class="auto-modal" role="dialog" aria-modal="true" aria-labelledby="automaticModalTitle"><div class="auto-modal-head"><div><span class="auto-modal-kicker">Разбор публикации</span><h2 id="automaticModalTitle"></h2></div><button id="automaticModalClose" class="auto-modal-close" type="button" aria-label="Закрыть окно"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div id="automaticModalBody" class="auto-modal-body"></div></div></div>
+<div id="automaticTooltip" class="auto-modal-tooltip" role="tooltip" hidden></div><div id="manualTooltip" class="manual-tooltip" role="tooltip" hidden></div>
+</body>
+</html>

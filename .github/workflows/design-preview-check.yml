@@ -1,0 +1,45 @@
+name: Check isolated analysis design preview
+
+on:
+  push:
+    branches: [design/analysis-preview-v1]
+    paths: [design-preview/**, .github/workflows/design-preview-check.yml]
+  pull_request:
+    paths: [design-preview/**, .github/workflows/design-preview-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Verify original source pages are unchanged
+        run: |
+          git fetch --depth=1 origin 93fae59554419f3176fa93501ab5f1b510c69c27
+          git diff --exit-code 93fae59554419f3176fa93501ab5f1b510c69c27 -- '*.html' '*.css' '*.js' media_strazh tests .github/workflows/analysis-pages.yml ':!design-preview'
+      - name: Run application tests
+        run: python3 -m unittest discover -s tests -q
+      - name: Prepare verified browser runtime
+        run: python3 -m media_strazh prepare-browser
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install playwright==1.62.0
+          python3 -m playwright install --with-deps chromium
+      - name: Check the unchanged application in the browser
+        run: |
+          python3 design-preview/stage_original.py --output /tmp/original-site
+          python3 tests/browser_manual_check.py --site /tmp/original-site
+      - name: Check preview behavior, mobile layouts and Python parity
+        run: python3 design-preview/check_preview.py --output /tmp/design-preview-checks
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: analysis-preview-screens-and-checks
+          path: /tmp/design-preview-checks
+          retention-days: 14
