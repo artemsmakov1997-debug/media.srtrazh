@@ -19,7 +19,8 @@ if output.exists() or output == ROOT or ROOT.is_relative_to(output):
 runtime = runtime_assets(args.runtime)
 output.mkdir(parents=True)
 for file in ROOT.iterdir():
-    if file.is_file() and file.suffix.lower() in {'.html', '.css', '.js', '.png', '.svg', '.ico', '.webmanifest'}:
+    if file.is_file() and (file.suffix.lower() in {'.html', '.css', '.js', '.png', '.svg', '.ico', '.webmanifest'}
+                           or file.name == 'media-contacts.json'):
         shutil.copy2(file, output/file.name)
 (output/'data').mkdir()
 shutil.copy2(ROOT/'design-preview/analysis/snapshot.json', output/'data/analysis.json')
