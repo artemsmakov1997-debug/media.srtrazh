@@ -388,7 +388,7 @@ def historical_juxtaposition_ui(browser, base, site, errors, requests):
                 page.wait_for_timeout(200)  # Allow the marker's hide timer to expire.
                 assert tooltip.is_visible()  # Hovering the comment keeps it readable.
                 assert tooltip.evaluate("tip => getComputedStyle(tip).fontSize") == "16px"
-                assert tooltip.evaluate("tip => tip.offsetWidth") == 480
+                assert abs(tooltip.bounding_box()["width"] - 480) < 1
                 page.set_viewport_size({"width": 1280, "height": 420})
                 mark.hover()
                 tooltip.wait_for(state="visible")
@@ -414,7 +414,8 @@ def historical_juxtaposition_ui(browser, base, site, errors, requests):
             if not mobile:
                 tooltip = page.locator("#manualTooltip")
                 assert tooltip.evaluate("tip => getComputedStyle(tip).fontSize") == "16px"
-                assert tooltip.evaluate("tip => tip.offsetWidth") == 480
+                page.wait_for_function("getComputedStyle(document.getElementById('manualTooltip')).opacity === '1'")
+                assert abs(tooltip.bounding_box()["width"] - 480) < 1
                 page.emulate_media(reduced_motion="reduce")
                 assert tooltip.evaluate("tip => getComputedStyle(tip).transitionDuration") == "0s"
                 page.emulate_media(reduced_motion="no-preference")
