@@ -822,8 +822,8 @@ def pro_business_navigation_ui(browser, base):
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
             "el => getComputedStyle(el).backgroundImage") == "none"
-        assert "gradient" in page.locator('.mode-card[data-mode="automatic"]').evaluate(
-            "el => getComputedStyle(el).backgroundImage")
+        assert page.locator('.mode-card[data-mode="automatic"]').evaluate(
+            "el => getComputedStyle(el).backgroundImage") == "none"
         assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()") == "#05070b"
         analysis_header = page.locator(".site-header .header-inner").evaluate(
             "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
