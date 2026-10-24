@@ -677,7 +677,7 @@ def real_business_ui(browser, base, errors, requests):
         context.close()
 
 
-def pro_business_navigation_ui(browser, base):
+def pro_business_navigation_ui(browser, base, site):
     """PRO chooser, gated Business start, mentions and period filtering."""
     context = browser.new_context(viewport={"width": 1280, "height": 900})
     context.route("**/data/business.json", lambda route: route.fulfill(json=business_evidence_fixture()))
@@ -1552,7 +1552,7 @@ def main():
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)
-            pro_business_navigation_ui(browser, base)
+            pro_business_navigation_ui(browser, base, site)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(
