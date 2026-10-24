@@ -820,8 +820,8 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
-        assert "gradient" in page.locator(".section-panel").first.evaluate(
-            "el => getComputedStyle(el).backgroundImage")
+        assert page.locator(".section-panel").first.evaluate(
+            "el => getComputedStyle(el).backgroundImage") == "none"
         assert "gradient" in page.locator('.mode-card[data-mode="automatic"]').evaluate(
             "el => getComputedStyle(el).backgroundImage")
         assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()") == "#05070b"
