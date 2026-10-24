@@ -68,10 +68,17 @@
   function showTooltip(target, pinned = false) {
     const findings = annotations.get(target);
     if (!findings) return;
+    if (tooltipTarget === target && !tooltip.hidden) {
+      clearTimeout(tooltipTimer);
+      tooltipPinned = tooltipPinned || pinned;
+      return;
+    }
+    const wasVisible = !tooltip.hidden;
     hideTooltip();
     tooltipDismissed = false;
     tooltipTarget = target;
     tooltipPinned = pinned;
+    tooltip.toggleAttribute('data-instant', wasVisible || target.matches(':focus-visible'));
     target.setAttribute('aria-expanded', 'true');
     target.setAttribute('aria-describedby', 'manualTooltip');
     for (const finding of findings) {
@@ -85,29 +92,37 @@
     const topEdge = (viewport ? viewport.offsetTop : 0) + edge;
     const width = (viewport ? viewport.width : innerWidth) - edge * 2;
     const height = (viewport ? viewport.height : innerHeight) - edge * 2;
-    tooltip.style.width = Math.max(1, Math.min(330, width)) + 'px';
-    tooltip.style.maxHeight = Math.max(1, Math.min(360, height * .65)) + 'px';
+    const style = getComputedStyle(tooltip);
+    const widthCap = Number(style.getPropertyValue('--tooltip-width')) || 330;
+    const heightCap = Number(style.getPropertyValue('--tooltip-height')) || 360;
+    tooltip.style.width = Math.max(1, Math.min(widthCap, width)) + 'px';
+    tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65)) + 'px';
     tooltip.style.visibility = 'hidden';
     tooltip.hidden = false;
     const visibleRects = Array.from(target.getClientRects()).filter(rect =>
       rect.bottom > topEdge && rect.top < topEdge + height);
-    const rect = visibleRects[0] || target.getBoundingClientRect();
-    const preferredHeight = tooltip.getBoundingClientRect().height;
+    const firstRect = visibleRects[0] || target.getBoundingClientRect();
+    const rect = {left: firstRect.left, width: firstRect.width,
+      top: visibleRects.length ? Math.max(topEdge, Math.min(...visibleRects.map(rect => rect.top))) : firstRect.top,
+      bottom: visibleRects.length ? Math.min(topEdge + height, Math.max(...visibleRects.map(rect => rect.bottom))) : firstRect.bottom};
+    const preferredHeight = tooltip.offsetHeight;
     const above = rect.top - topEdge - 10;
     const reader = target.closest('.manual-annotated').getBoundingClientRect();
     // A long comment remains scrollable and never blocks the form's controls
     // or its own highlighted trigger, including on a short mobile viewport.
     const below = Math.min(topEdge + height, reader.bottom) - rect.bottom - 10;
-    const useAbove = above >= Math.min(120, preferredHeight) || above >= below;
+    const useAbove = above >= preferredHeight || (below < preferredHeight && above >= below);
     const room = Math.max(1, useAbove ? above : below);
-    tooltip.style.maxHeight = Math.max(1, Math.min(360, height * .65, room)) + 'px';
-    const box = tooltip.getBoundingClientRect();
+    tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65, room)) + 'px';
+    const box = {width: tooltip.offsetWidth, height: tooltip.offsetHeight};
     const left = Math.max(leftEdge, Math.min(rect.left + rect.width / 2 - box.width / 2,
       leftEdge + width - box.width));
     let top = useAbove ? rect.top - box.height - 10 : rect.bottom + 10;
     top = Math.max(topEdge, Math.min(top, topEdge + height - box.height));
     tooltip.style.left = left + 'px';
     tooltip.style.top = top + 'px';
+    tooltip.style.transformOrigin = Math.max(0, Math.min(box.width, rect.left + rect.width / 2 - left)) +
+      'px ' + (useAbove ? 'bottom' : 'top');
     tooltip.style.visibility = '';
   }
 
