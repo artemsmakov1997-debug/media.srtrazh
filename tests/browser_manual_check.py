@@ -382,6 +382,24 @@ def historical_juxtaposition_ui(browser, base, site, errors, requests):
             mark.tap() if mobile else mark.hover()
             page.locator("#automaticTooltip").wait_for(state="visible")
             assert finding["explanation"] in page.locator("#automaticTooltip").inner_text()
+            if not mobile:
+                tooltip = page.locator("#automaticTooltip")
+                tooltip.hover()
+                page.wait_for_timeout(200)  # Allow the marker's hide timer to expire.
+                assert tooltip.is_visible()  # Hovering the comment keeps it readable.
+                assert tooltip.evaluate("tip => getComputedStyle(tip).fontSize") == "16px"
+                assert tooltip.evaluate("tip => tip.offsetWidth") == 480
+                page.set_viewport_size({"width": 1280, "height": 420})
+                mark.hover()
+                tooltip.wait_for(state="visible")
+                tooltip.hover()
+                assert tooltip.evaluate("tip => tip.scrollHeight > tip.clientHeight")
+                page.mouse.wheel(0, 120)
+                page.wait_for_function("document.getElementById('automaticTooltip').scrollTop > 0")
+                assert tooltip.is_visible()
+                box = tooltip.bounding_box()
+                assert box["y"] >= 0 and box["y"] + box["height"] <= 421
+                page.set_viewport_size({"width": 1280, "height": 812})
             page.locator("#automaticModalClose").click()
             page.locator('[data-mode="manual"]').click()
             page.locator("#manualText").fill(text)
@@ -393,6 +411,13 @@ def historical_juxtaposition_ui(browser, base, site, errors, requests):
             mark.tap() if mobile else mark.hover()
             page.locator("#manualTooltip").wait_for(state="visible")
             assert finding["explanation"] in page.locator("#manualTooltip").inner_text()
+            if not mobile:
+                tooltip = page.locator("#manualTooltip")
+                assert tooltip.evaluate("tip => getComputedStyle(tip).fontSize") == "16px"
+                assert tooltip.evaluate("tip => tip.offsetWidth") == 480
+                page.emulate_media(reduced_motion="reduce")
+                assert tooltip.evaluate("tip => getComputedStyle(tip).transitionDuration") == "0s"
+                page.emulate_media(reduced_motion="no-preference")
             assert page.locator("#manualWarnings p").count() == 2
             with page.expect_download() as download:
                 page.locator("#manualDownload").click()
