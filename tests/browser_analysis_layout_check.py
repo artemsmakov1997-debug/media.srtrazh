@@ -1,4 +1,4 @@
-"""Check accepted analysis metadata, native mobile filters and source-button alignment."""
+"""Check accepted metadata, always-visible filters and source-button alignment."""
 import argparse
 import asyncio
 import functools
@@ -51,16 +51,21 @@ async def run(site, output):
                     if width<=760:
                         assert row['aligned'] and row['dateHeight']<=40, (width,row)
                 if width<=760:
-                    assert not await page.locator('#filterPanel').evaluate('(e)=>e.open')
-                    await page.locator('#filterPanel summary').click()
+                    assert await page.locator('#filterPanel summary').count()==0
+                    for field in ['#source','#platform','#marker']:
+                        assert await page.locator(field).is_visible()
                     await page.select_option('#source','rt')
+                    await page.select_option('#platform','website')
+                    await page.select_option('#marker','clickbait')
                     assert await page.locator('#resetFilters').is_enabled()
                     await page.locator('#resetFilters').click()
                     assert await page.locator('.publication').count()==len(expected_dates)
-                    await page.locator('#filterPanel summary').click()
+                    assert await page.locator('#resetFilters').is_disabled()
+                    assert await page.locator('#platform').input_value()==''
+                    assert await page.locator('#marker').input_value()==''
                 else:
-                    assert await page.locator('#filterPanel').evaluate('(e)=>e.open')
-                report['viewports'].append({'width':width,'cards':len(dates),'dates':'top right','mobile_alignment':'passed' if width<=760 else 'original'})
+                    assert await page.locator('#source').is_visible()
+                report['viewports'].append({'width':width,'cards':len(dates),'dates':'top right','filters':'always visible','mobile_alignment':'passed' if width<=760 else 'original'})
                 if width in (1440,390):
                     await page.screenshot(path=str(output/f'analysis-{width}.png'))
             assert not report['errors'], report['errors']

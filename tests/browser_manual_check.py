@@ -35,10 +35,8 @@ from browser_fixtures import business_evidence_fixture
 
 
 def select_analysis_filter(page, selector, value):
-    """Use the native filter disclosure before selecting on narrow screens."""
-    panel = page.locator("#filterPanel")
-    if not panel.evaluate("element => element.open"):
-        panel.locator("summary").click()
+    """Select directly: filters must be visible without an extra disclosure action."""
+    assert page.locator(selector).is_visible()
     page.select_option(selector, value)
 
 
