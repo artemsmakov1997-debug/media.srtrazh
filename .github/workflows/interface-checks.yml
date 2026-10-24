@@ -33,7 +33,17 @@ jobs:
       - name: Build a synthetic browser test site without collection
         run: python3 tests/prepare_browser_site.py --output /tmp/browser-site
       - name: Check existing browser scenarios and Python/Wasm parity
-        run: python3 tests/browser_manual_check.py --site /tmp/browser-site
+        run: |
+          python3 - <<'PY'
+          import subprocess, sys
+          result = subprocess.run([sys.executable, 'tests/browser_manual_check.py', '--site', '/tmp/browser-site'],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+          print(result.stdout, end='')
+          if result.returncode:
+              message = result.stdout[-6000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print('::error title=Browser regression::' + message)
+          sys.exit(result.returncode)
+          PY
       - name: Check mobile filters, dates and source alignment
         run: python3 tests/browser_analysis_layout_check.py --site /tmp/browser-site
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
