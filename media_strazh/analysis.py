@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.8.3"
+VERSION = "rules-0.8.4"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -182,6 +182,7 @@ TERRITORY_REFERENCE = (
     r"Крым(?:а|у|ом|е)?|Донбасс(?:а|у|ом|е)?|"
     r"(?:Донецк|Луганск|Херсон|Бахмут)(?:а|у|ом|е)?|"
     r"Мариупол(?:ь|я|ю|ем|е)|"
+    r"(?:О|А)л[её]ш(?:ки|ек|кам|ками|ках)|"
     r"Севастопол(?:ь|я|ю|ем|е)|Запорожь(?:е|я|ю|ем)|"
     r"Украин(?:а|ы|е|у|ой)|Росси(?:я|и|ю|ей)|"
     r"Палестин(?:а|ы|е|у|ой)|Газ(?:а|ы|е|у|ой)|"
@@ -191,8 +192,9 @@ TERRITORY_REFERENCE = (
 TERRITORY_ADJECTIVE = r"[а-яё-]{1,35}(?:ый|ий|ая|ое|ее|ие|ые|ого|его|ому|ему|ой|ей|ую|юю|ым|им|ых|их|ыми|ими|ом|ем)"
 TERRITORY_AGENT = (r"(?:(?:" + TERRITORY_ADJECTIVE + r"\s+){0,2}"
                    r"(?:войсками|силами|армией|военными)|Россией|Украиной|ВСУ|ВС\s+РФ)")
+TERRITORY_LEADING_AGENT = re.compile(r"^\s*[«»\"“”]?\s*" + TERRITORY_AGENT + r"\b", re.I)
 TERRITORY_AFTER = re.compile(
-    r"^\s*[«»\"“”]?\s*(?:" + TERRITORY_AGENT + r"\s+)?"
+    r"^\s*[«»\"“”]?\s*"
     r"(?P<modifiers>(?:" + TERRITORY_ADJECTIVE + r"\s+){0,3})"
     r"\b" + TERRITORY_REFERENCE + r"\b", re.I,
 )
@@ -227,6 +229,11 @@ def _territory_term_context(rule, text, start, end, sentence_span):
     """Match a bounded noun phrase/predicate; preserve only the term as evidence."""
     left = text[max(sentence_span["start"], start - 160):start]
     right = text[end:min(sentence_span["end"], end + 160)]
+    # Consume an explicit agent once. Regex backtracking must not reinterpret
+    # «Россией» in «освобождённый Россией солдат» as the territory itself.
+    agent = TERRITORY_LEADING_AGENT.match(right)
+    if agent:
+        right = right[agent.end():]
     if NON_TERRITORY_AFTER.match(right):
         return False
     if rule.id == "terminology.liberated_territory" and LITERAL_RELEASE.match(right):
