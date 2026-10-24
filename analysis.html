@@ -149,7 +149,7 @@
       .section-head { align-items: flex-start; flex-direction: column; }
     }
   </style>
-  <script src="analysis.js?v=20261018-quality" defer></script>
+  <script src="analysis.js?v=approved-20261024" defer></script>
   <script src="manual-analysis.js?v=scan2" defer></script>
 <style id="pro-header-unification">
  .site-header .header-inner { width:100%; max-width:1200px; min-height:76px; padding:12px 20px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; box-sizing:border-box; }
@@ -310,7 +310,8 @@
 }
 </style>
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
-<link rel="stylesheet" href="analysis-surfaces.css?v=surface1">
+<link rel="stylesheet" href="analysis-surfaces.css?v=approved-20261024">
+<script src="analysis-layout.js?v=approved-20261024" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -332,6 +333,8 @@
   </div>
 
   <section id="automaticPanel" class="section-panel" aria-label="Автоматический анализ">
+    <details id="filterPanel" class="analysis-filter" open>
+      <summary class="analysis-filter-summary"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Фильтры</span><span id="filterSummary">Все издания и площадки</span><svg class="analysis-filter-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
     <div class="controls" id="controls">
       <div class="control-field">
         <label for="source">Издание / канал</label>
@@ -377,7 +380,9 @@
           <option value="">Все маркеры</option>
         </select>
       </div>
+      <button id="resetFilters" class="analysis-filter-reset" type="button" disabled>Сбросить</button>
     </div>
+    </details>
     <p id="updated" class="muted">Загружаем подборку…</p>
     <div id="totals" class="stats-line" role="status" aria-live="polite"></div>
     <p id="error" class="error" role="alert" hidden></p>
