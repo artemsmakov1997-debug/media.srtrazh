@@ -78,6 +78,19 @@ function date(value) {
   }) + ' МСК';
 }
 
+/* Publication metadata: the visible value stays in Moscow time; machine time stays exact. */
+function publicationTime(value) {
+  const valid = value && Number.isFinite(Date.parse(value));
+  const stamp = node(valid ? 'time' : 'span', '', 'publication-time');
+  if (valid) stamp.dateTime = new Date(value).toISOString();
+  stamp.append(node('span', 'Дата публикации: ', 'publication-time-context'));
+  const formatted = date(value);
+  const parts = /^(\d{2}\.\d{2}\.\d{4}),\s*(.+)$/.exec(formatted);
+  stamp.append(node('span', parts ? parts[1] : formatted, 'publication-time-date'));
+  if (parts) stamp.append(document.createTextNode(' '), node('span', parts[2], 'publication-time-clock'));
+  return stamp;
+}
+
 /* Определение платформы публикации. */
 function platformOf(item) {
   const source = sourceOf(item);
@@ -429,19 +442,13 @@ function render() {
         (legalStatus(publisherOf(item)).checkedAt || '12.10.2026') + '; сведения справочные';
       publisherMeta.append(badge);
     }
-    article.append(publisherMeta);
+    const header = node('div', '', 'publication-header');
+    header.append(publisherMeta, publicationTime(item.published_at));
+    article.append(header);
 
     const headline = node('h2', cardHeadline(item));
     headline.className = 'publication-title';
     article.append(headline);
-
-    article.append(
-      node(
-        'p',
-        'Дата публикации: ' + date(item.published_at),
-        'muted'
-      )
-    );
 
     const counts = item.summary;
     article.append(

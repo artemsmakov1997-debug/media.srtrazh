@@ -34,6 +34,14 @@ import test_historical_juxtaposition
 from browser_fixtures import business_evidence_fixture
 
 
+def select_analysis_filter(page, selector, value):
+    """Use the native filter disclosure before selecting on narrow screens."""
+    panel = page.locator("#filterPanel")
+    if not panel.evaluate("element => element.open"):
+        panel.locator("summary").click()
+    page.select_option(selector, value)
+
+
 def examples():
     cases = []
 
@@ -242,8 +250,8 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
             page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
             page.goto(base + "/analysis.html")
-            page.select_option("#source", "mediazona")
-            page.select_option("#marker", "event_terminology")
+            select_analysis_filter(page, "#source", "mediazona")
+            select_analysis_filter(page, "#marker", "event_terminology")
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
             assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
@@ -495,9 +503,9 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.locator(".publication").wait_for()
         assert page.locator("#marker option").count() == 13  # Ten candidate types, an informational layer, and all.
         marker = expected["findings"][0]["category"]
-        page.select_option("#marker", marker)
+        select_analysis_filter(page, "#marker", marker)
         assert page.locator(".publication").count() == 1
-        page.select_option("#marker", "")
+        select_analysis_filter(page, "#marker", "")
         assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
         assert page.locator(".legal-status-note").count() == 0
         assert page.locator(".publication-title").count() == 1
@@ -669,7 +677,7 @@ def real_business_ui(browser, base, errors, requests):
         context.close()
 
 
-def pro_business_navigation_ui(browser, base):
+def pro_business_navigation_ui(browser, base, site):
     """PRO chooser, gated Business start, mentions and period filtering."""
     context = browser.new_context(viewport={"width": 1280, "height": 900})
     context.route("**/data/business.json", lambda route: route.fulfill(json=business_evidence_fixture()))
@@ -812,10 +820,10 @@ def pro_business_navigation_ui(browser, base):
         assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
-        assert "gradient" in page.locator(".section-panel").first.evaluate(
-            "el => getComputedStyle(el).backgroundImage")
-        assert "gradient" in page.locator('.mode-card[data-mode="automatic"]').evaluate(
-            "el => getComputedStyle(el).backgroundImage")
+        assert page.locator(".section-panel").first.evaluate(
+            "el => getComputedStyle(el).backgroundImage") == "none"
+        assert page.locator('.mode-card[data-mode="automatic"]').evaluate(
+            "el => getComputedStyle(el).backgroundImage") == "none"
         assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()") == "#05070b"
         analysis_header = page.locator(".site-header .header-inner").evaluate(
             "el => ({maxWidth: getComputedStyle(el).maxWidth, padding: getComputedStyle(el).padding, minHeight: getComputedStyle(el).minHeight})"
@@ -1212,24 +1220,24 @@ def new_media_filters_ui(browser, base, site, errors, requests):
         page.locator(".publication").first.wait_for()
         assert page.locator(".publication").count() == 6
         for publisher in ("aif", "inosmi"):
-            page.select_option("#source", publisher)
-            page.select_option("#platform", "")
+            select_analysis_filter(page, "#source", publisher)
+            select_analysis_filter(page, "#platform", "")
             assert page.locator(".publication").count() == 2
-            page.select_option("#platform", "website")
+            select_analysis_filter(page, "#platform", "website")
             assert page.locator(".publication").count() == 1
-            page.select_option("#platform", "telegram")
+            select_analysis_filter(page, "#platform", "telegram")
             assert page.locator(".publication").count() == 1
-        page.select_option("#source", "smotri")
+        select_analysis_filter(page, "#source", "smotri")
         assert page.locator(".publication").count() == 1
         assert page.locator(".source-link").get_attribute("href") == "https://t.me/smotri_media/1"
-        page.select_option("#source", "mediazona")
+        select_analysis_filter(page, "#source", "mediazona")
         assert page.locator(".publication").count() == 1
         assert page.locator(".source-link").get_attribute("href") == "https://t.me/mediazzzona/1"
         assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
-        page.select_option("#platform", "website")
+        select_analysis_filter(page, "#platform", "website")
         assert page.locator(".publication").count() == 0
-        page.select_option("#platform", "")
-        page.select_option("#source", "other")
+        select_analysis_filter(page, "#platform", "")
+        select_analysis_filter(page, "#source", "other")
         assert page.locator(".publication").count() == 0
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         print("New publisher and platform filters passed", flush=True)
@@ -1382,7 +1390,7 @@ def main():
             page.locator("#manualForm button[type=reset]").click()
 
             page.locator('[data-mode="automatic"]').click()
-            page.select_option("#source", "rt")
+            select_analysis_filter(page, "#source", "rt")
             displayed = json.loads((site / "data/analysis.json").read_text())["articles"]
             assert page.locator(".publication").count() == sum(a["publisher_id"] == "rt" and bool(a.get("findings")) for a in displayed)
 
@@ -1461,24 +1469,24 @@ def main():
                 page.set_viewport_size({"width": width, "height": height})
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 page.screenshot(path=f"/tmp/media-strazh-automatic-{width}.png")
-            page.select_option("#platform", "telegram")
-            page.select_option("#source", "lenta")
+            select_analysis_filter(page, "#platform", "telegram")
+            select_analysis_filter(page, "#source", "lenta")
             assert page.locator(".publication").count() == 0
-            page.select_option("#source", "other")
+            select_analysis_filter(page, "#source", "other")
             assert page.locator(".publication").count() == 1  # Other Telegram publisher has a detected finding.
-            page.select_option("#platform", "")
-            page.select_option("#source", "rt")
+            select_analysis_filter(page, "#platform", "")
+            select_analysis_filter(page, "#source", "rt")
             assert page.locator(".publication").count() == 1
             assert page.locator("#marker option").count() == 13
-            page.select_option("#marker", "emotional_evaluation")
+            select_analysis_filter(page, "#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
-            page.select_option("#marker", "fear")
+            select_analysis_filter(page, "#marker", "fear")
             assert page.locator(".publication").count() == 0
             assert page.locator("#marker option").count() == 13  # Options do not vanish when results are empty.
-            page.select_option("#marker", "")
-            page.select_option("#platform", "telegram")
+            select_analysis_filter(page, "#marker", "")
+            select_analysis_filter(page, "#platform", "telegram")
             assert page.locator(".publication").count() == 0
-            page.select_option("#platform", "website")
+            select_analysis_filter(page, "#platform", "website")
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication .source-link").get_attribute("href") == fixture["articles"][0]["url"]
             page.locator(".publication .auto-details-button").click()
@@ -1544,7 +1552,7 @@ def main():
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)
-            pro_business_navigation_ui(browser, base)
+            pro_business_navigation_ui(browser, base, site)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(

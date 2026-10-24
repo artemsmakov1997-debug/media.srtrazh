@@ -1,0 +1,54 @@
+name: Check interface changes
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['*.html', '*.css', '*.js', 'tests/**', '.github/workflows/interface-checks.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: interface-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Test application
+        run: python3 -m unittest discover -s tests -q
+      - name: Prepare verified browser runtime
+        run: python3 -m media_strazh prepare-browser
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install playwright==1.62.0
+          python3 -m playwright install --with-deps chromium
+      - name: Build a synthetic browser test site without collection
+        run: python3 tests/prepare_browser_site.py --output /tmp/browser-site
+      - name: Check existing browser scenarios and Python/Wasm parity
+        run: |
+          python3 - <<'PY'
+          import subprocess, sys
+          result = subprocess.run([sys.executable, 'tests/browser_manual_check.py', '--site', '/tmp/browser-site'],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+          print(result.stdout, end='')
+          if result.returncode:
+              message = result.stdout[-6000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print('::error title=Browser regression::' + message)
+          sys.exit(result.returncode)
+          PY
+      - name: Check mobile filters, dates and source alignment
+        run: python3 tests/browser_analysis_layout_check.py --site /tmp/browser-site
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: analysis-interface-checks
+          path: /tmp/analysis-layout-checks
+          retention-days: 14
