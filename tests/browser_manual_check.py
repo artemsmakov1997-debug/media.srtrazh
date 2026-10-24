@@ -27,6 +27,7 @@ import test_contextual_rhetoric
 import test_latest_media_rhetoric
 import test_quantitative_cues
 import test_event_terminology
+import test_territory_terminology
 import test_oct15_rhetoric
 import test_hostile_rhetoric
 import test_context_precision
@@ -54,7 +55,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -66,6 +67,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_latest_media_rhetoric.LatestMediaRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_quantitative_cues.QuantitativeCueTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_event_terminology.EventTerminologyTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_territory_terminology.TerritoryTerminologyTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_oct15_rhetoric.OctoberRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_hostile_rhetoric.HostileRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_context_precision.ContextPrecisionTests),
@@ -229,13 +231,17 @@ def hostile_rhetoric_manual_ui(browser, base, errors, requests):
 
 
 def terminology_layer_ui(browser, base, site, errors, requests):
-    document = {"title": "", "text": "\n".join(test_event_terminology.CASES.values()) + "\nПолитзаключённый освобождён."}
+    terms = (*test_event_terminology.CASES.values(),
+             test_territory_terminology.CASES["terminology.occupied_territory"],
+             test_territory_terminology.CASES["terminology.liberated_territory"])
+    document = {"title": test_territory_terminology.HEADLINE,
+                "text": "\n".join(terms) + "\nПолитзаключённый освобождён."}
     expected = analyze(document)
     snapshot = json.loads((site / "data/analysis.json").read_text())
     source = next(source for source in snapshot["sources"] if source["id"] == "mediazona_telegram")
     item = copy.deepcopy(snapshot["articles"][0])
     item.update(id=1, source_id=source["id"], source=source["name"], publisher_id="mediazona",
-                platform="telegram", title="", summary=expected["summary"], findings=expected["findings"],
+                platform="telegram", title=document["title"], summary=expected["summary"], findings=expected["findings"],
                 display_excerpt=document["text"], findings_omitted=0, url="https://t.me/mediazzzona/1")
     snapshot["articles"] = [item]
     snapshot["totals"] = {"displayed": 1, "analyzed": 1, "with_review_candidates": 0, "review_fragments": 0}
@@ -251,12 +257,14 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             select_analysis_filter(page, "#source", "mediazona")
             select_analysis_filter(page, "#marker", "event_terminology")
             assert page.locator(".publication").count() == 1
+            select_analysis_filter(page, "#marker", "territory_terminology")
+            assert page.locator(".publication").count() == 1
             assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
             assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
             page.locator(".auto-details-button").click()
             page.locator("#automaticModal").wait_for(state="visible")
             marks = page.locator("#automaticModal mark")
-            assert marks.count() == 5
+            assert marks.count() == len(expected["findings"])
             if mobile:
                 marks.first.tap()
             else:
@@ -276,11 +284,12 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             assert "Информационная отметка" in page.locator("#automaticTooltip").inner_text()
             page.locator("#automaticModalClose").click()
             page.locator('[data-mode="manual"]').click()
+            page.locator("#manualTitle").fill(document["title"])
             page.locator("#manualText").fill(document["text"])
             page.locator("#manualSubmit").click()
             page.locator("#manualResult").wait_for(state="visible", timeout=120000)
-            marks = page.locator("#manualTextEvidence mark")
-            assert marks.count() == 5
+            marks = page.locator("#manualTitleEvidence mark, #manualTextEvidence mark")
+            assert marks.count() == len(expected["findings"])
             for index, finding in enumerate(expected["findings"]):
                 if mobile:
                     marks.nth(index).tap()
@@ -288,8 +297,7 @@ def terminology_layer_ui(browser, base, site, errors, requests):
                     marks.nth(index).hover()
                 page.locator("#manualTooltip").wait_for(state="visible")
                 assert finding["explanation"] in page.locator("#manualTooltip").inner_text()
-                label = "Обозначение участника" if finding["category"] == "actor_terminology" else "Выбор обозначения события"
-                assert page.locator("#manualTooltip h3").all_text_contents() == [label]
+                assert page.locator("#manualTooltip h3").all_text_contents() == [finding["label"]]
                 if mobile:
                     marks.nth(index).tap()
             with page.expect_download() as download_info:
@@ -499,7 +507,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        assert page.locator("#marker option").count() == 13  # Ten candidate types, an informational layer, and all.
+        assert page.locator("#marker option").count() == 14  # Ten candidate types, three informational layers, and all.
         marker = expected["findings"][0]["category"]
         select_analysis_filter(page, "#marker", marker)
         assert page.locator(".publication").count() == 1
@@ -1475,12 +1483,12 @@ def main():
             select_analysis_filter(page, "#platform", "")
             select_analysis_filter(page, "#source", "rt")
             assert page.locator(".publication").count() == 1
-            assert page.locator("#marker option").count() == 13
+            assert page.locator("#marker option").count() == 14
             select_analysis_filter(page, "#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
             select_analysis_filter(page, "#marker", "fear")
             assert page.locator(".publication").count() == 0
-            assert page.locator("#marker option").count() == 13  # Options do not vanish when results are empty.
+            assert page.locator("#marker option").count() == 14  # Options do not vanish when results are empty.
             select_analysis_filter(page, "#marker", "")
             select_analysis_filter(page, "#platform", "telegram")
             assert page.locator(".publication").count() == 0
