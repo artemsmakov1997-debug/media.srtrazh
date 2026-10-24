@@ -32,6 +32,7 @@ import test_oct15_rhetoric
 import test_hostile_rhetoric
 import test_context_precision
 import test_historical_juxtaposition
+import test_person_labels
 from browser_fixtures import business_evidence_fixture
 
 
@@ -55,7 +56,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -72,6 +73,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_hostile_rhetoric.HostileRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_context_precision.ContextPrecisionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_historical_juxtaposition.HistoricalJuxtapositionTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_person_labels.PersonLabelTests),
     ])
     try:
         output = io.StringIO()
@@ -201,7 +203,8 @@ def hostile_rhetoric_manual_ui(browser, base, errors, requests):
             page.goto(base + "/analysis.html")
             page.locator('[data-mode="manual"]').click()
             for text, phrase in ((test_hostile_rhetoric.VANNACCI_POST, "Бутафорного"),
-                                 (test_hostile_rhetoric.HOSTILE_POST, "киевскую вошь")):
+                                 (test_hostile_rhetoric.HOSTILE_POST, "киевскую вошь"),
+                                 (test_person_labels.DOCUMENT["text"], "клоун")):
                 page.locator("#manualText").fill(text)
                 page.locator("#manualSubmit").click()
                 page.locator("#manualResult").wait_for(state="visible", timeout=120000)
@@ -226,6 +229,37 @@ def hostile_rhetoric_manual_ui(browser, base, errors, requests):
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 page.locator("#manualEdit").click()
                 assert page.locator("#manualText").input_value() == text
+        finally:
+            context.close()
+
+
+def person_labels_automatic_ui(browser, base, site, errors, requests):
+    """Both political targets have the same saved markers and readable tooltip."""
+    document = test_person_labels.DOCUMENT
+    expected = analyze(document)
+    snapshot = json.loads((site / "data/analysis.json").read_text())
+    item = copy.deepcopy(snapshot["articles"][0])
+    item.update(title="Обозначения политических участников", summary=expected["summary"],
+                findings=expected["findings"], display_excerpt=document["text"], findings_omitted=0)
+    snapshot["articles"] = [item]
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width":375 if mobile else 1280, "height":812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+            page.goto(base + "/analysis.html")
+            select_analysis_filter(page, "#marker", "euphemism_dysphemism")
+            assert page.locator(".publication").count() == 1
+            page.locator(".auto-details-button").click()
+            marks = page.locator("#automaticModal mark")
+            assert marks.all_text_contents() == [f["evidence"][0]["quote"] for f in expected["findings"]]
+            marks.first.tap() if mobile else marks.first.hover()
+            page.locator("#automaticTooltip").wait_for(state="visible")
+            assert expected["findings"][0]["explanation"] in page.locator("#automaticTooltip").inner_text()
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         finally:
             context.close()
 
@@ -1578,6 +1612,7 @@ def main():
             quantitative_manual_ui(browser, base, errors, requests)
             annotation_tool_ui(browser, base, errors, requests)
             hostile_rhetoric_manual_ui(browser, base, errors, requests)
+            person_labels_automatic_ui(browser, base, site, errors, requests)
             terminology_layer_ui(browser, base, site, errors, requests)
             context_precision_ui(browser, base, site, errors, requests)
             historical_juxtaposition_ui(browser, base, site, errors, requests)

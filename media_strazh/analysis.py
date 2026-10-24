@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.8.4"
+VERSION = "rules-0.8.5"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -297,6 +297,99 @@ LITERAL_PEST_ACTIVITY = re.compile(
     r"\bнасеком[а-яё]*\b[^.!?\n]{0,40}\bдомой\b", re.I,
 )
 
+# Personal labels require a political target, not just a country elsewhere in
+# the article. Names are an explicit, non-exhaustive list; roles cover others.
+POLITICAL_PERSON_ROLE = r"(?:президент|премьер(?:-министр)?|министр|депутат|сенатор|политик|оппозиционер|канцлер|губернатор|мэр|лидер)"
+POLITICAL_PERSON_NOM = (r"(?:" + POLITICAL_PERSON_ROLE + r"|Путин|Зеленский|Трамп|Байден|Макрон|Мерц|"
+                        r"Шольц|Стармер|Медведев|Лукашенко)")
+POLITICAL_PERSON = (r"(?:" + POLITICAL_PERSON_ROLE + r"(?:а|у|ом|е|ы|ов|ам|ами|ах)?|политики|"
+                    r"(?:Путин|Трамп|Байден|Макрон|Мерц|Шольц|Стармер|Медведев)(?:а|у|ом|ым|е)?|"
+                    r"Зеленск(?:ий|ого|ому|им|ом)|Лукашенко)")
+POLITICAL_PERSON_CONTEXT = re.compile(r"\b" + POLITICAL_PERSON + r"\b", re.I)
+LABEL_MODIFIER = r"(?:настоящ[а-яё]*|жалк[а-яё]*|обычн[а-яё]*|обыкновенн[а-яё]*|кровав[а-яё]*|кровожадн[а-яё]*|политическ[а-яё]*|просто|вновь|снова|действительно)"
+LITERAL_PERFORMER_ROLE = re.compile(
+    r"\b(?:играл[а-яё]*|сыграл[а-яё]*|исполнил[а-яё]*)\s+(?:роль\s+)?(?:[а-яё-]+\s+){0,2}$|"
+    r"\b(?:работает|работал[а-яё]*|професси[а-яё]*|роль|роли)\s*(?:[а-яё-]+\s+){0,2}$", re.I,
+)
+LITERAL_PERFORMER_TAIL = re.compile(
+    r"^\s*[»\"”]?\s*(?:по\s+профессии|(?:в|на)\s+(?:[а-яё-]+\s+){0,2}"
+    r"(?:цирк[а-яё]*|арен[а-яё]*|спектакл[а-яё]*|фильм[а-яё]*|постановк[а-яё]*))\b", re.I,
+)
+LEGAL_PERSON_REPORT = re.compile(
+    r"\b(?:суд[а-яё]*|присяжн[а-яё]*)\b[^.!?;\n]{0,90}"
+    r"\b(?:признал[а-яё]*|установил[а-яё]*|постановил[а-яё]*|осудил[а-яё]*|приговорил[а-яё]*)\b|"
+    r"\b(?:признал[а-яё]*|установил[а-яё]*|постановил[а-яё]*|осудил[а-яё]*)\b"
+    r"[^.!?;\n]{0,60}\b(?:суд[а-яё]*|присяжн[а-яё]*)\b", re.I,
+)
+
+
+def _political_person_label(rule, text, start, end, sentence_span, event_context):
+    prefix = text[max(sentence_span["start"], start - 140):start]
+    suffix = text[end:min(sentence_span["end"], end + 140)]
+    sentence = sentence_span["text"]
+    if HISTORICAL_LITERAL.search(sentence) and not CURRENT_TARGET.search(sentence):
+        return False
+    if rule.id == "dysphemism.performer_label":
+        if LITERAL_PERFORMER_ROLE.search(prefix) or LITERAL_PERFORMER_TAIL.match(suffix):
+            return False
+    if rule.id == "dysphemism.murderer_label":
+        if LEGAL_PERSON_REPORT.search(prefix) or re.match(
+            r"^\s*[»\"”]?\s*[,—-]\s*(?:признал[а-яё]*|установил[а-яё]*|постановил[а-яё]*|осудил[а-яё]*)"
+            r"\s+(?:суд[а-яё]*|присяжн[а-яё]*)\b", suffix, re.I,
+        ) or re.search(
+            r"\b(?:прокурор[а-яё]*|следовател[а-яё]*)\b[^.!?;\n]{0,90}\bназвал[а-яё]*\b", prefix, re.I,
+        ):
+            return False
+    if rule.id == "dysphemism.bloody_epithet" and re.match(
+        r"^\s*(?:после|из-за|от)\s+(?:(?:тяж[её]л[а-яё]*|полученн[а-яё]*)\s+)?"
+        r"(?:ранени[а-яё]*|ран[а-яё]*|травм[а-яё]*)\b", suffix, re.I,
+    ):
+        return False
+    if rule.id == "dysphemism.bloody_epithet" and re.fullmatch(
+        r"(?:кровав|кровожадн)(?:ая|ую|ой)", text[start:end], re.I,
+    ) and re.match(r"^\s+(?:(?:внешн|внутренн)[а-яё]*\s+)?политик(?:а|у|е|ой|и)\b", suffix, re.I):
+        return False
+    names = r"(?:\s+(?-i:[А-ЯЁ][а-яё-]{1,30})){0,3}"
+    label_chain = (r"(?:(?:" + LABEL_MODIFIER + r"\s+){0,2}"
+                   r"(?:клоун|паяц|скоморох|шут|диктатор|тиран|убийц|кровав|кровожадн)[а-яё]*"
+                   r"\s*(?:,\s*(?:а\s+)?|и\s+)){0,3}")
+    # Direct predicate/apposition: «Путин — клоун», «Зеленского назвали клоуном».
+    direct = re.search(
+        r"\b" + POLITICAL_PERSON + names +
+        r"\s*(?:[—,:-]\s*|(?:это|был|была|назвали|называют|считают)\s+)?"
+        r"(?:не\s+)?" + label_chain + r"(?:не\s+)?(?:" + LABEL_MODIFIER + r"\s+){0,2}[«\"“]?\s*$", prefix, re.I,
+    )
+    # A noun followed by a genitive may name the victim («убийца президента»).
+    # Require nominative apposition here; other cases remain covered by naming.
+    person_after = POLITICAL_PERSON if rule.id == "dysphemism.bloody_epithet" else POLITICAL_PERSON_NOM
+    descriptor = r"(?:(?:диктатор|тиран|убийц|клоун)[а-яё]*\s+)?" if rule.id == "dysphemism.bloody_epithet" else ""
+    forward = re.match(r"^\s*[»\"”]?\s*" + descriptor + r"(?:(?-i:[А-ЯЁ][а-яё-]{1,30})\s+){0,2}"
+                       r"\b" + person_after + r"\b", suffix, re.I)
+    reverse = re.match(r"^\s*[»\"”]?\s+(?:назвали|называют|считают)\s+"
+                       r"(?:(?-i:[А-ЯЁ][а-яё-]{1,30})\s+){0,2}" + POLITICAL_PERSON + r"\b", suffix, re.I)
+    if direct or forward or reverse:
+        return True
+    if POLITICAL_PERSON_CONTEXT.search(sentence) and re.search(
+        r"\b(?:слово|ярлык|прозвище|обозначение)\s*[«\"“]?\s*$", prefix, re.I,
+    ):
+        return True
+    # Bounded nickname resolution, deliberately excluded for a criminal noun.
+    if rule.id == "dysphemism.murderer_label":
+        return False
+    left = max(text.rfind("\n", 0, sentence_span["start"]) + 1, start - 200)
+    previous = text[left:sentence_span["start"]] + "\n" + event_context[:350]
+    if not POLITICAL_PERSON_CONTEXT.search(previous):
+        return False
+    if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence + "\n" + previous) or re.search(
+        r"\b(?:цирк[а-яё]*|арен[а-яё]*|професси[а-яё]*)\b", sentence + "\n" + previous, re.I,
+    ):
+        return False
+    return bool((not prefix.strip() and not suffix.strip(" .!?\n\t")) or re.match(
+        r"^\s*(?:(?:вновь|снова|уже|не|теперь)\s+){0,2}(?:заявил[а-яё]*|заявля[а-яё]*|"
+        r"потребовал[а-яё]*|требует|призвал[а-яё]*|призыва[а-яё]*|подписал[а-яё]*|"
+        r"отказал[а-яё]*|хочет|(?:диктатор|тиран)(?:а|у|ом|е|ы|ов|ам|ами|ах)?)\b", suffix, re.I,
+    ))
+
 
 def _direct_person_metaphor(text, start, end, sentence_span):
     """A nearby official alone is not the target of every noun in the report."""
@@ -383,6 +476,8 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "political_person_label":
+        return _political_person_label(rule, text, start, end, sentence_span, event_context)
     if rule.context_requirement == "territory_terminology":
         return _territory_term_context(rule, text, start, end, sentence_span)
     if rule.context_requirement == "psychological_label":
@@ -828,6 +923,12 @@ def analyze(document):
                         truncated = True
                         break
                     evidence = _evidence(field, value, *match.span(), quotes[field])
+                    if (rule.context_requirement == "political_person_label" or rule.id == "dysphemism.autocratic_label") and re.match(
+                        r"\s*[»\"”]?\s+(?:назвали|называют|считают)\s+"
+                        r"(?:(?-i:[А-ЯЁ][а-яё-]{1,30})\s+){0,2}" + POLITICAL_PERSON + r"\b",
+                        value[match.end():match.end() + 140], re.I,
+                    ):
+                        evidence["context"]["reported_speech"] = True
                     if rule.id in {"authority.prominent_prescriptive_quote", "authority.attributed_political_evaluation"}:
                         # This rule requires attributed speech even without literal
                         # quotation marks. Denial/discussion still take priority.
