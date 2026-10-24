@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.8.2"
+VERSION = "rules-0.8.3"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -31,7 +31,8 @@ TAXONOMY = (
 LABELS = {key: label for key, label, _ in TAXONOMY}
 LABELS["event_terminology"] = "Выбор обозначения события"
 LABELS["actor_terminology"] = "Обозначение участника"
-INFORMATIONAL = {"event_terminology", "actor_terminology"}
+LABELS["territory_terminology"] = "Обозначение территории"
+INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology"}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
@@ -164,6 +165,81 @@ OTHER_SVO = re.compile(
     r"охлаждени[а-яё]*|радиатор[а-яё]*|процессор[а-яё]*|"
     r"совет\s+ветеранов\s+организации)\b", re.I,
 )
+
+# Require a nearby grammatical link to a territory, not simply a place name
+# somewhere in a political report. This explicit vocabulary is not a geocoder.
+TERRITORY_REFERENCE = (
+    r"(?:территори(?:я|и|ю|ей|ею|ям|ями|ях)|"
+    r"город(?:а|у|ом|е|ов|ам|ами|ах)?|"
+    r"с[её]л(?:о|а|у|ом|е|ам|ами|ах)|сёл|деревн(?:я|и|ю|е|ей|ям|ями|ях)|"
+    r"пос[её]л(?:ок|ка|ку|ком|ке|ки|ков|кам|ками|ках)|"
+    r"насел[её]нн[а-яё]*\s+пункт(?:а|у|ом|е|ы|ов|ам|ами|ах)?|"
+    r"район(?:а|у|ом|е|ы|ов|ам|ами|ах)?|"
+    r"област(?:ь|и|ью|ей|ям|ями|ях)|регион(?:а|у|ом|е|ы|ов|ам|ами|ах)?|"
+    r"(?:полу)?остров(?:а|у|ом|е|ов|ам|ами|ах)?|"
+    r"республик(?:а|и|у|е|ой|ам|ами|ах)|стран(?:а|ы|у|е|ой|ам|ами|ах)|"
+    r"земл(?:я|и|ю|е|ей|ям|ями|ях)|провинци(?:я|и|ю|ей|ям|ями|ях)|"
+    r"Крым(?:а|у|ом|е)?|Донбасс(?:а|у|ом|е)?|"
+    r"(?:Донецк|Луганск|Херсон|Бахмут)(?:а|у|ом|е)?|"
+    r"Мариупол(?:ь|я|ю|ем|е)|"
+    r"Севастопол(?:ь|я|ю|ем|е)|Запорожь(?:е|я|ю|ем)|"
+    r"Украин(?:а|ы|е|у|ой)|Росси(?:я|и|ю|ей)|"
+    r"Палестин(?:а|ы|е|у|ой)|Газ(?:а|ы|е|у|ой)|"
+    r"Судет(?:ы|ов|ам|ами|ах)|Карабах(?:а|у|ом|е)?|"
+    r"Голанск[а-яё]*\s+высот[а-яё]*|Западн[а-яё]*\s+берег[а-яё]*)"
+)
+TERRITORY_ADJECTIVE = r"[а-яё-]{1,35}(?:ый|ий|ая|ое|ее|ие|ые|ого|его|ому|ему|ой|ей|ую|юю|ым|им|ых|их|ыми|ими|ом|ем)"
+TERRITORY_AGENT = (r"(?:(?:" + TERRITORY_ADJECTIVE + r"\s+){0,2}"
+                   r"(?:войсками|силами|армией|военными)|Россией|Украиной|ВСУ|ВС\s+РФ)")
+TERRITORY_AFTER = re.compile(
+    r"^\s*[«»\"“”]?\s*(?:" + TERRITORY_AGENT + r"\s+)?"
+    r"(?P<modifiers>(?:" + TERRITORY_ADJECTIVE + r"\s+){0,3})"
+    r"\b" + TERRITORY_REFERENCE + r"\b", re.I,
+)
+TERRITORY_BEFORE = re.compile(
+    r"\b" + TERRITORY_REFERENCE + r"\b"
+    r"(?P<modifiers>(?:\s+(?:" + TERRITORY_ADJECTIVE + r"|(?-i:[А-ЯЁ][а-яё-]{1,35}))){0,3})"
+    r"\s*[»\"”]?\s*,?\s*(?:(?:который|которая|которое|которые|был|была|было|были|будет|будут|"
+    r"считается|считаются|назван|названа|названо|названы|признан|признана|признано|признаны|"
+    r"называют|назвали|считают|считали|"
+    r"ранее|вновь|недавно|полностью|якобы|временно|частично|снова|теперь|уже|не)\s+){0,4}"
+    r"[«\"“]?\s*$", re.I,
+)
+NON_TERRITORY_MODIFIER = re.compile(
+    r"\b(?:заключ[её]нн[а-яё]*|пленн[а-яё]*|задержанн[а-яё]*|"
+    r"осужд[её]нн[а-яё]*|арестованн[а-яё]*|военнослужащ[а-яё]*)\b", re.I,
+)
+NON_TERRITORY_AFTER = re.compile(
+    r"^\s*[»\"”]?\s*(?:(?:" + TERRITORY_ADJECTIVE + r")\s+){0,2}"
+    r"(?:заключ[её]нн[а-яё]*|пленн[а-яё]*|задержанн[а-яё]*|осужд[её]нн[а-яё]*|"
+    r"арестованн[а-яё]*|военнослужащ[а-яё]*|заложник[а-яё]*|человек[а-яё]*|"
+    r"жител[а-яё]*|сотрудник[а-яё]*|пациент[а-яё]*|мест[а-яё]*|врем[а-яё]*|"
+    r"(?:из\s+(?:плена|тюрьм[а-яё]*|колони[а-яё]*))|под\s+залог)\b", re.I,
+)
+LITERAL_RELEASE = re.compile(
+    r"^\s+от\s+(?:уплат[а-яё]*\s+)?(?:налог[а-яё]*|долг[а-яё]*|пошлин[а-яё]*|"
+    r"плат[а-яё]*|обязанност[а-яё]*|ответственност[а-яё]*|наказани[а-яё]*|"
+    r"работ[а-яё]*|должност[а-яё]*|снег[а-яё]*|льда|мусор[а-яё]*|завал[а-яё]*)\b", re.I,
+)
+
+
+def _territory_term_context(rule, text, start, end, sentence_span):
+    """Match a bounded noun phrase/predicate; preserve only the term as evidence."""
+    left = text[max(sentence_span["start"], start - 160):start]
+    right = text[end:min(sentence_span["end"], end + 160)]
+    if NON_TERRITORY_AFTER.match(right):
+        return False
+    if rule.id == "terminology.liberated_territory" and LITERAL_RELEASE.match(right):
+        return False
+    after = TERRITORY_AFTER.search(right)
+    if after and not NON_TERRITORY_MODIFIER.search(after["modifiers"]):
+        return True
+    before = TERRITORY_BEFORE.search(left)
+    if not before or NON_TERRITORY_MODIFIER.search(before["modifiers"]):
+        return False
+    # «В Крыму освобождён ...» gives a location, not the object of release.
+    preposition = re.search(r"\b(?:в|во|на|из|к|ко|с|со|у|о|об|от|для|по)\s+$", left[:before.start()], re.I)
+    return not preposition or "," in left[before.start():]
 
 # Recognize attribution, not credibility. The same cue applies to all listed
 # political speakers; their party, publisher and position never determine truth.
@@ -300,6 +376,8 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "territory_terminology":
+        return _territory_term_context(rule, text, start, end, sentence_span)
     if rule.context_requirement == "psychological_label":
         return _psychological_label_context(text, start, end, sentence_span, event_context)
     if rule.context_requirement == "human_pest_metaphor":
