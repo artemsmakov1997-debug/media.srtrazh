@@ -1,0 +1,35 @@
+name: Check rating design preview
+
+on:
+  push:
+    branches: [design/rating-preview-v1]
+    paths: ['design-preview/**', '.github/workflows/rating-preview-check.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rating-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install playwright==1.62.0
+          python3 -m playwright install --with-deps chromium
+      - name: Verify rating preview
+        run: python3 design-preview/check_rating.py --output /tmp/rating-preview-checks
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: rating-preview-checks
+          path: /tmp/rating-preview-checks
+          retention-days: 14

@@ -1,0 +1,54 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 1280,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 1100,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 1099,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 1024,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 768,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 390,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 360,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    },
+    {
+      "width": 320,
+      "header_and_background": "unchanged",
+      "modal": "fits"
+    }
+  ],
+  "checks": [
+    "all nine outlets in order; inactive slides inert; no autoplay; no hidden keyboard focus",
+    "full list search, empty state, sorting, focus containment and return; analysis link retained"
+  ],
+  "errors": []
+}
