@@ -104,7 +104,8 @@ class AnalysisTests(unittest.TestCase):
 
     def test_unsupported_categories_are_explicit(self):
         coverage = {c["id"]: c["coverage"] for c in analyze({"text": "Нейтральный текст."})["coverage"]}
-        self.assertEqual(len(coverage), 15)  # Twelve methodology types and three informational layers.
+        self.assertEqual(len(coverage), 16)  # Twelve methodology types and four informational layers.
+        self.assertEqual(coverage["rhetorical_context"], "context_notices")
         self.assertEqual(coverage["selective_context"], "not_evaluated")
         self.assertEqual(coverage["event_terminology"], "context_notices")
         self.assertEqual(coverage["territory_terminology"], "context_notices")

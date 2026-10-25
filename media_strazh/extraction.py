@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from .analysis import validate_document
 from .sources import Source, normalize_url
 
-EXTRACTOR_VERSION = "html-0.5.0"
+EXTRACTOR_VERSION = "html-0.5.1"
 MAX_FEED_ITEMS = 2000
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 BLOCK = {"p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "blockquote", "br", "ul", "ol"}

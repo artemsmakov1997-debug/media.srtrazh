@@ -21,6 +21,7 @@ KNOWN_DEVELOPMENT_URLS = {
     "https://t.me/inosmichannel/32784", "https://t.me/inosmichannel/32786",
     "https://t.me/inosmichannel/32771", "https://t.me/inosmichannel/32777",
     "https://t.me/aifonline/200975",
+    "https://t.me/vatnoeboloto/4366", "https://t.me/vatnoeboloto/15114",
 }
 
 
@@ -63,7 +64,9 @@ def prepare_benchmark(store, output, size=240, seed="pilot-2026-1"):
             continue
         row.update(schema_version=SCHEMA, split=None, reviewer="", reviewed_at=None, spans=[])
         row["provenance"].update(source_id=source_id, publisher_id=source.publisher, platform=source.platform)
-        row["provenance"]["sha256"] = _hash(json.dumps({"title": document.get("title", ""), "text": document["text"]},
+        content = {"title": document.get("title", ""), "text": document["text"],
+                   **({"media": document["media"]} if "media" in document else {})}
+        row["provenance"]["sha256"] = _hash(json.dumps(content,
                                                       ensure_ascii=False, sort_keys=True, separators=(",", ":")))
         # No detector labels or scores participate in selection or reviewer input.
         length = "short" if len(words) < 100 else "medium" if len(words) < 500 else "long"
