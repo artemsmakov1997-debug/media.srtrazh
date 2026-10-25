@@ -753,6 +753,10 @@ def pro_business_navigation_ui(browser, base, site):
         page.on("pageerror", lambda error: page_errors.append(str(error)))
         for route in ("index.html", "archive.html", "about.html", "method.html", "help.html"):
             page.goto(base + "/" + route)
+            expected_path = "/" if route == "index.html" else "/" + route.removesuffix(".html") + "/"
+            assert page.url.endswith(expected_path), page.url
+            if route != "index.html":
+                assert page.locator('base[href="/"]').count() == 1
             if route == "method.html":
                 # Page backdrop is untouched; brighter colors belong to method blocks.
                 assert page.evaluate(
@@ -795,8 +799,8 @@ def pro_business_navigation_ui(browser, base, site):
                     assert dialog.get_attribute("aria-hidden") == "true"
             page.locator("a.pro-nav-link").click()
             assert page.locator(".pro-gateway-dialog").is_visible(), route
-            assert page.locator(".pro-gateway-option--research").get_attribute("href") == "analysis.html"
-            assert page.locator(".pro-gateway-option--business").get_attribute("href") == "business.html"
+            assert page.locator(".pro-gateway-option--research").get_attribute("href") == "/analysis/"
+            assert page.locator(".pro-gateway-option--business").get_attribute("href") == "/business/"
             assert "linear-gradient" in page.locator(".pro-gateway-option--research .pro-gateway-cta").evaluate(
                 "el => getComputedStyle(el).backgroundImage")
             assert "linear-gradient" in page.locator(".pro-gateway-option--business .pro-gateway-cta").evaluate(
@@ -850,8 +854,8 @@ def pro_business_navigation_ui(browser, base, site):
         assert 28 <= hero_type["size"] <= 45, hero_type
         assert "Unbounded" in hero_type["family"], hero_type
         assert page.locator(".typing-line--second").evaluate("el => getComputedStyle(el).textShadow") != "none"
-        assert page.locator('.support-choice--research a[href="analysis.html"]').count() == 1
-        assert page.locator('.support-choice--business a[href="business.html"]').count() == 1
+        assert page.locator('.support-choice--research a[href="/analysis/"]').count() == 1
+        assert page.locator('.support-choice--business a[href="/business/"]').count() == 1
         assert page.locator(".support-plan-price").count() == 2
         assert page.locator(".support-plan-price").all_text_contents() == ["Уточняется", "Уточняется"]
         assert "support-type-reveal" in page.locator(".typing-line--first").evaluate("el => getComputedStyle(el).animationName")
@@ -870,7 +874,7 @@ def pro_business_navigation_ui(browser, base, site):
         # Principles lead to functional destinations and show raised buttons.
         page.goto(base + "/about.html")
         assert page.locator(".value-card .value-link").count() == 3
-        assert page.locator('.value-card[data-n="2"] .value-link').get_attribute("href") == "help.html"
+        assert page.locator('.value-card[data-n="2"] .value-link').get_attribute("href") == "/help/"
         assert "0px 5px 0px" in page.locator(".value-card .value-link").first.evaluate("el => getComputedStyle(el).boxShadow")
         assert "добровольную и прозрачную модель финансирования" in page.locator('.value-card[data-n="2"]').inner_text().lower()
         assert page.locator('.value-card[data-n="2"] p').inner_text().strip().endswith("сохранять самостоятельность.")
@@ -930,7 +934,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         page.locator("a.pro-nav-link").click()
         page.locator(".pro-gateway-option--business").click()
-        page.wait_for_url("**/business.html")
+        page.wait_for_url("**/business/")
         assert page.locator(".site-header .header-back").is_visible()
         assert "Вернуться к рейтингу" in page.locator(".site-header .header-back").inner_text()
         assert page.locator(".site-header .header-inner").evaluate(
