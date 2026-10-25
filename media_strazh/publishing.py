@@ -11,6 +11,7 @@ from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
 from .business import business_snapshot
 from .sources import SOURCES, normalize_url, resolve_source
 from .storage import utcnow
+from .pretty_urls import CLEAN_ROUTES, publish_clean_routes
 
 SCHEMA = "public-snapshot-1.0"
 ROOT = Path(__file__).resolve().parents[1]
@@ -164,7 +165,8 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
     runtime = runtime_assets(runtime_dir)
     runtime_paths = {Path("vendor/pyodide") / name for name in runtime}
     allowed = {Path(path.name) for path in assets} | runtime_paths | {
-        Path("data/analysis.json"), Path("data/manual-engine.json"), Path("data/business.json")}
+        Path("data/analysis.json"), Path("data/manual-engine.json"), Path("data/business.json")
+    } | {Path(slug) / "index.html" for slug in CLEAN_ROUTES}
     if destination.exists():
         for path in destination.rglob("*"):
             if path.is_symlink() or (not path.is_dir() and path.relative_to(destination) not in allowed):
@@ -174,6 +176,7 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
     destination.mkdir(parents=True, exist_ok=True)
     for path in assets:
         shutil.copy2(path, destination / path.name)
+    publish_clean_routes(destination)
     runtime_destination = destination / "vendor" / "pyodide"
     runtime_destination.mkdir(parents=True, exist_ok=True)
     for name, path in runtime.items():
