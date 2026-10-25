@@ -66,14 +66,16 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.small-graph circle').last.get_attribute('data-score') == '25'
             assert card.locator('.small-graph circle').last.get_attribute('data-collected') == '4'
             assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == '1'
-            assert card.locator('.rating-chart-caption').inner_text() == 'Найдено спорных сообщений: 1'
-            assert card.locator('.rating-chart-caption').evaluate('el => el.scrollHeight <= el.clientHeight + 1')
+            assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
+            assert card.locator('.rating-chart-caption-value').inner_text() == '1'
+            assert card.locator('.rating-chart-caption').evaluate('el => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith('RT на русском.')
             if not mobile:
                 assert page.locator('.media-card').count() >= 5
                 zero_card = page.locator('.media-card[data-publisher="mediazona"]')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
-                assert zero_card.locator('.rating-chart-caption').inner_text() == 'Найдено спорных сообщений: 0'
+                assert zero_card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
+                assert zero_card.locator('.rating-chart-caption-value').inner_text() == '0'
                 assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'
