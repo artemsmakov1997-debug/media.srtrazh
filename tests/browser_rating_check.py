@@ -60,6 +60,18 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.small-graph circle').last.get_attribute('data-score') == '25'
             assert card.locator('.small-graph circle').last.get_attribute('data-collected') == '4'
             assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == '1'
+            assert 'Доля с признаками' in card.locator('.rating-chart-caption').inner_text()
+            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith('RT на русском.')
+            if not mobile:
+                assert page.locator('.media-card').count() >= 5
+                zero_card = page.locator('.media-card[data-publisher="mediazona"]')
+                assert zero_card.locator('.rating-score').inner_text() == '0%'
+                assert 'Активность публикаций' in zero_card.locator('.rating-chart-caption').inner_text()
+                assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
+                assert zero_card.locator('.small-graph svg circle').count() == 24
+                assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'
+                no_data = page.locator('.media-card[data-publisher="kommersant"]')
+                assert 'Нет данных за последние 24 часа' in no_data.locator('.small-graph').inner_text()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
             trigger = page.locator('.show-full-list-trigger:visible').first

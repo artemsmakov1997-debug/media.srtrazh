@@ -176,6 +176,75 @@
     return descriptions.length ? svg : node('span', 'Нет точек для графика', 'rating-graph-empty');
   }
 
+
+  // Each chart plots observed data. When the detected share is exactly 0%,
+  // show hourly publication activity, not fictitious rating fluctuations.
+  function makeCardGraph(row) {
+    const activity = row.score_percent === 0 && row.collected > 0;
+    if (row.score_percent === null || row.collected === 0) {
+      return node('span', 'Нет данных за последние 24 часа', 'rating-graph-empty');
+    }
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 340 112');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', row.name + '. ' + (activity
+      ? 'Количество собранных публикаций по часам за 24 часа, признаков не обнаружено.'
+      : 'Изменение накопительной доли публикаций с признаками за 24 часа, итог ' + percent(row.score_percent) + '.'));
+    const color = activity ? '#65bee9' : ({red:'#f87171', yellow:'#efbd42', green:'#36d399'}[row.level] || '#91a7b7');
+    const samples = row.series.map((point, index) => ({
+      point, index, value: activity ? point.collected : point.score_percent
+    })).filter(sample => sample.value !== null);
+    const highest = Math.max(0, ...samples.map(sample => sample.value));
+    const upper = activity
+      ? ([1,2,3,4,5,8,10,15,20,30,50,100].find(value => value >= highest) || Math.ceil(highest / 20) * 20)
+      : ([10,20,40,60,80,100].find(value => value >= highest) || 100);
+    const left = 30, right = 332, top = 10, bottom = 84;
+    const xAt = index => left + (index + 1) / 24 * (right - left);
+    const yAt = value => bottom - value / upper * (bottom - top);
+    const shape = (tag, attrs, content) => {
+      const element = document.createElementNS(ns, tag);
+      for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, String(value));
+      if (content !== undefined) element.textContent = content;
+      return element;
+    };
+    const gradientId = 'rating-card-fill-' + row.id;
+    const defs = shape('defs', {});
+    const gradient = shape('linearGradient', {id:gradientId,x1:'0%',y1:'0%',x2:'0%',y2:'100%'});
+    gradient.append(
+      shape('stop', {offset:'0%','stop-color':color,'stop-opacity':'.20'}),
+      shape('stop', {offset:'100%','stop-color':color,'stop-opacity':'0'})
+    );
+    defs.append(gradient); svg.append(defs);
+    for (const [ratio, tick] of [[1, upper],[.5, upper / 2],[0, 0]]) {
+      const y = bottom - ratio * (bottom - top);
+      svg.append(shape('line', {x1:left,y1:y,x2:right,y2:y,stroke:'#7493a9','stroke-opacity':ratio===0?'.28':'.16','stroke-dasharray':ratio===0?'0':'3 5'}));
+      svg.append(shape('text', {x:24,y:y+3,'text-anchor':'end',fill:'#91a9bd','font-size':'9','font-family':'Inter, sans-serif'}, String(Number.isInteger(tick)?tick:tick.toFixed(1)) + (activity?'':'%')));
+    }
+    for (const [index, title, anchor] of [[0,'24 ч назад','start'],[11,'12 ч назад','middle'],[23,'Сейчас','end']]) {
+      svg.append(shape('text',{x:index===0?left:index===23?right:xAt(index),y:105,'text-anchor':anchor,fill:'#8da4b8','font-size':'9.5','font-family':'Inter, sans-serif'},title));
+    }
+    if (samples.length) {
+      const line = samples.map((sample, index) => (index?'L':'M') + xAt(sample.index).toFixed(2) + ' ' + yAt(sample.value).toFixed(2)).join(' ');
+      const first = samples[0], last = samples[samples.length-1];
+      const area = line + ' L' + xAt(last.index).toFixed(2) + ' ' + bottom + ' L' + xAt(first.index).toFixed(2) + ' ' + bottom + ' Z';
+      svg.append(shape('path',{d:area,fill:'url(#'+gradientId+')'}));
+      svg.append(shape('path',{d:line,fill:'none',stroke:color,'stroke-width':'2.3','stroke-linecap':'round','stroke-linejoin':'round'}));
+      for (const sample of samples) {
+        const circle = shape('circle',{cx:xAt(sample.index).toFixed(2),cy:yAt(sample.value).toFixed(2),r:sample===last?'3':'2',fill:color,stroke:'#0c1e30','stroke-width':'.8'});
+        circle.dataset.score = String(sample.point.score_percent);
+        circle.dataset.collected = String(sample.point.cumulative_collected);
+        circle.dataset.flagged = String(sample.point.cumulative_flagged);
+        circle.dataset.endAt = sample.point.end_at;
+        circle.append(shape('title',{},date(sample.point.end_at) + ': ' + (activity
+          ? sample.point.collected + ' публикаций за час; 0 с признаками'
+          : sample.point.cumulative_flagged + ' из ' + sample.point.cumulative_collected + ', ' + percent(sample.point.score_percent))));
+        svg.append(circle);
+      }
+    }
+    return svg;
+  }
+
   function examplesLink(row) {
     const link = node('a', 'Смотреть примеры', 'link-button');
     link.href = '/analysis/?source=' + encodeURIComponent(row.id);
@@ -214,7 +283,11 @@
     header.append(identity, score);
 
     const graph = node('div', '', 'small-graph');
-    graph.append(makeGraph(row));
+    const activity = row.score_percent === 0 && row.collected > 0;
+    graph.append(node('div', row.score_percent === null || row.collected === 0
+      ? 'Данные за 24 часа'
+      : activity ? 'Активность публикаций · 24 часа' : 'Доля с признаками · 24 часа', 'rating-chart-caption'));
+    graph.append(makeCardGraph(row));
     graph.tabIndex = 0;
 
     const footer = node('div', '', 'media-footer');
@@ -226,7 +299,7 @@
   function renderCards() {
     $('mediaGrid').replaceChildren(); $('mediaDots').replaceChildren();
     $('mediaGrid').classList.toggle('is-mobile-slider', mobile());
-    const count = mobile() ? media.length : Math.min(desktop() ? 3 : 4, media.length);
+    const count = mobile() ? media.length : Math.min(desktop() ? 6 : 4, media.length);
     for (let index = 0; index < count; index++) {
       const row = media[mobile() ? index : (offset + index) % media.length];
       const card = drawCard(row);
@@ -252,12 +325,13 @@
   function restartCycle() {
     stopCycle();
     if (motion.matches || currentModal || document.hidden || media.length < 2 ||
+        (!mobile() && media.length <= (desktop() ? 6 : 4)) ||
         $('mediaGrid').contains(document.activeElement) || $('mediaDots').contains(document.activeElement)) return;
     cycle = setInterval(() => {
       if (mobile()) active = (active + 1) % media.length;
-      else offset = (offset + (desktop() ? 3 : 4)) % media.length;
+      else offset = (offset + (desktop() ? 6 : 4)) % media.length;
       renderCards();
-    }, mobile() ? 4200 : 5000);
+    }, mobile() ? 5200 : 8500);
   }
 
   function filteredMedia() {

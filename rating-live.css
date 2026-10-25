@@ -34,221 +34,170 @@
   .media-card,.media-dot { transition:none !important; animation:none !important; }
 }
 
-/* Compact rating cards — 2026-10-25.
-   The headline score remains the percentage of collected publications flagged.
-   All deeper collection details remain in the source data and full-list view. */
-.rating-status[hidden] { display:none !important; }
-.current-rating-section .media-grid { align-items:stretch; }
-.current-rating-section .media-card {
-  display:flex; flex-direction:column;
-  min-width:0; min-height:218px;
-  padding:20px !important;
-  border-radius:17px;
-  gap:0;
-}
-.current-rating-section .media-card-header {
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:13px;
-  margin:0 0 23px;
-  min-width:0;
-}
-.current-rating-section .media-logo { align-items:flex-start; gap:11px; min-width:0; }
-.current-rating-section .logo-icon {
-  width:42px;height:42px;flex:0 0 42px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;letter-spacing:0;
-  border-radius:11px;
-}
-.current-rating-section .media-identity-text { flex:1; min-width:0; padding-top:1px; }
-.current-rating-section .media-name {
-  color:#f2f7fb;
-  font-size:16px;
-  font-weight:750;
-  line-height:1.33;
-  letter-spacing:-.025em;
-  overflow-wrap:break-word;
-}
-.current-rating-section .media-legal-status {
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:5px;
-  margin-top:7px;
-}
-.current-rating-section .media-status-tag {
-  display:inline-flex;
-  align-items:center;
-  max-width:100%;
-  border:1px solid rgba(209,166,100,.4);
-  border-radius:5px;
-  padding:3px 6px;
-  color:#dfc39d;
-  background:rgba(211,163,98,.065);
-  font-size:10px;
-  line-height:1.3;
-  font-weight:600;
-  text-transform:none;
-  overflow-wrap:anywhere;
-}
-.current-rating-section .rating-block { flex:0 0 auto; text-align:right; padding-top:1px; }
-.current-rating-section .rating-score { font-size:clamp(21px,2vw,27px);line-height:1.08;letter-spacing:-.045em;white-space:nowrap; }
-.current-rating-section .small-graph {
-  width:100%;height:52px;
-  min-height:52px;
-  margin-top:auto;
-  border-radius:8px;
-  background:linear-gradient(180deg,rgba(7,17,30,.65),rgba(9,22,36,.78));
-}
-.current-rating-section .media-footer {
-  display:block !important;
-  width:100%;
-  padding:14px 0 0;
-  margin:14px 0 0;
-  border-top:1px solid rgba(144,187,206,.16);
-}
-.current-rating-section .media-footer .link-button {
-  width:100% !important;
-  min-height:44px;
-  padding:10px 12px;
-  margin:0;
-  border:1px solid rgba(64,194,219,.43);
-  border-radius:9px;
-  background:rgba(22,66,84,.5);
-  color:#69deef;
-  font-size:13px;
-  font-weight:750;
-  letter-spacing:.005em;
-  text-align:center;
-  transition:border-color .18s ease,background .18s ease,color .18s ease;
-}
-.current-rating-section .media-footer .link-button:hover,
-.current-rating-section .media-footer .link-button:focus-visible {
-  background:rgba(25,89,109,.63);
-  border-color:rgba(96,222,240,.85);
-  color:#e6fbff;
-}
-@media (max-width:767px) {
-  .current-rating-section .media-card { min-height:0; padding:16px !important; }
-  .current-rating-section .media-card-header { margin-bottom:20px; }
-  .current-rating-section .media-name { font-size:15px !important; }
-  .current-rating-section .rating-score { font-size:24px; }
-  .current-rating-section .small-graph { margin-top:0; min-height:48px;height:48px; }
-  .current-rating-section .media-footer {
-    display:block !important;
-    margin-top:13px;
-    padding-top:13px;
-  }
-  .current-rating-section .media-footer .link-button {
-    width:100% !important;
-    min-height:44px;
-    font-size:13px !important;
-    padding:10px 12px;
-  }
-}
 
-/* Editorial refinement: a quiet first fold and reliable, equal-height cards. */
-.hero { align-items:stretch; }
-.hero .hero-text,
-.hero .hero-counter {
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  min-width:0;
+/* Rating redesign: editorial restraint, no decorative chart data or textures. */
+.rating-status[hidden] { display:none !important; }
+.hero { align-items:stretch; gap:16px; }
+.hero .hero-text,.hero .hero-counter {
+  display:flex;flex-direction:column;justify-content:center;min-width:0;
+  border-color:rgba(96,151,184,.30);border-radius:20px;
 }
-.hero .hero-text { padding:28px 30px; }
+.hero .hero-text { padding:30px 32px; }
 .hero .hero-counter { padding:26px 28px; }
 .hero .hero-text h1 {
   font-family:"Golos Text","Inter",sans-serif;
-  font-size:clamp(1.65rem,2.45vw,2.12rem);
-  font-weight:600;
-  line-height:1.22;
-  letter-spacing:-.033em;
-  text-wrap:balance;
-  max-width:800px;
+  font-size:clamp(1.65rem,2.55vw,2.2rem);
+  line-height:1.22;font-weight:700;letter-spacing:-.034em;
+  max-width:810px;text-wrap:balance;
 }
-.hero .counter-label { font-size:.75rem; letter-spacing:.075em; line-height:1.4; }
-.hero .counter-value { font-size:clamp(2.8rem,4.5vw,4.05rem); line-height:1.08; }
-@media (min-width:768px) {
-  .hero { grid-template-columns:minmax(0,1fr) minmax(265px,300px); gap:16px; }
-  .hero .hero-text, .hero .hero-counter { min-height:172px; }
+.hero .counter-label { font-size:.77rem;line-height:1.45;letter-spacing:.085em;color:#b5c8d7; }
+.hero .counter-value { font-size:clamp(3.1rem,5vw,4.5rem);line-height:1.08; }
+.section-divider { margin:13px 0 23px;opacity:.32; }
+.current-rating-section .rating-header { margin-bottom:17px; }
+.current-rating-section .rating-header h2 {
+  color:#a5bcd0;font:700 .85rem/1.4 "Inter",sans-serif;letter-spacing:.145em;
 }
+.current-rating-section .full-list-button {
+  border-radius:12px;border-color:rgba(108,171,203,.38);
+  color:#e6f4fc;background:rgba(21,44,65,.92);
+  font-weight:650;letter-spacing:.015em;text-transform:none;
+  min-height:44px;box-shadow:none;
+}
+.current-rating-section .full-list-button-desktop::after {
+  content:"→";display:inline-block;margin-left:13px;color:var(--accent-blue);font-size:1.15rem;
+}
+.current-rating-section .media-grid {align-items:stretch;gap:18px;}
 .current-rating-section .media-card {
-  min-height:230px;
-  border:1px solid rgba(123,166,190,.17);
-  box-shadow:0 14px 34px rgba(1,12,25,.23),inset 0 1px rgba(240,251,255,.025);
+  position:relative;display:flex;flex-direction:column;min-width:0;
+  min-height:318px;padding:22px 20px 19px !important;gap:0;
+  border-radius:18px;border:1px solid rgba(109,158,184,.25);
+  background:linear-gradient(155deg,#132b40 0%,#0d2033 62%,#0a1b2b 100%);
+  box-shadow:0 11px 28px rgba(0,0,0,.2),inset 0 1px 0 rgba(235,251,255,.025);
 }
-.current-rating-section .media-card-header { gap:12px; margin-bottom:24px; }
-.current-rating-section .media-logo { align-items:flex-start; gap:12px; }
+.current-rating-section .media-card::before {display:none;}
+.current-rating-section .media-card-header {
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:13px;margin:0 0 17px;min-width:0;min-height:59px;
+}
+.current-rating-section .media-logo {display:flex;align-items:flex-start;gap:12px;min-width:0;flex:1;}
 .current-rating-section .logo-icon {
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:48px;
-  height:48px;
-  flex:0 0 48px;
-  overflow:hidden;
-  border:1px solid rgba(163,201,217,.18);
-  border-radius:12px;
-  background:rgba(232,245,251,.055);
-}
-.current-rating-section .logo-fallback {
-  font:700 12px/1.1 "Golos Text","Inter",sans-serif;
-  letter-spacing:0;
-  color:#c4d7e1;
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:54px;height:54px;flex:0 0 54px;overflow:hidden;
+  border:1px solid rgba(178,211,226,.20);border-radius:12px;
+  background:#0a1828;box-shadow:inset 0 1px 1px rgba(255,255,255,.05);
 }
 .current-rating-section .logo-image {
-  position:absolute;
-  inset:5px;
-  width:calc(100% - 10px);
-  height:calc(100% - 10px);
-  object-fit:contain;
-  opacity:0;
+  position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);
+  object-fit:contain;opacity:0;
 }
-.current-rating-section .logo-icon.has-logo .logo-image { opacity:1; }
-.current-rating-section .logo-icon.has-logo .logo-fallback { display:none; }
-.current-rating-section .media-identity-text { padding-top:2px; }
+.current-rating-section .logo-icon.has-logo .logo-image {opacity:1;}
+.current-rating-section .logo-icon.has-logo .logo-fallback {display:none;}
+.current-rating-section .logo-fallback {
+  font:700 12px/1.1 "Golos Text","Inter",sans-serif;color:#b9d5e2;
+}
+.current-rating-section .media-identity-text {flex:1;min-width:0;padding-top:4px;}
 .current-rating-section .media-name {
-  font-family:"Golos Text","Inter",sans-serif;
-  font-weight:600;
-  line-height:1.27;
+  font:600 1rem/1.3 "Golos Text","Inter",sans-serif;
+  letter-spacing:-.02em;color:#f3f8fc;overflow-wrap:break-word;
 }
-.current-rating-section .media-legal-status { margin-top:6px; gap:4px; }
+.current-rating-section .media-legal-status {
+  display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;max-width:100%;
+}
 .current-rating-section .media-status-tag {
-  font-size:9px;
-  line-height:1.25;
-  font-weight:500;
-  letter-spacing:0;
-  padding:3px 6px;
-  border-radius:6px;
+  display:inline-flex;align-items:center;max-width:100%;padding:3px 7px;
+  font:500 .63rem/1.35 "Inter",sans-serif;letter-spacing:0;text-transform:none;
+  color:#e7c79a;border:1px solid rgba(210,164,102,.47);
+  background:rgba(193,138,66,.055);border-radius:6px;overflow-wrap:anywhere;
 }
-.current-rating-section .rating-block { align-items:flex-end; padding-top:2px; }
-.current-rating-section .rating-score { font-size:clamp(21px,2.25vw,28px); }
-.current-rating-section .small-graph { height:54px; min-height:54px; margin-top:auto; }
-.current-rating-section .media-footer { margin-top:12px; padding-top:12px; border-top:none; }
+.current-rating-section .rating-block {flex:0 0 auto;align-items:flex-end;text-align:right;padding-top:2px;}
+.current-rating-section .rating-score {
+  font:800 clamp(1.5rem,2.3vw,1.92rem)/1.12 "Montserrat","Golos Text",sans-serif;
+  letter-spacing:-.06em;white-space:nowrap;
+}
+.current-rating-section .small-graph {
+  display:flex;flex-direction:column;align-items:stretch;
+  height:140px;min-height:140px;width:100%;margin-top:auto;
+  padding:11px 12px 6px;border-radius:11px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(4,15,27,.69),rgba(7,22,36,.49));
+  border:1px solid rgba(129,178,201,.10);
+}
+.current-rating-section .rating-chart-caption {
+  font:500 .67rem/1.15 "Inter",sans-serif;
+  letter-spacing:.025em;color:#95afc1;margin:0 0 3px;
+}
+.current-rating-section .small-graph svg {display:block;flex:1;min-height:0;width:100%;height:100%;overflow:visible;}
+.current-rating-section .rating-graph-empty {
+  display:flex;justify-content:center;align-items:center;
+  flex:1;min-height:0;color:#9eb4c5;font-size:.78rem;text-align:center;
+}
+.current-rating-section .media-footer {
+  display:block !important;width:100%;padding:0;margin:15px 0 0;
+  border-top:0;
+}
 .current-rating-section .media-footer a.link-button {
-  display:flex;
-  width:100% !important;
-  min-height:44px;
-  align-items:center;
-  justify-content:center;
-  padding:10px 14px;
-  border-radius:10px;
-  letter-spacing:.01em;
+  display:flex;align-items:center;justify-content:center;
+  width:100% !important;min-height:48px;padding:11px 13px;gap:10px;
+  border-radius:11px;border:1px solid rgba(36,197,226,.59);
+  color:#6ce4f2;background:rgba(17,64,86,.61);
+  text-align:center;text-decoration:none;
+  font:700 .83rem/1.3 "Inter",sans-serif;letter-spacing:.005em;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+.current-rating-section .media-footer a.link-button::after {
+  content:"→";display:inline-block;font-size:1.13rem;font-weight:500;line-height:1;
+}
+.current-rating-section .media-footer a.link-button:hover,
+.current-rating-section .media-footer a.link-button:focus-visible {
+  background:rgba(26,91,118,.8);border-color:#4cdbef;color:#dcfcff;
+}
+.rating-appeal-strip {
+  margin-top:22px;padding:17px 20px;
+  border:1px solid rgba(111,158,184,.25);border-radius:15px;
+  background:linear-gradient(110deg,#172d41,#122338);line-height:1.55;
+}
+@media(min-width:768px) {
+  .hero {grid-template-columns:minmax(0,1fr) minmax(260px,300px);}
+  .hero .hero-text,.hero .hero-counter {min-height:172px;}
+  .current-rating-section .media-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(min-width:1024px) {
+  .current-rating-section .media-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+  .current-rating-section .media-card:hover {
+    border-color:rgba(71,194,218,.5);
+    box-shadow:0 15px 31px rgba(0,0,0,.3);
+    transform:translateY(-2px);
+  }
 }
 @media(max-width:767px) {
-  .hero .hero-text { padding:19px 19px 20px; }
+  .hero .hero-text {padding:21px 19px;}
   body .hero .hero-text h1 {
     font-family:"Golos Text","Inter",sans-serif;
-    font-weight:600;
     font-size:clamp(18px,5.15vw,22px) !important;
-    line-height:1.25 !important;
+    line-height:1.24 !important;
   }
-  .current-rating-section .media-card { min-height:0; }
-  .current-rating-section .media-card-header { margin-bottom:18px; }
-  .current-rating-section .logo-icon { width:46px; height:46px; flex-basis:46px; }
-  .current-rating-section .small-graph { height:49px; min-height:49px; }
-  .current-rating-section .media-footer { margin-top:12px; padding-top:12px; }
+  .current-rating-section .media-card {
+    padding:17px !important;min-height:0;border-radius:16px;
+  }
+  .current-rating-section .media-card-header {margin-bottom:15px;gap:10px;}
+  .current-rating-section .media-name {font-size:.94rem !important;}
+  .current-rating-section .logo-icon {width:48px;height:48px;flex-basis:48px;}
+  .current-rating-section .rating-score {font-size:1.48rem;}
+  .current-rating-section .small-graph {height:139px;min-height:139px;padding:11px 10px 5px;}
+  .current-rating-section .media-footer {
+    display:block !important;margin:13px 0 0;padding:0;border:0;
+  }
+  .current-rating-section .media-footer a.link-button {
+    width:100% !important;min-height:46px;font-size:.82rem !important;
+  }
+  .current-rating-section .full-list-button-mobile {margin-top:17px;width:100%;}
+  .rating-appeal-strip {font-size:.77rem;padding:15px 14px;margin-top:18px;}
+}
+@media(max-width:360px) {
+  .current-rating-section .media-card {padding:14px !important;}
+  .current-rating-section .media-logo {gap:8px;}
+  .current-rating-section .logo-icon {width:42px;height:42px;flex-basis:42px;}
+  .current-rating-section .rating-score {font-size:1.36rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .current-rating-section .media-card,.current-rating-section .media-footer a.link-button {transition:none !important;}
 }
