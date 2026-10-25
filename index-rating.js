@@ -263,8 +263,8 @@
     const names = node('div', '', 'media-identity-text');
     names.append(node('div', row.name, 'media-name'));
     const statuses = statusLabels(row.id);
-    if (statuses.length) {
-      const legal = node('div', '', 'media-legal-status');
+    const legal = statuses.length ? node('div', '', 'media-legal-status') : null;
+    if (legal) {
       for (const status of statuses) {
         const tag = node('span', status, 'media-status-tag');
         tag.title = status === 'иноагент'
@@ -272,7 +272,6 @@
           : 'Издание имеет статус нежелательной организации';
         legal.append(tag);
       }
-      names.append(legal);
     }
     identity.append(icon, names);
 
@@ -292,19 +291,21 @@
         node('strong', number(row.flagged), 'rating-chart-caption-value')
       );
     }
-    graph.append(caption, makeCardGraph(row));
+    graph.append(makeCardGraph(row));
     graph.tabIndex = 0;
 
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
-    card.append(header, graph, footer);
+    card.append(header);
+    if (legal) card.append(legal);
+    card.append(caption, graph, footer);
     return card;
   }
 
   function renderCards() {
     $('mediaGrid').replaceChildren(); $('mediaDots').replaceChildren();
     $('mediaGrid').classList.toggle('is-mobile-slider', mobile());
-    const count = mobile() ? media.length : Math.min(desktop() ? 6 : 4, media.length);
+    const count = mobile() ? media.length : Math.min(desktop() ? 3 : 2, media.length);
     for (let index = 0; index < count; index++) {
       const row = media[mobile() ? index : (offset + index) % media.length];
       const card = drawCard(row);
@@ -330,11 +331,11 @@
   function restartCycle() {
     stopCycle();
     if (motion.matches || currentModal || document.hidden || media.length < 2 ||
-        (!mobile() && media.length <= (desktop() ? 6 : 4)) ||
+        (!mobile() && media.length <= (desktop() ? 3 : 2)) ||
         $('mediaGrid').contains(document.activeElement) || $('mediaDots').contains(document.activeElement)) return;
     cycle = setInterval(() => {
       if (mobile()) active = (active + 1) % media.length;
-      else offset = (offset + (desktop() ? 6 : 4)) % media.length;
+      else offset = (offset + (desktop() ? 3 : 2)) % media.length;
       renderCards();
     }, mobile() ? 5200 : 8500);
   }
@@ -419,6 +420,7 @@
       report = next; media = next.publishers; loadError = false;
       active = Math.max(0, media.findIndex(row => row.id === selected)); offset = 0;
       $('dailyCounterValue').textContent = $('dailyCounterMobile').textContent = number(report.totals.flagged);
+      $('dailyCounterValue').dataset.digits = String(Math.min(5, String(report.totals.flagged).length));
       $('ratingRetry').hidden = true; updateStatus(); renderCards(); restartCycle();
       $('appealPublishers').replaceChildren(...media.map(row => {
         const option = node('option'); option.value = row.name; return option;

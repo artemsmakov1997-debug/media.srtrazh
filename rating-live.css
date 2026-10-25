@@ -101,13 +101,15 @@
   letter-spacing:-.02em;color:#f3f8fc;overflow-wrap:break-word;
 }
 .current-rating-section .media-legal-status {
-  display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;max-width:100%;
+  display:flex;align-items:center;flex-wrap:nowrap;gap:5px;
+  max-width:100%;min-width:0;padding-left:66px;margin:-9px 0 15px;
 }
 .current-rating-section .media-status-tag {
-  display:inline-flex;align-items:center;max-width:100%;padding:3px 7px;
-  font:500 .63rem/1.35 "Inter",sans-serif;letter-spacing:0;text-transform:none;
+  display:inline-flex;align-items:center;flex:0 0 auto;white-space:nowrap;
+  padding:3px 6px;font:500 .57rem/1.22 "Inter",sans-serif;
+  letter-spacing:-.005em;text-transform:none;
   color:#e7c79a;border:1px solid rgba(210,164,102,.47);
-  background:rgba(193,138,66,.055);border-radius:6px;overflow-wrap:anywhere;
+  background:rgba(193,138,66,.055);border-radius:5px;
 }
 .current-rating-section .rating-block {flex:0 0 auto;align-items:flex-end;text-align:right;padding-top:2px;}
 .current-rating-section .rating-score {
@@ -116,8 +118,8 @@
 }
 .current-rating-section .small-graph {
   display:flex;flex-direction:column;align-items:stretch;
-  height:140px;min-height:140px;width:100%;margin-top:auto;
-  padding:11px 12px 6px;border-radius:11px;overflow:hidden;
+  height:134px;min-height:134px;width:100%;margin-top:0;
+  padding:7px 12px 6px;border-radius:11px;overflow:hidden;
   background:linear-gradient(180deg,rgba(4,15,27,.69),rgba(7,22,36,.49));
   border:1px solid rgba(129,178,201,.10);
 }
@@ -125,7 +127,7 @@
   display:flex;align-items:baseline;gap:4px;
   max-width:100%;min-width:0;white-space:nowrap;
   font:600 clamp(.68rem,1vw,.78rem)/1.24 "Inter",sans-serif;
-  letter-spacing:0;color:#b5cee1;margin:0 0 5px;
+  letter-spacing:0;color:#b5cee1;margin:auto 0 9px;
 }
 .current-rating-section .rating-chart-caption-value {
   font-weight:800;color:#6fdef0;font-variant-numeric:tabular-nums;
@@ -216,4 +218,41 @@
 }
 @media (min-width:768px) {
   body .hero-counter-mobile { display:none !important; }
+}
+
+
+/* Single-row rating and horizontal desktop counter — 26 Oct 2026. */
+@media(min-width:768px) {
+  .hero .hero-counter {
+    display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+    gap:17px;padding:21px 24px;text-align:left;
+  }
+  .hero .hero-counter .counter-value {
+    flex:0 1 auto;min-width:0;white-space:nowrap;
+    font-size:clamp(4.3rem,6.4vw,6rem);font-weight:900;
+    line-height:1;letter-spacing:-.065em;
+  }
+  .hero .hero-counter .counter-value[data-digits="3"] {font-size:clamp(3.2rem,4.5vw,4.3rem);}
+  .hero .hero-counter .counter-value[data-digits="4"] {font-size:clamp(2.5rem,3.6vw,3.2rem);}
+  .hero .hero-counter .counter-value[data-digits="5"] {font-size:clamp(2rem,3vw,2.7rem);}
+  .hero .hero-counter .counter-label {
+    flex:1 1 auto;min-width:0;max-width:170px;text-align:left;
+    font-size:.73rem;line-height:1.5;letter-spacing:.055em;
+  }
+  .current-rating-section .media-card {min-height:310px;}
+}
+@media(min-width:1024px) {
+  .current-rating-section .media-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@media(min-width:768px) and (max-width:1023px) {
+  .current-rating-section .media-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:767px) {
+  .current-rating-section .media-legal-status {padding-left:60px;margin:-7px 0 14px;gap:4px;}
+  .current-rating-section .media-status-tag {font-size:.57rem;padding:3px 5px;}
+  .current-rating-section .rating-chart-caption {margin:0 0 9px;}
+  .current-rating-section .small-graph {height:136px;min-height:136px;padding-top:6px;}
+}
+@media(max-width:360px) {
+  .current-rating-section .media-legal-status {padding-left:0;margin:-7px 0 12px;}
 }

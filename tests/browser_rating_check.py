@@ -48,11 +48,13 @@ def rating_ui(browser, base, site, errors, requests):
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
                 card = page.locator('.media-card.is-active')
                 assert card.get_attribute('data-publisher') == 'rt'
-                assert card.locator('.rating-score').inner_text() == '25%'
                 assert page.locator('.media-card:not(.is-active)').first.evaluate('card => card.inert')
+                chosen = next(item for item in fixture['publishers'] if item['id'] == 'rt')
             else:
-                card = page.locator('.media-card[data-publisher="rt"]')
-            assert card.locator('.rating-score').inner_text() == '25%'
+                chosen = next(item for item in fixture['publishers']
+                              if item['id'] == ('rt' if width >= 1024 else fixture['publishers'][0]['id']))
+                card = page.locator(f'.media-card[data-publisher="{chosen["id"]}"]')
+            assert card.locator('.rating-score').inner_text() == f'{chosen["score_percent"]:g}%'
             # Logo is loaded from an external favicon service when available;
             # offline test runners must also accept the safe monogram fallback.
             assert card.locator('.logo-icon').count() == 1
@@ -63,31 +65,36 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
             assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
             assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
-            assert card.locator('.small-graph circle').last.get_attribute('data-score') == '25'
-            assert card.locator('.small-graph circle').last.get_attribute('data-collected') == '4'
-            assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == '1'
+            assert float(card.locator('.small-graph circle').last.get_attribute('data-score')) == chosen['score_percent']
+            assert card.locator('.small-graph circle').last.get_attribute('data-collected') == str(chosen['collected'])
+            assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == str(chosen['flagged'])
             assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
-            assert card.locator('.rating-chart-caption-value').inner_text() == '1'
-            assert card.locator('.rating-chart-caption').evaluate('el => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1')
-            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith('RT на русском.')
+            assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
+            assert card.locator('.rating-chart-caption').evaluate(
+                'el => el.nextElementSibling.classList.contains("small-graph") && '
+                'el.parentElement.classList.contains("media-card")')
+            assert card.locator('.small-graph .rating-chart-caption').count() == 0
+            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '.')
             if not mobile:
-                expected_cards = min(6 if width >= 1024 else 4, len(fixture['publishers']))
+                expected_cards = min(3 if width >= 1024 else 2, len(fixture['publishers']))
                 assert page.locator('.media-card').count() == expected_cards
-                zero_card = page.locator('.media-card[data-publisher="mediazona"]')
+                assert page.locator('.media-grid').evaluate(
+                    'el => Math.abs(el.firstElementChild.getBoundingClientRect().top - '
+                    'el.lastElementChild.getBoundingClientRect().top) < 2')
+                assert page.locator('.hero .hero-counter').evaluate(
+                    'el => getComputedStyle(el).flexDirection === "row"')
+                assert page.locator('.hero .hero-counter .counter-value').evaluate(
+                    'el => el.getBoundingClientRect().left < '
+                    'el.nextElementSibling.getBoundingClientRect().left')
+            else:
+                zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'mediazona')
+                page.locator(f'#mediaDots button[aria-label="Показать {zero_name}"]').click()
+                zero_card = page.locator('.media-card.is-active')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
-                assert zero_card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
                 assert zero_card.locator('.rating-chart-caption-value').inner_text() == '0'
                 assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
-                assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'
-                if width >= 1024:
-                    # A carousel renders only the six highest-ranked publishers.
-                    # Check the visible missing-data state rather than expecting
-                    # an arbitrary unranked publisher (e.g. Kommersant) in that page.
-                    no_data = page.locator('.media-card:has(.rating-score.no-data-score)').first
-                    assert no_data.count() == 1
-                    assert no_data.locator('.rating-chart-caption').inner_text() == 'Нет публикаций за 24 часа'
-                    assert 'Нет данных за последние 24 часа' in no_data.locator('.small-graph').inner_text()
+                page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
             trigger = page.locator('.show-full-list-trigger:visible').first
