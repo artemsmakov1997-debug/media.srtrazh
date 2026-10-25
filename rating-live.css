@@ -122,9 +122,15 @@
   border:1px solid rgba(129,178,201,.10);
 }
 .current-rating-section .rating-chart-caption {
-  font:500 .67rem/1.15 "Inter",sans-serif;
-  letter-spacing:.025em;color:#95afc1;margin:0 0 3px;
+  display:flex;align-items:baseline;gap:4px;
+  max-width:100%;min-width:0;white-space:nowrap;
+  font:600 clamp(.68rem,1vw,.78rem)/1.24 "Inter",sans-serif;
+  letter-spacing:0;color:#b5cee1;margin:0 0 5px;
 }
+.current-rating-section .rating-chart-caption-value {
+  font-weight:800;color:#6fdef0;font-variant-numeric:tabular-nums;
+}
+.current-rating-section .media-card:has(.green-score) .rating-chart-caption-value {color:#44dca2;}
 .current-rating-section .small-graph svg {display:block;flex:1;min-height:0;width:100%;height:100%;overflow:visible;}
 .current-rating-section .rating-graph-empty {
   display:flex;justify-content:center;align-items:center;
@@ -200,4 +206,14 @@
 }
 @media(prefers-reduced-motion:reduce) {
   .current-rating-section .media-card,.current-rating-section .media-footer a.link-button {transition:none !important;}
+}
+
+/* Mobile counter uses its own compact element; the hero counter is desktop-only.
+   This selector intentionally outranks the base .hero .hero-counter display:flex. */
+@media (max-width:767px) {
+  body .hero .hero-counter { display:none !important; }
+  body .hero-counter-mobile { display:grid; }
+}
+@media (min-width:768px) {
+  body .hero-counter-mobile { display:none !important; }
 }

@@ -39,6 +39,12 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'По собранной выборке' not in page.locator('main').inner_text()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
             if mobile:
+                assert not page.locator('.hero .hero-counter').is_visible()
+                assert page.locator('.hero-counter-mobile').is_visible()
+            else:
+                assert page.locator('.hero .hero-counter').is_visible()
+                assert not page.locator('.hero-counter-mobile').is_visible()
+            if mobile:
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
                 card = page.locator('.media-card.is-active')
                 assert card.get_attribute('data-publisher') == 'rt'
@@ -60,13 +66,14 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.small-graph circle').last.get_attribute('data-score') == '25'
             assert card.locator('.small-graph circle').last.get_attribute('data-collected') == '4'
             assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == '1'
-            assert 'Доля с признаками' in card.locator('.rating-chart-caption').inner_text()
+            assert card.locator('.rating-chart-caption').inner_text() == 'Найдено спорных сообщений: 1'
+            assert card.locator('.rating-chart-caption').evaluate('el => el.scrollHeight <= el.clientHeight + 1')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith('RT на русском.')
             if not mobile:
                 assert page.locator('.media-card').count() >= 5
                 zero_card = page.locator('.media-card[data-publisher="mediazona"]')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
-                assert 'Активность публикаций' in zero_card.locator('.rating-chart-caption').inner_text()
+                assert zero_card.locator('.rating-chart-caption').inner_text() == 'Найдено спорных сообщений: 0'
                 assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'

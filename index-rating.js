@@ -283,11 +283,16 @@
     header.append(identity, score);
 
     const graph = node('div', '', 'small-graph');
-    const activity = row.score_percent === 0 && row.collected > 0;
-    graph.append(node('div', row.score_percent === null || row.collected === 0
-      ? 'Данные за 24 часа'
-      : activity ? 'Активность публикаций · 24 часа' : 'Доля с признаками · 24 часа', 'rating-chart-caption'));
-    graph.append(makeCardGraph(row));
+    const caption = node('div', '', 'rating-chart-caption');
+    if (row.score_percent === null || row.collected === 0) {
+      caption.textContent = row.collected ? 'Анализ публикаций не завершён' : 'Нет публикаций за 24 часа';
+    } else {
+      caption.append(
+        node('span', 'Найдено спорных сообщений: ', 'rating-chart-caption-label'),
+        node('strong', number(row.flagged), 'rating-chart-caption-value')
+      );
+    }
+    graph.append(caption, makeCardGraph(row));
     graph.tabIndex = 0;
 
     const footer = node('div', '', 'media-footer');
