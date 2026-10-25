@@ -988,6 +988,21 @@ def pro_business_navigation_ui(browser, base, site):
         for surface in (".hero-text", ".hero-counter", ".media-card", ".rating-appeal-strip"):
             assert "gradient" in page.locator(surface).first.evaluate(
                 "el => getComputedStyle(el).backgroundImage"), surface
+        # The rating summary is compact. Status/legal markers belong to the
+        # outlet identity; trend and examples link are the only rows below it.
+        rating_cards = page.locator("#mediaGrid .media-card")
+        rating_cards.first.wait_for(state="visible")
+        assert rating_cards.count() == 3
+        assert not page.locator("#ratingStatus").inner_text().startswith("Обновлено:")
+        assert rating_cards.first.locator(".media-name, .rating-score, .small-graph, .media-footer .link-button").count() == 4
+        assert rating_cards.first.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .media-footer .badge").count() == 0
+        first_card_rect = rating_cards.first.bounding_box()
+        first_button_rect = rating_cards.first.locator(".media-footer .link-button").bounding_box()
+        assert first_button_rect["width"] >= first_card_rect["width"] - 50
+        if page.locator('.media-card[data-publisher="meduza"]').count():
+            legal_tags = page.locator('.media-card[data-publisher="meduza"] .media-status-tag').all_inner_texts()
+            assert "иноагент" in legal_tags
+            assert "нежелательная организация" in legal_tags
         # Desktop defaults to compact interface size without horizontal overflow.
         assert page.evaluate("getComputedStyle(document.body).zoom") == "0.8"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
@@ -1199,12 +1214,11 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator(".hero h1").evaluate("element => parseFloat(getComputedStyle(element).fontSize)") <= 28
             rating_card = p.locator(".media-grid .media-card.is-active")
             rating_card.wait_for(state="visible")
-            badge_box = rating_card.locator(".media-footer .badge").bounding_box()
+            assert rating_card.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .badge").count() == 0
             examples_box = rating_card.locator(".media-footer .link-button").bounding_box()
-            assert badge_box["x"] < examples_box["x"]
-            badge_center = badge_box["y"] + badge_box["height"] / 2
-            examples_center = examples_box["y"] + examples_box["height"] / 2
-            assert abs(badge_center - examples_center) < 6
+            card_rect = rating_card.bounding_box()
+            assert examples_box["width"] >= card_rect["width"] - 44, (examples_box, card_rect)
+            assert rating_card.locator(".small-graph").is_visible()
             slider = p.locator(".media-grid.is-mobile-slider")
             grid_box = slider.bounding_box()
             card_box = rating_card.bounding_box()
