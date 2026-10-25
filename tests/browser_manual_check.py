@@ -988,14 +988,15 @@ def pro_business_navigation_ui(browser, base, site):
         for surface in (".hero-text", ".hero-counter", ".media-card", ".rating-appeal-strip"):
             assert "gradient" in page.locator(surface).first.evaluate(
                 "el => getComputedStyle(el).backgroundImage"), surface
-        # The rating summary is compact. Status/legal markers belong to the
-        # outlet identity; trend and examples link are the only rows below it.
+        # The summary keeps compact legal markers above the identity,
+        # a semantic level under the outlet name, and a binary signal chart.
         rating_cards = page.locator("#mediaGrid .media-card")
         rating_cards.first.wait_for(state="visible")
         # The front page displays one row of up to three cards on desktop.
         assert 1 <= rating_cards.count() <= 3
         assert not page.locator("#ratingStatus").inner_text().startswith("Обновлено:")
-        assert rating_cards.first.locator(".media-name, .rating-score, .small-graph, .media-footer .link-button").count() == 4
+        assert rating_cards.first.locator(".media-name, .media-level-badge, .rating-score, .small-graph, .media-footer .link-button").count() == 5
+        assert rating_cards.first.locator('.small-graph svg').get_attribute('aria-label').find('Часы Москвы от 00 до 24') >= 0
         assert rating_cards.first.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .media-footer .badge").count() == 0
         first_card_rect = rating_cards.first.bounding_box()
         first_button_rect = rating_cards.first.locator(".media-footer .link-button").bounding_box()

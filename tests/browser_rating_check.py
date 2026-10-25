@@ -65,9 +65,20 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
             assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
             assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
-            assert float(card.locator('.small-graph circle').last.get_attribute('data-score')) == chosen['score_percent']
-            assert card.locator('.small-graph circle').last.get_attribute('data-collected') == str(chosen['collected'])
-            assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == str(chosen['flagged'])
+            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
+            assert card.locator('.small-graph circle').count() == 24
+            assert sum(int(value) for value in card.locator('.small-graph circle').evaluate_all(
+                'els => els.map(el => el.dataset.hourlyFlagged)')) == chosen['flagged']
+            assert [text for text in card.locator('.small-graph svg text').all_inner_texts()
+                    if text in ('00', '06', '12', '18', '24')] == ['00', '06', '12', '18', '24']
+            assert '1' in card.locator('.small-graph svg text').all_inner_texts()
+            assert card.locator('.media-level-badge').count() == 1
+            assert card.locator('.media-level-badge').inner_text() == {
+                'red':'Высокий процент маркеров',
+                'yellow':'Средний процент маркеров',
+                'green':'Низкий процент маркеров'
+            }[chosen['level']]
+            assert card.locator('.media-top-badges').evaluate('el => el.parentElement === el.closest(".media-card")')
             assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
             assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
             assert card.locator('.rating-chart-caption').evaluate(
@@ -92,8 +103,10 @@ def rating_ui(browser, base, site, errors, requests):
                 zero_card = page.locator('.media-card.is-active')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-chart-caption-value').inner_text() == '0'
-                assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
+                assert 'Часы Москвы от 00 до 24' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
+                assert zero_card.locator('.rating-signal-peak').count() == 0
+                assert zero_card.locator('.media-top-badges .media-status-tag').count() == 1
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 

@@ -177,70 +177,82 @@
   }
 
 
-  // Each chart plots observed data. When the detected share is exactly 0%,
-  // show hourly publication activity, not fictitious rating fluctuations.
+  // Binary signal by Moscow clock hour. A peak means >= 1 flagged publication.
+  // The 24 rolling-hour buckets contain each local clock hour once.
   function makeCardGraph(row) {
-    const activity = row.score_percent === 0 && row.collected > 0;
     if (row.score_percent === null || row.collected === 0) {
       return node('span', 'Нет данных за последние 24 часа', 'rating-graph-empty');
     }
     const svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', '0 0 340 112');
+    svg.setAttribute('viewBox', '0 0 340 108');
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', row.name + '. ' + (activity
-      ? 'Количество собранных публикаций по часам за 24 часа, признаков не обнаружено.'
-      : 'Изменение накопительной доли публикаций с признаками за 24 часа, итог ' + percent(row.score_percent) + '.'));
-    const color = activity ? '#65bee9' : ({red:'#f87171', yellow:'#efbd42', green:'#36d399'}[row.level] || '#91a7b7');
-    const samples = row.series.map((point, index) => ({
-      point, index, value: activity ? point.collected : point.score_percent
-    })).filter(sample => sample.value !== null);
-    const highest = Math.max(0, ...samples.map(sample => sample.value));
-    const upper = activity
-      ? ([1,2,3,4,5,8,10,15,20,30,50,100].find(value => value >= highest) || Math.ceil(highest / 20) * 20)
-      : ([10,20,40,60,80,100].find(value => value >= highest) || 100);
-    const left = 30, right = 332, top = 10, bottom = 84;
-    const xAt = index => left + (index + 1) / 24 * (right - left);
-    const yAt = value => bottom - value / upper * (bottom - top);
-    const shape = (tag, attrs, content) => {
+    svg.setAttribute('aria-label',
+      row.name + '. Часы Москвы от 00 до 24. Уровень 1: за час найдена хотя бы одна публикация с признаками. '
+      + 'Всего за 24 часа: ' + row.flagged + '.');
+    const shape = (tag, attrs, value) => {
       const element = document.createElementNS(ns, tag);
-      for (const [key, value] of Object.entries(attrs)) element.setAttribute(key, String(value));
-      if (content !== undefined) element.textContent = content;
+      Object.entries(attrs).forEach(([key, attr]) => element.setAttribute(key, String(attr)));
+      if (value !== undefined) element.textContent = value;
       return element;
     };
-    const gradientId = 'rating-card-fill-' + row.id;
+    const color = ({red: '#f87171', yellow: '#efbd42', green: '#36d399'}[row.level] || '#65bee9');
+    const left = 24, right = 332, top = 18, bottom = 80;
+    const xAt = hour => left + hour * (right - left) / 24;
+    // The end hour marks the next bucket; subtract 1 to get the Moscow start hour.
+    const byHour = Array(24);
+    for (const point of row.series) {
+      const hour = (new Date(point.end_at).getUTCHours() + 2) % 24;
+      byHour[hour] = point;
+    }
+    const id = 'rating-signal-fill-' + row.id;
     const defs = shape('defs', {});
-    const gradient = shape('linearGradient', {id:gradientId,x1:'0%',y1:'0%',x2:'0%',y2:'100%'});
+    const gradient = shape('linearGradient', {id, x1:'0%', y1:'0%', x2:'0%', y2:'100%'});
     gradient.append(
-      shape('stop', {offset:'0%','stop-color':color,'stop-opacity':'.20'}),
-      shape('stop', {offset:'100%','stop-color':color,'stop-opacity':'0'})
+      shape('stop', {offset:'0%', 'stop-color':color, 'stop-opacity':'.23'}),
+      shape('stop', {offset:'100%', 'stop-color':color, 'stop-opacity':'.015'})
     );
-    defs.append(gradient); svg.append(defs);
-    for (const [ratio, tick] of [[1, upper],[.5, upper / 2],[0, 0]]) {
-      const y = bottom - ratio * (bottom - top);
-      svg.append(shape('line', {x1:left,y1:y,x2:right,y2:y,stroke:'#7493a9','stroke-opacity':ratio===0?'.28':'.16','stroke-dasharray':ratio===0?'0':'3 5'}));
-      svg.append(shape('text', {x:24,y:y+3,'text-anchor':'end',fill:'#91a9bd','font-size':'9','font-family':'Inter, sans-serif'}, String(Number.isInteger(tick)?tick:tick.toFixed(1)) + (activity?'':'%')));
+    defs.append(gradient);
+    svg.append(defs);
+    // Only the level "1" is labelled; horizontal ticks use actual clock hours.
+    svg.append(shape('line', {x1:left,y1:top,x2:right,y2:top,stroke:'#8caec3',
+      'stroke-opacity':'.20','stroke-dasharray':'3 5'}));
+    svg.append(shape('line', {x1:left,y1:bottom,x2:right,y2:bottom,stroke:'#7295ab',
+      'stroke-opacity':'.44'}));
+    svg.append(shape('text', {x:13,y:top+3,'text-anchor':'middle',fill:'#a2bdd0',
+      'font-family':'Inter, sans-serif','font-size':'10'}, '1'));
+    for (const hour of [0,6,12,18,24]) {
+      const x = xAt(hour);
+      if (hour > 0 && hour < 24) svg.append(shape('line', {x1:x,y1:top,x2:x,y2:bottom,
+        stroke:'#7f9bb1','stroke-opacity':'.10','stroke-dasharray':'2 5'}));
+      svg.append(shape('text', {x,y:100,'text-anchor':hour===0?'start':hour===24?'end':'middle',
+        fill:'#9eb4c5','font-family':'Inter, sans-serif','font-size':'10'},
+        String(hour).padStart(2, '0')));
     }
-    for (const [index, title, anchor] of [[0,'24 ч назад','start'],[11,'12 ч назад','middle'],[23,'Сейчас','end']]) {
-      svg.append(shape('text',{x:index===0?left:index===23?right:xAt(index),y:105,'text-anchor':anchor,fill:'#8da4b8','font-size':'9.5','font-family':'Inter, sans-serif'},title));
-    }
-    if (samples.length) {
-      const line = samples.map((sample, index) => (index?'L':'M') + xAt(sample.index).toFixed(2) + ' ' + yAt(sample.value).toFixed(2)).join(' ');
-      const first = samples[0], last = samples[samples.length-1];
-      const area = line + ' L' + xAt(last.index).toFixed(2) + ' ' + bottom + ' L' + xAt(first.index).toFixed(2) + ' ' + bottom + ' Z';
-      svg.append(shape('path',{d:area,fill:'url(#'+gradientId+')'}));
-      svg.append(shape('path',{d:line,fill:'none',stroke:color,'stroke-width':'2.3','stroke-linecap':'round','stroke-linejoin':'round'}));
-      for (const sample of samples) {
-        const circle = shape('circle',{cx:xAt(sample.index).toFixed(2),cy:yAt(sample.value).toFixed(2),r:sample===last?'3':'2',fill:color,stroke:'#0c1e30','stroke-width':'.8'});
-        circle.dataset.score = String(sample.point.score_percent);
-        circle.dataset.collected = String(sample.point.cumulative_collected);
-        circle.dataset.flagged = String(sample.point.cumulative_flagged);
-        circle.dataset.endAt = sample.point.end_at;
-        circle.append(shape('title',{},date(sample.point.end_at) + ': ' + (activity
-          ? sample.point.collected + ' публикаций за час; 0 с признаками'
-          : sample.point.cumulative_flagged + ' из ' + sample.point.cumulative_collected + ', ' + percent(sample.point.score_percent))));
-        svg.append(circle);
+    for (let hour=0; hour<24; hour++) {
+      const point=byHour[hour];
+      const flagged=point?.flagged || 0;
+      const x0=xAt(hour), x1=xAt(hour+1), middle=(x0+x1)/2;
+      if (flagged) {
+        // One rounded pulse per active hour; height means presence, not volume.
+        const d='M'+x0+' '+bottom+' C'+(x0+2)+' '+bottom+', '+(x0+2)+' '+top+', '+middle+' '+top
+          +' C'+(x1-2)+' '+top+', '+(x1-2)+' '+bottom+', '+x1+' '+bottom;
+        svg.append(shape('path', {d:d+' L'+x0+' '+bottom+' Z',fill:'url(#'+id+')'}));
+        svg.append(shape('path', {d,fill:'none',stroke:color,'stroke-width':'2.6',
+          'stroke-linecap':'round',class:'rating-signal-peak'}));
       }
+      const dot=shape('circle',{cx:middle,cy:flagged?top:bottom,r:flagged?'2.6':'1.15',
+        fill:flagged?color:'#496577','fill-opacity':flagged?'1':'.55'});
+      dot.dataset.hour=String(hour);
+      dot.dataset.hourlyFlagged=String(flagged);
+      dot.dataset.score=String(point.score_percent);
+      dot.dataset.collected=String(point.cumulative_collected);
+      dot.dataset.flagged=String(point.cumulative_flagged);
+      dot.dataset.endAt=point.end_at;
+      dot.append(shape('title',{},String(hour).padStart(2,'0')+':00–'
+        +String((hour+1)%24).padStart(2,'0')+':00 МСК: '
+        +flagged+' публикаций с признаками; всего '+point.collected+' публикаций за час.'));
+      svg.append(dot);
     }
     return svg;
   }
@@ -251,28 +263,38 @@
     return link;
   }
 
+  function levelBadge(row) {
+    const meta = ({
+      red: ['Высокий процент маркеров', 'high'],
+      yellow: ['Средний процент маркеров', 'medium'],
+      green: ['Низкий процент маркеров', 'low']
+    })[row.level] || ['Нет данных для оценки', 'none'];
+    const badge = node('span', meta[0], 'media-level-badge level-' + meta[1]);
+    badge.title = 'Уровень определяется долей публикаций с признаками в собранной выборке';
+    return badge;
+  }
+
   function drawCard(row) {
     const card = node('article', '', 'media-card');
     card.dataset.publisher = row.id;
+
+    // Reserve a narrow top status rail for consistent vertical alignment.
+    const topBadges = node('div', '', 'media-top-badges');
+    for (const status of statusLabels(row.id)) {
+      const tag = node('span', status, 'media-status-tag');
+      tag.title = status === 'иноагент'
+        ? 'Издание включено в реестр иностранных агентов'
+        : 'Издание имеет статус нежелательной организации';
+      topBadges.append(tag);
+    }
+    if (!topBadges.childElementCount) topBadges.setAttribute('aria-hidden', 'true');
 
     const header = node('div', '', 'media-card-header');
     const identity = node('div', '', 'media-logo');
     const initials = row.name.trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase();
     const icon = publisherLogo(row, initials);
-
     const names = node('div', '', 'media-identity-text');
-    names.append(node('div', row.name, 'media-name'));
-    const statuses = statusLabels(row.id);
-    const legal = statuses.length ? node('div', '', 'media-legal-status') : null;
-    if (legal) {
-      for (const status of statuses) {
-        const tag = node('span', status, 'media-status-tag');
-        tag.title = status === 'иноагент'
-          ? 'Издание включено в реестр иностранных агентов'
-          : 'Издание имеет статус нежелательной организации';
-        legal.append(tag);
-      }
-    }
+    names.append(node('div', row.name, 'media-name'), levelBadge(row));
     identity.append(icon, names);
 
     const score = node('div', '', 'rating-block');
@@ -296,9 +318,7 @@
 
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
-    card.append(header);
-    if (legal) card.append(legal);
-    card.append(caption, graph, footer);
+    card.append(topBadges, header, caption, graph, footer);
     return card;
   }
 
