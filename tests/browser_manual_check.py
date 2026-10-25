@@ -754,6 +754,7 @@ def pro_business_navigation_ui(browser, base, site):
         for route in ("index.html", "archive.html", "about.html", "method.html", "help.html"):
             page.goto(base + "/" + route)
             expected_path = "/" if route == "index.html" else "/" + route.removesuffix(".html") + "/"
+            page.wait_for_url("**" + expected_path, timeout=15000)
             assert page.url.endswith(expected_path), page.url
             if route != "index.html":
                 assert page.locator('base[href="/"]').count() == 1
