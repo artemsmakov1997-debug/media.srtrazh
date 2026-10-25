@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=focus1">
 <link rel="manifest" href="/site.webmanifest?v=focus1">
   <meta name="theme-color" content="#00c7df">
-  <meta name="description" content="МЕДИА.СТРАЖ — независимый проект по разработке системы анализа манипулятивных техник в СМИ. Сейчас проект работает в демонстрационном режиме." />
+  <meta name="description" content="МЕДИА.СТРАЖ — независимый проект по разработке системы анализа манипулятивных техник в СМИ. Рейтинг рассчитывается по собранным публикациям за последние 24 часа." />
   <meta property="og:title" content="МЕДИА.СТРАЖ — анализ манипулятивных техник в СМИ" />
   <meta property="og:description" content="Независимый проект по анализу манипулятивных техник и информационного воздействия в СМИ." />
   <meta property="og:type" content="website" />
@@ -794,6 +794,7 @@
 </style>
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
   <link rel="stylesheet" href="index-surfaces.css?v=surface3">
+  <link rel="stylesheet" href="rating-live.css?v=rating-20261025">
 </head>
 <body>
   <header>
@@ -823,20 +824,20 @@
     <section class="hero">
       <div class="hero-text">
         <h1>МЕДИА.<span class="hero-brand-accent">СТРАЖ</span> — система анализа манипулятивных техник в СМИ</h1>
-        <p class="hero-subtitle">Независимый проект по разработке системы автоматического анализа медиатекстов. Сейчас проект работает в <strong>DEMO-режиме</strong>.</p>
+        <p class="hero-subtitle">Независимый проект по разработке системы автоматического анализа медиатекстов. Рейтинг показывает долю собранных публикаций с найденными признаками за <strong>24 часа</strong>.</p>
       </div>
-      <aside class="hero-counter" aria-label="Демонстрационный счётчик сигналов за 24 часа">
-        <div class="counter-label">Пример сигналов за последние <span>24 часа</span></div>
-        <div class="counter-value" id="dailyCounterValue">0</div>
-        <div class="counter-demo-note">DEMO · число используется для демонстрации интерфейса</div>
+      <aside class="hero-counter" aria-label="Публикации с найденными признаками за 24 часа">
+        <div class="counter-label">Публикаций с признаками за последние <span>24 часа</span></div>
+        <div class="counter-value" id="dailyCounterValue">—</div>
+        <div class="counter-demo-note">По собранной выборке · каждая публикация один раз</div>
       </aside>
     </section>
 
-    <div class="hero-counter-mobile" aria-label="Демонстрационный счётчик сигналов за 24 часа">
-      <div class="counter-value-sm" id="dailyCounterMobile">0</div>
+    <div class="hero-counter-mobile" aria-label="Публикации с найденными признаками за 24 часа">
+      <div class="counter-value-sm" id="dailyCounterMobile">—</div>
       <div class="counter-label-sm">
-        пример сигналов<br>за <span>24 часа</span>
-        <div class="counter-demo-sm">DEMO · пример интерфейса</div>
+        публикаций с признаками<br>за <span>24 часа</span>
+        <div class="counter-demo-sm">Собранная выборка</div>
       </div>
     </div>
 
@@ -844,11 +845,13 @@
 
     <section class="current-rating-section">
       <div class="rating-header">
-        <h2>Демонстрация будущего рейтинга</h2>
+        <h2>Рейтинг за последние 24 часа</h2>
         <div class="list-controls">
           <button class="full-list-button full-list-button-desktop show-full-list-trigger" type="button">Показать полный список</button>
         </div>
       </div>
+      <p class="rating-status" id="ratingStatus" role="status">Загружаем результаты анализа…</p>
+      <button class="link-button rating-retry" id="ratingRetry" type="button" hidden>Повторить загрузку</button>
       <div class="media-stage">
         <div class="media-grid" id="mediaGrid"></div>
         <div class="media-dots" id="mediaDots" aria-label="Переключение карточек"></div>
@@ -858,7 +861,7 @@
 
     <div class="rating-appeal-strip">
       Если вы представляете издание и не согласны с его позицией в рейтинге,
-      вы можете направить <a href="#appeal" id="appealLink">апелляцию</a>.
+      вы можете направить <a href="#appeal" id="appealLink" aria-haspopup="dialog" aria-controls="appealModal" aria-expanded="false">апелляцию</a>.
     </div>
   </main>
 
@@ -888,308 +891,35 @@
     </div>
   </div>
 
-  <script>
-    const mediaData = [
-      { name: "Горизонт 24",      type: "ТВ / Онлайн",    audience: "7,3 млн",  posts: 142, manipulative: 113, rating: 78, level: "red"    },
-      { name: "Северный эфир",    type: "ТВ",              audience: "9,1 млн",  posts: 135, manipulative: 92,  rating: 76, level: "red"    },
-      { name: "Вектор 1",         type: "ТВ",              audience: "8,4 млн",  posts: 128, manipulative: 95,  rating: 72, level: "red"    },
-      { name: "Сфера Новости",    type: "Информагентство", audience: "6,2 млн",  posts: 120, manipulative: 70,  rating: 44, level: "yellow" },
-      { name: "Народный Курьер",  type: "Газета",          audience: "5,1 млн",  posts: 110, manipulative: 40,  rating: 42, level: "yellow" },
-      { name: "Pulse Daily",      type: "Онлайн",          audience: "1,9 млн",  posts: 64,  manipulative: 30,  rating: 27, level: "green"  },
-      { name: "Фокус Медиа",      type: "ТВ / Онлайн",    audience: "2,7 млн",  posts: 82,  manipulative: 32,  rating: 25, level: "green"  },
-      { name: "Свободная Линия",  type: "Газета",          audience: "1,1 млн",  posts: 54,  manipulative: 10,  rating: 13, level: "green"  },
-      { name: "Агентство Орбита", type: "Информагентство", audience: "4,5 млн",  posts: 96,  manipulative: 18,  rating: 15, level: "green"  },
-    ];
-
-    /* ── Helpers ── */
-    function getInitials(name) {
-      const words = name.trim().split(/\s+/);
-      return words.length === 1 ? words[0].slice(0,2).toUpperCase() : (words[0][0]+words[1][0]).toUpperCase();
-    }
-
-    function buildSparkline(rating, level, W=200, H=36) {
-      const pts = 10;
-      const base = H * (1 - rating/100*0.75 - 0.1);
-      const seed = rating*13 + level.charCodeAt(0);
-      const rng = i => { const x = Math.sin(seed+i*7.3)*43758.5453; return x - Math.floor(x); };
-      const yV = Array.from({length:pts}, (_,i) => Math.max(2, Math.min(H-2, base+(rng(i)-.5)*H*.36)));
-      const xS = W/(pts-1);
-      const ptStr = yV.map((y,i)=>`${(i*xS).toFixed(1)},${y.toFixed(1)}`).join(' ');
-      const aB = `${((pts-1)*xS).toFixed(1)},${H} 0,${H}`;
-      const c = {red:'#ef4444',yellow:'#eab308',green:'#22c55e'}[level]||'#22d3ee';
-      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="g${rating}${level}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${c}" stop-opacity="0.19"/>
-          <stop offset="100%" stop-color="${c}" stop-opacity="0.02"/>
-        </linearGradient></defs>
-        <polygon points="${ptStr} ${aB}" fill="url(#g${rating}${level})"/>
-        <polyline points="${ptStr}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.78"/>
-      </svg>`;
-    }
-
-    /* ── Refs ── */
-    const mediaGrid         = document.getElementById("mediaGrid");
-    const mediaDots         = document.getElementById("mediaDots");
-    const fullListModal     = document.getElementById("fullListModal");
-    const fullListContainer = document.getElementById("fullListContainer");
-    const showFullListBtns  = document.querySelectorAll(".show-full-list-trigger");
-    const fullListCloseBtn  = document.getElementById("fullListCloseBtn");
-    const burgerBtn         = document.getElementById("burgerBtn");
-    const navLinks          = document.getElementById("navLinks");
-    const modalSearch       = document.getElementById("modalSearch");
-    const modalSort         = document.getElementById("modalSort");
-
-    const isDesktop = () => window.matchMedia("(min-width: 1024px)").matches;
-    const isTablet  = () => window.matchMedia("(min-width: 768px)").matches && !isDesktop();
-    const isMobile  = () => window.matchMedia("(max-width: 767px)").matches;
-
-    let cardsCount = 3, offset = 0, mobileIndex = 0, cycleTimer = null, lastWidth = window.innerWidth;
-
-    /* ── FIX 1: Растущий счётчик ── */
-    const BASE_COUNT = mediaData.reduce((s,m) => s+m.manipulative, 0); // ~500 стартовая база
-    let liveCount = BASE_COUNT;
-    const counterIds = ["dailyCounterValue","dailyCounterMobile"];
-
-    function setCounters(val) {
-      const str = Math.round(val).toLocaleString("ru-RU");
-      counterIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = str;
-      });
-    }
-
-    function animateCounter(from, to, duration) {
-      const start = performance.now();
-      const diff = to - from;
-      function tick(now) {
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        setCounters(from + diff * eased);
-        if (t < 1) requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    }
-
-    // Первичная анимация от 0 до базового значения
-    animateCounter(0, BASE_COUNT, 1200);
-
-    // Каждые ~8 сек слегка прибавляем — счётчик постепенно растёт
-    setInterval(() => {
-      const inc = Math.round(8 + Math.random() * 20); // +8..28 за раз
-      const next = liveCount + inc;
-      animateCounter(liveCount, next, 600);
-      liveCount = next;
-    }, 8000);
-
-    /* ── Cards ── */
-    function getBadgeText(l) { return l==="red" ? "Высокий показатель" : l==="yellow" ? "Средний показатель" : "Низкий показатель"; }
-
-    function initCards() {
-      mediaGrid.innerHTML = "";
-      const raw = isDesktop() ? 3 : isTablet() ? 4 : mediaData.length;
-      cardsCount = Math.min(raw, mediaData.length);
-      for (let i = 0; i < cardsCount; i++) {
-        const card = document.createElement("article");
-        card.className = "media-card";
-        card.innerHTML = `
-          <header class="media-card-header">
-            <div class="media-logo">
-              <div class="logo-icon" aria-hidden="true"></div>
-              <div><div class="media-name"></div><div class="media-type"></div></div>
-            </div>
-            <div class="rating-block">
-              <div class="rating-score"></div>
-              <div class="rating-caption">доля публикаций<br>с признаками</div>
-            </div>
-          </header>
-          <div class="media-meta">
-            <div class="media-audience"></div><div class="media-posts"></div>
+  <div class="modal-overlay" id="appealModal" aria-hidden="true">
+    <div class="modal-dialog appeal-dialog" role="dialog" aria-modal="true" aria-labelledby="appealTitle" aria-describedby="appealNote">
+      <div class="modal-header">
+        <h3 id="appealTitle">Апелляция по <span>результату анализа</span></h3>
+        <button class="modal-close" id="appealCloseBtn" type="button" aria-label="Закрыть форму апелляции">×</button>
+      </div>
+      <div class="modal-body">
+        <form class="appeal-form" id="appealForm">
+          <p class="appeal-form-note" id="appealNote">Отправка на почту пока не подключена. Заполненную апелляцию можно сохранить текстовым файлом.</p>
+          <label for="appealPublisher"><span>СМИ <span aria-hidden="true">*</span></span>
+            <input id="appealPublisher" name="publisher" list="appealPublishers" required maxlength="160" autocomplete="organization" placeholder="Название издания или канала">
+          </label>
+          <datalist id="appealPublishers"></datalist>
+          <label for="appealUrl">Ссылка на сообщение — необязательно
+            <input id="appealUrl" name="publication_url" type="url" maxlength="2000" placeholder="https://…" inputmode="url">
+          </label>
+          <label for="appealExplanation"><span>Где ошибся алгоритм и почему <span aria-hidden="true">*</span></span>
+            <textarea id="appealExplanation" name="explanation" required minlength="10" maxlength="8000" placeholder="Укажите спорный фрагмент, найденный тип и объясните, что следует учесть."></textarea>
+          </label>
+          <div class="appeal-form-actions">
+            <button class="full-list-button" type="submit">Сохранить апелляцию</button>
+            <button class="full-list-button" type="reset">Очистить</button>
           </div>
-          <div class="media-details"><span class="media-manipulative"></span></div>
-          <div class="small-graph"></div>
-          <footer class="media-footer">
-            <span class="badge"></span>
-            <button class="link-button" type="button" data-archive-link>Смотреть примеры</button>
-          </footer>`;
-        mediaGrid.appendChild(card);
-      }
-      updateCards(); updateMobileSliderState(); renderDots();
-    }
-
-    function updateCards() {
-      mediaGrid.querySelectorAll(".media-card").forEach((card, i) => {
-        const m = mediaData[(offset + i) % mediaData.length];
-        card.querySelector(".logo-icon").textContent = getInitials(m.name);
-        card.querySelector(".media-name").textContent = m.name;
-        card.querySelector(".media-type").textContent = m.type;
-        card.querySelector(".media-audience").textContent = `Аудитория: ${m.audience}`;
-        card.querySelector(".media-posts").textContent = `Публикаций: ${m.posts}`;
-        card.querySelector(".media-manipulative").textContent = `С признаками манипуляции: ${m.manipulative}`;
-        const sc = card.querySelector(".rating-score");
-        sc.textContent = `${m.rating}%`; sc.className = `rating-score ${m.level}-score`;
-        const b = card.querySelector(".badge");
-        b.className = "badge";
-        if (m.level==="yellow") b.classList.add("badge-yellow");
-        if (m.level==="green")  b.classList.add("badge-green");
-        b.textContent = getBadgeText(m.level);
-        card.querySelector(".small-graph").innerHTML = buildSparkline(m.rating, m.level);
-      });
-    }
-
-    function updateMobileSliderState(prevIndex = null) {
-      const cards = mediaGrid.querySelectorAll(".media-card");
-      const mob = isMobile();
-      mediaGrid.classList.toggle("is-mobile-slider", mob);
-      if (!mob) { cards.forEach(c => c.classList.remove("is-active","is-exit-left")); return; }
-      cards.forEach((c,i) => {
-        c.classList.remove("is-active","is-exit-left");
-        if (prevIndex !== null && i === prevIndex && i !== mobileIndex) {
-          c.classList.add("is-exit-left"); setTimeout(() => c.classList.remove("is-exit-left"), 500);
-        }
-        if (i === mobileIndex) c.classList.add("is-active");
-      });
-      updateDots();
-    }
-
-    function renderDots() {
-      if (!mediaDots) return; mediaDots.innerHTML = ""; if (!isMobile()) return;
-      mediaData.forEach((_, idx) => {
-        const d = document.createElement("button"); d.type = "button";
-        d.className = "media-dot" + (idx===mobileIndex?" active":"");
-        d.setAttribute("aria-label", `Показать карточку ${idx+1}`);
-        d.addEventListener("click", () => {
-          const prev = mobileIndex; mobileIndex = idx; offset = idx;
-          updateCards(); updateMobileSliderState(prev); restartCycle();
-        });
-        mediaDots.appendChild(d);
-      });
-    }
-
-    function updateDots() {
-      if (!mediaDots) return;
-      [...mediaDots.children].forEach((d,i) => d.classList.toggle("active", i===mobileIndex));
-    }
-
-    function cycleCards() {
-      if (isMobile()) {
-        const prev = mobileIndex; mobileIndex=(mobileIndex+1)%mediaData.length; offset=mobileIndex;
-        updateCards(); updateMobileSliderState(prev); return;
-      }
-      offset=(offset+cardsCount)%mediaData.length; updateCards();
-    }
-
-    function startCycle()   { clearInterval(cycleTimer); cycleTimer = setInterval(cycleCards, isMobile()?4200:5000); }
-    function restartCycle() { startCycle(); }
-
-    /* ── FIX 2: Расширенный полный список ── */
-    function getSortedFiltered() {
-      const q = (modalSearch?.value||"").trim().toLowerCase();
-      const s = modalSort?.value || "rating-desc";
-      let list = q ? mediaData.filter(m=>m.name.toLowerCase().includes(q)) : [...mediaData];
-      list.sort((a,b) => {
-        if (s==="rating-asc")  return a.rating-b.rating;
-        if (s==="rating-desc") return b.rating-a.rating;
-        if (s==="name-asc")    return a.name.localeCompare(b.name,"ru");
-        if (s==="name-desc")   return b.name.localeCompare(a.name,"ru");
-        if (s==="level-red")   { const o={red:0,yellow:1,green:2}; return o[a.level]-o[b.level]; }
-        if (s==="level-green") { const o={green:0,yellow:1,red:2}; return o[a.level]-o[b.level]; }
-        return b.rating-a.rating;
-      });
-      return list;
-    }
-
-    function badgeLabel(l) { return l==="red"?"высокий показатель":l==="yellow"?"средний показатель":"низкий показатель"; }
-
-    function renderFullList() {
-      const list = getSortedFiltered();
-      fullListContainer.innerHTML = "";
-      if (!list.length) {
-        fullListContainer.innerHTML = `<div class="modal-empty">Ничего не найдено</div>`; return;
-      }
-
-      list.forEach(m => {
-        const row = document.createElement("div");
-        row.className = "full-list-row";
-        row.innerHTML = `
-          <div class="fli-name">
-            <div class="title">${m.name}</div>
-            <div class="type">${m.type} · Аудитория: ${m.audience}</div>
-          </div>
-          <div class="fli-graph">${buildSparkline(m.rating, m.level, 120, 28)}</div>
-          <div class="fli-rating ${m.level}">${m.rating}%</div>
-          <div class="fli-badge ${m.level}">${badgeLabel(m.level)}</div>`;
-        fullListContainer.appendChild(row);
-      });
-    }
-
-    if (modalSearch) modalSearch.addEventListener("input", renderFullList);
-    if (modalSort)   modalSort.addEventListener("change", renderFullList);
-
-    function openModal() {
-      if (modalSearch) modalSearch.value=""; if (modalSort) modalSort.value="rating-desc";
-      renderFullList();
-      fullListModal.classList.add("open"); fullListModal.setAttribute("aria-hidden","false");
-      document.body.style.overflow="hidden";
-      setTimeout(() => modalSearch?.focus(), 80);
-    }
-    function closeModal() {
-      fullListModal.classList.remove("open"); fullListModal.setAttribute("aria-hidden","true");
-      document.body.style.overflow="";
-    }
-
-    showFullListBtns.forEach(btn => btn.addEventListener("click", openModal));
-    fullListCloseBtn.addEventListener("click", closeModal);
-    fullListModal.addEventListener("click", e => { if (e.target===fullListModal) closeModal(); });
-
-    const appealLink = document.getElementById("appealLink");
-    if (appealLink) {
-      appealLink.addEventListener("click", (e) => {
-        e.preventDefault();
-      });
-    }
-
-    /* ── Burger ── */
-    if (burgerBtn && navLinks) {
-      burgerBtn.addEventListener("click", () => {
-        const open = navLinks.classList.toggle("open");
-        burgerBtn.setAttribute("aria-expanded", String(open));
-      });
-      navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
-        navLinks.classList.remove("open"); burgerBtn.setAttribute("aria-expanded","false");
-      }));
-      document.addEventListener("click", e => {
-        if (!navLinks.contains(e.target) && !burgerBtn.contains(e.target)) {
-          navLinks.classList.remove("open"); burgerBtn.setAttribute("aria-expanded","false");
-        }
-      });
-    }
-
-    document.addEventListener("keydown", e => {
-      if (e.key==="Escape") {
-        closeModal();
-        if (navLinks) navLinks.classList.remove("open");
-        if (burgerBtn) burgerBtn.setAttribute("aria-expanded","false");
-      }
-    });
-
-    document.addEventListener("click", e => {
-      if (e.target?.matches("[data-archive-link]")) window.location.href="archive.html";
-    });
-
-    let resizeTimer = null;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        const nw = window.innerWidth; if (nw===lastWidth) return; lastWidth=nw;
-        const wasMob = mediaGrid.classList.contains("is-mobile-slider"), nowMob=isMobile();
-        if (wasMob!==nowMob||isDesktop()||isTablet()) {
-          if (nowMob) mobileIndex=offset%mediaData.length;
-          initCards(); startCycle();
-        }
-      }, 150);
-    });
-
-    initCards(); startCycle();
-  </script>
+          <p class="appeal-form-status" id="appealStatus" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="publisher-statuses.js?v=rating-20261025" defer></script>
+  <script src="index-rating.js?v=rating-20261025" defer></script>
 </body>
 </html>

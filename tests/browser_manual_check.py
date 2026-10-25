@@ -1684,6 +1684,8 @@ def main():
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)
             pro_business_navigation_ui(browser, base, site)
+            from browser_rating_check import rating_ui
+            rating_ui(browser, base, site, errors, requests)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(

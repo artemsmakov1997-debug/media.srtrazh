@@ -50,5 +50,7 @@ jobs:
         if: always()
         with:
           name: analysis-interface-checks
-          path: /tmp/analysis-layout-checks
+          path: |
+            /tmp/analysis-layout-checks
+            /tmp/media-strazh-rating-checks
           retention-days: 14
