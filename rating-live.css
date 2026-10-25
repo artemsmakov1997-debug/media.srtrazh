@@ -33,3 +33,117 @@
 @media(prefers-reduced-motion:reduce) {
   .media-card,.media-dot { transition:none !important; animation:none !important; }
 }
+
+/* Compact rating cards — 2026-10-25.
+   The headline score remains the percentage of collected publications flagged.
+   All deeper collection details remain in the source data and full-list view. */
+.rating-status[hidden] { display:none !important; }
+.current-rating-section .media-grid { align-items:stretch; }
+.current-rating-section .media-card {
+  display:flex; flex-direction:column;
+  min-width:0; min-height:218px;
+  padding:20px !important;
+  border-radius:17px;
+  gap:0;
+}
+.current-rating-section .media-card-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:13px;
+  margin:0 0 23px;
+  min-width:0;
+}
+.current-rating-section .media-logo { align-items:flex-start; gap:11px; min-width:0; }
+.current-rating-section .logo-icon {
+  width:42px;height:42px;flex:0 0 42px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;letter-spacing:0;
+  border-radius:11px;
+}
+.current-rating-section .media-identity-text { flex:1; min-width:0; padding-top:1px; }
+.current-rating-section .media-name {
+  color:#f2f7fb;
+  font-size:16px;
+  font-weight:750;
+  line-height:1.33;
+  letter-spacing:-.025em;
+  overflow-wrap:break-word;
+}
+.current-rating-section .media-legal-status {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:7px;
+}
+.current-rating-section .media-status-tag {
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  border:1px solid rgba(209,166,100,.4);
+  border-radius:5px;
+  padding:3px 6px;
+  color:#dfc39d;
+  background:rgba(211,163,98,.065);
+  font-size:10px;
+  line-height:1.3;
+  font-weight:600;
+  text-transform:none;
+  overflow-wrap:anywhere;
+}
+.current-rating-section .rating-block { flex:0 0 auto; text-align:right; padding-top:1px; }
+.current-rating-section .rating-score { font-size:clamp(21px,2vw,27px);line-height:1.08;letter-spacing:-.045em;white-space:nowrap; }
+.current-rating-section .small-graph {
+  width:100%;height:52px;
+  min-height:52px;
+  margin-top:auto;
+  border-radius:8px;
+  background:linear-gradient(180deg,rgba(7,17,30,.65),rgba(9,22,36,.78));
+}
+.current-rating-section .media-footer {
+  display:block !important;
+  width:100%;
+  padding:14px 0 0;
+  margin:14px 0 0;
+  border-top:1px solid rgba(144,187,206,.16);
+}
+.current-rating-section .media-footer .link-button {
+  width:100% !important;
+  min-height:44px;
+  padding:10px 12px;
+  margin:0;
+  border:1px solid rgba(64,194,219,.43);
+  border-radius:9px;
+  background:rgba(22,66,84,.5);
+  color:#69deef;
+  font-size:13px;
+  font-weight:750;
+  letter-spacing:.005em;
+  text-align:center;
+  transition:border-color .18s ease,background .18s ease,color .18s ease;
+}
+.current-rating-section .media-footer .link-button:hover,
+.current-rating-section .media-footer .link-button:focus-visible {
+  background:rgba(25,89,109,.63);
+  border-color:rgba(96,222,240,.85);
+  color:#e6fbff;
+}
+@media (max-width:767px) {
+  .current-rating-section .media-card { min-height:0; padding:16px !important; }
+  .current-rating-section .media-card-header { margin-bottom:20px; }
+  .current-rating-section .media-name { font-size:15px !important; }
+  .current-rating-section .rating-score { font-size:24px; }
+  .current-rating-section .small-graph { margin-top:0; min-height:48px;height:48px; }
+  .current-rating-section .media-footer {
+    display:block !important;
+    margin-top:13px;
+    padding-top:13px;
+  }
+  .current-rating-section .media-footer .link-button {
+    width:100% !important;
+    min-height:44px;
+    font-size:13px !important;
+    padding:10px 12px;
+  }
+}
