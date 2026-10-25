@@ -147,3 +147,108 @@
     padding:10px 12px;
   }
 }
+
+/* Editorial refinement: a quiet first fold and reliable, equal-height cards. */
+.hero { align-items:stretch; }
+.hero .hero-text,
+.hero .hero-counter {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+.hero .hero-text { padding:28px 30px; }
+.hero .hero-counter { padding:26px 28px; }
+.hero .hero-text h1 {
+  font-family:"Golos Text","Inter",sans-serif;
+  font-size:clamp(1.65rem,2.45vw,2.12rem);
+  font-weight:600;
+  line-height:1.22;
+  letter-spacing:-.033em;
+  text-wrap:balance;
+  max-width:800px;
+}
+.hero .counter-label { font-size:.75rem; letter-spacing:.075em; line-height:1.4; }
+.hero .counter-value { font-size:clamp(2.8rem,4.5vw,4.05rem); line-height:1.08; }
+@media (min-width:768px) {
+  .hero { grid-template-columns:minmax(0,1fr) minmax(265px,300px); gap:16px; }
+  .hero .hero-text, .hero .hero-counter { min-height:172px; }
+}
+.current-rating-section .media-card {
+  min-height:230px;
+  border:1px solid rgba(123,166,190,.17);
+  box-shadow:0 14px 34px rgba(1,12,25,.23),inset 0 1px rgba(240,251,255,.025);
+}
+.current-rating-section .media-card-header { gap:12px; margin-bottom:24px; }
+.current-rating-section .media-logo { align-items:flex-start; gap:12px; }
+.current-rating-section .logo-icon {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  overflow:hidden;
+  border:1px solid rgba(163,201,217,.18);
+  border-radius:12px;
+  background:rgba(232,245,251,.055);
+}
+.current-rating-section .logo-fallback {
+  font:700 12px/1.1 "Golos Text","Inter",sans-serif;
+  letter-spacing:0;
+  color:#c4d7e1;
+}
+.current-rating-section .logo-image {
+  position:absolute;
+  inset:5px;
+  width:calc(100% - 10px);
+  height:calc(100% - 10px);
+  object-fit:contain;
+  opacity:0;
+}
+.current-rating-section .logo-icon.has-logo .logo-image { opacity:1; }
+.current-rating-section .logo-icon.has-logo .logo-fallback { display:none; }
+.current-rating-section .media-identity-text { padding-top:2px; }
+.current-rating-section .media-name {
+  font-family:"Golos Text","Inter",sans-serif;
+  font-weight:600;
+  line-height:1.27;
+}
+.current-rating-section .media-legal-status { margin-top:6px; gap:4px; }
+.current-rating-section .media-status-tag {
+  font-size:9px;
+  line-height:1.25;
+  font-weight:500;
+  letter-spacing:0;
+  padding:3px 6px;
+  border-radius:6px;
+}
+.current-rating-section .rating-block { align-items:flex-end; padding-top:2px; }
+.current-rating-section .rating-score { font-size:clamp(21px,2.25vw,28px); }
+.current-rating-section .small-graph { height:54px; min-height:54px; margin-top:auto; }
+.current-rating-section .media-footer { margin-top:12px; padding-top:12px; border-top:none; }
+.current-rating-section .media-footer a.link-button {
+  display:flex;
+  width:100% !important;
+  min-height:44px;
+  align-items:center;
+  justify-content:center;
+  padding:10px 14px;
+  border-radius:10px;
+  letter-spacing:.01em;
+}
+@media(max-width:767px) {
+  .hero .hero-text { padding:19px 19px 20px; }
+  body .hero .hero-text h1 {
+    font-family:"Golos Text","Inter",sans-serif;
+    font-weight:600;
+    font-size:clamp(18px,5.15vw,22px) !important;
+    line-height:1.25 !important;
+  }
+  .current-rating-section .media-card { min-height:0; }
+  .current-rating-section .media-card-header { margin-bottom:18px; }
+  .current-rating-section .logo-icon { width:46px; height:46px; flex-basis:46px; }
+  .current-rating-section .small-graph { height:49px; min-height:49px; }
+  .current-rating-section .media-footer { margin-top:12px; padding-top:12px; }
+}

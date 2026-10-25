@@ -34,7 +34,9 @@ def rating_ui(browser, base, site, errors, requests):
             assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])
             assert page.locator('#dailyCounterMobile').inner_text() == str(fixture['totals']['flagged'])
             assert 'DEMO' not in page.locator('main').inner_text()
-            assert 'Собрано: 8' in page.locator('#ratingStatus').inner_text()
+            assert not page.locator('#ratingStatus').is_visible()
+            assert 'Независимый проект по разработке системы' not in page.locator('main').inner_text()
+            assert 'По собранной выборке' not in page.locator('main').inner_text()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
             if mobile:
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
@@ -45,7 +47,11 @@ def rating_ui(browser, base, site, errors, requests):
             else:
                 card = page.locator('.media-card[data-publisher="rt"]')
             assert card.locator('.rating-score').inner_text() == '25%'
-            assert '4' in card.locator('.media-posts').inner_text()
+            assert card.locator('.logo-image').count() == 1
+            assert card.locator('.logo-image').get_attribute('src').startswith('https://www.google.com/s2/favicons?')
+            assert card.locator('.media-details, .media-meta, .media-type').count() == 0
+            assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
+            assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
             assert card.locator('.small-graph circle').last.get_attribute('data-score') == '25'
             assert card.locator('.small-graph circle').last.get_attribute('data-collected') == '4'
             assert card.locator('.small-graph circle').last.get_attribute('data-flagged') == '1'
@@ -144,7 +150,8 @@ def rating_ui(browser, base, site, errors, requests):
         page.locator('.media-card').first.wait_for()
         assert page.locator('.media-name').first.inner_text() == hostile['publishers'][0]['name']
         assert page.evaluate('window.ratingXss !== true')
-        assert page.locator('.media-card img').count() == 0
+        assert page.locator('.media-card img.logo-image').count() > 0
+        assert page.locator('.media-card img[onerror]').count() == 0
     finally:
         context.close()
     assert not errors, errors

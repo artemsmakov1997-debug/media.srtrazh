@@ -68,6 +68,62 @@
     return [status?.foreignAgent && 'иноагент', status?.undesirable && 'нежелательная организация'].filter(Boolean);
   }
 
+
+  // Domains belong to the monitored publishers (not to arbitrary article URLs).
+  // Favicons are publisher-provided brand marks; Telegram-only outlets use
+  // their public channel avatar. The lettermark remains as an offline fallback.
+  const publisherLogoDomains = Object.freeze({
+    rt: 'russiatoday.ru',
+    tass: 'tass.ru',
+    ria: 'ria.ru',
+    interfax: 'interfax.ru',
+    kommersant: 'kommersant.ru',
+    vedomosti: 'vedomosti.ru',
+    rbc: 'rbc.ru',
+    izvestia: 'iz.ru',
+    rg: 'rg.ru',
+    lenta: 'lenta.ru',
+    meduza: 'meduza.io',
+    novayagazeta: 'novayagazeta.eu',
+    fontanka: 'fontanka.ru',
+    currenttime: 'currenttime.tv',
+    dw: 'dw.com',
+    bbc: 'bbc.com',
+    aif: 'aif.ru',
+    inosmi: 'inosmi.ru',
+    mediazona: 'zona.media'
+  });
+  const channelLogoHandles = Object.freeze({
+    oldlentach: 'oldlentach',
+    smotri: 'smotri_media'
+  });
+
+  function publisherLogo(row, initials) {
+    const icon = node('span', '', 'logo-icon');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.append(node('span', initials, 'logo-fallback'));
+    const domain = publisherLogoDomains[row.id];
+    const channel = channelLogoHandles[row.id];
+    if (!domain && !channel) return icon;
+
+    const image = node('img', '', 'logo-image');
+    image.alt = '';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.referrerPolicy = 'no-referrer';
+    image.src = domain
+      ? 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128'
+      : 'https://unavatar.io/telegram/' + encodeURIComponent(channel) + '?fallback=false';
+    image.addEventListener('load', () => {
+      // Missing Google favicon often resolves to a generic 16px globe.
+      if (image.naturalWidth <= 16) image.remove();
+      else icon.classList.add('has-logo');
+    });
+    image.addEventListener('error', () => image.remove());
+    icon.prepend(image);
+    return icon;
+  }
+
   function platformText(row) {
     return row.platforms.map(platform => platform === 'telegram' ? 'Telegram' : 'Сайт').join(' · ');
   }
@@ -133,8 +189,7 @@
     const header = node('div', '', 'media-card-header');
     const identity = node('div', '', 'media-logo');
     const initials = row.name.trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase();
-    const icon = node('div', initials, 'logo-icon');
-    icon.setAttribute('aria-hidden', 'true');
+    const icon = publisherLogo(row, initials);
 
     const names = node('div', '', 'media-identity-text');
     names.append(node('div', row.name, 'media-name'));
