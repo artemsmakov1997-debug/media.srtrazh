@@ -64,6 +64,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert card.locator('.logo-icon').inner_text().strip()
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
             assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
+            assert card.locator('.media-footer .link-button').get_attribute('href') == '/archive/'
             assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
             assert card.locator('.small-graph circle').count() == 24
@@ -77,6 +78,11 @@ def rating_ui(browser, base, site, errors, requests):
                 '00', '06', '12', '18', '24']
             assert '1' in svg_labels
             assert card.locator('.media-level-badge').count() == 1
+            assert card.locator('.media-name').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
+            assert card.locator('.media-level-badge').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
+            assert card.locator('.media-name').evaluate('el => el.scrollWidth <= el.clientWidth + 300')
+            assert card.locator('.media-logo').evaluate(
+                'el => el.getBoundingClientRect().right <= el.parentElement.querySelector(".rating-block").getBoundingClientRect().left + 2')
             assert card.locator('.media-level-badge').inner_text() == {
                 'red':'Высокий процент маркеров',
                 'yellow':'Средний процент маркеров',
@@ -85,6 +91,14 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.media-top-badges').evaluate('el => el.parentElement === el.closest(".media-card")')
             assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
             assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
+            info = card.locator('.rating-legal-info')
+            assert info.locator('summary').get_attribute('aria-label') == 'Информация о правовых статусах изданий'
+            info.locator('summary').click()
+            assert info.get_attribute('open') is not None
+            assert 'Реестр иностранных агентов' in info.inner_text()
+            assert info.locator('a[href*="minjust.gov.ru"]').count() == 2
+            page.keyboard.press('Escape')
+            assert info.get_attribute('open') is None
             assert card.locator('.rating-chart-caption').evaluate(
                 'el => el.nextElementSibling.classList.contains("small-graph") && '
                 'el.parentElement.classList.contains("media-card")')
@@ -97,10 +111,15 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => Math.abs(el.firstElementChild.getBoundingClientRect().top - '
                     'el.lastElementChild.getBoundingClientRect().top) < 2')
                 assert page.locator('.hero .hero-counter').evaluate(
-                    'el => getComputedStyle(el).display === "grid"')
+                    'el => getComputedStyle(el).flexDirection === "column"')
+                assert page.locator('.hero .hero-text').evaluate(
+                    'el => getComputedStyle(el).backgroundImage === "none" && '
+                    'getComputedStyle(el).borderTopWidth === "0px"')
                 assert page.locator('.hero .hero-counter .counter-value').evaluate(
-                    'el => el.getBoundingClientRect().left < '
-                    'el.nextElementSibling.getBoundingClientRect().left')
+                    'el => el.getBoundingClientRect().top >= '
+                    'el.nextElementSibling.getBoundingClientRect().bottom - 1')
+                assert page.locator('.hero .counter-value').evaluate(
+                    'el => getComputedStyle(el).fontFamily.includes("Orbitron")')
             else:
                 zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'mediazona')
                 page.locator(f'#mediaDots button[aria-label="Показать {zero_name}"]').click()
@@ -178,8 +197,8 @@ def rating_ui(browser, base, site, errors, requests):
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == '3'
                 page.locator('.media-card[data-publisher="rt"] .link-button').click()
-                page.wait_for_url('**/analysis/?source=rt')
-                page.wait_for_function("document.getElementById('source').value === 'rt'")
+                page.wait_for_url('**/archive/')
+                assert page.locator('#archiveList .archive-item').count() > 0
         finally:
             context.close()
 

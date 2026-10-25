@@ -21,6 +21,32 @@
     return result;
   };
   let report = null, media = [], offset = 0, active = 0, cycle = null, loading = false, loadError = false;
+  let counterAnimation = null, previousTotal = null;
+
+  function setTotal(target) {
+    const desktopCount = $('dailyCounterValue'), mobileCount = $('dailyCounterMobile');
+    const final = number(target);
+    desktopCount.dataset.digits = String(Math.min(5, String(target).length));
+    if (counterAnimation !== null) cancelAnimationFrame(counterAnimation);
+    counterAnimation = null;
+    if (motion.matches || document.hidden || previousTotal === target) {
+      desktopCount.textContent = mobileCount.textContent = final;
+      previousTotal = target;
+      return;
+    }
+    const start = previousTotal === null ? 0 : previousTotal;
+    previousTotal = target;
+    const began = performance.now(), duration = 1100;
+    const tick = now => {
+      const t = Math.min(1, (now - began) / duration);
+      const eased = 1 - Math.pow(1 - t, 4);
+      const display = number(Math.round(start + (target - start) * eased));
+      desktopCount.textContent = mobileCount.textContent = display;
+      if (t < 1) counterAnimation = requestAnimationFrame(tick);
+      else { desktopCount.textContent = mobileCount.textContent = final; counterAnimation = null; }
+    };
+    counterAnimation = requestAnimationFrame(tick);
+  }
   let currentModal = null, modalTrigger = null, oldOverflow = '', inertElements = [];
 
   function validate(data) {
@@ -259,8 +285,38 @@
 
   function examplesLink(row) {
     const link = node('a', 'Смотреть примеры', 'link-button');
-    link.href = '/analysis/?source=' + encodeURIComponent(row.id);
+    // The archive does not currently support publisher URL filters.
+    link.href = '/archive/';
+    link.setAttribute('aria-label', 'Смотреть архив публикаций');
     return link;
+  }
+
+  function legalInfo() {
+    const details = node('details', '', 'rating-legal-info');
+    const toggle = node('summary', 'i', 'rating-info-trigger');
+    toggle.setAttribute('aria-label', 'Информация о правовых статусах изданий');
+    toggle.title = 'О статусах источников';
+    const panel = node('div', '', 'rating-info-panel');
+    panel.append(
+      node('strong', 'О правовых статусах источников', 'rating-info-title'),
+      node('p', 'Обозначения «иноагент» и «нежелательная организация» относятся к официальным правовым статусам, не характеризуют качество публикаций и не влияют на процент маркеров. Статусы следует проверять в актуальных реестрах Минюста РФ.'),
+    );
+    const sourceLinks = node('div', '', 'rating-info-links');
+    const addSource = (title, href) => {
+      const link = node('a', title);
+      link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      sourceLinks.append(link);
+    };
+    addSource('Реестр иностранных агентов', 'https://www.minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/');
+    addSource('Перечень нежелательных организаций', 'https://minjust.gov.ru/ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/');
+    panel.append(sourceLinks);
+    details.append(toggle, panel);
+    details.addEventListener('toggle', () => {
+      if (details.open) document.querySelectorAll('.rating-legal-info[open]').forEach(other => {
+        if (other !== details) other.open = false;
+      });
+    });
+    return details;
   }
 
   function levelBadge(row) {
@@ -294,7 +350,9 @@
     const initials = row.name.trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase();
     const icon = publisherLogo(row, initials);
     const names = node('div', '', 'media-identity-text');
-    names.append(node('div', row.name, 'media-name'), levelBadge(row));
+    const name = node('div', row.name, 'media-name');
+    name.title = row.name;
+    names.append(name, levelBadge(row));
     identity.append(icon, names);
 
     const score = node('div', '', 'rating-block');
@@ -316,9 +374,11 @@
     graph.append(makeCardGraph(row));
     graph.tabIndex = 0;
 
+    const captionRow = node('div', '', 'rating-caption-row');
+    captionRow.append(caption, legalInfo());
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
-    card.append(topBadges, header, caption, graph, footer);
+    card.append(topBadges, header, captionRow, graph, footer);
     return card;
   }
 
@@ -329,6 +389,7 @@
     for (let index = 0; index < count; index++) {
       const row = media[mobile() ? index : (offset + index) % media.length];
       const card = drawCard(row);
+      card.style.setProperty('--card-order', String(index));
       if (mobile()) {
         card.classList.toggle('is-active', index === active);
         card.setAttribute('aria-hidden', String(index !== active));
@@ -439,8 +500,7 @@
       const selected = media[active]?.id;
       report = next; media = next.publishers; loadError = false;
       active = Math.max(0, media.findIndex(row => row.id === selected)); offset = 0;
-      $('dailyCounterValue').textContent = $('dailyCounterMobile').textContent = number(report.totals.flagged);
-      $('dailyCounterValue').dataset.digits = String(Math.min(5, String(report.totals.flagged).length));
+      setTotal(report.totals.flagged);
       $('ratingRetry').hidden = true; updateStatus(); renderCards(); restartCycle();
       $('appealPublishers').replaceChildren(...media.map(row => {
         const option = node('option'); option.value = row.name; return option;
@@ -487,7 +547,10 @@
     $('appealStatus').textContent = 'Текст апелляции подготовлен для сохранения на устройство. Отправка на почту пока не подключена.';
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') { closeModal(); $('navLinks')?.classList.remove('open'); $('burgerBtn')?.setAttribute('aria-expanded', 'false'); }
+    if (event.key === 'Escape') {
+      document.querySelectorAll('.rating-legal-info[open]').forEach(details => { details.open = false; });
+      closeModal(); $('navLinks')?.classList.remove('open'); $('burgerBtn')?.setAttribute('aria-expanded', 'false');
+    }
     if (event.key !== 'Tab' || !currentModal) return;
     const controls = [...currentModal.querySelectorAll('a[href],button,input,select,textarea,[tabindex="0"]')].filter(control => !control.disabled && control.getClientRects().length);
     const first = controls[0], last = controls[controls.length - 1];
@@ -498,6 +561,9 @@
   burger?.addEventListener('click', () => burger.setAttribute('aria-expanded', String(navigation.classList.toggle('open'))));
   navigation?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { navigation.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }));
   document.addEventListener('click', event => {
+    document.querySelectorAll('.rating-legal-info[open]').forEach(details => {
+      if (!details.contains(event.target)) details.open = false;
+    });
     if (burger && !navigation.contains(event.target) && !burger.contains(event.target)) {
       navigation.classList.remove('open'); burger.setAttribute('aria-expanded', 'false');
     }

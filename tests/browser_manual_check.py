@@ -985,7 +985,11 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg-body').trim()") == "#05070b"
         assert page.locator(".current-rating-section").evaluate(
             "el => getComputedStyle(el).backgroundImage") == "none"
-        for surface in (".hero-text", ".hero-counter", ".media-card", ".rating-appeal-strip"):
+        # The rating header is an open editorial layout; cards retain dark surfaces.
+        for surface in (".hero-text", ".hero-counter"):
+            assert page.locator(surface).first.evaluate(
+                "el => getComputedStyle(el).backgroundImage") == "none"
+        for surface in (".media-card", ".rating-appeal-strip"):
             assert "gradient" in page.locator(surface).first.evaluate(
                 "el => getComputedStyle(el).backgroundImage"), surface
         # The summary keeps compact legal markers above the identity,
