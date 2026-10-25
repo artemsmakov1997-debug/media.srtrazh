@@ -69,9 +69,13 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.small-graph circle').count() == 24
             assert sum(int(value) for value in card.locator('.small-graph circle').evaluate_all(
                 'els => els.map(el => el.dataset.hourlyFlagged)')) == chosen['flagged']
-            assert [text for text in card.locator('.small-graph svg text').all_inner_texts()
-                    if text in ('00', '06', '12', '18', '24')] == ['00', '06', '12', '18', '24']
-            assert '1' in card.locator('.small-graph svg text').all_inner_texts()
+            # SVGTextElement does not consistently expose innerText to Playwright.
+            # Read the actual SVG text nodes, including the axis tick at level 1.
+            svg_labels = card.locator('.small-graph svg text').evaluate_all(
+                'els => els.map(el => el.textContent.trim())')
+            assert [value for value in svg_labels if value in ('00', '06', '12', '18', '24')] == [
+                '00', '06', '12', '18', '24']
+            assert '1' in svg_labels
             assert card.locator('.media-level-badge').count() == 1
             assert card.locator('.media-level-badge').inner_text() == {
                 'red':'Высокий процент маркеров',
@@ -93,7 +97,7 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => Math.abs(el.firstElementChild.getBoundingClientRect().top - '
                     'el.lastElementChild.getBoundingClientRect().top) < 2')
                 assert page.locator('.hero .hero-counter').evaluate(
-                    'el => getComputedStyle(el).flexDirection === "row"')
+                    'el => getComputedStyle(el).display === "grid"')
                 assert page.locator('.hero .hero-counter .counter-value').evaluate(
                     'el => el.getBoundingClientRect().left < '
                     'el.nextElementSibling.getBoundingClientRect().left')
