@@ -28,7 +28,7 @@ class CleanRoutesTest(unittest.TestCase):
                 self.assertNotIn('<base href="/">', legacy)
                 self.assertNotIn(f'href="{slug}.html"', copy)
 
-            self.assertIn('href="/#appeal"', (site / "index.html").read_text(encoding="utf-8"))
+            self.assertIn('href="#appeal"', (site / "index.html").read_text(encoding="utf-8"))
             help_alias = (site / "help" / "index.html").read_text(encoding="utf-8")
             self.assertIn('href="/help/#supportFormats"', help_alias)
             self.assertIn('href="/analysis/"', (site / "pro-gateway.js").read_text(encoding="utf-8"))
