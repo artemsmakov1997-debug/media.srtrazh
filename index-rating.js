@@ -129,30 +129,42 @@
   function drawCard(row) {
     const card = node('article', '', 'media-card');
     card.dataset.publisher = row.id;
-    const header = node('header', '', 'media-card-header');
-    const logo = node('div', '', 'media-logo');
+
+    const header = node('div', '', 'media-card-header');
+    const identity = node('div', '', 'media-logo');
     const initials = row.name.trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase();
-    const icon = node('div', initials, 'logo-icon'); icon.setAttribute('aria-hidden', 'true');
-    const names = node('div');
-    names.append(node('div', row.name, 'media-name'), node('div', [platformText(row), ...statusLabels(row.id)].join(' · '), 'media-type'));
-    logo.append(icon, names);
-    const block = node('div', '', 'rating-block');
-    block.append(node('div', percent(row.score_percent), 'rating-score ' + (row.level || 'no-data') + '-score'),
-                 node('div', 'доля публикаций с признаками', 'rating-caption'));
-    header.append(logo, block);
-    const metadata = node('div', '', 'media-meta');
-    metadata.append(node('div', `Проверено: ${number(row.analyzed)} из ${number(row.collected)}`, 'media-audience'),
-                    node('div', `Публикаций за 24 ч: ${number(row.collected)}`, 'media-posts'));
-    const details = node('div', '', 'media-details');
-    details.append(node('span', `С признаками манипуляции: ${number(row.flagged)}`, 'media-manipulative'));
-    const graph = node('div', '', 'small-graph'); graph.append(makeGraph(row));
+    const icon = node('div', initials, 'logo-icon');
+    icon.setAttribute('aria-hidden', 'true');
+
+    const names = node('div', '', 'media-identity-text');
+    names.append(node('div', row.name, 'media-name'));
+    const statuses = statusLabels(row.id);
+    if (statuses.length) {
+      const legal = node('div', '', 'media-legal-status');
+      for (const status of statuses) {
+        const tag = node('span', status, 'media-status-tag');
+        tag.title = status === 'иноагент'
+          ? 'Издание включено в реестр иностранных агентов'
+          : 'Издание имеет статус нежелательной организации';
+        legal.append(tag);
+      }
+      names.append(legal);
+    }
+    identity.append(icon, names);
+
+    const score = node('div', '', 'rating-block');
+    const value = node('div', percent(row.score_percent), 'rating-score ' + (row.level || 'no-data') + '-score');
+    value.setAttribute('aria-label', 'Доля собранных публикаций с признаками: ' + percent(row.score_percent));
+    score.append(value);
+    header.append(identity, score);
+
+    const graph = node('div', '', 'small-graph');
+    graph.append(makeGraph(row));
     graph.tabIndex = 0;
-    const footer = node('footer', '', 'media-footer');
-    const badgeText = row.rating_state === 'analysis_pending' ? 'Анализ не завершён' : label(row.level);
-    const badgeClass = row.level === 'red' ? '' : ' badge-' + (row.level || 'no-data');
-    footer.append(node('span', badgeText, 'badge' + badgeClass), examplesLink(row));
-    card.append(header, metadata, details, node('p', healthText(row), 'rating-health'), graph,
-                node('p', 'Накопительно за 24 ч · шкала 0–100%', 'rating-graph-caption'), footer);
+
+    const footer = node('div', '', 'media-footer');
+    footer.append(examplesLink(row));
+    card.append(header, graph, footer);
     return card;
   }
 
@@ -253,12 +265,12 @@
   function updateStatus() {
     if (!report) return;
     const stale = Date.now() - Date.parse(report.generated_at) > 2 * 3600000;
-    $('ratingStatus').classList.toggle('is-stale', stale || loadError);
-    $('ratingStatus').textContent = (loadError ? 'Обновление не удалось. ' : '') +
-      (stale ? 'Подборка давно не обновлялась. ' : '') + `Обновлено: ${date(report.generated_at)}. ` +
-      `Период: ${date(report.window.start_at)} — ${date(report.window.end_at)}. ` +
-      `Собрано: ${number(report.totals.collected)}, проверено: ${number(report.totals.analyzed)}. ` +
-      'Рейтинг относится к собранной выборке; полный охват СМИ не гарантируется.';
+    const warning = loadError
+      ? 'Не удалось обновить рейтинг. Показана последняя доступная выборка.'
+      : stale ? 'Данные рейтинга могут быть устаревшими.' : '';
+    $('ratingStatus').hidden = !warning;
+    $('ratingStatus').classList.toggle('is-stale', Boolean(warning));
+    $('ratingStatus').textContent = warning;
   }
 
   async function loadRating() {
