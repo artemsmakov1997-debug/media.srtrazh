@@ -319,10 +319,9 @@
 
   function updateStatus() {
     if (!report) return;
-    const stale = Date.now() - Date.parse(report.generated_at) > 2 * 3600000;
-    const warning = loadError
-      ? 'Не удалось обновить рейтинг. Показана последняя доступная выборка.'
-      : stale ? 'Данные рейтинга могут быть устаревшими.' : '';
+    // The public rating header is intentionally clean. Show a notice only
+    // when reloading has actually failed; sample timestamps remain in data.
+    const warning = loadError ? 'Не удалось обновить рейтинг. Показана последняя доступная выборка.' : '';
     $('ratingStatus').hidden = !warning;
     $('ratingStatus').classList.toggle('is-stale', Boolean(warning));
     $('ratingStatus').textContent = warning;
