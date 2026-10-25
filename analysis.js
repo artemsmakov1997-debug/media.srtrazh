@@ -14,13 +14,7 @@ let report = null;
 // Справочные статусы по указанным в документации источникам и датам проверки.
 // Относятся к указанному СМИ/оператору проекта, а не автоматически ко всем его сотрудникам.
 // Источники подтверждения приведены в docs/media-statuses.md.
-const LEGAL_STATUSES = Object.freeze({
-  meduza: {foreignAgent: true, undesirable: true},
-  novayagazeta: {foreignAgent: false, undesirable: true},
-  currenttime: {foreignAgent: true, undesirable: true},
-  dw: {foreignAgent: false, undesirable: true},
-  mediazona: {foreignAgent: true, undesirable: null, checkedAt: '13.10.2026'}
-});
+const LEGAL_STATUSES = window.MediaPublisherStatuses;
 
 function legalStatus(publisherId) {
   return LEGAL_STATUSES[publisherId] || null;
@@ -662,6 +656,11 @@ async function load() {
     element('controls').hidden = false;
 
     refreshMarkers();
+    const requestedPublisher = new URLSearchParams(location.search).get('source');
+    if (requestedPublisher && report.sources.some(source => source.publisher_id === requestedPublisher)) {
+      const option = [...element('source').options].find(item => item.value === requestedPublisher);
+      if (option) element('source').value = requestedPublisher;
+    }
     render();
   } catch (error) {
     console.error('Не удалось загрузить подборку анализа:', error);

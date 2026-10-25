@@ -1,0 +1,35 @@
+/* Data states and appeal form only. Existing homepage layout and colors stay. */
+.rating-status { color:#acbdc8; font-size:.78rem; line-height:1.6; margin:0 0 14px; }
+.rating-status.is-stale { color:#eab308; }
+.rating-retry { width:auto; padding:0 14px; margin:0 0 14px; }
+.rating-status a { color:var(--accent-blue); }
+.media-dots { flex-wrap:wrap; }
+.media-card[aria-hidden="true"] { pointer-events:none; }
+.rating-score.no-data-score,.fli-rating.no-data { color:#acbdc8; text-shadow:none; }
+.badge.badge-no-data { color:#acbdc8; border-color:#6b8091; }
+.fli-badge.no-data { color:#acbdc8; border-color:#6b8091; }
+.fli-name .title { overflow-wrap:anywhere; }
+.rating-health,.rating-graph-caption { color:#acbdc8; font-size:.68rem; line-height:1.5; margin:5px 0 0; }
+.rating-graph-empty { font:11px/1.3 "Inter",sans-serif; color:#acbdc8; display:flex; height:100%; align-items:center; justify-content:center; }
+.small-graph:focus-visible,.fli-graph:focus-visible { outline:2px solid var(--accent-blue); outline-offset:3px; }
+.media-footer a.link-button { display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.appeal-form { display:grid; gap:16px; }
+.appeal-form label { display:grid; gap:8px; color:#d0dce3; font-size:.85rem; line-height:1.5; }
+.appeal-form input,.appeal-form textarea {
+  width:100%; min-width:0; padding:11px 12px; border:1px solid rgba(127,180,205,.43);
+  border-radius:10px; background:#101c2a; color:#f4fbff; font:inherit;
+}
+.appeal-form input:focus,.appeal-form textarea:focus { outline:2px solid var(--accent-blue); outline-offset:2px; }
+.appeal-form textarea { min-height:150px; resize:vertical; }
+.appeal-form-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.appeal-form-note,.appeal-form-status { margin:0; color:#acbdc8; font-size:.8rem; line-height:1.6; }
+.appeal-form-status { color:var(--accent-blue); }
+.appeal-dialog .modal-body { padding-top:18px; }
+@media(max-width:767px) {
+  .appeal-form input,.appeal-form textarea { font-size:16px; }
+  .appeal-form-actions > button { width:100%; min-height:44px; white-space:normal; }
+  .rating-health,.rating-graph-caption { font-size:10px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .media-card,.media-dot { transition:none !important; animation:none !important; }
+}
