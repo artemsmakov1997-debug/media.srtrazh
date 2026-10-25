@@ -81,7 +81,12 @@ def rating_ui(browser, base, site, errors, requests):
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'
                 if width >= 1024:
-                    no_data = page.locator('.media-card[data-publisher="kommersant"]')
+                    # A carousel renders only the six highest-ranked publishers.
+                    # Check the visible missing-data state rather than expecting
+                    # an arbitrary unranked publisher (e.g. Kommersant) in that page.
+                    no_data = page.locator('.media-card:has(.rating-score.no-data-score)').first
+                    assert no_data.count() == 1
+                    assert no_data.locator('.rating-chart-caption').inner_text() == 'Нет публикаций за 24 часа'
                     assert 'Нет данных за последние 24 часа' in no_data.locator('.small-graph').inner_text()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
