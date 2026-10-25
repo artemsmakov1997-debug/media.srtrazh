@@ -32,6 +32,7 @@ import test_oct15_rhetoric
 import test_hostile_rhetoric
 import test_context_precision
 import test_historical_juxtaposition
+import test_comparative_framing
 import test_person_labels
 from browser_fixtures import business_evidence_fixture
 
@@ -56,7 +57,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -74,6 +75,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_context_precision.ContextPrecisionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_historical_juxtaposition.HistoricalJuxtapositionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_person_labels.PersonLabelTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_comparative_framing.ComparativeFramingTests),
     ])
     try:
         output = io.StringIO()
@@ -388,6 +390,62 @@ def context_precision_ui(browser, base, site, errors, requests):
             context.close()
 
 
+def comparative_framing_ui(browser, base, site, errors, requests):
+    """Notices, visual limits and new rhetoric use the existing interface."""
+    for mobile in (False, True):
+        context = browser.new_context(viewport={"width": 375 if mobile else 1280, "height": 812},
+                                      is_mobile=mobile, has_touch=mobile)
+        try:
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
+            for text in (test_comparative_framing.HISTORICAL_TEXT, test_comparative_framing.COMPARISON_TEXT):
+                document = {"text": text}
+                automatic = analyze({**document, "media": {"image_count": 2}})
+                manual = analyze(document)
+                snapshot = json.loads((site / "data/analysis.json").read_text())
+                item = copy.deepcopy(snapshot["articles"][0])
+                item.update(title="Проверочная публикация", summary=automatic["summary"], findings=automatic["findings"],
+                            display_excerpt=text, findings_omitted=0)
+                snapshot["articles"] = [item]
+                page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
+                page.goto(base + "/analysis.html")
+                select_analysis_filter(page, "#marker", "rhetorical_context")
+                assert page.locator(".publication").count() == 1
+                page.locator(".auto-details-button").click()
+                page.locator("#automaticModal").wait_for(state="visible")
+                mark = page.locator("#automaticModal mark").first
+                mark.tap() if mobile else mark.hover()
+                page.locator("#automaticTooltip").wait_for(state="visible")
+                tooltip = page.locator("#automaticTooltip").inner_text()
+                assert "Информационная отметка" in tooltip
+                if text == test_comparative_framing.COMPARISON_TEXT:
+                    assert "Сравнение иллюстраций" in tooltip
+                    assert "не анализировал" in tooltip
+                else:
+                    assert "Историческая отсылка" in tooltip
+                    assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+                page.locator("#automaticModalClose").click()
+                page.locator('[data-mode="manual"]').click()
+                page.locator("#manualText").fill(text)
+                page.locator("#manualSubmit").click()
+                page.locator("#manualResult").wait_for(state="visible", timeout=120000)
+                assert page.locator("#manualTextEvidence").inner_text() == text
+                marks = page.locator("#manualTextEvidence mark")
+                assert marks.count() > 0
+                marks.first.tap() if mobile else marks.first.hover()
+                page.locator("#manualTooltip").wait_for(state="visible")
+                assert manual["findings"][0]["explanation"] in page.locator("#manualTooltip").inner_text()
+                assert page.locator("#manualWarnings p").count() == 2
+                with page.expect_download() as download:
+                    page.locator("#manualDownload").click()
+                assert json.loads(Path(download.value.path()).read_text()) == manual
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                page.unroute("**/data/analysis.json")
+        finally:
+            context.close()
+
+
 def historical_juxtaposition_ui(browser, base, site, errors, requests):
     """The same multi-passage finding is visible in automatic and manual views."""
     text = test_historical_juxtaposition.USER_TEXT
@@ -567,7 +625,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         page.route("**/data/analysis.json", lambda route: route.fulfill(json=snapshot))
         page.goto(base + "/analysis.html")
         page.locator(".publication").wait_for()
-        assert page.locator("#marker option").count() == 14  # Ten candidate types, three informational layers, and all.
+        assert page.locator("#marker option").count() == 15  # Ten candidate types, four informational layers, and all.
         marker = expected["findings"][0]["category"]
         select_analysis_filter(page, "#marker", marker)
         assert page.locator(".publication").count() == 1
@@ -1548,12 +1606,12 @@ def main():
             select_analysis_filter(page, "#platform", "")
             select_analysis_filter(page, "#source", "rt")
             assert page.locator(".publication").count() == 1
-            assert page.locator("#marker option").count() == 14
+            assert page.locator("#marker option").count() == 15
             select_analysis_filter(page, "#marker", "emotional_evaluation")
             assert page.locator(".publication").count() == 1
             select_analysis_filter(page, "#marker", "fear")
             assert page.locator(".publication").count() == 0
-            assert page.locator("#marker option").count() == 14  # Options do not vanish when results are empty.
+            assert page.locator("#marker option").count() == 15  # Options do not vanish when results are empty.
             select_analysis_filter(page, "#marker", "")
             select_analysis_filter(page, "#platform", "telegram")
             assert page.locator(".publication").count() == 0
@@ -1621,6 +1679,7 @@ def main():
             terminology_layer_ui(browser, base, site, errors, requests)
             context_precision_ui(browser, base, site, errors, requests)
             historical_juxtaposition_ui(browser, base, site, errors, requests)
+            comparative_framing_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)

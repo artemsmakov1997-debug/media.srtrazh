@@ -11,7 +11,15 @@ import sqlite3
 from .analysis import SUPPORTED, VERSION
 
 DEFAULT_DB = Path("data/media-strazh.sqlite3")
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+
+
+def _stored_document(row):
+    document = {"title": row["title"], "text": row["text"], "source": row["source"],
+                "url": row["canonical_url"], "published_at": row["published_at"]}
+    if row["image_count"] is not None:
+        document["media"] = {"image_count": row["image_count"]}
+    return document
 
 
 def utcnow():
@@ -49,7 +57,7 @@ class Store:
         self.db.execute("PRAGMA busy_timeout=10000")
         self.db.execute("PRAGMA journal_mode=WAL")
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if version not in (0, SCHEMA_VERSION):
+        if version not in (0, 1, SCHEMA_VERSION):
             self.db.close()
             raise ValueError("Версия базы не поддерживается этой программой.")
         self.db.executescript("""
@@ -75,6 +83,10 @@ class Store:
                 revision_id INTEGER NOT NULL REFERENCES revisions(id), algorithm_version TEXT NOT NULL,
                 created_at TEXT NOT NULL, result_json TEXT NOT NULL,
                 PRIMARY KEY(revision_id, algorithm_version)
+            );
+            CREATE TABLE IF NOT EXISTS revision_media (
+                revision_id INTEGER PRIMARY KEY REFERENCES revisions(id),
+                image_count INTEGER NOT NULL CHECK(image_count BETWEEN 0 AND 100)
             );
             CREATE TABLE IF NOT EXISTS extraction_checks (
                 revision_id INTEGER NOT NULL REFERENCES revisions(id),
@@ -163,6 +175,9 @@ class Store:
             new_revision = cursor.rowcount == 1
             revision_id = self.db.execute("SELECT id FROM revisions WHERE article_id=? AND revision_key=?",
                                           (article["id"], key)).fetchone()[0]
+            if "media" in document:
+                self.db.execute("INSERT OR IGNORE INTO revision_media(revision_id,image_count) VALUES (?,?)",
+                                (revision_id, document["media"]["image_count"]))
             self.db.execute("""
                 INSERT OR REPLACE INTO extraction_checks (revision_id,extractor_version,checked_at)
                 VALUES (?,?,?)
@@ -260,8 +275,9 @@ class Store:
         row = self.db.execute("""
             SELECT a.source_id,a.last_fetched_at,a.last_error,r.id AS revision_id,
                    r.title,r.text,r.source,r.canonical_url,r.published_at,r.retrieved_at,
-                   r.extractor_version,r.extraction_method,n.result_json FROM articles a
+                   r.extractor_version,r.extraction_method,n.result_json,m.image_count FROM articles a
             JOIN revisions r ON r.id=a.current_revision_id
+            LEFT JOIN revision_media m ON m.revision_id=r.id
             LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=? WHERE a.id=?
         """, (VERSION, article_id)).fetchone()
         if row is None:
@@ -271,33 +287,32 @@ class Store:
                 "retrieved_at": row["retrieved_at"], "extractor_version": row["extractor_version"],
                 "extraction_method": row["extraction_method"],
                 "analysis": json.loads(row["result_json"]) if row["result_json"] else None,
-                "document": {"title": row["title"], "text": row["text"], "source": row["source"],
-                             "url": row["canonical_url"], "published_at": row["published_at"]}}
+                "document": _stored_document(row)}
 
     def export_corpus(self):
         for row in self.db.execute("""
             SELECT a.id,a.source_id,r.id AS revision_id,r.title,r.text,r.source,r.canonical_url,
-                   r.published_at,r.retrieved_at,r.content_hash,r.extractor_version
-            FROM articles a JOIN revisions r ON r.id=a.current_revision_id ORDER BY a.id
+                   r.published_at,r.retrieved_at,r.content_hash,r.extractor_version,m.image_count
+            FROM articles a JOIN revisions r ON r.id=a.current_revision_id
+            LEFT JOIN revision_media m ON m.revision_id=r.id ORDER BY a.id
         """):
             yield {"id": f"{row['source_id']}:{row['id']}:r{row['revision_id']}",
                    "fully_annotated": False, "labels": None,
                    "annotation_categories": sorted(SUPPORTED),
-                   "document": {"title": row["title"], "text": row["text"], "source": row["source"],
-                                "url": row["canonical_url"], "published_at": row["published_at"]},
+                   "document": _stored_document(row),
                    "provenance": {"retrieved_at": row["retrieved_at"], "sha256": row["content_hash"],
                                   "extractor_version": row["extractor_version"]}}
 
     def pending_analyses(self):
         for row in self.db.execute("""
-            SELECT a.id,a.source_id,r.id AS revision_id,r.title,r.text,r.source,r.canonical_url,r.published_at
+            SELECT a.id,a.source_id,r.id AS revision_id,r.title,r.text,r.source,r.canonical_url,r.published_at,m.image_count
             FROM articles a JOIN revisions r ON r.id=a.current_revision_id
+            LEFT JOIN revision_media m ON m.revision_id=r.id
             LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=?
             WHERE n.revision_id IS NULL ORDER BY a.id
         """, (VERSION,)):
             yield {"article_id": row["id"], "source_id": row["source_id"], "revision_id": row["revision_id"],
-                   "document": {"title": row["title"], "text": row["text"], "source": row["source"],
-                                "url": row["canonical_url"], "published_at": row["published_at"]}}
+                   "document": _stored_document(row)}
 
     def save_analysis(self, revision_id, analysis, now):
         with self.db:

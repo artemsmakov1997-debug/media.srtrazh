@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.8.5"
+VERSION = "rules-0.9.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -32,12 +32,14 @@ LABELS = {key: label for key, label, _ in TAXONOMY}
 LABELS["event_terminology"] = "Выбор обозначения события"
 LABELS["actor_terminology"] = "Обозначение участника"
 LABELS["territory_terminology"] = "Обозначение территории"
-INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology"}
+LABELS["rhetorical_context"] = "Риторические сопоставления"
+INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
 COMPILED_RULES = [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in RULES
-                  if rule.context_requirement != "historical_juxtaposition"]
+                  if rule.context_requirement not in {"historical_juxtaposition", "structural_notice"}]
+STRUCTURAL_NOTICES = {rule.id: rule for rule in RULES if rule.context_requirement == "structural_notice"}
 HISTORICAL_ANCHOR = re.compile(HISTORICAL_JUXTAPOSITION.pattern, re.I)
 # A name/date alone is insufficient. The structural pass requires at least two
 # recurring themes in a nearby current statement and a historical statement.
@@ -61,6 +63,29 @@ REJECTED_PARALLEL = re.compile(
     r"\b(?:некорректн[а-яё]*|неуместн[а-яё]*|нельзя|не\s+следует)\b.{0,65}"
     r"\b(?:сравнива[а-яё]*|сопоставля[а-яё]*|аналог[а-яё]*|параллел[а-яё]*)\b|"
     r"\b(?:учебн[а-яё]*\s+пример|разбор\s+при[её]ма)\b.{0,65}\b(?:аналог[а-яё]*|сопоставлен[а-яё]*)\b", re.I,
+)
+HISTORICAL_SELECTION = re.compile(
+    r"\b(?:(?:я\s+)?(?:решил[аи]?\s+(?:(?:ради\s+интереса|сегодня|снова)\s+)?|"
+    r"(?:сегодня|сейчас|недавно)\s+)?(?:почитать|прочитать|перечитать|читаю|перечитал[аи]?|напомню))\b"
+    r"[^.!?\n]{0,100}\b(?:речь|речи|выступлени[а-яё]*|цитат[а-яё]*|слов[а-яё]*)\b|"
+    r"\b(?:ничего\s+не\s+напоминает|узна[её]те|найдите\s+отличия)\b", re.I,
+)
+HISTORICAL_STUDY = re.compile(
+    r"\b(?:урок[а-яё]*|учебник[а-яё]*|историк[а-яё]*|архив[а-яё]*|музе[а-яё]*|"
+    r"диссертаци[а-яё]*|источниковедени[а-яё]*|подлинност[а-яё]*|анализ\s+перевода)\b", re.I,
+)
+COMPARISON_LINK = re.compile(r"\b(?:при\s+этом|зато|тогда\s+как|а\s+вот|в\s+то\s+время\s+как|в\s+отличие|сравните)\b", re.I)
+POSITIVE_POLE = re.compile(r"\b(?:счастлив[а-яё]*|благополучн[а-яё]*|богат[а-яё]*|процвета[а-яё]*|ухоженн[а-яё]*|красив[а-яё]*)\b", re.I)
+NEGATIVE_POLE = re.compile(r"\b(?:несчастн[а-яё]*|депрессивн[а-яё]*|бедн[а-яё]*|нищ[а-яё]*|разрушенн[а-яё]*|заброшенн[а-яё]*|убог[а-яё]*)\b", re.I)
+RANKING_CUE = re.compile(r"\b(?:рейтинг[а-яё]*|индекс[а-яё]*)\b", re.I)
+PHOTO_WORD = r"(?:фото(?:графи[а-яё]*)?|снимк[а-яё]*|кадр[а-яё]*)"
+FIRST_PHOTO = re.compile(r"\b(?:перв[а-яё]*|одн[а-яё]*)\s+" + PHOTO_WORD + r"\b", re.I)
+SECOND_PHOTO = re.compile(r"\b(?:втор[а-яё]*|друг[а-яё]*)\s+" + PHOTO_WORD + r"\b", re.I)
+PUBLIC_TARGET = re.compile(
+    r"\b(?:стран[а-яё]*|государств[а-яё]*|город[а-яё]*|регион[а-яё]*|республик[а-яё]*|"
+    r"Росси[а-яё]*|Украин[а-яё]*|Европ[а-яё]*|Финлянди[а-яё]*|Карели[а-яё]*|"
+    r"СССР|советск[а-яё]*|совок|совк[а-яё]*|Запад[а-яё]*|власт[а-яё]*|режим[а-яё]*|"
+    r"либерал[а-яё]*|коммунист[а-яё]*|консерватор[а-яё]*|националист[а-яё]*|политик[а-яё]*)\b", re.I,
 )
 TITLE_CERTAINTY = re.compile(r"\b(?:доказали|доказано|однозначно|безусловно|гарантированно)\b", re.I)
 BODY_UNCERTAINTY = re.compile(
@@ -476,6 +501,23 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    if rule.context_requirement == "degrading_place":
+        nearby = text[max(0, start - 250):end]
+        literal = re.search(r"\b(?:мусор[а-яё]*|отход[а-яё]*|контейнер[а-яё]*|вывоз[а-яё]*|уборк[а-яё]*|свалк[а-яё]*)\b", sentence, re.I)
+        return bool(PUBLIC_TARGET.search(nearby + " " + event_context)) and not literal
+    if rule.context_requirement == "sovok_label":
+        literal = re.search(r"\b(?:веник[а-яё]*|щ[её]тк[а-яё]*|уборк[а-яё]*|мусор[а-яё]*|совоч[а-яё]*|песочниц[а-яё]*|лопат[а-яё]*|инструмент[а-яё]*|"
+                            r"купил[а-яё]*|покупа[а-яё]*|прода[а-яё]*|лежит|лежал[а-яё]*|ручк[а-яё]*|пластмассов[а-яё]*|пластиков[а-яё]*|металлическ[а-яё]*)\b", sentence, re.I)
+        # The matched word itself cannot supply its own political context.
+        surrounding = text[max(0, start - 300):start] + " " + text[end:min(len(text), end + 120)]
+        return not literal and bool(PUBLIC_TARGET.search(surrounding + " " + event_context) or re.search(r"\bсуть\s*$", text[max(0, start - 25):start], re.I))
+    if rule.context_requirement == "political_essence":
+        target = re.match(r"\s+(?:(?:этого|этой|нашего|нынешнего|современного)\s+)?([а-яё]+)\b", text[end:end + 90], re.I)
+        return bool(target and PUBLIC_TARGET.fullmatch(target[1]))
+    if rule.context_requirement == "impersonal_political_opinion":
+        prefix = text[max(sentence_span["start"], start - 120):start]
+        attributed = re.search(r"\b(?:мне|нам|ему|ей|им|экспертам|исследователям)\s*$|\b(?:по\s+(?:мнению|данным|оценке)|согласно|в\s+исследовании)\b", prefix, re.I)
+        return bool(POLITICAL_CONTEXT.search(sentence)) and not attributed
     if rule.context_requirement == "political_person_label":
         return _political_person_label(rule, text, start, end, sentence_span, event_context)
     if rule.context_requirement == "territory_terminology":
@@ -700,16 +742,21 @@ def taxonomy():
 def validate_document(document):
     if not isinstance(document, dict):
         raise ValueError("Ожидается JSON-объект с полями title и text.")
-    unknown = set(document) - {"title", "text", "source", "url", "published_at"}
+    unknown = set(document) - {"title", "text", "source", "url", "published_at", "media"}
     if unknown:
         raise ValueError("Неизвестные поля документа: " + ", ".join(sorted(unknown)))
     for field in ("title", "text", "source", "url", "published_at"):
         if field in document and not isinstance(document[field], str):
             raise ValueError(f"Поле {field} должно быть строкой.")
+    if "media" in document:
+        media = document["media"]
+        if (not isinstance(media, dict) or set(media) != {"image_count"}
+                or type(media["image_count"]) is not int or not 0 <= media["image_count"] <= 100):
+            raise ValueError("Поле media должно содержать только целое image_count от 0 до 100; содержимое фото не анализируется.")
     title, text = document.get("title", ""), document.get("text", "")
     if not text.strip():
         raise ValueError("Поле text должно содержать текст публикации.")
-    if sum(len(value) for value in document.values()) > MAX_CHARS:
+    if sum(len(value) for value in document.values() if isinstance(value, str)) > MAX_CHARS:
         raise ValueError(f"Документ превышает ограничение {MAX_CHARS} символов.")
     return title, text
 
@@ -897,6 +944,73 @@ def _historical_juxtapositions(title, text, quotes):
                "review_question": rule.review_question, "evidence": evidence}
 
 
+def _rhetorical_notices(title, text, quotes, findings, image_count=0):
+    """Observe composition, never infer what photographs show or who is implied.
+
+    Rank/polarity pairs are at most three units and 600 characters apart. The
+    metadata records preview attachments only; no images are fetched by analyze.
+    """
+    units = _parallel_units(title, text)
+    values = {"title": title, "text": text}
+
+    def notice(rule_id, label, members, **observations):
+        rule = STRUCTURAL_NOTICES[rule_id]
+        evidence = []
+        for member in members:
+            item = _evidence(member["field"], values[member["field"]], member["start"], member["end"], quotes[member["field"]])
+            item["context"].update(informational_notice=True, **observations)
+            evidence.append(item)
+        return {"rule_id": rule.id, "category": rule.category, "label": label,
+                "status": "context_only", "explanation": rule.explanation,
+                "review_question": rule.review_question, "evidence": evidence}
+
+    linked_history = [e for f in findings if f["rule_id"] in {
+        "simplification.historical_juxtaposition", "simplification.historical_parallel", "enemy.nazi_analogy"}
+        for e in f["evidence"]]
+    for unit in units:
+        # A historical name alone, publication date or publisher never supplies
+        # an implied modern target. Require editorial selection AND a quotation.
+        if (unit["historical"] and not any(e["field"] == unit["field"] and e["start"] < unit["end"]
+                                            and unit["start"] < e["end"] for e in linked_history)
+                and HISTORICAL_SELECTION.search(unit["text"])
+                and not HISTORICAL_STUDY.search(unit["text"])
+                and any(unit["start"] <= a <= unit["end"] + 180 and b - a >= 20
+                        for a, b in quotes[unit["field"]])):
+            yield notice("context.historical_reference", "Историческая отсылка", [unit],
+                         historical_reference=True, modern_target_identified=False)
+
+    used_units = set()
+    for index, first in enumerate(units):
+        if len(first["text"]) > 600:
+            continue
+        for other in range(index, min(len(units), index + 4)):
+            second = units[other]
+            if len(second["text"]) > 600 or second["document_start"] - first["document_end"] > 600:
+                continue
+            members = [first] if index == other else [first, second]
+            joined = " ".join(member["text"] for member in members)
+            photo_pair = bool(FIRST_PHOTO.search(joined) and SECOND_PHOTO.search(joined))
+            opposite = bool((POSITIVE_POLE.search(first["text"]) and NEGATIVE_POLE.search(second["text"]))
+                            or (NEGATIVE_POLE.search(first["text"]) and POSITIVE_POLE.search(second["text"])))
+            comparable = (opposite and COMPARISON_LINK.search(joined)
+                          and all(RANKING_CUE.search(member["text"]) for member in members)
+                          and (index != other or len(RANKING_CUE.findall(joined)) >= 2))
+            if not (photo_pair or comparable):
+                continue
+            pair = tuple((member["field"], member["start"], member["end"]) for member in members)
+            # Avoid repeating a first pair as more surrounding units are visited.
+            if used_units.intersection(pair):
+                continue
+            used_units.update(pair)
+            if comparable:
+                yield notice("context.evaluative_comparison", "Сравнение и противопоставление", members,
+                             evaluative_comparison=True)
+            if photo_pair or image_count >= 2:
+                yield notice("context.visual_comparison", "Сравнение иллюстраций", members,
+                             visual_comparison=True, images_analyzed=False,
+                             **({"image_count": image_count} if image_count else {}))
+
+
 def analyze(document):
     """Return exact spans relative to unchanged input, in Unicode code points."""
     title, text = validate_document(document)
@@ -946,6 +1060,12 @@ def analyze(document):
                         "review_question": rule.review_question, "evidence": [evidence],
                     })
         if informational:
+            for finding in _rhetorical_notices(title, text, quotes, findings,
+                                               document.get("media", {}).get("image_count", 0)):
+                if len(findings) >= MAX_FINDINGS:
+                    truncated = True
+                    break
+                findings.append(finding)
             continue
         for finding in _historical_juxtapositions(title, text, quotes):
             if len(findings) >= MAX_FINDINGS:
@@ -975,7 +1095,8 @@ def analyze(document):
     for index, finding in enumerate(findings, 1):
         finding["id"] = f"f{index}"
     active = Counter(f["category"] for f in findings if f["status"] == "needs_review")
-    digest = hashlib.sha256(json.dumps({"title": title, "text": text}, ensure_ascii=False,
+    content = {"title": title, "text": text, **({"media": dict(document["media"])} if "media" in document else {})}
+    digest = hashlib.sha256(json.dumps(content, ensure_ascii=False,
                                       sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     warnings = [
         "Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.",
@@ -989,6 +1110,7 @@ def analyze(document):
     return {
         "schema_version": "1.0", "algorithm_version": VERSION,
         "document": {"title": title, "text": text,
+                     **({"media": dict(document["media"])} if "media" in document else {}),
                      **{key: document[key] for key in ("source", "url", "published_at") if key in document},
                      "sha256": digest},
         "offset_unit": "unicode_code_points", "findings": findings,
