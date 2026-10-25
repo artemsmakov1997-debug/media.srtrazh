@@ -71,7 +71,8 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.rating-chart-caption').evaluate('el => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith('RT на русском.')
             if not mobile:
-                assert page.locator('.media-card').count() >= 5
+                expected_cards = min(6 if width >= 1024 else 4, len(fixture['publishers']))
+                assert page.locator('.media-card').count() == expected_cards
                 zero_card = page.locator('.media-card[data-publisher="mediazona"]')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
@@ -79,8 +80,9 @@ def rating_ui(browser, base, site, errors, requests):
                 assert 'Количество собранных публикаций по часам' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.small-graph svg circle').last.get_attribute('data-flagged') == '0'
-                no_data = page.locator('.media-card[data-publisher="kommersant"]')
-                assert 'Нет данных за последние 24 часа' in no_data.locator('.small-graph').inner_text()
+                if width >= 1024:
+                    no_data = page.locator('.media-card[data-publisher="kommersant"]')
+                    assert 'Нет данных за последние 24 часа' in no_data.locator('.small-graph').inner_text()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
             trigger = page.locator('.show-full-list-trigger:visible').first
