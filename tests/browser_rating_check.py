@@ -61,6 +61,22 @@ def rating_ui(browser, base, site, errors, requests):
                        b['top'] >= geometry['title']['bottom']+5
                        for b in geometry['tips']), (width, geometry)
             if width >= 1024:
+                # The daily count shares the headline's vertical centre, not
+                # the bottom of the much taller reserved annotation stage.
+                assert page.locator('.hero').evaluate(
+                    'hero => {const t=hero.querySelector("h1").getBoundingClientRect();'
+                    'const c=hero.querySelector(".hero-counter").getBoundingClientRect();'
+                    'return Math.abs((t.top+t.bottom-c.top-c.bottom)/2)<2;}')
+                # Both first-sentence markers are on its first line: their
+                # labels must stay next to those words, even at 80% CSS zoom.
+                assert page.locator('#heroExampleCallouts').evaluate(
+                    'layer => [...layer.children].every(tip => {'
+                    'const mark=document.querySelectorAll("#heroExampleText mark")[+tip.dataset.triggerIndex];'
+                    'const a=tip.getBoundingClientRect(), b=mark.getBoundingClientRect();'
+                    'const s=layer.getBoundingClientRect().width/layer.offsetWidth;'
+                    'const pointer=a.left+parseFloat(getComputedStyle(tip).getPropertyValue("--callout-pointer-x"))*s;'
+                    'return Math.min(Math.abs(a.bottom-b.top),Math.abs(a.top-b.bottom))<12 && '
+                    'Math.abs(pointer-(b.left+b.right)/2)<2;})')
                 # Restore the large two-line headline, never a tiny one-line fit.
                 assert example.evaluate(
                     'el => {const s=getComputedStyle(el), line=parseFloat(s.lineHeight);'
@@ -73,6 +89,10 @@ def rating_ui(browser, base, site, errors, requests):
             assert page.locator('.hero-example-note').count() == 0
             assert 'Демонстрационные примеры · не цитаты СМИ' not in page.locator('main').inner_text()
             if mobile:
+                assert page.locator('.hero-kicker').inner_text() == 'Первый независимый рейтинг российских СМИ'
+                assert page.locator('.hero-nav a').all_inner_texts() == ['О проекте', 'Методика', 'Возможности']
+                assert page.locator('.hero-nav a').evaluate_all(
+                    'links => links.every(a => a.getBoundingClientRect().height >= 44 && a.scrollWidth <= a.clientWidth+1)')
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
                 # Example text and counter must be centered and large without
@@ -295,6 +315,46 @@ def rating_ui(browser, base, site, errors, requests):
             assert page.locator('#appealPublisher').input_value() == ''
             assert page.locator('#appealExplanation').input_value() == ''
             page.locator('#appealCloseBtn').click()
+            if width in (1280, 390):
+                # Real counter widths change with the corpus. Do not clip the
+                # caption or lose its shared centre when the count gains digits.
+                selector = '.hero-counter-mobile' if mobile else '.hero .hero-counter'
+                counter = page.locator(selector)
+                original = counter.evaluate('el => {const n=el.querySelector(".counter-value,.counter-value-sm");return {text:n.textContent,digits:n.dataset.digits};}')
+                for value in ('39', '123', '1\u00a0234', '12\u00a0345'):
+                    counter.evaluate('(el,value) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=value;n.dataset.digits=String(value.replace(/[^0-9]/g, "").length);}', value)
+                    assert counter.evaluate(
+                        'el => {const a=el.getBoundingClientRect();const n=el.querySelector(".counter-value,.counter-value-sm").getBoundingClientRect();'
+                        'const l=el.querySelector(".counter-label,.counter-label-sm").getBoundingClientRect();'
+                        'return n.left>=a.left-1 && l.right<=a.right+1 && n.right+4<=l.left && Math.abs((n.top+n.bottom-l.top-l.bottom)/2)<12;}')
+                counter.evaluate('(el,saved) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=saved.text;n.dataset.digits=saved.digits;}', original)
+                if width == 1280:
+                    # A late font/layout change must re-anchor labels without
+                    # needing a window resize event.
+                    example.evaluate('el => el.style.setProperty("font-size","34px","important")')
+                    page.wait_for_function('''() => [...document.querySelectorAll('#heroExampleCallouts > span')].every(tip => {
+                      const mark=document.querySelectorAll('#heroExampleText mark')[+tip.dataset.triggerIndex];
+                      const layer=tip.parentElement, a=tip.getBoundingClientRect(), b=mark.getBoundingClientRect();
+                      const scale=layer.getBoundingClientRect().width/layer.offsetWidth;
+                      return Math.abs(a.left+parseFloat(tip.style.getPropertyValue('--callout-pointer-x'))*scale-(b.left+b.right)/2)<2;
+                    })''')
+                    example.evaluate('el => el.style.removeProperty("font-size")')
+            if width == 390:
+                # Every new mobile entry point works, including PRO choices.
+                for title, path in (('О проекте', 'about'), ('Методика', 'method')):
+                    page.locator('.hero-nav a', has_text=title).click()
+                    page.wait_for_url('**/' + path + '/')
+                    page.go_back()
+                    page.locator('.media-card').first.wait_for()
+                page.locator('.hero-nav a', has_text='Возможности').click()
+                page.locator('.pro-gateway-dialog').wait_for(state='visible')
+                assert page.locator('.pro-gateway-option').count() == 2
+                page.keyboard.press('Escape')
+                assert page.locator('.hero-nav a', has_text='Возможности').evaluate('a => a === document.activeElement')
+                page.locator('#burgerBtn').click()
+                assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'true'
+                page.keyboard.press('Escape')
+                assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'false'
             if width == 1280:
                 page.clock.install()
                 page.clock.fast_forward(16000)

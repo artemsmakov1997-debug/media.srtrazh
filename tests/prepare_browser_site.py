@@ -1,6 +1,6 @@
 """Build the actual public site from a small synthetic corpus, without network collection."""
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
 import tempfile
@@ -25,7 +25,9 @@ def prepare(output, runtime):
             source = next(s for s in SOURCES.values() if s.publisher == publisher and s.platform == platform)
             path = f'/{source.channel}/{number}' if platform == 'telegram' else f'/fixture/analysis/{number}'
             url = f'https://{source.host}{path}'
-            published = '2026-10-23T20:44:27+00:00' if number != 5 else ''
+            # Keep synthetic articles inside the rolling rating window; fixed
+            # calendar dates silently turn every outlet into "no data" later.
+            published = (datetime.fromisoformat(now) - timedelta(hours=number)).isoformat() if number != 5 else ''
             document = {'title': '' if platform == 'telegram' else f'Проверочная публикация {number}',
                         'text': 'Все знают: нас ждёт неминуемая катастрофа. Это проверочный текст интерфейса.',
                         'source': source.name, 'url': url, 'published_at': published}
