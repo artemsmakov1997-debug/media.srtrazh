@@ -1174,3 +1174,78 @@
 @media(prefers-reduced-motion:reduce) {
   .hero .hero-example-char {opacity:1 !important;transition:none !important;}
 }
+
+
+/* Larger editorial hero: centered on phones, mildly enlarged on desktop.
+   Text retains the pre-laid characters and two-phase highlighting behaviour. */
+@media(min-width:768px) {
+  .hero .hero-text h1.hero-example-text {
+    font-size:clamp(1.78rem,2.42vw,2.38rem);
+    line-height:1.38 !important;
+    letter-spacing:-.03em;
+  }
+}
+@media(max-width:767px) {
+  .hero .hero-text {width:100%;justify-content:center;align-self:stretch;}
+  .hero .hero-text .hero-example-stage {
+    width:100%;
+    min-height:172px;
+    margin:0 auto;
+    align-items:center;
+    justify-content:center;
+    padding:7px 0;
+  }
+  .hero .hero-text h1.hero-example-text {
+    max-width:100%;
+    margin:0 auto;
+    text-align:center !important;
+    font-family:"Golos Text","Inter",sans-serif !important;
+    font-size:clamp(1.27rem,5.45vw,1.59rem) !important;
+    font-weight:700;
+    line-height:1.43 !important;
+    letter-spacing:-.025em !important;
+    overflow-wrap:normal;
+  }
+  body .hero-counter-mobile {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    gap:8px;
+    min-height:0;
+    margin:0 0 13px !important;
+    padding:8px 6px 10px !important;
+    text-align:center;
+  }
+  body .hero-counter-mobile .counter-value-sm {
+    font-size:clamp(3.2rem,14vw,4.5rem) !important;
+    line-height:1.1;
+    max-width:100%;
+    overflow:visible;
+    text-overflow:clip;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="4"] {
+    font-size:clamp(2.5rem,10.4vw,3.3rem) !important;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="5"] {
+    font-size:clamp(2.08rem,8.25vw,2.7rem) !important;
+  }
+  body .hero-counter-mobile .counter-label-sm {
+    font-size:clamp(.97rem,4vw,1.09rem) !important;
+    font-weight:500;
+    line-height:1.35;
+    letter-spacing:.018em;
+    text-align:center;
+  }
+}
+@media(max-width:360px) {
+  .hero .hero-text .hero-example-stage {min-height:186px;}
+  .hero .hero-text h1.hero-example-text {
+    font-size:1.22rem !important;
+    line-height:1.45 !important;
+  }
+  body .hero-counter-mobile .counter-label-sm {font-size:.96rem !important;}
+}

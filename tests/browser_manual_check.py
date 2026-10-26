@@ -1232,7 +1232,7 @@ def pro_business_navigation_ui(browser, base, site):
             card_box = rating_card.bounding_box()
             assert abs(grid_box["height"] - card_box["height"]) <= 4, (grid_box, card_box)
             assert p.locator(".hero-example-text").evaluate(
-                "el => parseFloat(getComputedStyle(el).fontSize)") <= 25
+                "el => parseFloat(getComputedStyle(el).fontSize)") >= 20
             assert p.locator("#heroExampleText").get_attribute("data-example-total") == "10"
             assert p.locator(".hero-example-note").count() == 0
             assert p.locator(".hero-example-text").evaluate(

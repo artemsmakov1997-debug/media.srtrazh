@@ -50,9 +50,30 @@ def rating_ui(browser, base, site, errors, requests):
             if mobile:
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
+                # Example text and counter must be centered and large without
+                # horizontal overflow on 320, 360 and 390px viewports.
+                assert example.evaluate(
+                    'el => getComputedStyle(el).textAlign === "center" && '
+                    'parseFloat(getComputedStyle(el).fontSize) >= 19')
+                assert page.locator('.hero-counter-mobile').evaluate(
+                    'el => getComputedStyle(el).flexDirection === "column" && '
+                    'getComputedStyle(el).alignItems === "center"')
+                assert page.locator('.hero-counter-mobile .counter-value-sm').evaluate(
+                    'el => parseFloat(getComputedStyle(el).fontSize) >= 50')
+                assert page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
+                    'el => parseFloat(getComputedStyle(el).fontSize) >= 15')
+                assert page.locator('.hero-counter-mobile').evaluate(
+                    'el => {const box=el.getBoundingClientRect(); '
+                    'const value=el.querySelector(".counter-value-sm").getBoundingClientRect(); '
+                    'const label=el.querySelector(".counter-label-sm").getBoundingClientRect(); '
+                    'return Math.abs((value.left+value.right)/2-(box.left+box.right)/2)<2 && '
+                    'Math.abs((label.left+label.right)/2-(box.left+box.right)/2)<2 && '
+                    'value.bottom<=label.top && value.right<=innerWidth; }')
             else:
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
+                assert example.evaluate(
+                    'el => parseFloat(getComputedStyle(el).fontSize) >= 27')
             if mobile:
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
                 card = page.locator('.media-card.is-active')
@@ -241,8 +262,8 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => parseFloat(getComputedStyle(el).fontSize)')
             label_font = page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
                 'el => parseFloat(getComputedStyle(el).fontSize)')
-            assert count_font >= 35, count_font
-            assert label_font >= 11.5, label_font
+            assert count_font >= 50, count_font
+            assert label_font >= 15, label_font
             gap = first.locator('.media-card-header').evaluate(
                 'el => el.nextElementSibling.getBoundingClientRect().top - '
                 'el.getBoundingClientRect().bottom')
