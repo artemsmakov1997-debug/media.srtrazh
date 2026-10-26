@@ -1223,9 +1223,21 @@ def pro_business_navigation_ui(browser, base, site):
             rating_card = p.locator(".media-grid .media-card.is-active")
             rating_card.wait_for(state="visible")
             assert rating_card.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .badge").count() == 0
+            # Mobile cards now contain two equal actions; each must fit its
+            # own column without overlapping or spilling outside the card.
             examples_box = rating_card.locator(".media-footer .link-button").bounding_box()
+            list_button = rating_card.locator(".media-footer .media-full-list-button")
+            assert list_button.is_visible()
+            list_box = list_button.bounding_box()
+            footer_box = rating_card.locator(".media-footer").bounding_box()
             card_rect = rating_card.bounding_box()
-            assert examples_box["width"] >= card_rect["width"] - 44, (examples_box, card_rect)
+            assert abs(examples_box["width"] - list_box["width"]) <= 2, (examples_box, list_box)
+            assert examples_box["x"] + examples_box["width"] + 4 <= list_box["x"], (examples_box, list_box)
+            assert abs(examples_box["y"] - list_box["y"]) <= 2, (examples_box, list_box)
+            assert examples_box["x"] >= footer_box["x"] - 1
+            assert list_box["x"] + list_box["width"] <= footer_box["x"] + footer_box["width"] + 1
+            assert footer_box["x"] >= card_rect["x"] and (
+                footer_box["x"] + footer_box["width"] <= card_rect["x"] + card_rect["width"])
             assert rating_card.locator(".small-graph").is_visible()
             slider = p.locator(".media-grid.is-mobile-slider")
             grid_box = slider.bounding_box()
