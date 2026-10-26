@@ -1422,17 +1422,18 @@
   text-align:center;
   white-space:nowrap;
   opacity:0;
-  transform:translateY(7px) scale(.98);
-  transition:opacity .48s ease,transform .48s cubic-bezier(.2,.8,.25,1);
+  transform:scale(.98);
+  transform-origin:var(--callout-pointer-x,50%) var(--callout-origin-y,100%);
+  transition:opacity .22s ease-out,transform .22s cubic-bezier(.23,1,.32,1);
   will-change:opacity,transform;
 }
 .hero .hero-example-callout.is-visible {
   opacity:1;
-  transform:translateY(0) scale(1);
+  transform:scale(1);
 }
 .hero .hero-example-callouts.is-exiting .hero-example-callout {
   opacity:0;
-  transform:translateY(-5px) scale(.985);
+  transform:scale(.985);
   transition-duration:.28s;
 }
 .hero .hero-example-callout::after {

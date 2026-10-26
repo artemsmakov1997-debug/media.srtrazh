@@ -50,14 +50,13 @@
     ['Категоричный прогноз']
   ];
   let heroCalloutTargets = [];
-  function positionHeroCallout(callout, mark, preference) {
+  function positionHeroCallout(callout, mark, preference, occupied) {
     const title = $('heroExampleText');
     const stage = title?.parentElement;
     if (!stage || !callout.isConnected || !mark.isConnected) return;
     const area = stage.getBoundingClientRect();
     const headline = title.getBoundingClientRect();
-    const source = mark.getBoundingClientRect();
-    const bubble = callout.getBoundingClientRect();
+    const source = [...mark.getClientRects()].find(rect => rect.width && rect.height) || mark.getBoundingClientRect();
     // The desktop homepage is scaled via CSS transform (typically 0.8x).
     // getBoundingClientRect() returns visual pixels, but style.left/top use
     // unscaled layout pixels. Convert before positioning callouts.
@@ -65,29 +64,54 @@
     const sy = area.height / (stage.offsetHeight || area.height) || 1;
     const stageWidth = stage.offsetWidth;
     const stageHeight = stage.offsetHeight;
-    const bubbleWidth = bubble.width / sx;
-    const bubbleHeight = bubble.height / sy;
-    // Two reserved annotation lanes: ABOVE THE ENTIRE TITLE and BELOW IT.
+    // Measure layout dimensions, not the animated scale of the appearing label.
+    const bubbleWidth = callout.offsetWidth;
+    const bubbleHeight = callout.offsetHeight;
     const middle = (source.left + source.width / 2 - area.left) / sx;
-    const left = Math.max(6, Math.min(middle - bubbleWidth / 2,
-      stageWidth - bubbleWidth - 6));
+    const idealLeft = Math.max(6, Math.min(middle - bubbleWidth / 2, stageWidth - bubbleWidth - 6));
     const titleTop = (headline.top - area.top) / sy;
     const titleBottom = (headline.bottom - area.top) / sy;
-    const placeAbove = preference === 'above';
-    const top = placeAbove
-      ? titleTop - bubbleHeight - 18
-      : titleBottom + 18;
-    const y = Math.max(3, Math.min(top, stageHeight - bubbleHeight - 3));
+    const sourceTop = (source.top - area.top) / sy;
+    const sourceBottom = (source.bottom - area.top) / sy;
+    const gap = 8 / sy;
+    const lanes = [
+      {above: true, top: Math.min(sourceTop, titleTop) - bubbleHeight - gap,
+       distance: sourceTop - Math.min(sourceTop, titleTop)},
+      {above: false, top: Math.max(sourceBottom, titleBottom) + gap,
+       distance: Math.max(sourceBottom, titleBottom) - sourceBottom}
+    ];
+    const candidates = [];
+    for (const lane of lanes) {
+      const top = Math.max(3, Math.min(lane.top, stageHeight - bubbleHeight - 3));
+      const lefts = [idealLeft, ...occupied.flatMap(rect => [rect.left - bubbleWidth - 8, rect.right + 8])];
+      for (const left of lefts) {
+        if (left < 6 || left + bubbleWidth > stageWidth - 6) continue;
+        const right = left + bubbleWidth, bottom = top + bubbleHeight;
+        const overlaps = occupied.some(rect => left < rect.right + 5 && right > rect.left - 5 &&
+          top < rect.bottom + 5 && bottom > rect.top - 5);
+        if (overlaps) continue;
+        candidates.push({left, right, top, bottom, above: lane.above,
+          score: lane.distance + Math.abs(left - idealLeft) * .3 + (lane.above === (preference === 'above') ? 0 : .1)});
+      }
+    }
+    candidates.sort((a, b) => a.score - b.score);
+    const chosen = candidates[0] || {left: idealLeft, top: Math.max(3, lanes[0].top),
+      right: idealLeft + bubbleWidth, bottom: Math.max(3, lanes[0].top) + bubbleHeight, above: true};
+    const {left, top: y, above: placeAbove} = chosen;
     callout.style.left = Math.round(left) + 'px';
     callout.style.top = Math.round(y) + 'px';
     callout.style.setProperty('--callout-pointer-x',
       Math.round(Math.max(12, Math.min(bubbleWidth - 12, middle - left))) + 'px');
+    callout.style.setProperty('--callout-origin-y', placeAbove ? '100%' : '0%');
     callout.classList.toggle('is-above', placeAbove);
     callout.classList.toggle('is-below', !placeAbove);
+    return chosen;
   }
   function positionHeroCallouts() {
+    const occupied = [];
     for (const {callout,mark,preference} of heroCalloutTargets) {
-      positionHeroCallout(callout,mark,preference);
+      const rect = positionHeroCallout(callout,mark,preference,occupied);
+      if (rect) occupied.push(rect);
     }
   }
   function clearHeroCallouts() {
@@ -103,7 +127,7 @@
     const preference = index % 2 === 0 ? 'above' : 'below';
     layer.append(bubble);
     heroCalloutTargets.push({callout:bubble,mark,preference});
-    positionHeroCallout(bubble,mark,preference);
+    positionHeroCallouts();
     if (immediate) bubble.classList.add('is-visible');
     else requestAnimationFrame(() => { if (bubble.isConnected) bubble.classList.add('is-visible'); });
   }
@@ -796,6 +820,12 @@
     startHeroExamples();
   });
   motion.addEventListener('change', () => { restartCycle(); startHeroExamples(); });
+  // Text reflow can happen after fonts load, independently of window resize.
+  const heroObserver = new ResizeObserver(positionHeroCallouts);
+  for (const element of [$('heroExampleText'), $('heroExampleText')?.parentElement]) {
+    if (element) heroObserver.observe(element);
+  }
+  window.visualViewport?.addEventListener('resize', positionHeroCallouts);
   let resize = null;
   window.addEventListener('resize', () => {
     clearTimeout(resize);
