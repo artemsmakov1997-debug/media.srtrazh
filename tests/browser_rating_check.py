@@ -99,9 +99,11 @@ def rating_ui(browser, base, site, errors, requests):
             assert info.locator('a[href*="minjust.gov.ru"]').count() == 2
             page.keyboard.press('Escape')
             assert info.get_attribute('open') is None
-            assert card.locator('.rating-chart-caption').evaluate(
-                'el => el.nextElementSibling.classList.contains("small-graph") && '
-                'el.parentElement.classList.contains("media-card")')
+            assert card.locator('.rating-caption-row').evaluate(
+                'el => el.parentElement.classList.contains("media-card") && '
+                'el.nextElementSibling.classList.contains("small-graph") && '
+                'el.querySelector(".rating-chart-caption") !== null && '
+                'el.querySelector(".rating-legal-info") !== null')
             assert card.locator('.small-graph .rating-chart-caption').count() == 0
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '.')
             if not mobile:
