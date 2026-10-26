@@ -330,7 +330,7 @@ def rating_ui(browser, base, site, errors, requests):
                 '(id) => { const el=document.querySelector('
                 '`.media-card[data-publisher="${id}"] .logo-image`); '
                 'return el && el.complete && el.naturalWidth >= 128; }',
-                outlet, timeout=2500)
+                arg=outlet, timeout=2500)
             assert page.locator(f'.media-card[data-publisher="{outlet}"] .logo-icon.has-logo').count() == 1
     finally:
         context.close()
