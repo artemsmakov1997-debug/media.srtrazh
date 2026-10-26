@@ -73,20 +73,30 @@
     const headline = title.getBoundingClientRect();
     const source = mark.getBoundingClientRect();
     const bubble = callout.getBoundingClientRect();
-    // Two reserved annotation lanes: ABOVE THE WHOLE TITLE and BELOW IT.
-    // Never anchor to an individual line; otherwise a tooltip on line two
-    // can overlap the text on line one (the reported defect).
-    const middle = source.left + source.width / 2 - area.left;
-    const left = Math.max(6, Math.min(middle - bubble.width / 2, area.width - bubble.width - 6));
+    // The desktop homepage is scaled via CSS transform (typically 0.8x).
+    // getBoundingClientRect() returns visual pixels, but style.left/top use
+    // unscaled layout pixels. Convert before positioning callouts.
+    const sx = area.width / (stage.offsetWidth || area.width) || 1;
+    const sy = area.height / (stage.offsetHeight || area.height) || 1;
+    const stageWidth = stage.offsetWidth;
+    const stageHeight = stage.offsetHeight;
+    const bubbleWidth = bubble.width / sx;
+    const bubbleHeight = bubble.height / sy;
+    // Two reserved annotation lanes: ABOVE THE ENTIRE TITLE and BELOW IT.
+    const middle = (source.left + source.width / 2 - area.left) / sx;
+    const left = Math.max(6, Math.min(middle - bubbleWidth / 2,
+      stageWidth - bubbleWidth - 6));
+    const titleTop = (headline.top - area.top) / sy;
+    const titleBottom = (headline.bottom - area.top) / sy;
     const placeAbove = preference === 'above';
     const top = placeAbove
-      ? headline.top - area.top - bubble.height - 18
-      : headline.bottom - area.top + 18;
-    const y = Math.max(3, Math.min(top, area.height - bubble.height - 3));
+      ? titleTop - bubbleHeight - 18
+      : titleBottom + 18;
+    const y = Math.max(3, Math.min(top, stageHeight - bubbleHeight - 3));
     callout.style.left = Math.round(left) + 'px';
     callout.style.top = Math.round(y) + 'px';
     callout.style.setProperty('--callout-pointer-x',
-      Math.round(Math.max(12, Math.min(bubble.width - 12, middle - left))) + 'px');
+      Math.round(Math.max(12, Math.min(bubbleWidth - 12, middle - left))) + 'px');
     callout.classList.toggle('is-above', placeAbove);
     callout.classList.toggle('is-below', !placeAbove);
   }
