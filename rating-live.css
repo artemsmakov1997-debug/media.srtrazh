@@ -1479,6 +1479,10 @@
 .hero .hero-text .hero-example-stage {
   min-height:244px;
 }
+@media(min-width:768px) and (max-width:1023px) {
+  /* Tablet text can span four lines. Leave a clear lane above and below. */
+  .hero .hero-text .hero-example-stage {min-height:350px;}
+}
 @media(min-width:1024px) {
   .hero .hero-text h1.hero-example-text {
     white-space:nowrap !important;
