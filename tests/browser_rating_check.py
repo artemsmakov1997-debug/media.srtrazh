@@ -185,7 +185,7 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.rating-headline').evaluate(
                 'el => {const s=getComputedStyle(el);const r=el.getBoundingClientRect();'
                 'return s.justifyContent==="center" && s.textAlign==="center" && '
-                'parseFloat(s.borderTopWidth)>=1 && s.backgroundImage!=="none" && r.height>=50;}')
+                'parseFloat(s.borderTopWidth)>=1 && s.backgroundImage!=="none" && el.offsetHeight>=50;}')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
             assert card.locator('.small-graph circle').count() == 24
             assert sum(int(value) for value in card.locator('.small-graph circle').evaluate_all(
