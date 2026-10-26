@@ -50,10 +50,16 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => getComputedStyle(el).pointerEvents === "none"')
             assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
                 'Катастрофизация', 'Оценочная лексика']
-            assert page.locator('#heroExampleCallouts').evaluate(
-                'layer => {const t=document.querySelector("#heroExampleText").getBoundingClientRect();'
-                'return [...layer.children].every(b => {const r=b.getBoundingClientRect();'
-                'return r.bottom <= t.top-5 || r.top >= t.bottom+5;}); }')
+            geometry = page.locator('#heroExampleCallouts').evaluate(
+                'layer => {const t=document.querySelector("#heroExampleText").getBoundingClientRect(); '
+                'const a=layer.getBoundingClientRect(); '
+                'return {title:{top:t.top,bottom:t.bottom,height:t.height}, '
+                'stage:{top:a.top,bottom:a.bottom,height:a.height}, '
+                'tips:[...layer.children].map(b=>{const r=b.getBoundingClientRect(); '
+                'return {top:r.top,bottom:r.bottom,height:r.height,label:b.textContent};})}; }')
+            assert all(b['bottom'] <= geometry['title']['top']-5 or
+                       b['top'] >= geometry['title']['bottom']+5
+                       for b in geometry['tips']), (width, geometry)
             if width >= 1024:
                 assert example.evaluate(
                     'el => {const r=el.getBoundingClientRect();'
