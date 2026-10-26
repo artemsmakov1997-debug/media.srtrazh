@@ -268,18 +268,20 @@ def rating_ui(browser, base, site, errors, requests):
                 assert example.get_attribute('data-phase') == 'typing'
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 0
                 start_rect = example.evaluate(
-                    'el => ({y:el.getBoundingClientRect().y, '
+                    'el => ({y:el.getBoundingClientRect().y - el.parentElement.getBoundingClientRect().y, '
                     'h:el.getBoundingClientRect().height, '
-                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y})')
+                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y - '
+                    'el.getBoundingClientRect().y})')
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
                     timeout=8000)
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
                 assert example.locator('.hero-example-char:not(.is-typed)').count() == 0
                 end_rect = example.evaluate(
-                    'el => ({y:el.getBoundingClientRect().y, '
+                    'el => ({y:el.getBoundingClientRect().y - el.parentElement.getBoundingClientRect().y, '
                     'h:el.getBoundingClientRect().height, '
-                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y})')
+                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y - '
+                    'el.getBoundingClientRect().y})')
                 assert all(abs(start_rect[k] - end_rect[k]) < 1 for k in start_rect), (start_rect, end_rect)
                 assert 'Экономика рухнула' in example.inner_text()
                 page.wait_for_function(
