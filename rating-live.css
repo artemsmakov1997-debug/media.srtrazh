@@ -878,7 +878,7 @@
   overflow:hidden;
   text-overflow:ellipsis;
   color:#f0f5f8;
-  font:800 clamp(.99rem,1.48vw,1.39rem)/1.18 "Golos Text","Inter",sans-serif;
+  font:400 clamp(.99rem,1.48vw,1.39rem)/1.18 "Golos Text","Inter",sans-serif;
   letter-spacing:-.038em;
 }
 .current-rating-section .rating-headline:has(.red-score) .rating-headline-label {color:#ff777c;}

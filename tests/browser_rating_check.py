@@ -260,6 +260,49 @@ def rating_ui(browser, base, site, errors, requests):
         finally:
             context.close()
 
+    # Browser display rounds upwards without altering the exact underlying
+    # percentage, order, or hourly graph. RT is 1/4 in the fixture; remove
+    # one unflagged collected article to test the 1/3 -> 34% edge case.
+    fractional = copy.deepcopy(fixture)
+    sample = next(row for row in fractional['publishers'] if row['id'] == 'rt')
+    removed = False
+    for point in sample['series']:
+        if not removed and point['collected'] > point['flagged']:
+            point['collected'] -= 1
+            point['analyzed'] -= 1
+            removed = True
+        if removed:
+            point['cumulative_collected'] -= 1
+            point['cumulative_analyzed'] -= 1
+        collected = point['cumulative_collected']
+        analyzed = point['cumulative_analyzed']
+        point['score_percent'] = (100 * point['cumulative_flagged'] / collected
+                                  if collected and analyzed == collected else None)
+    assert removed, 'Fractional display test requires an unflagged article'
+    sample['collected'] -= 1
+    sample['analyzed'] -= 1
+    sample['score_percent'] = 100 * sample['flagged'] / sample['collected']
+    fractional['totals']['collected'] -= 1
+    fractional['totals']['analyzed'] -= 1
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion='reduce')
+    try:
+        page = context.new_page()
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.route('**/data/rating.json', lambda route: route.fulfill(json=fractional))
+        page.goto(base + '/index.html')
+        rt = page.locator('.media-card[data-publisher="rt"]')
+        rt.wait_for(state='visible')
+        assert rt.locator('.rating-score').inner_text() == '34%'
+        assert rt.locator('.rating-headline-label').evaluate(
+            'el => getComputedStyle(el).fontWeight === "400"')
+        assert rt.locator('.small-graph circle[data-score]').count() == 24
+        assert abs(float(rt.locator('.small-graph circle').last.get_attribute('data-score'))
+                   - (100 / 3)) < .0001
+        page.locator('.show-full-list-trigger:visible').first.click()
+        assert page.locator('.full-list-row[data-publisher="rt"] .fli-rating').inner_text() == '34%'
+    finally:
+        context.close()
+
     context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion='reduce')
     try:
         page = context.new_page()

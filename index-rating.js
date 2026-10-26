@@ -7,7 +7,7 @@
   const mobile = () => matchMedia('(max-width: 767px)').matches;
   const desktop = () => matchMedia('(min-width: 1024px)').matches;
   const number = value => value.toLocaleString('ru-RU');
-  const percent = value => value === null ? '—' : value.toLocaleString('ru-RU', {maximumFractionDigits: 2}) + '%';
+  const percent = value => value === null ? '—' : Math.ceil(value).toLocaleString('ru-RU') + '%';
   const date = value => new Date(value).toLocaleString('ru-RU', {
     timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   }) + ' МСК';
