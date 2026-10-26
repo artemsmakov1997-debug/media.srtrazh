@@ -61,9 +61,12 @@ def rating_ui(browser, base, site, errors, requests):
                        b['top'] >= geometry['title']['bottom']+5
                        for b in geometry['tips']), (width, geometry)
             if width >= 1024:
+                # Restore the large two-line headline, never a tiny one-line fit.
                 assert example.evaluate(
-                    'el => {const r=el.getBoundingClientRect();'
-                    'return el.scrollWidth <= el.clientWidth+2 && r.height < 70;}')
+                    'el => {const s=getComputedStyle(el), line=parseFloat(s.lineHeight);'
+                    'return s.whiteSpace === "normal" && '
+                    'parseFloat(s.fontSize)>=28 && el.scrollWidth<=el.clientWidth+2 && '
+                    'el.getBoundingClientRect().height<=2*line+3;}')
             assert not example.text_content().strip().endswith('.')
             assert page.locator('.hero-counter-mobile .counter-label-sm').text_content().strip().lower().replace('\u00a0', ' ').startswith('публикаций')
             assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
@@ -103,11 +106,14 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
                 if width >= 1024:
-                    # Single-line fit takes precedence over a fixed font size
-                    # on narrow desktops; never crop or wrap the publication.
-                    assert example.evaluate(
-                        'el => getComputedStyle(el).whiteSpace === "nowrap" && '
-                        'el.scrollWidth <= el.clientWidth + 2')
+                    assert page.locator('.hero .hero-counter').evaluate(
+                        'el => {const value=el.querySelector(".counter-value").getBoundingClientRect();'
+                        'const label=el.querySelector(".counter-label").getBoundingClientRect();'
+                        'const box=el.getBoundingClientRect();'
+                        'return getComputedStyle(el).display === "grid" && '
+                        'value.right < label.left && '
+                        'Math.abs((value.top+value.bottom)/2 - (label.top+label.bottom)/2)<12 && '
+                        'value.top>=box.top-1 && label.bottom<=box.bottom+1; }')
                 else:
                     assert example.evaluate(
                         'el => parseFloat(getComputedStyle(el).fontSize) >= 27')

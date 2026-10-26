@@ -50,21 +50,6 @@
     ['Категоричный прогноз']
   ];
   let heroCalloutTargets = [];
-  function fitHeroExampleLine() {
-    const title = $('heroExampleText');
-    if (!title) return;
-    title.style.removeProperty('font-size');
-    if (!desktop()) return; // tablet/phone keep natural wrapped lines
-    // Fit all ten messages to a single desktop line without cropping.
-    // Measuring scrollWidth includes the already-laid-out invisible letters.
-    const width = title.clientWidth;
-    let size = Math.min(36, Math.max(18, width / 22));
-    title.style.fontSize = size + 'px';
-    for (let i = 0; i < 24 && title.scrollWidth > width + 1; i++) {
-      size = Math.max(13, size - 1);
-      title.style.fontSize = size + 'px';
-    }
-  }
   function positionHeroCallout(callout, mark, preference) {
     const title = $('heroExampleText');
     const stage = title?.parentElement;
@@ -199,13 +184,11 @@
         marks.push(part);
       }
     }
-    fitHeroExampleLine();
-    // When the custom font arrives late, refit without changing word order.
-    // All geometry-dependent callouts are repositioned as well.
+    // Keep the stylesheet's large typography rather than shrinking the
+    // message to one line. Reposition labels once web fonts have loaded.
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
         if (target.dataset.exampleIndex !== String(index)) return;
-        fitHeroExampleLine();
         positionHeroCallouts();
       });
     }
@@ -819,7 +802,6 @@
     resize = setTimeout(() => {
       renderCards();
       restartCycle();
-      fitHeroExampleLine();
       positionHeroCallouts();
     }, 150);
   });

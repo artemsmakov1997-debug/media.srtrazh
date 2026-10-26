@@ -1552,3 +1552,63 @@
 @media(prefers-reduced-motion:reduce) {
   .current-rating-section .media-card-arrow {transition:none !important;}
 }
+
+
+/* Restore large two-line desktop messages and align the daily count beside
+   its explanatory label, at the same vertical level as the message. */
+@media(min-width:1024px) {
+  .hero .hero-text h1.hero-example-text {
+    white-space:normal !important;
+    text-wrap:wrap !important;
+    overflow-wrap:normal !important;
+    max-width:100%;
+    font-family:"Golos Text","Inter",sans-serif !important;
+    font-size:clamp(1.8rem,2.35vw,2.1rem) !important;
+    line-height:1.39 !important;
+    letter-spacing:-.03em;
+  }
+  .hero .hero-counter {
+    display:grid !important;
+    grid-template-columns:max-content minmax(0,1fr);
+    grid-template-rows:auto;
+    align-content:center !important;
+    align-items:center !important;
+    justify-content:stretch !important;
+    column-gap:15px !important;
+    row-gap:0 !important;
+    text-align:left !important;
+    padding:0 !important;
+  }
+  .hero .hero-counter .counter-value {
+    order:0 !important;
+    grid-column:1;
+    grid-row:1;
+    align-self:center;
+    margin:0 !important;
+    font-size:clamp(3.6rem,4.5vw,4.5rem) !important;
+    line-height:1.05 !important;
+    text-align:left !important;
+  }
+  .hero .hero-counter .counter-label {
+    order:1 !important;
+    grid-column:2;
+    grid-row:1;
+    align-self:center;
+    min-width:0;
+    max-width:100%;
+    margin:0 !important;
+    font-size:.72rem !important;
+    line-height:1.5 !important;
+    letter-spacing:.085em !important;
+    text-align:left !important;
+  }
+  .hero .hero-counter .counter-value[data-digits="3"] {
+    font-size:clamp(2.9rem,3.65vw,3.8rem) !important;
+  }
+  .hero .hero-counter .counter-value[data-digits="4"] {
+    font-size:clamp(2.25rem,2.8vw,3rem) !important;
+  }
+  .hero .hero-counter .counter-value[data-digits="5"] {
+    font-size:clamp(1.75rem,2.18vw,2.4rem) !important;
+  }
+}
