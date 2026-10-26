@@ -1105,7 +1105,7 @@
   .current-rating-section .media-card {padding:13px !important;}
   .current-rating-section .media-card-header {margin-bottom:9px !important;}
   .current-rating-section .small-graph {margin-bottom:9px !important;}
-  body .hero-counter-mobile .counter-label-sm {font-size:.75rem !important;}
+  body .hero-counter-mobile .counter-label-sm {font-size:.84rem !important;}
 }
 /* Type the actual characters, then reveal the emphasis one trigger at a time.
    The transparent base border reserves its space to avoid layout shifts. */
