@@ -64,9 +64,9 @@ def rating_ui(browser, base, site, errors, requests):
                 # The daily count shares the headline's vertical centre, not
                 # the bottom of the much taller reserved annotation stage.
                 assert page.locator('.hero').evaluate(
-                    'hero => {const t=hero.querySelector("h1").getBoundingClientRect();'
+                    'hero => {const stage=hero.querySelector(".hero-example-stage").getBoundingClientRect();'
                     'const c=hero.querySelector(".hero-counter").getBoundingClientRect();'
-                    'return Math.abs((t.top+t.bottom-c.top-c.bottom)/2)<2;}')
+                    'return Math.abs((stage.top+stage.bottom-c.top-c.bottom)/2)<20;}')
                 # Both first-sentence markers are on its first line: their
                 # labels must stay next to those words, even at 80% CSS zoom.
                 assert page.locator('#heroExampleCallouts').evaluate(
@@ -130,9 +130,10 @@ def rating_ui(browser, base, site, errors, requests):
                         'el => {const value=el.querySelector(".counter-value").getBoundingClientRect();'
                         'const label=el.querySelector(".counter-label").getBoundingClientRect();'
                         'const box=el.getBoundingClientRect();'
-                        'return getComputedStyle(el).display === "grid" && '
-                        'value.right < label.left && '
-                        'Math.abs((value.top+value.bottom)/2 - (label.top+label.bottom)/2)<12 && '
+                        'return getComputedStyle(el).display === "flex" && '
+                        'getComputedStyle(el).flexDirection === "column" && '
+                        'value.bottom <= label.top+1 && '
+                        'value.left>=box.left-1 && label.right<=box.right+1 && '
                         'value.top>=box.top-1 && label.bottom<=box.bottom+1; }')
                 else:
                     assert example.evaluate(
@@ -172,7 +173,19 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => el.getBoundingClientRect().width >= 32')
             else:
                 assert card.locator('.media-card-arrow').count() == 0
-            assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
+            assert card.locator('.media-footer').evaluate(
+                'el => {const link=el.querySelector(".link-button");'
+                'const full=el.querySelector(".media-full-list-button");'
+                'const a=el.getBoundingClientRect(), x=link.getBoundingClientRect(), y=full.getBoundingClientRect();'
+                'const mobile=innerWidth<768;'
+                'return mobile ? getComputedStyle(el).gridTemplateColumns.split(" ").length===2 && '
+                'x.right+3<=y.left && x.width>=a.width*.3 && y.width>=a.width*.3 && '
+                'Math.abs(x.top-y.top)<2 && y.right<=a.right+2 : '
+                'Math.abs(x.width-a.width)<2 && getComputedStyle(full).display==="none"; }')
+            assert card.locator('.rating-headline').evaluate(
+                'el => {const s=getComputedStyle(el);const r=el.getBoundingClientRect();'
+                'return s.justifyContent==="center" && s.textAlign==="center" && '
+                'parseFloat(s.borderTopWidth)>=1 && s.backgroundImage!=="none" && r.height>=50;}')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
             assert card.locator('.small-graph circle').count() == 24
             assert sum(int(value) for value in card.locator('.small-graph circle').evaluate_all(
@@ -198,8 +211,11 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
             assert 'собранных публикаций с признаками' in card.locator('.rating-headline').get_attribute('aria-label')
             assert card.locator('.rating-headline').evaluate(
-                'el => Math.abs(el.querySelector(".rating-score").getBoundingClientRect().top - '
-                'el.querySelector(".rating-headline-label").getBoundingClientRect().top) < 12')
+                'el => {const box=el.getBoundingClientRect();'
+                'const value=el.querySelector(".rating-score").getBoundingClientRect();'
+                'const label=el.querySelector(".rating-headline-label").getBoundingClientRect();'
+                'return value.left>=box.left-1 && value.right<=box.right+1 && '
+                'label.left>=box.left-1 && label.right<=box.right+1;}')
             if chosen['id'] == 'mediazona':
                 assert card.locator('.rating-status-stack .media-status-tag').count() == 1
                 assert card.locator('.rating-status-stack').evaluate(
@@ -217,14 +233,12 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => getComputedStyle(el).backgroundImage === "none" && '
                     'getComputedStyle(el).borderTopWidth === "0px"')
                 if width >= 1024:
-                    # Desktop: the red total is LEFT of the explanatory text,
-                    # on the same row and aligned by vertical center.
+                    # Desktop: counter number is above the explanatory label.
                     assert page.locator('.hero .hero-counter').evaluate(
-                        'el => {const n=el.querySelector(".counter-value").getBoundingClientRect(); '
-                        'const label=el.querySelector(".counter-label").getBoundingClientRect(); '
-                        'return getComputedStyle(el).display === "grid" && '
-                        'n.right < label.left && '
-                        'Math.abs((n.top+n.bottom)/2-(label.top+label.bottom)/2)<12; }')
+                        'el => {const n=el.querySelector(".counter-value").getBoundingClientRect();'
+                        'const label=el.querySelector(".counter-label").getBoundingClientRect();'
+                        'return getComputedStyle(el).flexDirection==="column" && '
+                        'n.bottom<=label.top+1 && n.height>label.height;}')
                 else:
                     # Tablet retains the stacked counter until the desktop breakpoint.
                     assert page.locator('.hero .hero-counter').evaluate(
@@ -256,7 +270,11 @@ def rating_ui(browser, base, site, errors, requests):
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
-            trigger = page.locator('.show-full-list-trigger:visible').first
+            trigger = (page.locator('.media-card.is-active .media-full-list-button')
+                       if mobile else page.locator('.show-full-list-trigger:visible').first)
+            if mobile:
+                assert page.locator('.full-list-button-mobile').count() == 0
+                assert trigger.is_visible()
             trigger.click()
             page.locator('#fullListModal.open').wait_for()
             assert page.locator('.full-list-row').count() == len(fixture['publishers'])
@@ -326,7 +344,9 @@ def rating_ui(browser, base, site, errors, requests):
                     assert counter.evaluate(
                         'el => {const a=el.getBoundingClientRect();const n=el.querySelector(".counter-value,.counter-value-sm").getBoundingClientRect();'
                         'const l=el.querySelector(".counter-label,.counter-label-sm").getBoundingClientRect();'
-                        'return n.left>=a.left-1 && l.right<=a.right+1 && n.right+4<=l.left && Math.abs((n.top+n.bottom-l.top-l.bottom)/2)<12;}')
+                        'return n.left>=a.left-1 && l.right<=a.right+1 && (innerWidth<768 ? '
+                        'n.right+4<=l.left && Math.abs((n.top+n.bottom-l.top-l.bottom)/2)<12 : '
+                        'n.bottom<=l.top+1 && l.bottom<=a.bottom+2);}')
                 counter.evaluate('(el,saved) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=saved.text;n.dataset.digits=saved.digits;}', original)
                 if width == 1280:
                     # A late font/layout change must re-anchor labels without
