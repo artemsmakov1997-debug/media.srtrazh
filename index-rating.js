@@ -711,7 +711,16 @@
     document.body.style.overflow = oldOverflow;
     for (const [element, previous] of inertElements) element.inert = previous;
     inertElements = []; currentModal = null;
-    if (restore && modalTrigger?.isConnected) modalTrigger.focus();
+    if (restore) {
+      // Resizing while the dialog is open may rebuild the mobile carousel.
+      // Restore focus to the equivalent action if its original node was detached.
+      const original = modalTrigger;
+      const replacement = original?.classList.contains('media-full-list-button')
+        ? document.querySelector('.media-card.is-active .media-full-list-button')
+        : null;
+      const target = original?.isConnected ? original : replacement;
+      target?.focus({preventScroll: true});
+    }
     modalTrigger = null; restartCycle();
   }
 
