@@ -81,32 +81,24 @@ def rating_ui(browser, base, site, errors, requests):
             assert '1' not in svg_labels
             chart_height = card.locator('.small-graph').bounding_box()['height']
             assert 40 <= chart_height <= 90, chart_height  # Visual px can differ under responsive scaling.
-            assert card.locator('.media-level-badge').count() == 1
+            assert card.locator('.rating-legal-info, .media-top-badges, .media-level-badge, .rating-caption-row').count() == 0
             assert card.locator('.media-name').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
-            assert card.locator('.media-level-badge').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
             assert card.locator('.media-name').evaluate('el => el.scrollWidth <= el.clientWidth + 300')
-            assert card.locator('.media-logo').evaluate(
-                'el => el.getBoundingClientRect().right <= el.parentElement.querySelector(".rating-block").getBoundingClientRect().left + 2')
-            assert card.locator('.media-level-badge').inner_text() == {
-                'red':'Высокий процент маркеров',
-                'yellow':'Средний процент маркеров',
-                'green':'Низкий процент маркеров'
-            }[chosen['level']]
-            assert card.locator('.rating-legal-info, .media-top-badges').count() == 0
-            assert card.locator('.rating-status-stack .media-status-tag').count() == (
-                1 if chosen['id'] == 'mediazona' else 0)
-            assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
-            assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
-            assert card.locator('.rating-chart-caption').evaluate(
-                'el => Math.abs(el.querySelector(".rating-chart-caption-label").getBoundingClientRect().top - '
-                'el.querySelector(".rating-chart-caption-value").getBoundingClientRect().top) < 3')
-            assert card.locator('.rating-chart-caption').evaluate(
-                'el => el.scrollWidth <= el.clientWidth + 2')
-            assert card.locator('.rating-caption-row').evaluate(
-                'el => el.parentElement.classList.contains("media-card") && '
-                'el.nextElementSibling.classList.contains("small-graph") && '
-                'el.querySelector(".rating-chart-caption") !== null')
-            assert card.locator('.small-graph .rating-chart-caption').count() == 0
+            assert card.locator('.media-identity-text').evaluate(
+                'el => el.closest(".media-card-header") !== null')
+            assert card.locator('.rating-headline').evaluate(
+                'el => el.previousElementSibling.classList.contains("media-card-header") && '
+                'el.nextElementSibling.classList.contains("small-graph")')
+            assert card.locator('.rating-score').inner_text() == f'{chosen["score_percent"]:g}%'
+            assert card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
+            assert 'собранных публикаций с признаками' in card.locator('.rating-headline').get_attribute('aria-label')
+            assert card.locator('.rating-headline').evaluate(
+                'el => Math.abs(el.querySelector(".rating-score").getBoundingClientRect().top - '
+                'el.querySelector(".rating-headline-label").getBoundingClientRect().top) < 12')
+            if chosen['id'] == 'mediazona':
+                assert card.locator('.rating-status-stack .media-status-tag').count() == 1
+                assert card.locator('.rating-status-stack').evaluate(
+                    'el => el.closest(".media-identity-text") !== null')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '.')
             if not mobile:
                 expected_cards = min(3 if width >= 1024 else 2, len(fixture['publishers']))
@@ -131,18 +123,19 @@ def rating_ui(browser, base, site, errors, requests):
                 page.locator(f'#mediaDots button[aria-label="Показать {zero_name}"]').click()
                 zero_card = page.locator('.media-card.is-active')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
-                assert zero_card.locator('.rating-chart-caption-value').inner_text() == '0'
+                assert zero_card.locator('.rating-score').inner_text() == '0%'
+                assert zero_card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
                 assert 'Часы Москвы от 00 до 24' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.rating-signal-peak').count() == 0
-                assert zero_card.locator('.rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
+                assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
                 meduza = next(item['name'] for item in fixture['publishers'] if item['id'] == 'meduza')
                 page.locator(f'#mediaDots button[aria-label="Показать {meduza}"]').click()
-                double = page.locator('.media-card.is-active .rating-status-stack')
+                double = page.locator('.media-card.is-active .media-identity-text .rating-status-stack')
                 assert double.locator('.media-status-tag').all_inner_texts() == [
                     'иноагент', 'нежелательная организация']
                 assert double.locator('.media-status-tag').evaluate_all(
-                    'els => els[1].getBoundingClientRect().top > els[0].getBoundingClientRect().bottom')
+                    'els => els.every(el => el.getBoundingClientRect().width > 0)')
                 assert page.locator('.media-card.is-active .rating-info-trigger').count() == 0
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)

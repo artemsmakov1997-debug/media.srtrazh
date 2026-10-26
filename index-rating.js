@@ -289,17 +289,6 @@
     return link;
   }
 
-  function levelBadge(row) {
-    const meta = ({
-      red: ['Высокий процент маркеров', 'high'],
-      yellow: ['Средний процент маркеров', 'medium'],
-      green: ['Низкий процент маркеров', 'low']
-    })[row.level] || ['Нет данных для оценки', 'none'];
-    const badge = node('span', meta[0], 'media-level-badge level-' + meta[1]);
-    badge.title = 'Уровень определяется долей публикаций с признаками в собранной выборке';
-    return badge;
-  }
-
   function drawCard(row) {
     const card = node('article', '', 'media-card');
     card.dataset.publisher = row.id;
@@ -311,30 +300,7 @@
     const names = node('div', '', 'media-identity-text');
     const name = node('div', row.name, 'media-name');
     name.title = row.name;
-    names.append(name, levelBadge(row));
-    identity.append(icon, names);
-
-    const score = node('div', '', 'rating-block');
-    const value = node('div', percent(row.score_percent), 'rating-score ' + (row.level || 'no-data') + '-score');
-    value.setAttribute('aria-label', 'Доля собранных публикаций с признаками: ' + percent(row.score_percent));
-    score.append(value);
-    header.append(identity, score);
-
-    const graph = node('div', '', 'small-graph');
-    const caption = node('div', '', 'rating-chart-caption');
-    if (row.score_percent === null || row.collected === 0) {
-      caption.textContent = row.collected ? 'Анализ публикаций не завершён' : 'Нет публикаций за 24 часа';
-    } else {
-      caption.append(
-        node('span', 'Найдено спорных сообщений: ', 'rating-chart-caption-label'),
-        node('strong', number(row.flagged), 'rating-chart-caption-value')
-      );
-    }
-    graph.append(makeCardGraph(row));
-    graph.tabIndex = 0;
-
-    const captionRow = node('div', '', 'rating-caption-row');
-    captionRow.append(caption);
+    names.append(name);
     const statuses = statusLabels(row.id);
     if (statuses.length) {
       const legal = node('div', '', 'rating-status-stack');
@@ -346,11 +312,32 @@
           : 'Издание имеет статус нежелательной организации';
         legal.append(tag);
       }
-      captionRow.append(legal);
+      names.append(legal);
     }
+    identity.append(icon, names);
+    header.append(identity);
+
+    // The principal metric is a percentage of the collected sample, not the
+    // number of flagged articles. Keep the actual numerator in accessible text.
+    const score = node('div', '', 'rating-headline');
+    const value = node('strong', percent(row.score_percent),
+      'rating-score ' + (row.level || 'no-data') + '-score');
+    const description = node('span',
+      row.score_percent === null ? 'нет данных за 24 часа' : 'спорных сообщений',
+      'rating-headline-label');
+    score.setAttribute('aria-label', row.score_percent === null
+      ? row.name + ': данных недостаточно для расчёта рейтинга'
+      : row.name + ': ' + percent(row.score_percent)
+        + ' собранных публикаций с признаками, ' + row.flagged
+        + ' из ' + row.collected + ' публикаций за последние 24 часа');
+    score.append(value, description);
+
+    const graph = node('div', '', 'small-graph');
+    graph.append(makeCardGraph(row));
+    graph.tabIndex = 0;
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
-    card.append(header, captionRow, graph, footer);
+    card.append(header, score, graph, footer);
     return card;
   }
 

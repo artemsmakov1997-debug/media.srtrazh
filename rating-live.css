@@ -776,3 +776,173 @@
     animation:none !important;
   }
 }
+
+
+/* Rating card — editorial hierarchy based on the approved sketch. */
+.current-rating-section .media-card {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-height:0;
+  padding:20px 19px 19px !important;
+}
+.current-rating-section .media-card-header {
+  display:block;
+  flex:0 0 auto;
+  min-width:0;
+  min-height:0;
+  margin:0 0 23px;
+}
+.current-rating-section .media-logo {
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  width:100%;
+  min-width:0;
+}
+.current-rating-section .logo-icon {align-self:center;}
+.current-rating-section .media-identity-text {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  gap:5px;
+  min-width:0;
+  max-width:100%;
+  padding:0;
+  overflow:visible;
+}
+.current-rating-section .media-name {
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font:650 clamp(.92rem,1.35vw,1.13rem)/1.25 "Golos Text","Inter",sans-serif;
+  letter-spacing:-.022em;
+  color:#f6f9fc;
+}
+.current-rating-section .media-identity-text .rating-status-stack {
+  display:flex;
+  flex-direction:row;
+  justify-content:flex-start;
+  align-items:center;
+  flex-wrap:wrap;
+  align-self:flex-start;
+  width:auto;
+  max-width:100%;
+  gap:3px 11px;
+  margin:0;
+  padding:0;
+  text-align:left;
+}
+.current-rating-section .media-identity-text .rating-status-stack .media-status-tag {
+  display:inline;
+  flex:0 1 auto;
+  padding:0;
+  margin:0;
+  max-width:100%;
+  font:500 clamp(.61rem,.79vw,.72rem)/1.3 "Inter",sans-serif;
+  letter-spacing:0;
+  color:#bdc8d0;
+  border:0;
+  background:transparent;
+  border-radius:0;
+  white-space:normal;
+  overflow-wrap:normal;
+}
+.current-rating-section .rating-headline {
+  display:flex;
+  align-items:baseline;
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  gap:9px;
+  width:100%;
+  min-width:0;
+  margin:0 0 15px;
+}
+.current-rating-section .rating-headline .rating-score {
+  flex:0 0 auto;
+  white-space:nowrap;
+  font:850 clamp(1.8rem,2.6vw,2.62rem)/1 "Montserrat","Golos Text",sans-serif;
+  letter-spacing:-.075em;
+}
+.current-rating-section .rating-headline-label {
+  display:block;
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#f0f5f8;
+  font:800 clamp(.99rem,1.48vw,1.39rem)/1.18 "Golos Text","Inter",sans-serif;
+  letter-spacing:-.038em;
+}
+.current-rating-section .rating-headline:has(.red-score) .rating-headline-label {color:#ff777c;}
+.current-rating-section .rating-headline:has(.yellow-score) .rating-headline-label {color:#e9c56f;}
+.current-rating-section .rating-headline:has(.green-score) .rating-headline-label {color:#61deae;}
+.current-rating-section .rating-headline:has(.no-data-score) .rating-headline-label {color:#acbdc8;}
+.current-rating-section .small-graph {
+  flex:0 0 auto;
+  height:80px;
+  min-height:80px;
+  width:100%;
+  margin:0 0 14px;
+  padding:5px 9px 3px;
+}
+.current-rating-section .media-footer {
+  flex:0 0 auto;
+  margin:auto 0 0;
+  padding:0;
+}
+.current-rating-section .media-footer a.link-button {
+  min-height:47px;
+  font-size:.83rem;
+}
+@media(min-width:768px) and (max-width:1023px) {
+  .current-rating-section .media-name {font-size:1.05rem;}
+  .current-rating-section .rating-headline-label {font-size:1.19rem;}
+}
+@media(max-width:767px) {
+  .current-rating-section .media-card {padding:19px 16px 17px !important;}
+  .current-rating-section .media-card-header {margin-bottom:24px;min-height:0;}
+  .current-rating-section .media-logo {grid-template-columns:49px minmax(0,1fr);gap:10px;}
+  .current-rating-section .logo-icon {width:49px;height:49px;flex-basis:49px;}
+  .current-rating-section .media-name {
+    font-size:clamp(.86rem,3.75vw,1.05rem) !important;
+  }
+  .current-rating-section .media-identity-text .rating-status-stack {
+    gap:2px 9px;
+  }
+  .current-rating-section .media-identity-text .rating-status-stack .media-status-tag {
+    font-size:clamp(.59rem,2.65vw,.7rem);
+  }
+  .current-rating-section .rating-headline {
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .current-rating-section .rating-headline .rating-score {
+    font-size:clamp(1.75rem,7.3vw,2.3rem);
+  }
+  .current-rating-section .rating-headline-label {
+    font-size:clamp(.96rem,4.2vw,1.2rem);
+  }
+  .current-rating-section .small-graph {
+    height:81px;
+    min-height:81px;
+    margin-bottom:14px;
+    padding:5px 8px 3px;
+  }
+  .current-rating-section .media-footer {margin:0;padding:0;}
+}
+@media(max-width:360px) {
+  .current-rating-section .media-card {padding:17px 13px 14px !important;}
+  .current-rating-section .media-logo {grid-template-columns:43px minmax(0,1fr);gap:9px;}
+  .current-rating-section .logo-icon {width:43px;height:43px;flex-basis:43px;}
+  .current-rating-section .rating-headline {gap:6px;}
+  .current-rating-section .rating-headline .rating-score {font-size:1.62rem;}
+  .current-rating-section .rating-headline-label {font-size:.9rem;}
+}

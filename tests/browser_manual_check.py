@@ -992,14 +992,16 @@ def pro_business_navigation_ui(browser, base, site):
         for surface in (".media-card", ".rating-appeal-strip"):
             assert "gradient" in page.locator(surface).first.evaluate(
                 "el => getComputedStyle(el).backgroundImage"), surface
-        # The summary keeps compact legal markers above the identity,
-        # a semantic level under the outlet name, and a binary signal chart.
+        # The approved editorial card has a logo/title/status heading,
+        # a prominent percentage line, a compact signal chart and archive link.
         rating_cards = page.locator("#mediaGrid .media-card")
         rating_cards.first.wait_for(state="visible")
         # The front page displays one row of up to three cards on desktop.
         assert 1 <= rating_cards.count() <= 3
         assert not page.locator("#ratingStatus").inner_text().startswith("Обновлено:")
-        assert rating_cards.first.locator(".media-name, .media-level-badge, .rating-score, .small-graph, .media-footer .link-button").count() == 5
+        assert rating_cards.first.locator(".media-name, .rating-headline, .small-graph, .media-footer .link-button").count() == 4
+        assert rating_cards.first.locator(".rating-headline-label").inner_text() in ("спорных сообщений", "нет данных за 24 часа")
+        assert rating_cards.first.locator(".media-level-badge, .rating-caption-row").count() == 0
         assert rating_cards.first.locator('.small-graph svg').get_attribute('aria-label').find('Часы Москвы от 00 до 24') >= 0
         assert rating_cards.first.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .media-footer .badge").count() == 0
         first_card_rect = rating_cards.first.bounding_box()
