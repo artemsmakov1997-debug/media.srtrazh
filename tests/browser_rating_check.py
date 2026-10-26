@@ -296,10 +296,42 @@ def rating_ui(browser, base, site, errors, requests):
         assert rt.locator('.rating-headline-label').evaluate(
             'el => getComputedStyle(el).fontWeight === "400"')
         assert rt.locator('.small-graph circle[data-score]').count() == 24
-        assert abs(float(rt.locator('.small-graph circle').last.get_attribute('data-score'))
-                   - (100 / 3)) < .0001
+        # Circles run in Moscow clock order (00..23), which differs from the
+        # rolling 24-hour report's chronological end. Match by end_at, not DOM
+        # position: the final clock tick is not the last collected hour.
+        actual = rt.locator('.small-graph circle[data-score]').evaluate_all(
+            '([first, ...others], endAt) => {'
+            'const point = [first, ...others].find(el => el.dataset.endAt === endAt);'
+            'return point ? Number(point.dataset.score) : null;'
+            '}', sample['series'][-1]['end_at'])
+        assert actual is not None and abs(actual - sample['score_percent']) < .0001
         page.locator('.show-full-list-trigger:visible').first.click()
         assert page.locator('.full-list-row[data-publisher="rt"] .fli-rating').inner_text() == '34%'
+    finally:
+        context.close()
+
+    # The supplied logos must be served locally and actually decode, even
+    # when the third-party favicon endpoint is inaccessible.
+    branded = copy.deepcopy(fixture)
+    bbc = next(row for row in branded['publishers'] if row['id'] == 'rt')
+    bbc['id'], bbc['name'] = 'bbc', 'BBC News'
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion='reduce')
+    try:
+        page = context.new_page()
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.route('**/data/rating.json', lambda route: route.fulfill(json=branded))
+        page.goto(base + '/index.html')
+        for outlet, expected in (('bbc', '/bbc-publisher.webp'),
+                                 ('ria', '/ria-publisher.webp')):
+            logo = page.locator(f'.media-card[data-publisher="{outlet}"] .logo-image')
+            logo.wait_for(state='attached')
+            assert logo.get_attribute('src') == expected
+            page.wait_for_function(
+                '(id) => { const el=document.querySelector('
+                '`.media-card[data-publisher="${id}"] .logo-image`); '
+                'return el && el.complete && el.naturalWidth >= 128; }',
+                outlet, timeout=2500)
+            assert page.locator(f'.media-card[data-publisher="{outlet}"] .logo-icon.has-logo').count() == 1
     finally:
         context.close()
 

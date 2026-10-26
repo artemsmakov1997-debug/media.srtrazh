@@ -95,6 +95,12 @@
   }
 
 
+  // Use supplied publisher logos for BBC and RIA. The files are packaged
+  // with the static site, so they do not depend on a third-party favicon API.
+  const publisherLogoFiles = Object.freeze({
+    bbc: '/bbc-publisher.webp',
+    ria: '/ria-publisher.webp'
+  });
   // Domains belong to the monitored publishers (not to arbitrary article URLs).
   // Favicons are publisher-provided brand marks; Telegram-only outlets use
   // their public channel avatar. The lettermark remains as an offline fallback.
@@ -128,18 +134,19 @@
     const icon = node('span', '', 'logo-icon');
     icon.setAttribute('aria-hidden', 'true');
     icon.append(node('span', initials, 'logo-fallback'));
+    const localLogo = publisherLogoFiles[row.id];
     const domain = publisherLogoDomains[row.id];
     const channel = channelLogoHandles[row.id];
-    if (!domain && !channel) return icon;
+    if (!localLogo && !domain && !channel) return icon;
 
     const image = node('img', '', 'logo-image');
     image.alt = '';
     image.loading = 'lazy';
     image.decoding = 'async';
     image.referrerPolicy = 'no-referrer';
-    image.src = domain
+    image.src = localLogo || (domain
       ? 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128'
-      : 'https://unavatar.io/telegram/' + encodeURIComponent(channel) + '?fallback=false';
+      : 'https://unavatar.io/telegram/' + encodeURIComponent(channel) + '?fallback=false');
     image.addEventListener('load', () => {
       // Missing Google favicon often resolves to a generic 16px globe.
       if (image.naturalWidth <= 16) image.remove();
