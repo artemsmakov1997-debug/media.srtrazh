@@ -126,15 +126,19 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
                 if width >= 1024:
+                    assert page.locator('.hero .hero-counter .counter-label').evaluate(
+                        'el => el.innerHTML.toLowerCase().includes("публикаций<br>с признаками<br>за ")')
                     assert page.locator('.hero .hero-counter').evaluate(
                         'el => {const value=el.querySelector(".counter-value").getBoundingClientRect();'
                         'const label=el.querySelector(".counter-label").getBoundingClientRect();'
                         'const box=el.getBoundingClientRect();'
-                        'return getComputedStyle(el).display === "flex" && '
-                        'getComputedStyle(el).flexDirection === "column" && '
-                        'value.bottom <= label.top+1 && '
+                        'return getComputedStyle(el).display === "grid" && '
+                        'getComputedStyle(el).gridTemplateColumns.split(" ").length === 2 && '
+                        'value.right+4<=label.left && '
+                        'Math.abs((value.top+value.bottom-label.top-label.bottom)/2)<12 && '
                         'value.left>=box.left-1 && label.right<=box.right+1 && '
-                        'value.top>=box.top-1 && label.bottom<=box.bottom+1; }')
+                        'value.top>=box.top-1 && label.bottom<=box.bottom+1 && '
+                        'getComputedStyle(el.querySelector(".counter-label")).backgroundImage==="none"; }')
                 else:
                     assert example.evaluate(
                         'el => parseFloat(getComputedStyle(el).fontSize) >= 27')
@@ -233,12 +237,13 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => getComputedStyle(el).backgroundImage === "none" && '
                     'getComputedStyle(el).borderTopWidth === "0px"')
                 if width >= 1024:
-                    # Desktop: counter number is above the explanatory label.
+                    # Desktop: large number to the LEFT of a three-line, unboxed label.
                     assert page.locator('.hero .hero-counter').evaluate(
                         'el => {const n=el.querySelector(".counter-value").getBoundingClientRect();'
                         'const label=el.querySelector(".counter-label").getBoundingClientRect();'
-                        'return getComputedStyle(el).flexDirection==="column" && '
-                        'n.bottom<=label.top+1 && n.height>label.height;}')
+                        'return getComputedStyle(el).display==="grid" && n.right+4<=label.left && '
+                        'Math.abs((n.top+n.bottom-label.top-label.bottom)/2)<12 && '
+                        'getComputedStyle(el.querySelector(".counter-label")).borderTopWidth==="0px";}')
                 else:
                     # Tablet retains the stacked counter until the desktop breakpoint.
                     assert page.locator('.hero .hero-counter').evaluate(
@@ -346,7 +351,8 @@ def rating_ui(browser, base, site, errors, requests):
                         'const l=el.querySelector(".counter-label,.counter-label-sm").getBoundingClientRect();'
                         'return n.left>=a.left-1 && l.right<=a.right+1 && (innerWidth<768 ? '
                         'n.right+4<=l.left && Math.abs((n.top+n.bottom-l.top-l.bottom)/2)<12 : '
-                        'n.bottom<=l.top+1 && l.bottom<=a.bottom+2);}')
+                        'n.right+4<=l.left && l.right<=a.right+1 && '
+                        'Math.abs((n.top+n.bottom-l.top-l.bottom)/2)<12);}')
                 counter.evaluate('(el,saved) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=saved.text;n.dataset.digits=saved.digits;}', original)
                 if width == 1280:
                     # A late font/layout change must re-anchor labels without
