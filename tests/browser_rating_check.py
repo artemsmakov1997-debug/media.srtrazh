@@ -222,9 +222,13 @@ def rating_ui(browser, base, site, errors, requests):
             page.goto(base + '/index.html')
             first = page.locator('.media-card.is-active')
             first.wait_for(state='visible')
-            assert first.evaluate(
-                'el => getComputedStyle(el).opacity === "1" && '
-                'getComputedStyle(el).animationName === "none"')
+            # CSS opacity transitions legitimately take ~280 ms after class
+            # changes. Wait for the settled state; fail only if it stays hidden.
+            page.wait_for_function(
+                '() => { const el = document.querySelector(".media-card.is-active"); '
+                'return el && parseFloat(getComputedStyle(el).opacity) > .999; }',
+                timeout=2500)
+            assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
             assert page.locator('.media-card:not(.is-active)').first.evaluate(
                 'el => getComputedStyle(el).visibility === "hidden"')
@@ -233,9 +237,12 @@ def rating_ui(browser, base, site, errors, requests):
             page.locator(f'#mediaDots button[aria-label="Показать {next_name}"]').click()
             active_card = page.locator('.media-card.is-active')
             assert active_card.locator('.media-name').inner_text() == next_name
+            page.wait_for_function(
+                '() => { const el = document.querySelector(".media-card.is-active"); '
+                'return el && parseFloat(getComputedStyle(el).opacity) > .999; }',
+                timeout=2500)
             assert active_card.evaluate(
-                'el => getComputedStyle(el).opacity === "1" && '
-                'getComputedStyle(el).visibility === "visible"')
+                'el => getComputedStyle(el).visibility === "visible"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         finally:
             context.close()
