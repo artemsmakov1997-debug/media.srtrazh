@@ -1048,3 +1048,93 @@
   }
   .hero .hero-text .hero-example-text.is-exiting {transition:none !important;opacity:1 !important;}
 }
+
+
+/* Mobile rhythm: compact editorial card with legible numbers and tap targets. */
+@media(max-width:767px) {
+  .current-rating-section .media-card {
+    padding:14px 15px 15px !important;
+    min-height:0 !important;
+  }
+  .current-rating-section .media-card-header {
+    margin-bottom:11px !important;
+    min-height:0 !important;
+  }
+  .current-rating-section .media-logo {gap:10px;}
+  .current-rating-section .rating-headline {
+    margin:0 0 9px !important;
+    gap:8px;
+  }
+  .current-rating-section .small-graph {
+    height:73px !important;
+    min-height:73px !important;
+    margin:0 0 10px !important;
+    padding:4px 8px 2px !important;
+  }
+  .current-rating-section .media-footer {
+    margin:0 !important;
+    padding:0 !important;
+  }
+  .current-rating-section .media-footer a.link-button {
+    min-height:45px;
+  }
+  body .hero-counter-mobile {
+    display:grid;
+    grid-template-columns:minmax(0,auto) minmax(0,1fr);
+    gap:13px;
+    align-items:center;
+    padding:4px 2px !important;
+    margin:0 0 13px !important;
+  }
+  body .hero-counter-mobile .counter-value-sm {
+    font-family:"Orbitron","Montserrat",sans-serif;
+    font-size:clamp(2.4rem,11vw,3.22rem) !important;
+    line-height:1.08;
+    letter-spacing:-.065em;
+    font-variant-numeric:tabular-nums;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="4"] {font-size:clamp(1.98rem,9vw,2.6rem) !important;}
+  body .hero-counter-mobile .counter-value-sm[data-digits="5"] {font-size:clamp(1.7rem,7.7vw,2.22rem) !important;}
+  body .hero-counter-mobile .counter-label-sm {
+    font-size:clamp(.77rem,3.25vw,.87rem) !important;
+    line-height:1.4;
+    letter-spacing:.015em;
+  }
+}
+@media(max-width:360px) {
+  .current-rating-section .media-card {padding:13px !important;}
+  .current-rating-section .media-card-header {margin-bottom:9px !important;}
+  .current-rating-section .small-graph {margin-bottom:9px !important;}
+  body .hero-counter-mobile .counter-label-sm {font-size:.75rem !important;}
+}
+/* Type the actual characters, then reveal the emphasis one trigger at a time.
+   The transparent base border reserves its space to avoid layout shifts. */
+.hero .hero-text h1.hero-example-text {
+  animation:none !important;
+  clip-path:none !important;
+  opacity:1;
+  transition:opacity 340ms ease;
+  white-space:normal;
+}
+.hero .hero-example-text .hero-trigger {
+  color:inherit;
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+  transition:color 460ms ease,background-color 460ms ease,
+    border-color 460ms ease,box-shadow 460ms ease;
+}
+.hero .hero-example-text .hero-trigger.is-highlighted {
+  color:#c1f3ff;
+  border-color:rgba(34,211,238,.58);
+  background:rgba(34,211,238,.10);
+  box-shadow:0 0 0 1px rgba(34,211,238,.045);
+}
+.hero .hero-text h1.hero-example-text.is-exiting {
+  animation:none !important;
+  opacity:0;
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero .hero-text h1.hero-example-text {transition:none !important;}
+  .hero .hero-example-text .hero-trigger {transition:none !important;}
+}

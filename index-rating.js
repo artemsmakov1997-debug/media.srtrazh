@@ -21,69 +21,102 @@
     return result;
   };
 
-  // Fictional examples for interface demonstration only. Highlighting alone
-  // is not an editorial verdict, and none of these are attributed to a source.
+  // Fictional text for explaining highlighting, never quotations from outlets.
   const HERO_EXAMPLES = [
-    ['По словам ', ['источников'], ', ситуация может ухудшиться ', ['уже завтра'], '. Эксперты предупреждают о возможной ', ['катастрофе'], ' и призывают ', ['срочно'], ' принять меры.'],
-    ['В сети утверждают, что власти ', ['скрывают правду'], ' о происходящем. Якобы ситуация ', ['вышла из-под контроля'], ', хотя подтверждений этим словам нет.'],
-    ['Комментаторы пишут о ', ['надвигающемся кризисе'], ': по их мнению, последствия окажутся ', ['необратимыми'], ', если решение не примут ', ['немедленно'], '.'],
-    ['Очевидцы говорят о ', ['массовой панике'], '. В публикации утверждается, что официальные лица ', ['упорно молчат'], ' и ', ['скрывают масштабы'], ' проблемы.'],
-    ['Автор материала уверяет: ', ['каждый'], ' может пострадать, если меры не принять ', ['прямо сейчас'], '. Других вариантов, по его словам, ', ['не осталось'], '.'],
-    ['Сообщается, что эксперты ', ['бьют тревогу'], ': положение якобы ', ['хуже, чем кажется'], ', а впереди страну ждут ', ['тяжёлые последствия'], '.'],
-    ['В публикации говорится, что решение поддерживают ', ['все разумные люди'], ', а несогласные ', ['просто не понимают'], ', насколько всё ', ['опасно'], '.'],
-    ['Анонимные собеседники утверждают, будто чиновники ', ['потеряли контроль'], ' и собираются принять ', ['шокирующее решение'], ' в ближайшие часы.'],
-    ['Заголовок предупреждает о ', ['беспрецедентной угрозе'], ' и обещает раскрыть ', ['то, о чём молчат'], ' официальные источники.'],
-    ['По словам автора, времени ', ['почти не осталось'], ': если читатели ', ['не вмешаются сегодня'], ', последствия будут ', ['катастрофическими'], '.']
+    ['По словам ', ['источников'], ', ситуация ухудшится ', ['уже завтра'], '. Эксперты призывают ', ['срочно'], ' принять меры.'],
+    ['В сети пишут, что власти ', ['скрывают правду'], ', а ситуация ', ['вышла из-под контроля'], '. Подтверждений этому нет.'],
+    ['Комментаторы предупреждают о ', ['надвигающемся кризисе'], ': последствия якобы будут ', ['необратимыми'], '.'],
+    ['Очевидцы сообщают о ', ['массовой панике'], '. В публикации утверждают, что чиновники ', ['упорно молчат'], '.'],
+    ['Автор уверяет, что ', ['каждый'], ' может пострадать, если меры не принять ', ['прямо сейчас'], '.'],
+    ['По словам экспертов, ситуация ', ['хуже, чем кажется'], ', и впереди нас ждут ', ['тяжёлые последствия'], '.'],
+    ['Решение якобы поддерживают ', ['все разумные люди'], ', а несогласные ', ['не понимают опасности'], '.'],
+    ['Анонимные собеседники утверждают: чиновники ', ['потеряли контроль'], ' и готовят ', ['шокирующее решение'], '.'],
+    ['Заголовок предупреждает о ', ['беспрецедентной угрозе'], ' и раскрывает ', ['то, о чём молчат'], '.'],
+    ['Автор пишет, что времени ', ['почти не осталось'], ', а последствия могут стать ', ['катастрофическими'], '.']
   ];
 
-  let heroExampleIndex = 0, heroExampleTimer = null, heroExampleExitTimer = null;
-  function renderHeroExample(index) {
+  let heroExampleIndex = 0, heroExampleTimer = null, heroExampleRun = 0;
+  const exampleFullText = parts => parts.map(part => Array.isArray(part) ? part[0] : part).join('');
+  function stopHeroExamples() {
+    ++heroExampleRun;
+    clearTimeout(heroExampleTimer);
+    heroExampleTimer = null;
+  }
+  function scheduleHeroExample(callback, delay, run) {
+    heroExampleTimer = setTimeout(() => {
+      if (run === heroExampleRun && !document.hidden && !motion.matches) callback();
+    }, delay);
+  }
+  function renderHeroExample(index, instant = false) {
     const target = $('heroExampleText');
     if (!target) return;
+    const parts = HERO_EXAMPLES[index];
     target.replaceChildren();
-    for (const part of HERO_EXAMPLES[index]) {
-      if (Array.isArray(part)) target.append(node('mark', part[0], 'hero-trigger'));
-      else target.append(document.createTextNode(part));
-    }
+    target.classList.remove('is-exiting');
     target.dataset.exampleIndex = String(index);
     target.dataset.exampleTotal = String(HERO_EXAMPLES.length);
-    target.setAttribute('aria-label', target.textContent);
-  }
-  function stopHeroExamples() {
-    clearInterval(heroExampleTimer);
-    clearTimeout(heroExampleExitTimer);
-    heroExampleTimer = heroExampleExitTimer = null;
+    target.setAttribute('aria-label', exampleFullText(parts));
+
+    // Create the markup immediately, but keep both text and emphasis inert
+    // until their respective animation phases. Stable highlight spacing avoids
+    // line shifts when a word receives its accent.
+    const segments = parts.map(part => {
+      const emph = Array.isArray(part);
+      const content = emph ? part[0] : part;
+      const element = emph ? node('mark', '', 'hero-trigger') : document.createTextNode('');
+      target.append(element);
+      return {element, chars: Array.from(content), emph};
+    });
+    if (instant) {
+      segments.forEach(({element,chars,emph}) => {
+        element.textContent = chars.join('');
+        if (emph) element.classList.add('is-highlighted');
+      });
+      target.dataset.phase = 'highlighted';
+      return;
+    }
+    target.dataset.phase = 'typing';
+    const run = heroExampleRun;
+    let segmentIndex = 0, charIndex = 0;
+    const typeNext = () => {
+      if (run !== heroExampleRun) return;
+      const segment = segments[segmentIndex];
+      if (!segment) {
+        target.dataset.phase = 'highlighting';
+        const triggers = [...target.querySelectorAll('.hero-trigger')];
+        let markIndex = 0;
+        const emphasizeNext = () => {
+          if (run !== heroExampleRun) return;
+          if (markIndex < triggers.length) {
+            triggers[markIndex++].classList.add('is-highlighted');
+            scheduleHeroExample(emphasizeNext, 190, run);
+            return;
+          }
+          target.dataset.phase = 'highlighted';
+          // Time to read the complete example, then fade before the next one.
+          scheduleHeroExample(() => {
+            target.classList.add('is-exiting');
+            scheduleHeroExample(() => {
+              heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
+              renderHeroExample(heroExampleIndex);
+            }, 350, run);
+          }, 1900, run);
+        };
+        scheduleHeroExample(emphasizeNext, 220, run);
+        return;
+      }
+      segment.element.textContent += segment.chars[charIndex++];
+      if (charIndex >= segment.chars.length) {
+        ++segmentIndex;
+        charIndex = 0;
+      }
+      scheduleHeroExample(typeNext, 29, run);
+    };
+    scheduleHeroExample(typeNext, 110, run);
   }
   function startHeroExamples() {
     stopHeroExamples();
-    const target = $('heroExampleText');
-    if (!target) return;
-    // In reduced-motion mode, retain a readable static example.
-    if (motion.matches || document.hidden) {
-      target.classList.remove('is-exiting');
-      target.classList.add('is-settled');
-      return;
-    }
-    // A visibility change can interrupt the fade-out halfway through.
-    // Clear that transient state so the message cannot remain invisible.
-    target.classList.remove('is-exiting', 'is-settled');
-    target.style.animation = 'none';
-    void target.offsetWidth;
-    target.style.removeProperty('animation');
-    heroExampleTimer = setInterval(() => {
-      if (document.hidden || motion.matches) return;
-      target.classList.add('is-exiting');
-      heroExampleExitTimer = setTimeout(() => {
-        heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
-        renderHeroExample(heroExampleIndex);
-        target.classList.remove('is-exiting', 'is-settled');
-        // Removing the class and forcing one style pass restarts the same
-        // stepped clip-path reveal used by the original heading.
-        target.style.animation = 'none';
-        void target.offsetWidth;
-        target.style.removeProperty('animation');
-      }, 330);
-    }, 6200);
+    renderHeroExample(heroExampleIndex, motion.matches || document.hidden);
   }
 
   let report = null, media = [], offset = 0, active = 0, cycle = null, loading = false, loadError = false;
@@ -93,6 +126,7 @@
     const desktopCount = $('dailyCounterValue'), mobileCount = $('dailyCounterMobile');
     const final = number(target);
     desktopCount.dataset.digits = String(Math.min(5, String(target).length));
+    mobileCount.dataset.digits = String(Math.min(5, String(target).length));
     if (counterAnimation !== null) cancelAnimationFrame(counterAnimation);
     counterAnimation = null;
     if (motion.matches || document.hidden || previousTotal === target) {

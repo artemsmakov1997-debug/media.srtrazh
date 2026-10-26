@@ -43,6 +43,8 @@ def rating_ui(browser, base, site, errors, requests):
             assert example.get_attribute('data-example-index') == '0'
             assert example.locator('mark.hero-trigger').count() >= 2
             assert 'По словам источников' in example.inner_text()
+            assert example.get_attribute('data-phase') == 'highlighted'
+            assert example.locator('mark.hero-trigger:not(.is-highlighted)').count() == 0
             # CSS text-transform:uppercase changes rendered innerText, not
             # the semantic copy in the DOM.
             assert page.locator('.hero-example-note').text_content().strip() == (
@@ -237,6 +239,16 @@ def rating_ui(browser, base, site, errors, requests):
             page.goto(base + '/index.html')
             first = page.locator('.media-card.is-active')
             first.wait_for(state='visible')
+            count_font = page.locator('.hero-counter-mobile .counter-value-sm').evaluate(
+                'el => parseFloat(getComputedStyle(el).fontSize)')
+            label_font = page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
+                'el => parseFloat(getComputedStyle(el).fontSize)')
+            assert count_font >= 35, count_font
+            assert label_font >= 11.5, label_font
+            gap = first.locator('.media-card-header').evaluate(
+                'el => el.nextElementSibling.getBoundingClientRect().top - '
+                'el.getBoundingClientRect().bottom')
+            assert 0 <= gap <= 16, gap
             # CSS opacity transitions legitimately take ~280 ms after class
             # changes. Wait for the settled state; fail only if it stays hidden.
             page.wait_for_function(
@@ -249,15 +261,26 @@ def rating_ui(browser, base, site, errors, requests):
             example = page.locator('#heroExampleText')
             assert example.get_attribute('data-example-total') == '10'
             assert example.locator('.hero-trigger').count() == 4
-            assert 'hero-example-reveal' in example.evaluate(
-                'el => getComputedStyle(el).animationName')
+            assert example.get_attribute('data-phase') in ('typing', 'highlighting', 'highlighted')
+            assert example.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
             if width == 390:
+                # Only characters appear at first; accent styling comes later.
+                assert example.get_attribute('data-phase') == 'typing'
+                assert example.locator('mark.hero-trigger.is-highlighted').count() == 0
+                page.wait_for_function(
+                    '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
+                    timeout=8000)
+                assert example.locator('mark.hero-trigger.is-highlighted').count() == 3
+                assert 'По словам источников' in example.inner_text()
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.exampleIndex === "1"',
-                    timeout=8500)
+                    timeout=12000)
+                page.wait_for_function(
+                    '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
+                    timeout=8000)
                 assert 'скрывают правду' in example.inner_text()
-                assert example.locator('mark.hero-trigger').count() == 2
+                assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
                 assert page.locator('.media-card.is-active').count() == 1
             assert page.locator('.media-card:not(.is-active)').first.evaluate(
                 'el => getComputedStyle(el).visibility === "hidden"')
