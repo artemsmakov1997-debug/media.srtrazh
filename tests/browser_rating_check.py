@@ -288,7 +288,7 @@ def rating_ui(browser, base, site, errors, requests):
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
                     timeout=8000)
-                assert 'скрывают правду' in example.inner_text()
+                assert 'скрывают истинные масштабы' in example.inner_text()
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
                 assert page.locator('.media-card.is-active').count() == 1
             assert page.locator('.media-card:not(.is-active)').first.evaluate(
