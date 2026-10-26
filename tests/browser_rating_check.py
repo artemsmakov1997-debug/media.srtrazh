@@ -193,14 +193,25 @@ def rating_ui(browser, base, site, errors, requests):
                 # screen rectangles (which depend on pointer position).
                 assert page.locator('.media-grid').evaluate(
                     'el => el.firstElementChild.offsetTop === el.lastElementChild.offsetTop')
-                assert page.locator('.hero .hero-counter').evaluate(
-                    'el => getComputedStyle(el).flexDirection === "column"')
                 assert page.locator('.hero .hero-text').evaluate(
                     'el => getComputedStyle(el).backgroundImage === "none" && '
                     'getComputedStyle(el).borderTopWidth === "0px"')
-                assert page.locator('.hero .hero-counter .counter-value').evaluate(
-                    'el => el.getBoundingClientRect().top >= '
-                    'el.nextElementSibling.getBoundingClientRect().bottom - 1')
+                if width >= 1024:
+                    # Desktop: the red total is LEFT of the explanatory text,
+                    # on the same row and aligned by vertical center.
+                    assert page.locator('.hero .hero-counter').evaluate(
+                        'el => {const n=el.querySelector(".counter-value").getBoundingClientRect(); '
+                        'const label=el.querySelector(".counter-label").getBoundingClientRect(); '
+                        'return getComputedStyle(el).display === "grid" && '
+                        'n.right < label.left && '
+                        'Math.abs((n.top+n.bottom)/2-(label.top+label.bottom)/2)<12; }')
+                else:
+                    # Tablet retains the stacked counter until the desktop breakpoint.
+                    assert page.locator('.hero .hero-counter').evaluate(
+                        'el => getComputedStyle(el).flexDirection === "column"')
+                    assert page.locator('.hero .hero-counter .counter-value').evaluate(
+                        'el => el.getBoundingClientRect().top >= '
+                        'el.nextElementSibling.getBoundingClientRect().bottom - 1')
                 assert page.locator('.hero .counter-value').evaluate(
                     'el => getComputedStyle(el).fontFamily.includes("Orbitron")')
             else:
