@@ -64,7 +64,12 @@
       target.classList.add('is-settled');
       return;
     }
-    target.classList.remove('is-settled');
+    // A visibility change can interrupt the fade-out halfway through.
+    // Clear that transient state so the message cannot remain invisible.
+    target.classList.remove('is-exiting', 'is-settled');
+    target.style.animation = 'none';
+    void target.offsetWidth;
+    target.style.removeProperty('animation');
     heroExampleTimer = setInterval(() => {
       if (document.hidden || motion.matches) return;
       target.classList.add('is-exiting');

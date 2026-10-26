@@ -43,7 +43,9 @@ def rating_ui(browser, base, site, errors, requests):
             assert example.get_attribute('data-example-index') == '0'
             assert example.locator('mark.hero-trigger').count() >= 2
             assert 'По словам источников' in example.inner_text()
-            assert page.locator('.hero-example-note').inner_text() == (
+            # CSS text-transform:uppercase changes rendered innerText, not
+            # the semantic copy in the DOM.
+            assert page.locator('.hero-example-note').text_content().strip() == (
                 'Демонстрационные примеры · не цитаты СМИ')
             if mobile:
                 assert not page.locator('.hero .hero-counter').is_visible()
