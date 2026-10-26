@@ -322,7 +322,7 @@ def rating_ui(browser, base, site, errors, requests):
                 counter = page.locator(selector)
                 original = counter.evaluate('el => {const n=el.querySelector(".counter-value,.counter-value-sm");return {text:n.textContent,digits:n.dataset.digits};}')
                 for value in ('39', '123', '1\u00a0234', '12\u00a0345'):
-                    counter.evaluate('(el,value) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=value;n.dataset.digits=String(value.replace(/\D/g, "").length);}', value)
+                    counter.evaluate('(el,value) => {const n=el.querySelector(".counter-value,.counter-value-sm");n.textContent=value;n.dataset.digits=String(value.replace(/[^0-9]/g, "").length);}', value)
                     assert counter.evaluate(
                         'el => {const a=el.getBoundingClientRect();const n=el.querySelector(".counter-value,.counter-value-sm").getBoundingClientRect();'
                         'const l=el.querySelector(".counter-label,.counter-label-sm").getBoundingClientRect();'
