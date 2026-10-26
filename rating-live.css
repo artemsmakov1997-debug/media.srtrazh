@@ -1333,7 +1333,7 @@
     min-width:0;
     width:auto;
     margin:0;
-    font-size:clamp(.93rem,3.5vw,1.03rem) !important;
+    font-size:clamp(.99rem,3.65vw,1.06rem) !important;
     font-weight:600;
     line-height:1.28;
     letter-spacing:.035em;
@@ -1358,6 +1358,6 @@
     font-size:3.4rem !important;
   }
   body .hero-counter-mobile .counter-label-sm {
-    font-size:.95rem !important;
+    font-size:1.01rem !important;
   }
 }
