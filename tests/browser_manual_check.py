@@ -1234,7 +1234,9 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator(".hero-example-text").evaluate(
                 "el => parseFloat(getComputedStyle(el).fontSize)") <= 25
             assert p.locator("#heroExampleText").get_attribute("data-example-total") == "10"
-            assert p.locator(".hero-example-note").is_visible()
+            assert p.locator(".hero-example-note").count() == 0
+            assert p.locator(".hero-example-text").evaluate(
+                "el => parseFloat(getComputedStyle(el).fontSize)") >= 17
             assert p.locator("#heroExampleText .hero-trigger").count() >= 2
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             # Three support paths remain stacked and do not overflow a phone.

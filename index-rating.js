@@ -21,26 +21,23 @@
     return result;
   };
 
-  // Fictional text for explaining highlighting, never quotations from outlets.
+  // Short fictional examples; highlighted wording does not imply a factual verdict.
   const HERO_EXAMPLES = [
-    ['По словам ', ['источников'], ', ситуация ухудшится ', ['уже завтра'], '. Эксперты призывают ', ['срочно'], ' принять меры.'],
-    ['В сети пишут, что власти ', ['скрывают правду'], ', а ситуация ', ['вышла из-под контроля'], '. Подтверждений этому нет.'],
-    ['Комментаторы предупреждают о ', ['надвигающемся кризисе'], ': последствия якобы будут ', ['необратимыми'], '.'],
-    ['Очевидцы сообщают о ', ['массовой панике'], '. В публикации утверждают, что чиновники ', ['упорно молчат'], '.'],
-    ['Автор уверяет, что ', ['каждый'], ' может пострадать, если меры не принять ', ['прямо сейчас'], '.'],
-    ['По словам экспертов, ситуация ', ['хуже, чем кажется'], ', и впереди нас ждут ', ['тяжёлые последствия'], '.'],
-    ['Решение якобы поддерживают ', ['все разумные люди'], ', а несогласные ', ['не понимают опасности'], '.'],
-    ['Анонимные собеседники утверждают: чиновники ', ['потеряли контроль'], ' и готовят ', ['шокирующее решение'], '.'],
-    ['Заголовок предупреждает о ', ['беспрецедентной угрозе'], ' и раскрывает ', ['то, о чём молчат'], '.'],
-    ['Автор пишет, что времени ', ['почти не осталось'], ', а последствия могут стать ', ['катастрофическими'], '.']
+    ['Экономика ', ['рухнула'], ' из-за ', ['бездарного'], ' управления государством.'],
+    ['Страну ждёт ', ['катастрофа'], ', если не принять меры ', ['срочно'], '.'],
+    ['Власти ', ['скрывают'], ' истинные масштабы ', ['кризиса'], '.'],
+    ['Рынок ', ['обвалился'], ' после ', ['провального'], ' решения.'],
+    ['Реформа ', ['уничтожит'], ' будущее ', ['целого поколения'], '.'],
+    ['Ситуация ', ['вышла из-под контроля'], '. Действовать нужно ', ['немедленно'], '.'],
+    [['Все знают'], ', что чиновники ', ['обманывают'], ' население.'],
+    ['Региону грозит ', ['полный коллапс'], ', предупреждают ', ['эксперты'], '.'],
+    ['Это ', ['последний шанс'], ' остановить ', ['надвигающийся кризис'], '.'],
+    ['Решение властей приведёт к ', ['необратимым'], ' последствиям.']
   ];
-
   let heroExampleIndex = 0, heroExampleTimer = null, heroExampleRun = 0;
-  const exampleFullText = parts => parts.map(part => Array.isArray(part) ? part[0] : part).join('');
+  const exampleFullText = parts => parts.map(p => Array.isArray(p) ? p[0] : p).join('');
   function stopHeroExamples() {
-    ++heroExampleRun;
-    clearTimeout(heroExampleTimer);
-    heroExampleTimer = null;
+    ++heroExampleRun; clearTimeout(heroExampleTimer); heroExampleTimer = null;
   }
   function scheduleHeroExample(callback, delay, run) {
     heroExampleTimer = setTimeout(() => {
@@ -57,62 +54,70 @@
     target.dataset.exampleTotal = String(HERO_EXAMPLES.length);
     target.setAttribute('aria-label', exampleFullText(parts));
 
-    // Create the markup immediately, but keep both text and emphasis inert
-    // until their respective animation phases. Stable highlight spacing avoids
-    // line shifts when a word receives its accent.
-    const segments = parts.map(part => {
-      const emph = Array.isArray(part);
-      const content = emph ? part[0] : part;
-      const element = emph ? node('mark', '', 'hero-trigger') : document.createTextNode('');
-      target.append(element);
-      return {element, chars: Array.from(content), emph};
-    });
+    // Reserve the full paragraph's layout before typing a single character.
+    // Invisible letters take up space, so the first line and hero height stay
+    // fixed even as subsequent lines are revealed.
+    const letters = [], marks = [];
+    const appendWords = (parent, content) => {
+      for (const chunk of content.split(/(\s+)/u)) {
+        if (!chunk) continue;
+        if (/^\s+$/u.test(chunk)) {
+          parent.append(document.createTextNode(chunk));
+          continue;
+        }
+        const word = node('span', '', 'hero-example-word');
+        for (const character of Array.from(chunk)) {
+          const letter = node('span', character, 'hero-example-char');
+          word.append(letter);
+          letters.push(letter);
+        }
+        parent.append(word);
+      }
+    };
+    for (const piece of parts) {
+      const emph = Array.isArray(piece);
+      const part = node(emph ? 'mark' : 'span', '', emph ? 'hero-trigger' : 'hero-example-segment');
+      appendWords(part, emph ? piece[0] : piece);
+      target.append(part);
+      if (emph) marks.push(part);
+    }
     if (instant) {
-      segments.forEach(({element,chars,emph}) => {
-        element.textContent = chars.join('');
-        if (emph) element.classList.add('is-highlighted');
-      });
+      letters.forEach(ch => ch.classList.add('is-typed'));
+      marks.forEach(mark => mark.classList.add('is-highlighted'));
       target.dataset.phase = 'highlighted';
       return;
     }
-    target.dataset.phase = 'typing';
     const run = heroExampleRun;
-    let segmentIndex = 0, charIndex = 0;
+    let nextLetter = 0;
+    target.dataset.phase = 'typing';
     const typeNext = () => {
       if (run !== heroExampleRun) return;
-      const segment = segments[segmentIndex];
-      if (!segment) {
-        target.dataset.phase = 'highlighting';
-        const triggers = [...target.querySelectorAll('.hero-trigger')];
-        let markIndex = 0;
-        const emphasizeNext = () => {
-          if (run !== heroExampleRun) return;
-          if (markIndex < triggers.length) {
-            triggers[markIndex++].classList.add('is-highlighted');
-            scheduleHeroExample(emphasizeNext, 190, run);
-            return;
-          }
-          target.dataset.phase = 'highlighted';
-          // Time to read the complete example, then fade before the next one.
-          scheduleHeroExample(() => {
-            target.classList.add('is-exiting');
-            scheduleHeroExample(() => {
-              heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
-              renderHeroExample(heroExampleIndex);
-            }, 350, run);
-          }, 1900, run);
-        };
-        scheduleHeroExample(emphasizeNext, 220, run);
+      if (nextLetter < letters.length) {
+        letters[nextLetter++].classList.add('is-typed');
+        scheduleHeroExample(typeNext, 28, run);
         return;
       }
-      segment.element.textContent += segment.chars[charIndex++];
-      if (charIndex >= segment.chars.length) {
-        ++segmentIndex;
-        charIndex = 0;
-      }
-      scheduleHeroExample(typeNext, 29, run);
+      target.dataset.phase = 'highlighting';
+      let nextMark = 0;
+      const highlightNext = () => {
+        if (run !== heroExampleRun) return;
+        if (nextMark < marks.length) {
+          marks[nextMark++].classList.add('is-highlighted');
+          scheduleHeroExample(highlightNext, 230, run);
+          return;
+        }
+        target.dataset.phase = 'highlighted';
+        scheduleHeroExample(() => {
+          target.classList.add('is-exiting');
+          scheduleHeroExample(() => {
+            heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
+            renderHeroExample(heroExampleIndex);
+          }, 350, run);
+        }, 2200, run);
+      };
+      scheduleHeroExample(highlightNext, 230, run);
     };
-    scheduleHeroExample(typeNext, 110, run);
+    scheduleHeroExample(typeNext, 120, run);
   }
   function startHeroExamples() {
     stopHeroExamples();

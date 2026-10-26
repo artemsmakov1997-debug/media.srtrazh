@@ -42,13 +42,11 @@ def rating_ui(browser, base, site, errors, requests):
             assert example.get_attribute('data-example-total') == '10'
             assert example.get_attribute('data-example-index') == '0'
             assert example.locator('mark.hero-trigger').count() >= 2
-            assert 'По словам источников' in example.inner_text()
+            assert 'Экономика рухнула' in example.inner_text()
             assert example.get_attribute('data-phase') == 'highlighted'
             assert example.locator('mark.hero-trigger:not(.is-highlighted)').count() == 0
-            # CSS text-transform:uppercase changes rendered innerText, not
-            # the semantic copy in the DOM.
-            assert page.locator('.hero-example-note').text_content().strip() == (
-                'Демонстрационные примеры · не цитаты СМИ')
+            assert page.locator('.hero-example-note').count() == 0
+            assert 'Демонстрационные примеры · не цитаты СМИ' not in page.locator('main').inner_text()
             if mobile:
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
@@ -257,23 +255,33 @@ def rating_ui(browser, base, site, errors, requests):
                 timeout=2500)
             assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
-            # Characters are typed first; the three triggers are highlighted
-            # only after all characters have appeared.
+            # Pre-laid but invisible letters must prevent reflow while typing.
             example = page.locator('#heroExampleText')
             assert example.get_attribute('data-example-total') == '10'
-            assert example.locator('.hero-trigger').count() == 3
+            assert example.locator('.hero-trigger').count() == 2
+            assert example.locator('.hero-example-char:not(.is-typed)').count() > 0
             assert example.get_attribute('data-phase') in ('typing', 'highlighting', 'highlighted')
             assert example.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
             if width == 390:
-                # Only characters appear at first; accent styling comes later.
+                # The heading cannot move when the second line begins.
                 assert example.get_attribute('data-phase') == 'typing'
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 0
+                start_rect = example.evaluate(
+                    'el => ({y:el.getBoundingClientRect().y, '
+                    'h:el.getBoundingClientRect().height, '
+                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y})')
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
                     timeout=8000)
-                assert example.locator('mark.hero-trigger.is-highlighted').count() == 3
-                assert 'По словам источников' in example.inner_text()
+                assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
+                assert example.locator('.hero-example-char:not(.is-typed)').count() == 0
+                end_rect = example.evaluate(
+                    'el => ({y:el.getBoundingClientRect().y, '
+                    'h:el.getBoundingClientRect().height, '
+                    'first:el.querySelector(".hero-example-word").getBoundingClientRect().y})')
+                assert all(abs(start_rect[k] - end_rect[k]) < 1 for k in start_rect), (start_rect, end_rect)
+                assert 'Экономика рухнула' in example.inner_text()
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.exampleIndex === "1"',
                     timeout=12000)

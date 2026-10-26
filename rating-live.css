@@ -1138,3 +1138,39 @@
   .hero .hero-text h1.hero-example-text {transition:none !important;}
   .hero .hero-example-text .hero-trigger {transition:none !important;}
 }
+
+
+/* Stable, larger short examples: pre-laid letters keep every word on its final
+   line while characters appear, then highlights fade on afterwards. */
+.hero .hero-text .hero-example-stage {
+  display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+  min-height:126px;padding:0;
+}
+.hero .hero-text h1.hero-example-text {
+  display:block;width:100%;margin:0;
+  font:700 clamp(1.6rem,2.2vw,2.18rem)/1.4 "Golos Text","Inter",sans-serif;
+  letter-spacing:-.034em;line-height:1.4 !important;
+}
+.hero .hero-example-segment {display:inline;}
+.hero .hero-example-word {display:inline-block;white-space:nowrap;}
+.hero .hero-example-char {opacity:0;transition:opacity 95ms ease-out;}
+.hero .hero-example-char.is-typed {opacity:1;}
+.hero .hero-example-text .hero-trigger {
+  display:inline;white-space:nowrap;line-height:inherit;
+  padding:.025em .27em .07em;margin:0 .025em;
+}
+@media(max-width:767px) {
+  .hero .hero-text .hero-example-stage {min-height:122px;}
+  .hero .hero-text h1.hero-example-text {
+    font:700 clamp(1.13rem,4.7vw,1.4rem)/1.45 "Golos Text","Inter",sans-serif !important;
+    line-height:1.45 !important;letter-spacing:-.025em !important;
+  }
+  .hero .hero-example-text .hero-trigger {padding:.015em .22em .06em;}
+}
+@media(max-width:360px) {
+  .hero .hero-text .hero-example-stage {min-height:130px;}
+  .hero .hero-text h1.hero-example-text {font-size:1.1rem !important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero .hero-example-char {opacity:1 !important;transition:none !important;}
+}
