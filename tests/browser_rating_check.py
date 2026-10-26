@@ -50,6 +50,14 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => getComputedStyle(el).pointerEvents === "none"')
             assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
                 'Катастрофизация', 'Оценочная лексика']
+            assert page.locator('#heroExampleCallouts').evaluate(
+                'layer => {const t=document.querySelector("#heroExampleText").getBoundingClientRect();'
+                'return [...layer.children].every(b => {const r=b.getBoundingClientRect();'
+                'return r.bottom <= t.top-5 || r.top >= t.bottom+5;}); }')
+            if width >= 1024:
+                assert example.evaluate(
+                    'el => {const r=el.getBoundingClientRect();'
+                    'return el.scrollWidth <= el.clientWidth+2 && r.height < 70;}')
             assert not example.text_content().strip().endswith('.')
             assert page.locator('.hero-counter-mobile .counter-label-sm').text_content().strip().lower().replace('\u00a0', ' ').startswith('публикаций')
             assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
@@ -117,6 +125,14 @@ def rating_ui(browser, base, site, errors, requests):
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
             assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
             assert card.locator('.media-footer .link-button').get_attribute('href') == '/archive/'
+            if mobile:
+                assert card.locator('.media-card-arrow').count() == 2
+                assert card.locator('.media-card-arrow-prev').get_attribute('aria-label') == 'Предыдущее СМИ'
+                assert card.locator('.media-card-arrow-next').get_attribute('aria-label') == 'Следующее СМИ'
+                assert card.locator('.media-card-arrow').first.evaluate(
+                    'el => el.getBoundingClientRect().width >= 32')
+            else:
+                assert card.locator('.media-card-arrow').count() == 0
             assert card.locator('.media-footer .link-button').evaluate('el => Math.abs(el.getBoundingClientRect().width - el.parentElement.getBoundingClientRect().width) < 2')
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
             assert card.locator('.small-graph circle').count() == 24
@@ -317,6 +333,10 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
                 assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
                     'Катастрофизация', 'Оценочная лексика']
+                assert page.locator('#heroExampleCallouts').evaluate(
+                    'layer => {const t=document.querySelector("#heroExampleText").getBoundingClientRect();'
+                    'return [...layer.children].every(b => {const r=b.getBoundingClientRect();'
+                    'return r.bottom <= t.top-5 || r.top >= t.bottom+5;}); }')
                 # Each callout remains within the fixed stage bounds.
                 assert page.locator('#heroExampleCallouts').evaluate(
                     'el => Array.from(el.children).every(box => { '
@@ -349,6 +369,15 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => getComputedStyle(el).visibility === "hidden"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
             next_name = fixture['publishers'][1]['name']
+            # Arrow controls must navigate both ways without changing the
+            # existing dot carousel and without keyboard focus getting lost.
+            old_id = page.locator('.media-card.is-active').get_attribute('data-publisher')
+            page.locator('.media-card.is-active .media-card-arrow-next').click()
+            expected = (next(i for i,row in enumerate(fixture['publishers'])
+                             if row['id'] == old_id) + 1) % len(fixture['publishers'])
+            assert page.locator('.media-card.is-active').get_attribute('data-publisher') == fixture['publishers'][expected]['id']
+            page.locator('.media-card.is-active .media-card-arrow-prev').click()
+            assert page.locator('.media-card.is-active').get_attribute('data-publisher') == old_id
             page.locator(f'#mediaDots button[aria-label="Показать {next_name}"]').click()
             active_card = page.locator('.media-card.is-active')
             assert active_card.locator('.media-name').inner_text() == next_name

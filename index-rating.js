@@ -50,22 +50,39 @@
     ['Категоричный прогноз']
   ];
   let heroCalloutTargets = [];
+  function fitHeroExampleLine() {
+    const title = $('heroExampleText');
+    if (!title) return;
+    title.style.removeProperty('font-size');
+    if (!desktop()) return; // tablet/phone keep natural wrapped lines
+    // Fit all ten messages to a single desktop line without cropping.
+    // Measuring scrollWidth includes the already-laid-out invisible letters.
+    const width = title.clientWidth;
+    let size = Math.min(36, Math.max(18, width / 22));
+    title.style.fontSize = size + 'px';
+    for (let i = 0; i < 24 && title.scrollWidth > width + 1; i++) {
+      size = Math.max(13, size - 1);
+      title.style.fontSize = size + 'px';
+    }
+  }
   function positionHeroCallout(callout, mark, preference) {
-    const stage = $('heroExampleText')?.parentElement;
+    const title = $('heroExampleText');
+    const stage = title?.parentElement;
     if (!stage || !callout.isConnected || !mark.isConnected) return;
     const area = stage.getBoundingClientRect();
+    const headline = title.getBoundingClientRect();
     const source = mark.getBoundingClientRect();
     const bubble = callout.getBoundingClientRect();
-    // All positions are relative to a stable stage; callouts don't affect
-    // line breaks or the height of the text during typing.
+    // Two reserved annotation lanes: ABOVE THE WHOLE TITLE and BELOW IT.
+    // Never anchor to an individual line; otherwise a tooltip on line two
+    // can overlap the text on line one (the reported defect).
     const middle = source.left + source.width / 2 - area.left;
     const left = Math.max(6, Math.min(middle - bubble.width / 2, area.width - bubble.width - 6));
-    const above = source.top - area.top - bubble.height - 11;
-    const below = source.bottom - area.top + 11;
-    const placeAbove = preference === 'above'
-      ? above >= 3 || below + bubble.height > area.height - 3
-      : below + bubble.height > area.height - 3 && above >= 3;
-    const y = Math.max(3, Math.min(placeAbove ? above : below, area.height - bubble.height - 3));
+    const placeAbove = preference === 'above';
+    const top = placeAbove
+      ? headline.top - area.top - bubble.height - 18
+      : headline.bottom - area.top + 18;
+    const y = Math.max(3, Math.min(top, area.height - bubble.height - 3));
     callout.style.left = Math.round(left) + 'px';
     callout.style.top = Math.round(y) + 'px';
     callout.style.setProperty('--callout-pointer-x',
@@ -171,6 +188,16 @@
         part.setAttribute('aria-label', part.title + ': ' + (emph ? piece[0] : piece));
         marks.push(part);
       }
+    }
+    fitHeroExampleLine();
+    // When the custom font arrives late, refit without changing word order.
+    // All geometry-dependent callouts are repositioned as well.
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (target.dataset.exampleIndex !== String(index)) return;
+        fitHeroExampleLine();
+        positionHeroCallouts();
+      });
     }
     if (instant) {
       letters.forEach(ch => ch.classList.add('is-typed'));
@@ -529,6 +556,30 @@
     }
     identity.append(icon, names);
     header.append(identity);
+    if (mobile() && media.length > 1) {
+      const controls = node('div', '', 'media-card-slider-controls');
+      for (const direction of [-1, 1]) {
+        const back = direction === -1;
+        const button = node('button', back ? '‹' : '›',
+          'media-card-arrow ' + (back ? 'media-card-arrow-prev' : 'media-card-arrow-next'));
+        button.type = 'button';
+        button.setAttribute('aria-label', back ? 'Предыдущее СМИ' : 'Следующее СМИ');
+        button.setAttribute('title', back ? 'Предыдущее СМИ' : 'Следующее СМИ');
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          const keyboard = event.detail === 0;
+          active = (active + direction + media.length) % media.length;
+          renderCards();
+          const replacement = $('mediaGrid').querySelector('.media-card.is-active .' +
+            (back ? 'media-card-arrow-prev' : 'media-card-arrow-next'));
+          if (keyboard) replacement?.focus({preventScroll:true});
+          else replacement?.blur();
+          restartCycle();
+        });
+        controls.append(button);
+      }
+      header.append(controls);
+    }
 
     // The principal metric is a percentage of the collected sample, not the
     // number of flagged articles. Keep the actual numerator in accessible text.
@@ -755,7 +806,12 @@
   let resize = null;
   window.addEventListener('resize', () => {
     clearTimeout(resize);
-    resize = setTimeout(() => { renderCards(); restartCycle(); positionHeroCallouts(); }, 150);
+    resize = setTimeout(() => {
+      renderCards();
+      restartCycle();
+      fitHeroExampleLine();
+      positionHeroCallouts();
+    }, 150);
   });
   setInterval(() => { if (!document.hidden) loadRating(); }, 300000);
   setInterval(updateStatus, 60000);
