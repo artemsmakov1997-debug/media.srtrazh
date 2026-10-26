@@ -946,3 +946,105 @@
   .current-rating-section .rating-headline .rating-score {font-size:1.62rem;}
   .current-rating-section .rating-headline-label {font-size:.9rem;}
 }
+
+
+
+/* Live illustrative text samples — uses the earlier type-reveal animation. */
+.hero .hero-text .hero-example-stage {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  width:100%;
+  min-width:0;
+  min-height:148px;
+  padding:1px 0;
+}
+.hero .hero-text h1.hero-example-text {
+  display:block;
+  margin:0;
+  max-width:100%;
+  min-width:0;
+  color:#eef5fb;
+  font:600 clamp(1.12rem,1.48vw,1.42rem)/1.58 "Golos Text","Inter",sans-serif;
+  letter-spacing:-.019em;
+  text-align:left;
+  white-space:normal;
+  overflow-wrap:break-word;
+  clip-path:inset(0 100% 0 0);
+  opacity:1;
+  animation:hero-example-reveal 1450ms steps(48,end) .14s both;
+}
+.hero .hero-example-text .hero-trigger {
+  display:inline;
+  margin:0 .035em;
+  padding:.025em .29em .07em;
+  border:1px solid rgba(34,211,238,.58);
+  border-radius:999px;
+  background:rgba(34,211,238,.09);
+  color:#c1f3ff;
+  font:inherit;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+  white-space:normal;
+  box-shadow:0 0 0 1px rgba(34,211,238,.045);
+}
+.hero .hero-text .hero-example-text.is-exiting {
+  opacity:0;
+  clip-path:inset(0 0 0 0);
+  animation:none;
+  transition:opacity 320ms ease;
+}
+.hero .hero-text .hero-example-text.is-settled {
+  clip-path:none;
+  opacity:1;
+  animation:none;
+  transition:none;
+}
+.hero .hero-example-note {
+  margin:12px 0 0;
+  font:500 .63rem/1.4 "Inter",sans-serif;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:#8093a6;
+}
+@keyframes hero-example-reveal {
+  from { opacity:1;clip-path:inset(0 100% 0 0); }
+  to { opacity:1;clip-path:inset(0 0 0 0); }
+}
+/* The caption is informational; keep its colour neutral at every rating tier. */
+.current-rating-section .rating-headline .rating-headline-label,
+.current-rating-section .rating-headline:has(.red-score) .rating-headline-label,
+.current-rating-section .rating-headline:has(.yellow-score) .rating-headline-label,
+.current-rating-section .rating-headline:has(.green-score) .rating-headline-label,
+.current-rating-section .rating-headline:has(.no-data-score) .rating-headline-label {
+  color:#a9b6c4;
+  font-family:"Inter","Golos Text",sans-serif;
+  font-weight:400;
+  letter-spacing:-.015em;
+}
+@media(max-width:767px) {
+  .hero .hero-text .hero-example-stage {
+    min-height:170px;
+    padding:2px 0;
+  }
+  .hero .hero-text h1.hero-example-text {
+    font-size:clamp(.97rem,3.65vw,1.13rem) !important;
+    line-height:1.58 !important;
+    letter-spacing:-.018em !important;
+  }
+  .hero .hero-example-text .hero-trigger {padding:.018em .26em .06em;}
+  .hero .hero-example-note {font-size:.58rem;letter-spacing:.06em;margin-top:9px;}
+}
+@media(max-width:360px) {
+  .hero .hero-text .hero-example-stage {min-height:178px;}
+  .hero .hero-text h1.hero-example-text {font-size:.92rem !important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero .hero-text h1.hero-example-text {
+    animation:none !important;
+    clip-path:none !important;
+    opacity:1 !important;
+  }
+  .hero .hero-text .hero-example-text.is-exiting {transition:none !important;opacity:1 !important;}
+}

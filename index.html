@@ -794,7 +794,7 @@
 </style>
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
   <link rel="stylesheet" href="index-surfaces.css?v=surface3">
-  <link rel="stylesheet" href="rating-live.css?v=rating-integer-percent-20261026">
+  <link rel="stylesheet" href="rating-live.css?v=hero-examples-20261026">
 </head>
 <body>
   <header>
@@ -823,10 +823,12 @@
   <main class="container">
     <section class="hero">
       <div class="hero-text">
-        <h1 class="rating-hero-title" aria-label="МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ">
-          <span class="rating-hero-brand" aria-hidden="true">МЕДИА.<span class="hero-brand-accent">СТРАЖ</span></span>
-          <span class="rating-hero-description" aria-hidden="true">Система анализа манипулятивных техник в СМИ</span>
-        </h1>
+        <div class="hero-example-stage" aria-label="Демонстрация выделения потенциально манипулятивных формулировок">
+          <h1 class="hero-example-text" id="heroExampleText" aria-label="Демонстрационные примеры сообщений">
+            По словам <mark class="hero-trigger">источников</mark>, ситуация может ухудшиться <mark class="hero-trigger">уже завтра</mark>. Эксперты предупреждают о возможной <mark class="hero-trigger">катастрофе</mark> и призывают <mark class="hero-trigger">срочно</mark> принять меры.
+          </h1>
+          <p class="hero-example-note">Демонстрационные примеры · не цитаты СМИ</p>
+        </div>
       </div>
       <aside class="hero-counter" aria-label="Публикации с найденными признаками за 24 часа">
         <div class="counter-value" id="dailyCounterValue">—</div>
@@ -920,6 +922,6 @@
     </div>
   </div>
   <script src="publisher-statuses.js?v=rating-20261025" defer></script>
-  <script src="index-rating.js?v=rating-fixed-logos-20261026" defer></script>
+  <script src="index-rating.js?v=hero-examples-20261026" defer></script>
 </body>
 </html>

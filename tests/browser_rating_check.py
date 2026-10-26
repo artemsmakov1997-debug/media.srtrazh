@@ -38,8 +38,13 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Независимый проект по разработке системы' not in page.locator('main').inner_text()
             assert 'По собранной выборке' not in page.locator('main').inner_text()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
-            assert page.locator('.rating-hero-title').get_attribute('aria-label') == (
-                'МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ')
+            example = page.locator('#heroExampleText')
+            assert example.get_attribute('data-example-total') == '10'
+            assert example.get_attribute('data-example-index') == '0'
+            assert example.locator('mark.hero-trigger').count() >= 2
+            assert 'По словам источников' in example.inner_text()
+            assert page.locator('.hero-example-note').inner_text() == (
+                'Демонстрационные примеры · не цитаты СМИ')
             if mobile:
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
@@ -238,17 +243,20 @@ def rating_ui(browser, base, site, errors, requests):
                 timeout=2500)
             assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
-            # The introduction is typed independently of the cards; its last
-            # state must be readable at both narrow and normal phone widths.
-            page.wait_for_function(
-                '() => {const title=document.querySelector(".rating-hero-title"); '
-                'const first=title?.querySelector(".rating-hero-brand"); '
-                'const second=title?.querySelector(".rating-hero-description"); '
-                'return first && second && '
-                'parseFloat(getComputedStyle(first).opacity) < .05 && '
-                'parseFloat(getComputedStyle(second).opacity) > .95;}', timeout=6500)
-            assert page.locator('.rating-hero-description').inner_text() == (
-                'Система анализа манипулятивных техник в СМИ')
+            # The samples type in with clip-path, without obscuring the card.
+            example = page.locator('#heroExampleText')
+            assert example.get_attribute('data-example-total') == '10'
+            assert example.locator('.hero-trigger').count() == 4
+            assert 'hero-example-reveal' in example.evaluate(
+                'el => getComputedStyle(el).animationName')
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+            if width == 390:
+                page.wait_for_function(
+                    '() => document.querySelector("#heroExampleText")?.dataset.exampleIndex === "1"',
+                    timeout=8500)
+                assert 'скрывают правду' in example.inner_text()
+                assert example.locator('mark.hero-trigger').count() == 2
+                assert page.locator('.media-card.is-active').count() == 1
             assert page.locator('.media-card:not(.is-active)').first.evaluate(
                 'el => getComputedStyle(el).visibility === "hidden"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')

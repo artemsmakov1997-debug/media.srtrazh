@@ -20,6 +20,67 @@
     if (className) result.className = className;
     return result;
   };
+
+  // Fictional examples for interface demonstration only. Highlighting alone
+  // is not an editorial verdict, and none of these are attributed to a source.
+  const HERO_EXAMPLES = [
+    ['По словам ', ['источников'], ', ситуация может ухудшиться ', ['уже завтра'], '. Эксперты предупреждают о возможной ', ['катастрофе'], ' и призывают ', ['срочно'], ' принять меры.'],
+    ['В сети утверждают, что власти ', ['скрывают правду'], ' о происходящем. Якобы ситуация ', ['вышла из-под контроля'], ', хотя подтверждений этим словам нет.'],
+    ['Комментаторы пишут о ', ['надвигающемся кризисе'], ': по их мнению, последствия окажутся ', ['необратимыми'], ', если решение не примут ', ['немедленно'], '.'],
+    ['Очевидцы говорят о ', ['массовой панике'], '. В публикации утверждается, что официальные лица ', ['упорно молчат'], ' и ', ['скрывают масштабы'], ' проблемы.'],
+    ['Автор материала уверяет: ', ['каждый'], ' может пострадать, если меры не принять ', ['прямо сейчас'], '. Других вариантов, по его словам, ', ['не осталось'], '.'],
+    ['Сообщается, что эксперты ', ['бьют тревогу'], ': положение якобы ', ['хуже, чем кажется'], ', а впереди страну ждут ', ['тяжёлые последствия'], '.'],
+    ['В публикации говорится, что решение поддерживают ', ['все разумные люди'], ', а несогласные ', ['просто не понимают'], ', насколько всё ', ['опасно'], '.'],
+    ['Анонимные собеседники утверждают, будто чиновники ', ['потеряли контроль'], ' и собираются принять ', ['шокирующее решение'], ' в ближайшие часы.'],
+    ['Заголовок предупреждает о ', ['беспрецедентной угрозе'], ' и обещает раскрыть ', ['то, о чём молчат'], ' официальные источники.'],
+    ['По словам автора, времени ', ['почти не осталось'], ': если читатели ', ['не вмешаются сегодня'], ', последствия будут ', ['катастрофическими'], '.']
+  ];
+
+  let heroExampleIndex = 0, heroExampleTimer = null, heroExampleExitTimer = null;
+  function renderHeroExample(index) {
+    const target = $('heroExampleText');
+    if (!target) return;
+    target.replaceChildren();
+    for (const part of HERO_EXAMPLES[index]) {
+      if (Array.isArray(part)) target.append(node('mark', part[0], 'hero-trigger'));
+      else target.append(document.createTextNode(part));
+    }
+    target.dataset.exampleIndex = String(index);
+    target.dataset.exampleTotal = String(HERO_EXAMPLES.length);
+    target.setAttribute('aria-label', target.textContent);
+  }
+  function stopHeroExamples() {
+    clearInterval(heroExampleTimer);
+    clearTimeout(heroExampleExitTimer);
+    heroExampleTimer = heroExampleExitTimer = null;
+  }
+  function startHeroExamples() {
+    stopHeroExamples();
+    const target = $('heroExampleText');
+    if (!target) return;
+    // In reduced-motion mode, retain a readable static example.
+    if (motion.matches || document.hidden) {
+      target.classList.remove('is-exiting');
+      target.classList.add('is-settled');
+      return;
+    }
+    target.classList.remove('is-settled');
+    heroExampleTimer = setInterval(() => {
+      if (document.hidden || motion.matches) return;
+      target.classList.add('is-exiting');
+      heroExampleExitTimer = setTimeout(() => {
+        heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
+        renderHeroExample(heroExampleIndex);
+        target.classList.remove('is-exiting', 'is-settled');
+        // Removing the class and forcing one style pass restarts the same
+        // stepped clip-path reveal used by the original heading.
+        target.style.animation = 'none';
+        void target.offsetWidth;
+        target.style.removeProperty('animation');
+      }, 330);
+    }, 6200);
+  }
+
   let report = null, media = [], offset = 0, active = 0, cycle = null, loading = false, loadError = false;
   let counterAnimation = null, previousTotal = null;
 
@@ -540,11 +601,17 @@
   });
   $('mediaGrid').addEventListener('pointerenter', stopCycle); $('mediaGrid').addEventListener('pointerleave', restartCycle);
   $('mediaGrid').addEventListener('focusin', stopCycle); $('mediaGrid').addEventListener('focusout', () => setTimeout(restartCycle, 0));
-  document.addEventListener('visibilitychange', () => { restartCycle(); if (!document.hidden) loadRating(); });
-  motion.addEventListener('change', restartCycle);
+  document.addEventListener('visibilitychange', () => {
+    restartCycle();
+    if (!document.hidden) loadRating();
+    startHeroExamples();
+  });
+  motion.addEventListener('change', () => { restartCycle(); startHeroExamples(); });
   let resize = null;
   window.addEventListener('resize', () => { clearTimeout(resize); resize = setTimeout(() => { renderCards(); restartCycle(); }, 150); });
   setInterval(() => { if (!document.hidden) loadRating(); }, 300000);
   setInterval(updateStatus, 60000);
+  renderHeroExample(heroExampleIndex);
+  startHeroExamples();
   loadRating();
 })();
