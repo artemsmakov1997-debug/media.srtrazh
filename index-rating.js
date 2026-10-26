@@ -618,6 +618,12 @@
     graph.tabIndex = 0;
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
+    // The full list belongs beside "Смотреть примеры" on mobile cards.
+    const fullListButton = node('button', 'Полный список', 'media-full-list-button');
+    fullListButton.type = 'button';
+    fullListButton.setAttribute('aria-label', 'Открыть полный список СМИ');
+    fullListButton.addEventListener('click', () => openModal('fullListModal', fullListButton));
+    footer.append(fullListButton);
     card.append(header, score, graph, footer);
     return card;
   }
