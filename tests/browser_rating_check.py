@@ -45,6 +45,11 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Экономика рухнула' in example.inner_text()
             assert example.get_attribute('data-phase') == 'highlighted'
             assert example.locator('mark.hero-trigger:not(.is-highlighted)').count() == 0
+            assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
+            assert page.locator('#heroExampleCallouts').evaluate(
+                'el => getComputedStyle(el).pointerEvents === "none"')
+            assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
+                'Катастрофизация', 'Оценочная лексика']
             assert not example.text_content().strip().endswith('.')
             assert page.locator('.hero-counter-mobile .counter-label-sm').text_content().strip().lower().replace('\u00a0', ' ').startswith('публикаций')
             assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
@@ -299,6 +304,7 @@ def rating_ui(browser, base, site, errors, requests):
                 # The heading cannot move when the second line begins.
                 assert example.get_attribute('data-phase') == 'typing'
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 0
+                assert page.locator('#heroExampleCallouts .hero-example-callout').count() == 0
                 start_rect = example.evaluate(
                     'el => ({y:el.getBoundingClientRect().y - el.parentElement.getBoundingClientRect().y, '
                     'h:el.getBoundingClientRect().height, '
@@ -308,6 +314,15 @@ def rating_ui(browser, base, site, errors, requests):
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
                     timeout=8000)
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
+                assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
+                assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
+                    'Катастрофизация', 'Оценочная лексика']
+                # Each callout remains within the fixed stage bounds.
+                assert page.locator('#heroExampleCallouts').evaluate(
+                    'el => Array.from(el.children).every(box => { '
+                    'const a=el.getBoundingClientRect(), b=box.getBoundingClientRect(); '
+                    'return b.left >= a.left-1 && b.right <= a.right+1 && '
+                    'b.top >= a.top-1 && b.bottom <= a.bottom+1; })')
                 assert example.locator('.hero-example-char:not(.is-typed)').count() == 0
                 end_rect = example.evaluate(
                     'el => ({y:el.getBoundingClientRect().y - el.parentElement.getBoundingClientRect().y, '
@@ -316,13 +331,18 @@ def rating_ui(browser, base, site, errors, requests):
                     'el.getBoundingClientRect().y})')
                 assert all(abs(start_rect[k] - end_rect[k]) < 1 for k in start_rect), (start_rect, end_rect)
                 assert 'Экономика рухнула' in example.inner_text()
+                # Complete text + explanations stays up longer than the
+                # old ~2.2s cycle; keep the threshold below the first fade.
+                page.wait_for_timeout(1750)
+                assert example.get_attribute('data-example-index') == '0'
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.exampleIndex === "1"',
-                    timeout=12000)
+                    timeout=15000)
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
-                    timeout=8000)
+                    timeout=9500)
                 assert 'Страну ждёт катастрофа' in example.text_content()
+                assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
                 assert page.locator('.media-card.is-active').count() == 1
             assert page.locator('.media-card:not(.is-active)').first.evaluate(

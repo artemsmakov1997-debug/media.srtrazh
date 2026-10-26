@@ -34,10 +34,72 @@
     ['Это ', ['последний шанс'], ' остановить ', ['надвигающийся кризис'], ''],
     ['Решение властей приведёт к ', ['необратимым'], ' последствиям']
   ];
+
+  // Short interpretive names, not verified assessments of published articles.
+  // Order follows the highlighted fragments in each fictional sample.
+  const HERO_EXPLANATIONS = [
+    ['Катастрофизация', 'Оценочная лексика'],
+    ['Нагнетание тревоги', 'Маркер срочности'],
+    ['Обвинительная формулировка', 'Тревожная лексика'],
+    ['Драматизация события', 'Оценочная лексика'],
+    ['Категоричное утверждение', 'Обобщение'],
+    ['Катастрофизация', 'Маркер срочности'],
+    ['Бездоказательное обобщение', 'Обвинительная оценка'],
+    ['Катастрофизация', 'Неуточнённый источник'],
+    ['Давление срочностью', 'Тревожный прогноз'],
+    ['Категоричный прогноз']
+  ];
+  let heroCalloutTargets = [];
+  function positionHeroCallout(callout, mark, preference) {
+    const stage = $('heroExampleText')?.parentElement;
+    if (!stage || !callout.isConnected || !mark.isConnected) return;
+    const area = stage.getBoundingClientRect();
+    const source = mark.getBoundingClientRect();
+    const bubble = callout.getBoundingClientRect();
+    // All positions are relative to a stable stage; callouts don't affect
+    // line breaks or the height of the text during typing.
+    const middle = source.left + source.width / 2 - area.left;
+    const left = Math.max(6, Math.min(middle - bubble.width / 2, area.width - bubble.width - 6));
+    const above = source.top - area.top - bubble.height - 11;
+    const below = source.bottom - area.top + 11;
+    const placeAbove = preference === 'above'
+      ? above >= 3 || below + bubble.height > area.height - 3
+      : below + bubble.height > area.height - 3 && above >= 3;
+    const y = Math.max(3, Math.min(placeAbove ? above : below, area.height - bubble.height - 3));
+    callout.style.left = Math.round(left) + 'px';
+    callout.style.top = Math.round(y) + 'px';
+    callout.style.setProperty('--callout-pointer-x',
+      Math.round(Math.max(12, Math.min(bubble.width - 12, middle - left))) + 'px');
+    callout.classList.toggle('is-above', placeAbove);
+    callout.classList.toggle('is-below', !placeAbove);
+  }
+  function positionHeroCallouts() {
+    for (const {callout,mark,preference} of heroCalloutTargets) {
+      positionHeroCallout(callout,mark,preference);
+    }
+  }
+  function clearHeroCallouts() {
+    heroCalloutTargets = [];
+    $('heroExampleCallouts')?.replaceChildren();
+  }
+  function showHeroCallout(mark, caption, index, immediate = false) {
+    const layer = $('heroExampleCallouts');
+    if (!layer) return;
+    const bubble = node('span', caption, 'hero-example-callout');
+    bubble.dataset.triggerIndex = String(index);
+    bubble.setAttribute('aria-hidden', 'true');
+    const preference = index % 2 === 0 ? 'above' : 'below';
+    layer.append(bubble);
+    heroCalloutTargets.push({callout:bubble,mark,preference});
+    positionHeroCallout(bubble,mark,preference);
+    if (immediate) bubble.classList.add('is-visible');
+    else requestAnimationFrame(() => { if (bubble.isConnected) bubble.classList.add('is-visible'); });
+  }
   let heroExampleIndex = 0, heroExampleTimer = null, heroExampleRun = 0;
   const exampleFullText = parts => parts.map(p => Array.isArray(p) ? p[0] : p).join('');
   function stopHeroExamples() {
     ++heroExampleRun; clearTimeout(heroExampleTimer); heroExampleTimer = null;
+    clearHeroCallouts();
   }
   function scheduleHeroExample(callback, delay, run) {
     heroExampleTimer = setTimeout(() => {
@@ -49,6 +111,8 @@
     if (!target) return;
     const parts = HERO_EXAMPLES[index];
     target.replaceChildren();
+    clearHeroCallouts();
+    $('heroExampleCallouts')?.classList.remove('is-exiting');
     target.classList.remove('is-exiting');
     target.dataset.exampleIndex = String(index);
     target.dataset.exampleTotal = String(HERO_EXAMPLES.length);
@@ -58,6 +122,7 @@
     // Invisible letters take up space, so the first line and hero height stay
     // fixed even as subsequent lines are revealed.
     const letters = [], marks = [];
+    const explanations = HERO_EXPLANATIONS[index];
     const appendWords = (parent, content) => {
       for (const chunk of content.split(/(\s+)/u)) {
         if (!chunk) continue;
@@ -101,11 +166,18 @@
       const part = node(emph ? 'mark' : 'span', '', emph ? 'hero-trigger' : 'hero-example-segment');
       appendWords(part, content);
       target.append(part);
-      if (emph) marks.push(part);
+      if (emph) {
+        part.title = explanations[marks.length] || 'Пример возможного маркера';
+        part.setAttribute('aria-label', part.title + ': ' + (emph ? piece[0] : piece));
+        marks.push(part);
+      }
     }
     if (instant) {
       letters.forEach(ch => ch.classList.add('is-typed'));
-      marks.forEach(mark => mark.classList.add('is-highlighted'));
+      marks.forEach((mark, i) => {
+        mark.classList.add('is-highlighted');
+        showHeroCallout(mark, explanations[i], i, true);
+      });
       target.dataset.phase = 'highlighted';
       return;
     }
@@ -124,20 +196,27 @@
       const highlightNext = () => {
         if (run !== heroExampleRun) return;
         if (nextMark < marks.length) {
-          marks[nextMark++].classList.add('is-highlighted');
-          scheduleHeroExample(highlightNext, 230, run);
+          const index = nextMark++;
+          const mark = marks[index];
+          mark.classList.add('is-highlighted');
+          scheduleHeroExample(() => {
+            showHeroCallout(mark, explanations[index], index);
+            scheduleHeroExample(highlightNext, 820, run);
+          }, 390, run);
           return;
         }
+        // Hold the complete annotated text long enough to read both labels.
         target.dataset.phase = 'highlighted';
         scheduleHeroExample(() => {
           target.classList.add('is-exiting');
+          $('heroExampleCallouts')?.classList.add('is-exiting');
           scheduleHeroExample(() => {
             heroExampleIndex = (heroExampleIndex + 1) % HERO_EXAMPLES.length;
             renderHeroExample(heroExampleIndex);
-          }, 350, run);
-        }, 2200, run);
+          }, 460, run);
+        }, 4700, run);
       };
-      scheduleHeroExample(highlightNext, 230, run);
+      scheduleHeroExample(highlightNext, 380, run);
     };
     scheduleHeroExample(typeNext, 120, run);
   }
@@ -674,7 +753,10 @@
   });
   motion.addEventListener('change', () => { restartCycle(); startHeroExamples(); });
   let resize = null;
-  window.addEventListener('resize', () => { clearTimeout(resize); resize = setTimeout(() => { renderCards(); restartCycle(); }, 150); });
+  window.addEventListener('resize', () => {
+    clearTimeout(resize);
+    resize = setTimeout(() => { renderCards(); restartCycle(); positionHeroCallouts(); }, 150);
+  });
   setInterval(() => { if (!document.hidden) loadRating(); }, 300000);
   setInterval(updateStatus, 60000);
   renderHeroExample(heroExampleIndex);
