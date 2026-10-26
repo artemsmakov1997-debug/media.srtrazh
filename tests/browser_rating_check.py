@@ -257,10 +257,11 @@ def rating_ui(browser, base, site, errors, requests):
                 timeout=2500)
             assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
-            # The samples type in with clip-path, without obscuring the card.
+            # Characters are typed first; the three triggers are highlighted
+            # only after all characters have appeared.
             example = page.locator('#heroExampleText')
             assert example.get_attribute('data-example-total') == '10'
-            assert example.locator('.hero-trigger').count() == 4
+            assert example.locator('.hero-trigger').count() == 3
             assert example.get_attribute('data-phase') in ('typing', 'highlighting', 'highlighted')
             assert example.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
