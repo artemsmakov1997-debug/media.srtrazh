@@ -102,8 +102,15 @@ def rating_ui(browser, base, site, errors, requests):
             else:
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
-                assert example.evaluate(
-                    'el => parseFloat(getComputedStyle(el).fontSize) >= 27')
+                if width >= 1024:
+                    # Single-line fit takes precedence over a fixed font size
+                    # on narrow desktops; never crop or wrap the publication.
+                    assert example.evaluate(
+                        'el => getComputedStyle(el).whiteSpace === "nowrap" && '
+                        'el.scrollWidth <= el.clientWidth + 2')
+                else:
+                    assert example.evaluate(
+                        'el => parseFloat(getComputedStyle(el).fontSize) >= 27')
             if mobile:
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
                 card = page.locator('.media-card.is-active')
