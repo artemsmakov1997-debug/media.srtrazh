@@ -1249,3 +1249,115 @@
   }
   body .hero-counter-mobile .counter-label-sm {font-size:1.04rem !important;}
 }
+
+
+/* Preserve punctuation with the previous phrase, even when the phrase
+   is highlighted. The punctuation itself remains outside the coloured mark. */
+.hero .hero-example-joined {
+  display:inline-block;
+  white-space:nowrap;
+  vertical-align:baseline;
+}
+.hero .hero-example-punctuation {
+  display:inline;
+  color:inherit;
+  white-space:nowrap;
+}
+
+/* Mobile editorial layout from the annotated reference: centered text,
+   hairline divider, then number LEFT and explanatory label RIGHT. */
+@media(max-width:767px) {
+  .hero {
+    margin:0 !important;
+    padding:19px 0 22px !important;
+    gap:0 !important;
+    align-items:center;
+    border-bottom:1px solid rgba(144,162,177,.43);
+  }
+  .hero .hero-text {
+    width:100%;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .hero .hero-text .hero-example-stage {
+    width:100%;
+    min-height:166px;
+    padding:5px 0;
+    margin:0;
+    justify-content:center;
+    align-items:center;
+  }
+  .hero .hero-text h1.hero-example-text {
+    text-align:center !important;
+    max-width:100%;
+    margin:0 auto;
+  }
+  body .hero-counter-mobile {
+    display:grid !important;
+    grid-template-columns:minmax(0,max-content) minmax(0,1fr) !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:18px !important;
+    width:100%;
+    margin:0 !important;
+    padding:20px 10px 19px !important;
+    text-align:left !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+  }
+  body .hero-counter-mobile .counter-value-sm {
+    display:block;
+    min-width:0;
+    max-width:100%;
+    margin:0;
+    font-size:clamp(3.55rem,14.6vw,4.5rem) !important;
+    line-height:1.02 !important;
+    letter-spacing:-.07em;
+    text-align:left !important;
+    white-space:nowrap;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="3"] {
+    font-size:clamp(2.72rem,11.5vw,3.7rem) !important;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="4"] {
+    font-size:clamp(2.2rem,9.3vw,3rem) !important;
+  }
+  body .hero-counter-mobile .counter-value-sm[data-digits="5"] {
+    font-size:clamp(1.85rem,7.7vw,2.5rem) !important;
+  }
+  body .hero-counter-mobile .counter-label-sm {
+    display:block;
+    min-width:0;
+    width:auto;
+    margin:0;
+    font-size:clamp(.93rem,3.5vw,1.03rem) !important;
+    font-weight:600;
+    line-height:1.28;
+    letter-spacing:.035em;
+    text-align:left !important;
+    overflow-wrap:normal;
+  }
+  .section-divider {
+    width:100%;
+    margin:0 0 28px !important;
+    height:1px;
+    opacity:.7;
+    background:rgba(144,162,177,.38);
+  }
+}
+@media(max-width:360px) {
+  .hero .hero-text .hero-example-stage {min-height:172px;}
+  body .hero-counter-mobile {
+    gap:12px !important;
+    padding:20px 3px 19px !important;
+  }
+  body .hero-counter-mobile .counter-value-sm {
+    font-size:3.4rem !important;
+  }
+  body .hero-counter-mobile .counter-label-sm {
+    font-size:.95rem !important;
+  }
+}

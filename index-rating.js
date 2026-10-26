@@ -76,8 +76,30 @@
     };
     for (const piece of parts) {
       const emph = Array.isArray(piece);
+      let content = emph ? piece[0] : piece;
+      // Punctuation immediately following a highlighted phrase is a separate
+      // data segment. Keep it on the SAME line as the phrase, without putting
+      // the punctuation inside its highlighted mark. Applies to all examples.
+      if (!emph) {
+        const leadingPunctuation = content.match(/^[.,!?;:…]+/u);
+        if (leadingPunctuation && target.lastElementChild) {
+          const previous = target.lastElementChild;
+          const joined = node('span', '', 'hero-example-joined');
+          target.replaceChild(joined, previous);
+          joined.append(previous);
+          const punctuation = node('span', '', 'hero-example-punctuation');
+          for (const character of Array.from(leadingPunctuation[0])) {
+            const letter = node('span', character, 'hero-example-char');
+            punctuation.append(letter);
+            letters.push(letter);
+          }
+          joined.append(punctuation);
+          content = content.slice(leadingPunctuation[0].length);
+        }
+      }
+      if (!content) continue;
       const part = node(emph ? 'mark' : 'span', '', emph ? 'hero-trigger' : 'hero-example-segment');
-      appendWords(part, emph ? piece[0] : piece);
+      appendWords(part, content);
       target.append(part);
       if (emph) marks.push(part);
     }

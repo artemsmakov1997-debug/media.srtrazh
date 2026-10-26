@@ -45,6 +45,7 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Экономика рухнула' in example.inner_text()
             assert example.get_attribute('data-phase') == 'highlighted'
             assert example.locator('mark.hero-trigger:not(.is-highlighted)').count() == 0
+            assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
             assert page.locator('.hero-example-note').count() == 0
             assert 'Демонстрационные примеры · не цитаты СМИ' not in page.locator('main').inner_text()
             if mobile:
@@ -56,19 +57,21 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => getComputedStyle(el).textAlign === "center" && '
                     'parseFloat(getComputedStyle(el).fontSize) >= 19')
                 assert page.locator('.hero-counter-mobile').evaluate(
-                    'el => getComputedStyle(el).flexDirection === "column" && '
-                    'getComputedStyle(el).alignItems === "center"')
+                    'el => getComputedStyle(el).display === "grid" && '
+                    'getComputedStyle(el).gridTemplateColumns.split(" ").length === 2')
                 assert page.locator('.hero-counter-mobile .counter-value-sm').evaluate(
                     'el => parseFloat(getComputedStyle(el).fontSize) >= 50')
                 assert page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
-                    'el => parseFloat(getComputedStyle(el).fontSize) >= 15')
+                    'el => parseFloat(getComputedStyle(el).fontSize) >= 14')
                 assert page.locator('.hero-counter-mobile').evaluate(
                     'el => {const box=el.getBoundingClientRect(); '
                     'const value=el.querySelector(".counter-value-sm").getBoundingClientRect(); '
                     'const label=el.querySelector(".counter-label-sm").getBoundingClientRect(); '
-                    'return Math.abs((value.left+value.right)/2-(box.left+box.right)/2)<2 && '
-                    'Math.abs((label.left+label.right)/2-(box.left+box.right)/2)<2 && '
-                    'value.bottom<=label.top && value.right<=innerWidth; }')
+                    'return value.right+4<=label.left && '
+                    'Math.abs((value.top+value.bottom)/2-(label.top+label.bottom)/2)<16 && '
+                    'value.left>=box.left-1 && label.right<=box.right+1; }')
+                assert page.locator('.hero').evaluate(
+                    'el => getComputedStyle(el).borderBottomWidth === "1px"')
             else:
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
@@ -262,8 +265,8 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => parseFloat(getComputedStyle(el).fontSize)')
             label_font = page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
                 'el => parseFloat(getComputedStyle(el).fontSize)')
-            assert count_font >= 50, count_font
-            assert label_font >= 15, label_font
+            assert count_font >= 44, count_font  # 3–5 digits are scaled down to fit.
+            assert label_font >= 14, label_font
             gap = first.locator('.media-card-header').evaluate(
                 'el => el.nextElementSibling.getBoundingClientRect().top - '
                 'el.getBoundingClientRect().bottom')
