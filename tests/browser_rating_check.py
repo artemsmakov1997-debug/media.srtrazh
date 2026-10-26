@@ -109,9 +109,11 @@ def rating_ui(browser, base, site, errors, requests):
             if not mobile:
                 expected_cards = min(3 if width >= 1024 else 2, len(fixture['publishers']))
                 assert page.locator('.media-card').count() == expected_cards
+                # Hover lifts the interacted-with card by 2px. Verify that cards
+                # share one CSS grid row using layout coordinates, not transformed
+                # screen rectangles (which depend on pointer position).
                 assert page.locator('.media-grid').evaluate(
-                    'el => Math.abs(el.firstElementChild.getBoundingClientRect().top - '
-                    'el.lastElementChild.getBoundingClientRect().top) < 2')
+                    'el => el.firstElementChild.offsetTop === el.lastElementChild.offsetTop')
                 assert page.locator('.hero .hero-counter').evaluate(
                     'el => getComputedStyle(el).flexDirection === "column"')
                 assert page.locator('.hero .hero-text').evaluate(
@@ -198,7 +200,9 @@ def rating_ui(browser, base, site, errors, requests):
                 page.clock.install()
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == '3'
-                page.locator('.media-card[data-publisher="rt"] .link-button').click()
+                # Auto-rotation can replace RT in the displayed group.
+                # All example buttons must navigate to the same archive route.
+                page.locator('.media-card .link-button').first.click()
                 page.wait_for_url('**/archive/')
                 assert page.locator('#archiveList .archive-item').count() > 0
         finally:

@@ -34,6 +34,19 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Prepare verified browser runtime
         run: python3 -m media_strazh prepare-browser
+      # Catch rating HTML/CSS/interaction regressions before the 15-minute
+      # collection. The test serves a small synthetic site and intercepts
+      # rating.json with a deterministic fixture.
+      - name: Install browser test tools
+        if: github.event_name != 'schedule'
+        run: |
+          python3 -m pip install playwright==1.62.0
+          python3 -m playwright install --with-deps chromium
+      - name: Check rating UI before collection
+        if: github.event_name != 'schedule'
+        run: |
+          python3 tests/prepare_browser_site.py --output /tmp/rating-preflight
+          python3 tests/browser_rating_check.py --site /tmp/rating-preflight
       # Reuse the private SQLite corpus from the preceding run instead of
       # starting with an empty /tmp database every half hour.
       # The cache key is unique per run, so the post-job save creates a new
@@ -124,11 +137,6 @@ jobs:
           retention-days: 30
       - name: Build public site
         run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 100
-      - name: Install browser test tools
-        if: github.event_name != 'schedule'
-        run: |
-          python3 -m pip install playwright==1.62.0
-          python3 -m playwright install --with-deps chromium
       - name: Check browser analysis against Python
         if: github.event_name != 'schedule'
         run: python3 tests/browser_manual_check.py --site _site
