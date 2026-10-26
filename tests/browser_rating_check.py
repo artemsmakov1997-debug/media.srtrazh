@@ -45,6 +45,8 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Экономика рухнула' in example.inner_text()
             assert example.get_attribute('data-phase') == 'highlighted'
             assert example.locator('mark.hero-trigger:not(.is-highlighted)').count() == 0
+            assert not example.text_content().strip().endswith('.')
+            assert page.locator('.hero-counter-mobile .counter-label-sm').text_content().strip().lower().replace('\u00a0', ' ').startswith('публикаций')
             assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
             assert page.locator('.hero-example-note').count() == 0
             assert 'Демонстрационные примеры · не цитаты СМИ' not in page.locator('main').inner_text()
@@ -67,9 +69,15 @@ def rating_ui(browser, base, site, errors, requests):
                     'el => {const box=el.getBoundingClientRect(); '
                     'const value=el.querySelector(".counter-value-sm").getBoundingClientRect(); '
                     'const label=el.querySelector(".counter-label-sm").getBoundingClientRect(); '
+                    'const parent=box.parentElement || el.parentElement; '
+                    'const available=parent.getBoundingClientRect(); '
                     'return value.right+4<=label.left && '
                     'Math.abs((value.top+value.bottom)/2-(label.top+label.bottom)/2)<16 && '
-                    'value.left>=box.left-1 && label.right<=box.right+1; }')
+                    'value.left>=box.left-1 && label.right<=box.right+1 && '
+                    'Math.abs((box.left+box.right)/2-(available.left+available.right)/2)<2; }')
+                assert page.locator('.hero-counter-mobile .counter-label-sm').evaluate(
+                    'el => {const html=el.innerHTML; return '
+                    'html.includes("публикаций<br>с&nbsp;признаками<br>за&nbsp;"); }')
                 assert page.locator('.hero').evaluate(
                     'el => getComputedStyle(el).borderBottomWidth === "1px"')
             else:

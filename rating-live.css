@@ -1361,3 +1361,31 @@
     font-size:1.01rem !important;
   }
 }
+
+
+/* Center the NUMBER+CAPTION as one group, keeping the number on the left.
+   Fix the caption to three considered lines so a one-letter preposition
+   never hangs at the end of the previous line. */
+@media(max-width:767px) {
+  body .hero-counter-mobile {
+    width:max-content !important;
+    max-width:calc(100% - 16px);
+    grid-template-columns:max-content max-content !important;
+    margin:0 auto !important;
+    justify-content:center !important;
+    align-items:center !important;
+    column-gap:clamp(12px,4vw,22px) !important;
+    padding:20px 2px 19px !important;
+  }
+  body .hero-counter-mobile .counter-label-sm {
+    white-space:nowrap;
+    width:max-content;
+    max-width:100%;
+  }
+}
+@media(max-width:360px) {
+  body .hero-counter-mobile {
+    column-gap:10px !important;
+    max-width:calc(100% - 8px);
+  }
+}
