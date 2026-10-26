@@ -88,22 +88,15 @@ def rating_ui(browser, base, site, errors, requests):
                 'yellow':'Средний процент маркеров',
                 'green':'Низкий процент маркеров'
             }[chosen['level']]
-            assert card.locator('.media-top-badges').evaluate('el => el.parentElement === el.closest(".media-card")')
+            assert card.locator('.rating-legal-info, .media-top-badges').count() == 0
+            assert card.locator('.rating-status-stack .media-status-tag').count() == (
+                1 if chosen['id'] == 'mediazona' else 0)
             assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
             assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
-            info = card.locator('.rating-legal-info')
-            assert info.locator('summary').get_attribute('aria-label') == 'Информация о правовых статусах изданий'
-            info.locator('summary').click()
-            assert info.get_attribute('open') is not None
-            assert 'Реестр иностранных агентов' in info.inner_text()
-            assert info.locator('a[href*="minjust.gov.ru"]').count() == 2
-            page.keyboard.press('Escape')
-            assert info.get_attribute('open') is None
             assert card.locator('.rating-caption-row').evaluate(
                 'el => el.parentElement.classList.contains("media-card") && '
                 'el.nextElementSibling.classList.contains("small-graph") && '
-                'el.querySelector(".rating-chart-caption") !== null && '
-                'el.querySelector(".rating-legal-info") !== null')
+                'el.querySelector(".rating-chart-caption") !== null')
             assert card.locator('.small-graph .rating-chart-caption').count() == 0
             assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '.')
             if not mobile:
@@ -133,7 +126,15 @@ def rating_ui(browser, base, site, errors, requests):
                 assert 'Часы Москвы от 00 до 24' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
                 assert zero_card.locator('.small-graph svg circle').count() == 24
                 assert zero_card.locator('.rating-signal-peak').count() == 0
-                assert zero_card.locator('.media-top-badges .media-status-tag').count() == 1
+                assert zero_card.locator('.rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
+                meduza = next(item['name'] for item in fixture['publishers'] if item['id'] == 'meduza')
+                page.locator(f'#mediaDots button[aria-label="Показать {meduza}"]').click()
+                double = page.locator('.media-card.is-active .rating-status-stack')
+                assert double.locator('.media-status-tag').all_inner_texts() == [
+                    'иноагент', 'нежелательная организация']
+                assert double.locator('.media-status-tag').evaluate_all(
+                    'els => els[1].getBoundingClientRect().top > els[0].getBoundingClientRect().bottom')
+                assert page.locator('.media-card.is-active .rating-info-trigger').count() == 0
                 page.locator('#mediaDots button[aria-label="Показать RT на русском"]').click()
             page.screenshot(path=str(output / f'rating-{width}.png'), full_page=True)
 
@@ -205,6 +206,37 @@ def rating_ui(browser, base, site, errors, requests):
                 page.locator('.media-card .link-button').first.click()
                 page.wait_for_url('**/archive/')
                 assert page.locator('#archiveList .archive-item').count() > 0
+        finally:
+            context.close()
+
+    # Check real-motion mobile behavior as well: reduced-motion tests alone
+    # cannot detect opacity conflicts between entry keyframes and the slider.
+    for width in (390, 320):
+        context = browser.new_context(
+            viewport={"width": width, "height": 812}, is_mobile=True,
+            has_touch=True, reduced_motion='no-preference')
+        try:
+            page = context.new_page()
+            page.on('pageerror', lambda error: errors.append(str(error)))
+            page.route('**/data/rating.json', lambda route: route.fulfill(json=fixture))
+            page.goto(base + '/index.html')
+            first = page.locator('.media-card.is-active')
+            first.wait_for(state='visible')
+            assert first.evaluate(
+                'el => getComputedStyle(el).opacity === "1" && '
+                'getComputedStyle(el).animationName === "none"')
+            assert page.locator('.media-grid .media-card.is-active').count() == 1
+            assert page.locator('.media-card:not(.is-active)').first.evaluate(
+                'el => getComputedStyle(el).visibility === "hidden"')
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+            next_name = fixture['publishers'][1]['name']
+            page.locator(f'#mediaDots button[aria-label="Показать {next_name}"]').click()
+            active_card = page.locator('.media-card.is-active')
+            assert active_card.locator('.media-name').inner_text() == next_name
+            assert active_card.evaluate(
+                'el => getComputedStyle(el).opacity === "1" && '
+                'getComputedStyle(el).visibility === "visible"')
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         finally:
             context.close()
 

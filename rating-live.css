@@ -531,3 +531,96 @@
   .current-rating-section .media-footer a.link-button,
   .current-rating-section .rating-info-trigger {transition:none !important;}
 }
+
+
+
+/* October 26: visually quieter legal badges and independently controlled mobile slide. */
+@media(min-width:1024px) {
+  .hero .hero-text h1 {
+    font-family:"Exo 2","Golos Text",sans-serif;
+    font-weight:800;
+    font-size:clamp(2.15rem,2.65vw,2.85rem);
+    line-height:1.18;
+    letter-spacing:-.026em;
+    max-width:900px;
+  }
+}
+.current-rating-section .media-card {
+  padding:19px 20px 19px !important;
+  overflow:hidden;
+}
+.current-rating-section .media-card-header {margin-bottom:15px;}
+.current-rating-section .rating-caption-row {
+  gap:10px;
+  min-height:35px;
+  margin:auto 0 10px;
+  align-items:center;
+}
+.current-rating-section .rating-caption-row .rating-chart-caption {
+  flex:1 1 auto;
+  min-width:0;
+  max-width:none;
+  white-space:normal;
+  line-height:1.3;
+}
+.current-rating-section .rating-status-stack {
+  flex:0 0 auto;
+  max-width:51%;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:4px;
+  text-align:right;
+}
+.current-rating-section .rating-status-stack .media-status-tag {
+  display:block;
+  box-sizing:border-box;
+  max-width:100%;
+  padding:3px 6px;
+  font:500 .59rem/1.18 "Inter",sans-serif;
+  color:#e8c391;
+  background:rgba(200,148,65,.075);
+  border:1px solid rgba(211,170,94,.42);
+  border-radius:5px;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+@media(max-width:767px) {
+  .current-rating-section .media-card {
+    padding:17px !important;
+    overflow:hidden;
+  }
+  /* Keyframes on the card previously overrode the slider's opacity/transform,
+     occasionally leaving the active card transparent on real phones. */
+  .current-rating-section .media-grid.is-mobile-slider .media-card {
+    animation:none !important;
+    transition:opacity .28s ease,transform .28s ease;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .current-rating-section .media-grid.is-mobile-slider .media-card.is-active {
+    opacity:1 !important;
+    transform:none !important;
+    visibility:visible;
+    pointer-events:auto;
+    position:relative;
+  }
+  .current-rating-section .rating-caption-row {gap:7px;min-height:34px;}
+  .current-rating-section .rating-status-stack .media-status-tag {
+    font-size:clamp(.52rem,2.2vw,.59rem);
+    padding:3px 5px;
+  }
+  .current-rating-section .rating-caption-row .rating-chart-caption {font-size:.7rem;}
+}
+@media(max-width:360px) {
+  .current-rating-section .media-card {padding:14px !important;}
+  .current-rating-section .rating-status-stack {max-width:53%;}
+  .current-rating-section .rating-status-stack .media-status-tag {font-size:.51rem;padding:3px 4px;}
+  .current-rating-section .rating-caption-row .rating-chart-caption {font-size:.66rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .current-rating-section .media-grid.is-mobile-slider .media-card {transition:none !important;}
+}

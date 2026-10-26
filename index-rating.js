@@ -291,34 +291,6 @@
     return link;
   }
 
-  function legalInfo() {
-    const details = node('details', '', 'rating-legal-info');
-    const toggle = node('summary', 'i', 'rating-info-trigger');
-    toggle.setAttribute('aria-label', 'Информация о правовых статусах изданий');
-    toggle.title = 'О статусах источников';
-    const panel = node('div', '', 'rating-info-panel');
-    panel.append(
-      node('strong', 'О правовых статусах источников', 'rating-info-title'),
-      node('p', 'Обозначения «иноагент» и «нежелательная организация» относятся к официальным правовым статусам, не характеризуют качество публикаций и не влияют на процент маркеров. Статусы следует проверять в актуальных реестрах Минюста РФ.'),
-    );
-    const sourceLinks = node('div', '', 'rating-info-links');
-    const addSource = (title, href) => {
-      const link = node('a', title);
-      link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
-      sourceLinks.append(link);
-    };
-    addSource('Реестр иностранных агентов', 'https://www.minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/');
-    addSource('Перечень нежелательных организаций', 'https://minjust.gov.ru/ru/pages/perechen-inostrannyh-i-mezhdunarodnyh-organizacij-deyatelnost-kotoryh-priznana-nezhelatelnoj-na-territorii-rossijskoj-federacii/');
-    panel.append(sourceLinks);
-    details.append(toggle, panel);
-    details.addEventListener('toggle', () => {
-      if (details.open) document.querySelectorAll('.rating-legal-info[open]').forEach(other => {
-        if (other !== details) other.open = false;
-      });
-    });
-    return details;
-  }
-
   function levelBadge(row) {
     const meta = ({
       red: ['Высокий процент маркеров', 'high'],
@@ -333,17 +305,6 @@
   function drawCard(row) {
     const card = node('article', '', 'media-card');
     card.dataset.publisher = row.id;
-
-    // Reserve a narrow top status rail for consistent vertical alignment.
-    const topBadges = node('div', '', 'media-top-badges');
-    for (const status of statusLabels(row.id)) {
-      const tag = node('span', status, 'media-status-tag');
-      tag.title = status === 'иноагент'
-        ? 'Издание включено в реестр иностранных агентов'
-        : 'Издание имеет статус нежелательной организации';
-      topBadges.append(tag);
-    }
-    if (!topBadges.childElementCount) topBadges.setAttribute('aria-hidden', 'true');
 
     const header = node('div', '', 'media-card-header');
     const identity = node('div', '', 'media-logo');
@@ -375,10 +336,23 @@
     graph.tabIndex = 0;
 
     const captionRow = node('div', '', 'rating-caption-row');
-    captionRow.append(caption, legalInfo());
+    captionRow.append(caption);
+    const statuses = statusLabels(row.id);
+    if (statuses.length) {
+      const legal = node('div', '', 'rating-status-stack');
+      legal.setAttribute('aria-label', 'Юридические статусы издания');
+      for (const status of statuses) {
+        const tag = node('span', status, 'media-status-tag');
+        tag.title = status === 'иноагент'
+          ? 'Издание включено в реестр иностранных агентов'
+          : 'Издание имеет статус нежелательной организации';
+        legal.append(tag);
+      }
+      captionRow.append(legal);
+    }
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
-    card.append(topBadges, header, captionRow, graph, footer);
+    card.append(header, captionRow, graph, footer);
     return card;
   }
 
@@ -401,8 +375,16 @@
       const dot = node('button', '', 'media-dot' + (index === active ? ' active' : ''));
       dot.type = 'button'; dot.setAttribute('aria-label', 'Показать ' + row.name);
       dot.setAttribute('aria-pressed', String(index === active));
-      dot.addEventListener('click', () => {
-        active = index; renderCards(); $('mediaDots').children[index]?.focus({preventScroll: true}); restartCycle();
+      dot.addEventListener('click', event => {
+        const keyboard = event.detail === 0;
+        active = index;
+        renderCards();
+        const replacement = $('mediaDots').children[index];
+        // Keep auto-rotation available after touch activation, but pause on
+        // keyboard focus so assistive-navigation users can read the card.
+        if (keyboard) replacement?.focus({preventScroll: true});
+        else replacement?.blur();
+        restartCycle();
       });
       $('mediaDots').append(dot);
     });
@@ -548,7 +530,6 @@
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
-      document.querySelectorAll('.rating-legal-info[open]').forEach(details => { details.open = false; });
       closeModal(); $('navLinks')?.classList.remove('open'); $('burgerBtn')?.setAttribute('aria-expanded', 'false');
     }
     if (event.key !== 'Tab' || !currentModal) return;
@@ -561,9 +542,6 @@
   burger?.addEventListener('click', () => burger.setAttribute('aria-expanded', String(navigation.classList.toggle('open'))));
   navigation?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { navigation.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }));
   document.addEventListener('click', event => {
-    document.querySelectorAll('.rating-legal-info[open]').forEach(details => {
-      if (!details.contains(event.target)) details.open = false;
-    });
     if (burger && !navigation.contains(event.target) && !burger.contains(event.target)) {
       navigation.classList.remove('open'); burger.setAttribute('aria-expanded', 'false');
     }
