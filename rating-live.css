@@ -1219,7 +1219,7 @@
     text-align:center;
   }
   body .hero-counter-mobile .counter-value-sm {
-    font-size:clamp(3.2rem,14vw,4.5rem) !important;
+    font-size:clamp(3.45rem,14vw,4.5rem) !important;
     line-height:1.1;
     max-width:100%;
     overflow:visible;
@@ -1244,8 +1244,8 @@
 @media(max-width:360px) {
   .hero .hero-text .hero-example-stage {min-height:186px;}
   .hero .hero-text h1.hero-example-text {
-    font-size:1.22rem !important;
+    font-size:1.35rem !important;
     line-height:1.45 !important;
   }
-  body .hero-counter-mobile .counter-label-sm {font-size:.96rem !important;}
+  body .hero-counter-mobile .counter-label-sm {font-size:1.04rem !important;}
 }
