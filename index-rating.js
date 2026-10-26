@@ -210,11 +210,11 @@
       return node('span', 'Нет данных за последние 24 часа', 'rating-graph-empty');
     }
     const svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', '0 0 340 108');
+    svg.setAttribute('viewBox', '0 0 340 66');
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label',
-      row.name + '. Часы Москвы от 00 до 24. Уровень 1: за час найдена хотя бы одна публикация с признаками. '
+      row.name + '. Часы Москвы от 00 до 24. Подъём линии означает, что за час найдена хотя бы одна публикация с признаками. '
       + 'Всего за 24 часа: ' + row.flagged + '.');
     const shape = (tag, attrs, value) => {
       const element = document.createElementNS(ns, tag);
@@ -223,7 +223,7 @@
       return element;
     };
     const color = ({red: '#f87171', yellow: '#efbd42', green: '#36d399'}[row.level] || '#65bee9');
-    const left = 24, right = 332, top = 18, bottom = 80;
+    const left = 16, right = 332, top = 5, bottom = 41;
     const xAt = hour => left + hour * (right - left) / 24;
     // The end hour marks the next bucket; subtract 1 to get the Moscow start hour.
     const byHour = Array(24);
@@ -240,18 +240,16 @@
     );
     defs.append(gradient);
     svg.append(defs);
-    // Only the level "1" is labelled; horizontal ticks use actual clock hours.
+    // A binary activity track without vertical tick labels; clock hours are preserved.
     svg.append(shape('line', {x1:left,y1:top,x2:right,y2:top,stroke:'#8caec3',
       'stroke-opacity':'.20','stroke-dasharray':'3 5'}));
     svg.append(shape('line', {x1:left,y1:bottom,x2:right,y2:bottom,stroke:'#7295ab',
       'stroke-opacity':'.44'}));
-    svg.append(shape('text', {x:13,y:top+3,'text-anchor':'middle',fill:'#a2bdd0',
-      'font-family':'Inter, sans-serif','font-size':'10'}, '1'));
     for (const hour of [0,6,12,18,24]) {
       const x = xAt(hour);
       if (hour > 0 && hour < 24) svg.append(shape('line', {x1:x,y1:top,x2:x,y2:bottom,
         stroke:'#7f9bb1','stroke-opacity':'.10','stroke-dasharray':'2 5'}));
-      svg.append(shape('text', {x,y:100,'text-anchor':hour===0?'start':hour===24?'end':'middle',
+      svg.append(shape('text', {x,y:60,'text-anchor':hour===0?'start':hour===24?'end':'middle',
         fill:'#9eb4c5','font-family':'Inter, sans-serif','font-size':'10'},
         String(hour).padStart(2, '0')));
     }

@@ -38,6 +38,8 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Независимый проект по разработке системы' not in page.locator('main').inner_text()
             assert 'По собранной выборке' not in page.locator('main').inner_text()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+            assert page.locator('.rating-hero-title').get_attribute('aria-label') == (
+                'МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ')
             if mobile:
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
@@ -76,7 +78,9 @@ def rating_ui(browser, base, site, errors, requests):
                 'els => els.map(el => el.textContent.trim())')
             assert [value for value in svg_labels if value in ('00', '06', '12', '18', '24')] == [
                 '00', '06', '12', '18', '24']
-            assert '1' in svg_labels
+            assert '1' not in svg_labels
+            chart_height = card.locator('.small-graph').bounding_box()['height']
+            assert 65 <= chart_height <= 82, chart_height
             assert card.locator('.media-level-badge').count() == 1
             assert card.locator('.media-name').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
             assert card.locator('.media-level-badge').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
@@ -93,6 +97,11 @@ def rating_ui(browser, base, site, errors, requests):
                 1 if chosen['id'] == 'mediazona' else 0)
             assert card.locator('.rating-chart-caption-label').inner_text() == 'Найдено спорных сообщений:'
             assert card.locator('.rating-chart-caption-value').inner_text() == str(chosen['flagged'])
+            assert card.locator('.rating-chart-caption').evaluate(
+                'el => Math.abs(el.querySelector(".rating-chart-caption-label").getBoundingClientRect().top - '
+                'el.querySelector(".rating-chart-caption-value").getBoundingClientRect().top) < 3')
+            assert card.locator('.rating-chart-caption').evaluate(
+                'el => el.scrollWidth <= el.clientWidth + 2')
             assert card.locator('.rating-caption-row').evaluate(
                 'el => el.parentElement.classList.contains("media-card") && '
                 'el.nextElementSibling.classList.contains("small-graph") && '
@@ -230,6 +239,17 @@ def rating_ui(browser, base, site, errors, requests):
                 timeout=2500)
             assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
+            # The introduction is typed independently of the cards; its last
+            # state must be readable at both narrow and normal phone widths.
+            page.wait_for_function(
+                '() => {const title=document.querySelector(".rating-hero-title"); '
+                'const first=title?.querySelector(".rating-hero-brand"); '
+                'const second=title?.querySelector(".rating-hero-description"); '
+                'return first && second && '
+                'parseFloat(getComputedStyle(first).opacity) < .05 && '
+                'parseFloat(getComputedStyle(second).opacity) > .95;}', timeout=6500)
+            assert page.locator('.rating-hero-description').inner_text() == (
+                'Система анализа манипулятивных техник в СМИ')
             assert page.locator('.media-card:not(.is-active)').first.evaluate(
                 'el => getComputedStyle(el).visibility === "hidden"')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')

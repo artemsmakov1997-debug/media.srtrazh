@@ -1230,7 +1230,9 @@ def pro_business_navigation_ui(browser, base, site):
             card_box = rating_card.bounding_box()
             assert abs(grid_box["height"] - card_box["height"]) <= 4, (grid_box, card_box)
             assert p.locator(".hero h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 25
-            assert "rating-title-appear" in p.locator(".hero-text h1").evaluate("el => getComputedStyle(el).animationName")
+            assert p.locator(".hero-text h1").get_attribute("aria-label") == (
+                "МЕДИА.СТРАЖ — система анализа манипулятивных техник в СМИ")
+            assert p.locator(".rating-hero-description").is_visible()
             assert p.locator(".hero .hero-brand-accent").evaluate("el => getComputedStyle(el).color") == "rgb(34, 211, 238)"
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             # Three support paths remain stacked and do not overflow a phone.

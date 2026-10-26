@@ -624,3 +624,155 @@
 @media(prefers-reduced-motion:reduce) {
   .current-rating-section .media-grid.is-mobile-slider .media-card {transition:none !important;}
 }
+
+
+
+/* Oct 26: condensed signal graph, readable caption and two-stage typed hero. */
+/* This animation is scoped to the title: the counter, cards and navigation retain their timing. */
+.hero .hero-text .rating-hero-title {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:center;
+  width:100%;
+  max-width:100%;
+  min-height:105px;
+  margin:0;
+  text-align:left;
+  font-family:"Unbounded","Exo 2","Montserrat",sans-serif;
+  line-height:1.19;
+  animation:none !important;
+}
+.hero .rating-hero-brand,.hero .rating-hero-description {
+  display:block;
+  grid-area:1/1;
+  max-width:100%;
+  min-width:0;
+  align-self:center;
+  overflow:visible;
+}
+.hero .rating-hero-brand {
+  font:800 clamp(2rem,3.45vw,3.25rem)/1.18 "Unbounded","Exo 2",sans-serif;
+  letter-spacing:-.047em;
+  white-space:nowrap;
+  opacity:1;
+  clip-path:inset(0 100% 0 0);
+  animation:rating-hero-type-brand 1050ms steps(13,end) 100ms forwards,
+    rating-hero-brand-exit 390ms ease 1530ms forwards;
+}
+.hero .rating-hero-description {
+  font:700 clamp(1.58rem,2.18vw,2.15rem)/1.32 "Unbounded","Exo 2",sans-serif;
+  letter-spacing:-.04em;
+  color:#f2f7fb;
+  opacity:0;
+  clip-path:inset(0 100% 0 0);
+  animation:rating-hero-type-description 1240ms steps(43,end) 1960ms forwards;
+}
+@keyframes rating-hero-type-brand {
+  from {clip-path:inset(0 100% 0 0);}
+  to {clip-path:inset(0 0 0 0);}
+}
+@keyframes rating-hero-brand-exit {from {opacity:1;}to {opacity:0;}}
+@keyframes rating-hero-type-description {
+  from {opacity:1;clip-path:inset(0 100% 0 0);}
+  to {opacity:1;clip-path:inset(0 0 0 0);}
+}
+.current-rating-section .media-card {min-height:272px;}
+.current-rating-section .rating-caption-row {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:25px;
+  margin:auto 0 9px;
+}
+.current-rating-section .rating-caption-row .rating-chart-caption {
+  display:inline-flex;
+  align-items:baseline;
+  justify-content:flex-start;
+  flex:0 1 auto;
+  width:auto;
+  min-width:0;
+  max-width:100%;
+  gap:4px;
+  margin:0;
+  white-space:nowrap;
+  overflow:visible;
+  line-height:1.25;
+  font-size:clamp(.62rem,.85vw,.76rem);
+}
+.current-rating-section .rating-chart-caption-label {
+  flex:0 0 auto;
+  display:inline;
+  white-space:nowrap;
+}
+.current-rating-section .rating-chart-caption-value {
+  display:inline;
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+.current-rating-section .rating-status-stack {margin-left:auto;}
+.current-rating-section .small-graph {
+  height:76px;
+  min-height:76px;
+  padding:3px 9px 2px;
+}
+@media(min-width:1024px) {
+  .hero .hero-text .rating-hero-title {min-height:110px;}
+  .hero .rating-hero-description {font-size:clamp(1.7rem,2.22vw,2.2rem);}
+}
+@media(max-width:767px) {
+  .hero .hero-text .rating-hero-title {
+    min-height:95px;
+    font-size:clamp(1.25rem,5.1vw,1.55rem) !important;
+  }
+  .hero .rating-hero-brand {
+    font-size:clamp(1.35rem,5.15vw,1.86rem);
+    letter-spacing:-.04em;
+  }
+  .hero .rating-hero-description {
+    font-size:clamp(1.05rem,4.15vw,1.34rem);
+    line-height:1.4;
+    letter-spacing:-.037em;
+  }
+  .current-rating-section .media-card {min-height:0;}
+  .current-rating-section .rating-caption-row {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    align-content:center;
+    justify-items:stretch;
+    gap:5px;
+    min-height:0;
+    margin:10px 0 10px;
+  }
+  .current-rating-section .rating-caption-row .rating-chart-caption {
+    width:max-content;
+    max-width:100%;
+    white-space:nowrap;
+    font-size:clamp(.65rem,2.85vw,.75rem);
+  }
+  .current-rating-section .rating-status-stack {
+    justify-self:end;
+    align-items:flex-end;
+    margin-left:0;
+    max-width:100%;
+    gap:3px;
+  }
+  .current-rating-section .small-graph {
+    height:73px;
+    min-height:73px;
+    padding:3px 8px 2px;
+  }
+}
+@media(max-width:360px) {
+  .hero .hero-text .rating-hero-title {min-height:96px;}
+  .hero .rating-hero-brand {font-size:clamp(1.22rem,5.05vw,1.48rem);}
+  .hero .rating-hero-description {font-size:clamp(1rem,4vw,1.13rem);}
+  .current-rating-section .rating-caption-row .rating-chart-caption {font-size:.66rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero .rating-hero-brand {display:none !important;animation:none !important;}
+  .hero .rating-hero-description {
+    opacity:1 !important;
+    clip-path:none !important;
+    animation:none !important;
+  }
+}
