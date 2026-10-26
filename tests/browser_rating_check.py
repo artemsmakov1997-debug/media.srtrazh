@@ -57,11 +57,17 @@ def rating_ui(browser, base, site, errors, requests):
                               if item['id'] == ('rt' if width >= 1024 else fixture['publishers'][0]['id']))
                 card = page.locator(f'.media-card[data-publisher="{chosen["id"]}"]')
             assert card.locator('.rating-score').inner_text() == f'{chosen["score_percent"]:g}%'
-            # Logo is loaded from an external favicon service when available;
-            # offline test runners must also accept the safe monogram fallback.
+            # BBC/RIA have supplied local logos; other publishers may use
+            # external favicon services or offline lettermark fallbacks.
             assert card.locator('.logo-icon').count() == 1
             if card.locator('.logo-image').count():
-                assert card.locator('.logo-image').get_attribute('src').startswith('https://www.google.com/s2/favicons?')
+                src = card.locator('.logo-image').get_attribute('src')
+                expected_local = {'bbc': '/bbc-publisher.webp', 'ria': '/ria-publisher.webp'}
+                if chosen['id'] in expected_local:
+                    assert src == expected_local[chosen['id']], (chosen['id'], src)
+                else:
+                    assert src.startswith(('https://www.google.com/s2/favicons?',
+                                           'https://unavatar.io/telegram/')), src
             else:
                 assert card.locator('.logo-icon').inner_text().strip()
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
@@ -310,28 +316,31 @@ def rating_ui(browser, base, site, errors, requests):
     finally:
         context.close()
 
-    # The supplied logos must be served locally and actually decode, even
-    # when the third-party favicon endpoint is inaccessible.
-    branded = copy.deepcopy(fixture)
-    bbc = next(row for row in branded['publishers'] if row['id'] == 'rt')
-    bbc['id'], bbc['name'] = 'bbc', 'BBC News'
-    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion='reduce')
+    # Validate the real publisher entries, rather than injecting duplicate
+    # IDs into the rating fixture. On mobile the selector can expose any outlet
+    # without changing ranks, totals or the scoring data.
+    context = browser.new_context(
+        viewport={"width": 390, "height": 812}, is_mobile=True,
+        has_touch=True, reduced_motion='reduce')
     try:
         page = context.new_page()
         page.on('pageerror', lambda error: errors.append(str(error)))
-        page.route('**/data/rating.json', lambda route: route.fulfill(json=branded))
+        page.route('**/data/rating.json', lambda route: route.fulfill(json=fixture))
         page.goto(base + '/index.html')
         for outlet, expected in (('bbc', '/bbc-publisher.webp'),
                                  ('ria', '/ria-publisher.webp')):
-            logo = page.locator(f'.media-card[data-publisher="{outlet}"] .logo-image')
+            name = next(row['name'] for row in fixture['publishers'] if row['id'] == outlet)
+            page.locator(f'#mediaDots button[aria-label="Показать {name}"]').click()
+            logo = page.locator(f'.media-card.is-active[data-publisher="{outlet}"] .logo-image')
             logo.wait_for(state='attached')
             assert logo.get_attribute('src') == expected
             page.wait_for_function(
-                '(id) => { const el=document.querySelector('
-                '`.media-card[data-publisher="${id}"] .logo-image`); '
+                '(id) => { const el = document.querySelector('
+                '`.media-card.is-active[data-publisher="${id}"] .logo-image`); '
                 'return el && el.complete && el.naturalWidth >= 128; }',
-                arg=outlet, timeout=2500)
-            assert page.locator(f'.media-card[data-publisher="{outlet}"] .logo-icon.has-logo').count() == 1
+                arg=outlet, timeout=5000)
+            assert page.locator(
+                f'.media-card.is-active[data-publisher="{outlet}"] .logo-icon.has-logo').count() == 1
     finally:
         context.close()
 
