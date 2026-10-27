@@ -1,4 +1,6 @@
 /* Data annotations only; the existing archive row and modal design is retained. */
+/* Rows retain their content height; the capped list scrolls instead of shrinking them. */
+.archive-list > .archive-item {flex:0 0 auto;}
 .archive-publisher-status,.archive-platform {
   display:block;margin-top:3px;font-size:.66rem;line-height:1.35;font-weight:400;
   color:#a8bbc8;letter-spacing:0;text-transform:none;overflow-wrap:anywhere;

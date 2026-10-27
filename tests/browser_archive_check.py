@@ -40,6 +40,18 @@ def fixture(site):
     return data
 
 
+def assert_rows_contain_content(page):
+    # DOM presence alone misses flex items squeezed to their two-pixel borders.
+    sizes = page.locator('.archive-item').evaluate_all('''items => items.map(item => {
+      const row = item.querySelector('.archive-summary').getBoundingClientRect();
+      const box = item.getBoundingClientRect();
+      return {id:item.dataset.id, item:box.height, content:row.height,
+              top:row.top-box.top, bottom:row.bottom-box.bottom};
+    })''')
+    assert sizes and all(s['content'] >= 30 and s['item'] >= s['content'] - 2
+                         and s['top'] >= -2 and s['bottom'] <= 2 for s in sizes), sizes[:8]
+
+
 def archive_ui(browser, base, site):
     data = fixture(site)
     screenshots = Path('/tmp/media-strazh-archive-checks'); screenshots.mkdir(exist_ok=True)
@@ -51,6 +63,7 @@ def archive_ui(browser, base, site):
         page.goto(base + '/archive/')
         page.wait_for_function('document.querySelectorAll(".archive-item").length === 4')
         assert page.locator('.archive-item').evaluate_all('(els) => els.map(el=>Number(el.dataset.id))') == [1,2,3,4]
+        assert_rows_contain_content(page)
         assert 'демо' not in page.locator('#rtText').inner_text()
         assert page.locator('.archive-item[data-id="1"] .archive-publisher-status').all_text_contents() == ['иноагент', 'нежелательная организация']
         assert page.locator('.archive-item[data-id="2"] .archive-publisher-status').all_text_contents() == ['иноагент']
@@ -83,6 +96,29 @@ def archive_ui(browser, base, site):
         assert button.evaluate('(el)=>el===document.activeElement')
         page.screenshot(path=str(screenshots / f'archive-{width}.png'), full_page=True)
         assert not errors, errors
+        page.close()
+
+    # Match the production snapshot size. Four test rows fit the height cap
+    # and cannot reveal the flex-shrink regression seen with 100 publications.
+    full = copy.deepcopy(data)
+    full['articles'] = [dict(copy.deepcopy(data['articles'][i % 4]), id=i+1) for i in range(100)]
+    for width in (320, 375, 390, 768, 1024, 1280, 1440):
+        page = browser.new_page(viewport={'width': width, 'height': 900}, device_scale_factor=1)
+        page.route('**/data/analysis.json', lambda route: route.fulfill(json=full))
+        page.goto(base + ('/archive.html' if width == 1024 else '/archive/'))
+        page.wait_for_function('document.querySelectorAll(".archive-item").length === 100')
+        assert_rows_contain_content(page)
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), width
+        page.screenshot(path=str(screenshots / f'archive-100-{width}.png'))
+        last = page.locator('.archive-item').last.locator('.more-btn')
+        last.click()
+        assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'false'
+        page.keyboard.press('Escape')
+        page.locator('.chip[data-status="danger"]').click()
+        assert_rows_contain_content(page)
+        page.locator('.chip[data-status="all"]').click()
+        assert page.locator('.archive-item').count() == 100
+        assert_rows_contain_content(page)
         page.close()
 
     page = browser.new_page()
@@ -123,9 +159,11 @@ def archive_ui(browser, base, site):
     page.wait_for_selector('.archive-item')
     snapshot = json.loads((Path(site) / 'data/analysis.json').read_text())
     assert page.locator('.archive-item').count() == len(snapshot['articles'])
+    assert_rows_contain_content(page)
     page.close()
     print(json.dumps({'archive_viewports': 7, 'real_snapshot_ids': 'passed', 'source_links_and_legal_labels': 'passed',
-                      'unicode_evidence_and_touch': 'passed', 'no_fabricated_fallback': 'passed'}))
+                      'unicode_evidence_and_touch': 'passed', 'no_fabricated_fallback': 'passed',
+                      'full_100_row_heights_and_scrolling': 'passed'}))
 
 
 if __name__ == '__main__':
