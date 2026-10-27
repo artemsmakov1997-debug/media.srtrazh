@@ -7,6 +7,12 @@ from media_strazh.rules import RULES
 
 
 POSITIVE_CASES = {
+    "fear.alarmist_metaphor": "Ад на пороге: в городе ожидают тяжёлую зиму.",
+    "emotion.violent_public_metaphor": "Летающий морг готовят на Украине.",
+    "emotion.collective_panic": "Жители Киева в панике бегут из города.",
+    "fear.total_destruction_metaphor": "Город Украины сотрут с лица земли, заявил политик.",
+    "generalization.exclusive_collective_blame": "Трамп назвал Сомали худшей страной: «Не работают, а только воруют».",
+    "clickbait.reader_teaser": "Как работает дежавю — вы удивитесь.",
     "enemy.derisive_communication": "Зеленский выступил с заявлением. Кто-то, кажется, догавкался.",
     "dysphemism.derogatory_group": "В Европе это стало кошмаром для заукраинцев.",
     "dysphemism.expired_politician": "Президент обсудил действия Просроченного.",
@@ -111,6 +117,53 @@ class LatestMediaRhetoricTests(unittest.TestCase):
         expected = analyze({"text": text})["findings"]
         for source in ("Аргументы и факты", "ИноСМИ", "СМОТРИ", "BBC", "RT"):
             self.assertEqual(analyze({"text": text, "source": source})["findings"], expected)
+
+    def test_oct27_real_headlines_and_exact_phrases(self):
+        # Development excerpts from the existing public analysis snapshot;
+        # these are regression cases, not an independent accuracy benchmark.
+        cases = [
+            ("Ад на пороге: жители Киева в панике бегут из города в ожидании тяжелейшей зимы",
+             "fear.alarmist_metaphor", "Ад на пороге"),  # t.me/inosmichannel/33000
+            ("Маск пошел против Киева: скандал со Starlink выбьет последний дух из ВСУ",
+             "emotion.violent_public_metaphor", "выбьет последний дух"),
+            ("Летающий морг готовят на Украине: элиту из Британии вырежут «Кинжалом»",
+             "emotion.violent_public_metaphor", "Летающий морг"),  # t.me/aifonline/201748
+            ("Сбой памяти или знак судьбы? Как на самом деле работает дежавю — вы удивитесь",
+             "clickbait.reader_teaser", "вы удивитесь"),  # fontanka.ru/2026/10/25/76722264/
+            ("Рынок обвалился после провального решения.", "emotion.loaded_word", "провального"),
+        ]
+        for text, rule, quote in cases:
+            with self.subTest(rule=rule):
+                finding = self.matching(text, rule)[0]
+                self.assertEqual(finding['evidence'][0]['quote'], quote)
+                self.assertEqual(finding['status'], 'needs_review')
+
+    def test_new_cues_preserve_quotes_discussion_and_literal_emotions(self):
+        for rule, text in (
+            ("fear.alarmist_metaphor", "Министр сказал: «Ад на пороге».") ,
+            ("emotion.violent_public_metaphor", "Автор написал: «Летающий морг готовят на Украине».") ,
+        ):
+            self.assertEqual(self.matching(text, rule)[0]['status'], 'quoted_candidate')
+        for text in (
+            'В кинотеатре показали фильм «Ад на пороге».',
+            'Роман «Летающий морг» поступил в продажу.',
+            'Врач рассказал, что у школьницы началась истерика.',
+            'Девочка была в панике после разговора с сотрудниками.',
+            'Житель Киева был в панике после разговора с сотрудниками.',
+            'Житель в панике выбежал из квартиры.',
+            'Клопы и другие насекомые поселились в номере.',
+            'Водители не работают, а только воруют — сцена из комедии.',
+            'Статья описывает результаты исследования памяти.',
+        ):
+            findings = analyze({'text': text})['findings']
+            new_rules = {'fear.alarmist_metaphor', 'emotion.violent_public_metaphor',
+                         'emotion.collective_panic', 'fear.total_destruction_metaphor',
+                         'generalization.exclusive_collective_blame', 'clickbait.reader_teaser'}
+            self.assertFalse(any(f['rule_id'] in new_rules for f in findings), text)
+
+    def test_reader_teaser_is_bounded_to_title_or_opening(self):
+        self.assertEqual(self.matching('Подробности события. ' * 20 + 'Вы удивитесь.', 'clickbait.reader_teaser'), [])
+        self.assertTrue(self.matching('Вы не поверите: раскрыты новые подробности.', 'clickbait.reader_teaser'))
 
 
 if __name__ == "__main__":

@@ -53,4 +53,5 @@ jobs:
           path: |
             /tmp/analysis-layout-checks
             /tmp/media-strazh-rating-checks
+            /tmp/media-strazh-archive-checks
           retention-days: 14

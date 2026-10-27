@@ -943,6 +943,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".manifest-subtitle-desktop").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 17
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
+        page.wait_for_selector('#archiveList .archive-item')
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
@@ -1277,6 +1278,7 @@ def pro_business_navigation_ui(browser, base, site):
             p.locator("#ratingModalClose").click()
             # Archive category left, Details right, same horizontal row.
             p.goto(base + "/archive.html")
+            p.wait_for_selector('#archiveList .archive-item')
             assert p.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
             archive_card = p.locator("#archiveList .archive-item").first
             category_box = archive_card.locator(".cell-category").bounding_box()
@@ -1724,6 +1726,8 @@ def main():
             pro_business_navigation_ui(browser, base, site)
             from browser_rating_check import rating_ui
             rating_ui(browser, base, site, errors, requests)
+            from browser_archive_check import archive_ui
+            archive_ui(browser, base, site)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(

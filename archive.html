@@ -1799,6 +1799,7 @@
   }
 </style>
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
+  <link rel="stylesheet" href="archive-data.css?v=20261027-1">
 </head>
 <body>
 
@@ -1834,10 +1835,10 @@
         </div>
         <div class="status-chips-wrapper">
           <div class="status-chips">
-            <button class="chip chip-active" data-status="all"     type="button">Все</button>
-            <button class="chip"             data-status="danger"  type="button">Спорные</button>
-            <button class="chip"             data-status="risky"   type="button">Смешанные</button>
-            <button class="chip"             data-status="neutral" type="button">Нейтральные</button>
+            <button class="chip chip-active" data-status="all"     type="button" aria-pressed="true">Все</button>
+            <button class="chip"             data-status="danger"  type="button" aria-pressed="false">С признаками</button>
+            <button class="chip"             data-status="risky"   type="button" aria-pressed="false">Контекст</button>
+            <button class="chip"             data-status="neutral" type="button" aria-pressed="false">Без признаков</button>
           </div>
         </div>
       </div>
@@ -1848,7 +1849,7 @@
       <div class="archive-list" id="archiveList"></div>
       <div class="realtime-note">
         <span class="rt-dot"></span>
-        <span id="rtText">Поток обновляется в демо-режиме каждые несколько секунд.</span>
+        <span id="rtText" role="status" aria-live="polite">Загружаем реальные публикации из анализа…</span>
       </div>
     </div>
       <a class="archive-pro-strip" href="analysis.html" aria-label="PRO: Показать полный список публикаций и провести самостоятельный анализ">
@@ -1875,8 +1876,8 @@
 
       <!-- 1. Полное сообщение с подсветкой -->
       <div class="modal-fulltext-wrap">
-        <span class="modal-fulltext-label">Полное сообщение</span>
-        <p class="modal-fulltext" id="modalFullText"></p>
+        <span class="modal-fulltext-label">Сохранённые фрагменты публикации</span>
+        <div class="modal-fulltext" id="modalFullText"></div>
       </div>
 
       <!-- 2. Мета: СМИ, время, категория -->
@@ -1898,8 +1899,10 @@
       <!-- 3. Почему система пометила -->
       <div class="modal-why-wrap">
         <span class="modal-why-label">Почему система пометила текст</span>
-        <p class="modal-why-text" id="modalExplain"></p>
+        <div class="modal-why-text" id="modalExplain"></div>
       </div>
+
+      <div id="modalOriginal"></div>
 
       <!-- Кнопка на методику -->
       <a class="modal-method-link" href="method.html">
@@ -1914,246 +1917,7 @@
   </div>
 </div>
 
-<script>
-  const messages = [
-    {
-      media: "«Пример.ТВ»", time: "только что",
-      title: "«Власти в панике: эксперты предупреждают о катастрофе уже завтра»",
-      fullText: "Власти в панике: эксперты предупреждают о катастрофе уже завтра. По словам собеседников канала, ситуация якобы выходит из-под контроля, а последствия могут оказаться необратимыми уже в ближайшие часы. Авторы материала не приводят проверяемых данных, но усиливают тревожный эффект через срочные формулировки и эмоциональные оценки.",
-      manipulativeWords: ["в панике","катастрофе","уже завтра","выходит из-под контроля","необратимыми","в ближайшие часы"],
-      category: "Спорное сообщение", status: "danger",
-      tags: ["давление страхом","апокалиптический тон","отсутствие фактов"],
-      explain: "Модель фиксирует сочетание гипербол и срочного тайм-прессинга, при этом в тексте нет конкретных данных и ссылок на источники.",
-    },
-    {
-      media: "«Новости.РУ»", time: "1 минута назад",
-      title: "«Экономика рухнула: цены взлетели до небес из-за нового решения»",
-      fullText: "Экономика рухнула: цены взлетели до небес из-за нового решения. В публикации утверждается, что именно новое решение стало главным триггером происходящего, хотя конкретные расчёты и сопоставление факторов не приводятся. Вместо этого читателю предлагается эмоциональная картина резкого обвала и тотальной ценовой паники.",
-      manipulativeWords: ["рухнула","взлетели до небес","из-за нового решения","главным триггером","резкого обвала","ценовой паники"],
-      category: "Спорное сообщение", status: "danger",
-      tags: ["гиперболы","поиск виноватых","оценочная лексика"],
-      explain: "Слова «рухнула» и «взлетели до небес» отмечены как гиперболы. Причина названа категорично, но без разбора альтернативных факторов и без цифр.",
-    },
-    {
-      media: "«Город Online»", time: "3 минуты назад",
-      title: "«По данным опроса, большинство горожан счастливы»",
-      fullText: "По данным опроса, большинство горожан счастливы. Материал ссылается на исследование без описания выборки, формулировок вопросов и даты проведения. Формула «большинство горожан» создаёт впечатление полной репрезентативности, хотя источник не раскрывает методологию.",
-      manipulativeWords: ["большинство горожан","счастливы","без описания выборки","полной репрезентативности"],
-      category: "Смешанное сообщение", status: "risky",
-      tags: ["обобщение","неполная ссылка на источник"],
-      explain: "Упоминается опрос, но нет информации о методике и выборке. Формулировка «большинство горожан» помечается как потенциальное обобщение.",
-    },
-    {
-      media: "«Агентство.Инфо»", time: "5 минут назад",
-      title: "«Минфин опубликовал отчёт о росте доходов бюджета за год»",
-      fullText: "Минфин опубликовал отчёт о росте доходов бюджета за год. В тексте описывается факт публикации документа и перечисляются основные показатели без эмоциональных оценок, давления на читателя или попытки навязать вывод.",
-      manipulativeWords: [],
-      category: "Нейтральное сообщение", status: "neutral",
-      tags: ["официальный источник","описание факта"],
-      explain: "В заголовке нет оценочной лексики, эмоциональных триггеров и скрытой причинности. Описывается факт публикации отчёта.",
-    },
-    {
-      media: "«Полит.Лента»", time: "8 минут назад",
-      title: "«Паникёры снова пытаются сорвать стабильность в стране»",
-      fullText: "Паникёры снова пытаются сорвать стабильность в стране. Авторы текста используют ярлык по отношению к неназванной группе и создают ощущение постоянной угрозы, не уточняя, кто именно имеется в виду и какие действия считаются попыткой срыва стабильности.",
-      manipulativeWords: ["Паникёры","снова","сорвать стабильность","постоянной угрозы"],
-      category: "Спорное сообщение", status: "danger",
-      tags: ["образ врага","ярлык «паникёры»","поляризация"],
-      explain: "Текст строит разделение «мы — они», использует ярлык и не уточняет, о ком именно идёт речь.",
-    },
-    {
-      media: "«Эксперт+»", time: "10 минут назад",
-      title: "«После нового закона люди массово беднеют»",
-      fullText: "После нового закона люди массово беднеют. Сообщение выстраивает прямую причинно-следственную связь между законом и ухудшением положения людей, хотя статистических данных, сравнения периодов и анализа сопутствующих причин в тексте нет.",
-      manipulativeWords: ["После нового закона","массово беднеют","прямую причинно-следственную связь"],
-      category: "Смешанное сообщение", status: "risky",
-      tags: ["ложная причинность","обобщение"],
-      explain: "Фраза подаётся как доказанная причинность, но без статистики и анализа альтернативных факторов.",
-    },
-    {
-      media: "«Репортёр»", time: "12 минут назад",
-      title: "«90% жителей поддержали реформу, показал опрос»",
-      fullText: "90% жителей поддержали реформу, показал опрос. Текст опирается на очень конкретную цифру, но не раскрывает источник, заказчика исследования, размер выборки и формулировку вопроса. За счёт этого создаётся эффект неопровержимого консенсуса.",
-      manipulativeWords: ["90% жителей","поддержали реформу","не раскрывает источник","неопровержимого консенсуса"],
-      category: "Смешанное сообщение", status: "risky",
-      tags: ["псевдостатистика","нет источника"],
-      explain: "Указана точная цифра поддержки, но отсутствует ссылка на исследование и методику опроса.",
-    },
-    {
-      media: "«Независимый взгляд»", time: "15 минут назад",
-      title: "«Минфин опубликовал подробную расшифровку расходов бюджета»",
-      fullText: "Минфин опубликовал подробную расшифровку расходов бюджета. Сообщение фиксирует факт и перечисляет документальные детали без эмоциональной окраски, ярлыков или подталкивания читателя к заранее заданному выводу.",
-      manipulativeWords: [],
-      category: "Нейтральное сообщение", status: "neutral",
-      tags: ["конкретное действие","отсутствие оценки"],
-      explain: "Сообщение фиксирует факт и не делает дополнительных оценочных выводов.",
-    },
-  ];
-
-  /* ── Refs ── */
-  const archiveList     = document.getElementById("archiveList");
-  const searchInput     = document.getElementById("searchInput");
-  const chips           = document.querySelectorAll(".chip");
-  const rtText          = document.getElementById("rtText");
-  const modalOverlay    = document.getElementById("messageModalOverlay");
-  const modalTitle      = document.getElementById("messageModalTitle");
-  const modalMedia      = document.getElementById("modalMedia");
-  const modalTime       = document.getElementById("modalTime");
-  const modalCategory   = document.getElementById("modalCategory");
-  const modalFullText   = document.getElementById("modalFullText");
-  const modalExplain    = document.getElementById("modalExplain");
-  const messageCloseBtn = document.getElementById("messageCloseBtn");
-  const burgerBtn       = document.getElementById("burgerBtn");
-  const navLinks        = document.getElementById("navLinks");
-
-  let currentStatusFilter = "all";
-  let currentSearch = "";
-  let visiblePool = [...messages];
-  let lastUpdateIdx = 0;
-
-  function esc(s) {
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-  }
-  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
-  function getStatusClass(s) { return s === "danger" ? "danger" : s === "risky" ? "risky" : "neutral"; }
-
-  function highlight(text, words, status) {
-    let t = esc(text);
-    if (!words || !words.length) return t;
-    const cls = status === "risky" ? "highlight-word soft" : "highlight-word";
-    [...words].sort((a,b)=>b.length-a.length).forEach(w => {
-      t = t.replace(new RegExp(escRe(esc(w)),"gi"), m => `<mark class="${cls}">${m}</mark>`);
-    });
-    return t;
-  }
-
-  function openModal(msg) {
-    modalTitle.textContent    = msg.title;
-    modalFullText.innerHTML   = highlight(msg.fullText, msg.manipulativeWords, msg.status);
-    modalMedia.textContent    = msg.media;
-    modalTime.textContent     = msg.time;
-    modalCategory.textContent = msg.category;
-    modalExplain.textContent  = msg.explain;
-    modalOverlay.classList.add("open");
-    modalOverlay.setAttribute("aria-hidden","false");
-    document.body.style.overflow = "hidden";
-    messageCloseBtn.focus();
-  }
-
-  function closeModal() {
-    modalOverlay.classList.remove("open");
-    modalOverlay.setAttribute("aria-hidden","true");
-    document.body.style.overflow = "";
-  }
-
-  function createItem(msg) {
-    const item = document.createElement("article");
-    item.className = "archive-item";
-    item.innerHTML = `
-      <div class="archive-summary" role="button" tabindex="0" aria-label="Открыть разбор сообщения">
-        <div class="cell-media">${esc(msg.media)}</div>
-        <div class="cell-time">${esc(msg.time)}</div>
-        <div class="cell-title">${esc(msg.title)}</div>
-        <div class="cell-category ${getStatusClass(msg.status)}">${esc(msg.category)}</div>
-        <div class="cell-button"><button class="more-btn" type="button">Подробнее</button></div>
-      </div>`;
-    const handler = e => {
-      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
-      e.preventDefault(); openModal(msg);
-    };
-    item.querySelector(".archive-summary").addEventListener("click", handler);
-    item.querySelector(".archive-summary").addEventListener("keydown", handler);
-    item.querySelector(".more-btn").addEventListener("click", e => { e.stopPropagation(); openModal(msg); });
-    return item;
-  }
-
-  function renderList(anim = false) {
-    archiveList.innerHTML = "";
-    if (!visiblePool.length) {
-      const e = document.createElement("div");
-      e.className = "empty-state";
-      e.textContent = "Сообщения по заданным условиям не найдены.";
-      archiveList.appendChild(e); return;
-    }
-    visiblePool.forEach(msg => {
-      const item = createItem(msg);
-      if (anim) { item.classList.add("fade-in"); setTimeout(() => item.classList.remove("fade-in"), 350); }
-      archiveList.appendChild(item);
-    });
-  }
-
-  function applyFilters() {
-    const term = currentSearch.trim().toLowerCase();
-    visiblePool = messages.filter(msg => {
-      const matchStatus = currentStatusFilter === "all" || msg.status === currentStatusFilter;
-      const full = [msg.media, msg.title, msg.fullText, msg.category, msg.tags.join(" "), msg.explain].join(" ").toLowerCase();
-      return matchStatus && (!term || full.includes(term));
-    });
-    renderList(true);
-  }
-
-  function rotateOneRow() {
-    const items = archiveList.querySelectorAll(".archive-item");
-    if (!items.length || visiblePool.length <= 1) return;
-    if (window.matchMedia("(max-width: 767px)").matches) return;
-    const idx = lastUpdateIdx++ % items.length;
-    const target = items[idx];
-    target.classList.add("fade-out");
-    setTimeout(() => {
-      const msg = visiblePool[Math.floor(Math.random() * visiblePool.length)];
-      const newItem = createItem(msg);
-      newItem.classList.add("fade-in");
-      if (target.parentNode === archiveList) archiveList.replaceChild(newItem, target);
-      setTimeout(() => newItem.classList.remove("fade-in"), 350);
-      const t = new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
-      rtText.textContent = "Последнее обновление — " + t + " (демо-режим).";
-    }, 260);
-  }
-
-  chips.forEach(chip => chip.addEventListener("click", () => {
-    chips.forEach(c => c.classList.remove("chip-active"));
-    chip.classList.add("chip-active");
-    currentStatusFilter = chip.dataset.status;
-    applyFilters();
-  }));
-
-  searchInput.addEventListener("input", e => { currentSearch = e.target.value; applyFilters(); });
-
-  function syncPlaceholder() {
-    searchInput.placeholder = window.matchMedia("(max-width:767px)").matches
-      ? "Поиск: СМИ, заголовок, приём"
-      : "Найти по СМИ, заголовку или типу манипуляции";
-  }
-  syncPlaceholder();
-  window.addEventListener("resize", syncPlaceholder, { passive: true });
-
-  messageCloseBtn.addEventListener("click", closeModal);
-  modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) closeModal(); });
-
-  if (burgerBtn && navLinks) {
-    burgerBtn.addEventListener("click", () => {
-      const open = navLinks.classList.toggle("open");
-      burgerBtn.setAttribute("aria-expanded", String(open));
-    });
-    navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
-      navLinks.classList.remove("open"); burgerBtn.setAttribute("aria-expanded","false");
-    }));
-    document.addEventListener("click", e => {
-      if (!navLinks.contains(e.target) && !burgerBtn.contains(e.target)) {
-        navLinks.classList.remove("open"); burgerBtn.setAttribute("aria-expanded","false");
-      }
-    });
-  }
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") {
-      closeModal();
-      if (navLinks) { navLinks.classList.remove("open"); burgerBtn?.setAttribute("aria-expanded","false"); }
-    }
-  });
-
-  applyFilters();
-  setInterval(rotateOneRow, 5000);
-</script>
+<script defer src="publisher-statuses.js?v=20261027-archive"></script>
+<script defer src="archive.js?v=20261027-1"></script>
 </body>
 </html>
