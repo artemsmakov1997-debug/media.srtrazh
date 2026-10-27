@@ -34,6 +34,7 @@ import test_context_precision
 import test_historical_juxtaposition
 import test_comparative_framing
 import test_person_labels
+import test_headline_claim_link
 from browser_fixtures import business_evidence_fixture
 
 
@@ -57,7 +58,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_headline_claim_link)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -76,6 +77,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_historical_juxtaposition.HistoricalJuxtapositionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_person_labels.PersonLabelTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_comparative_framing.ComparativeFramingTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_headline_claim_link.HeadlineClaimLinkTests),
     ])
     try:
         output = io.StringIO()

@@ -102,8 +102,8 @@ class EventTerminologyTests(unittest.TestCase):
         self.assertEqual(len([f for f in result["findings"] if f["category"] == "event_terminology"]), 1)
 
     def test_information_does_not_exhaust_budget_before_body_rhetoric(self):
-        result = analyze({"title": "Доказали. " + (CASES["terminology.full_scale_war"] + "\n") * (MAX_FINDINGS + 2),
-                          "text": "Все знают о решении. Возможная связь требует проверки."})
+        result = analyze({"title": "Доказали влияние продукта на давление. " + (CASES["terminology.full_scale_war"] + "\n") * (MAX_FINDINGS + 2),
+                          "text": "Все знают о решении. Возможная связь продукта с давлением требует проверки."})
         ids = {f["rule_id"] for f in result["findings"]}
         self.assertIn("generalization.universal_claim", ids)
         self.assertIn("headline.certainty_gap", ids)
