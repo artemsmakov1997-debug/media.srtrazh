@@ -928,8 +928,12 @@ def pro_business_navigation_ui(browser, base, site):
                 description = page.locator("#ratingModalDesc").inner_text()
                 assert len(description) > 75
                 assert "24 часа" in description
-                assert "100%" in description
-                assert "доля публикаций" in description
+                assert "из 100 публикаций" in description
+                assert "рейтинг составит 30%" in description.lower()
+                assert "он учитывается только один раз" in description
+                assert "не всегда означают манипуляцию" in description
+                assert page.locator("#ratingModalDesc").evaluate(
+                    'el => getComputedStyle(el).whiteSpace === "pre-line"')
                 assert page.locator("#ratingModalScale .scale-item").count() == 3
                 assert page.locator("#ratingModalScale .green").count() == 1
                 assert page.locator("#ratingModalScale .yellow").count() == 1
