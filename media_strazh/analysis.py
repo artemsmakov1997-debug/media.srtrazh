@@ -1199,8 +1199,9 @@ def _numeric_signals(value):
         if not _metric_key(rate["metric"]):
             continue
         link = clause[rate.end():total.start()]
-        if not re.fullmatch(r"[\s,():—–-]*(?:(?:а\s+)?(?:всего|итого|то\s+есть|или|следовательно|"
-                            r"значит|получается|это|суммарно|ровно|точно|что\s+составляет)\b[\s,:—–-]*)+", link, re.I):
+        if not (re.fullmatch(r"\s*[—–=:]\s*", link)
+                or re.fullmatch(r"[\s,():—–-]*(?:(?:а\s+)?(?:всего|итого|то\s+есть|или|следовательно|"
+                                r"значит|получается|это|суммарно|ровно|точно|что\s+составляет)\b[\s,:—–-]*)+", link, re.I)):
             continue
         # Different named/deictic periods, exclusions and bounded/approximate
         # rates are deliberately left to a human, not annualised as constants.
