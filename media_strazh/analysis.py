@@ -2,13 +2,15 @@
 
 from bisect import bisect_right
 from collections import Counter
+from decimal import Decimal
+import calendar
 import hashlib
 import json
 import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.12.0"
+VERSION = "rules-0.13.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -1045,6 +1047,194 @@ def _rhetorical_notices(title, text, quotes, findings, image_count=0):
                              **({"image_count": image_count} if image_count else {}))
 
 
+NUMERIC_AMOUNT = r"(?:[0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})+|[0-9]+)(?:[.,][0-9]+)?"
+NUMERIC_SCALE = r"(?:тыс\.?|тысяч(?:а|и|у)?|млн\.?|миллион(?:а|ов)?|млрд\.?|миллиард(?:а|ов)?)"
+NUMERIC_METRIC = r"[а-яё]+(?:[ -][а-яё]+){0,3}?"
+DAILY_NUMBER = re.compile(
+    rf"(?<![\w.,])(?P<number>{NUMERIC_AMOUNT})\s*(?P<scale>{NUMERIC_SCALE})?\s+"
+    rf"(?P<metric>{NUMERIC_METRIC})\s+(?:в\s+(?:день|сутки)|каждый\s+день|ежедневно)\b", re.I)
+ANNUAL_NUMBER = re.compile(
+    rf"(?<![\w.,])(?P<number>{NUMERIC_AMOUNT})\s*(?P<scale>{NUMERIC_SCALE})?\s+"
+    rf"(?P<metric>{NUMERIC_METRIC})?\s*(?:в|за)\s+(?:весь\s+)?"
+    r"(?:(?P<year>(?:19|20)[0-9]{2})\s*)?(?:год(?:а|у)?\b|г\.(?=\s|$))", re.I)
+MAJORITY_WORD = r"(?:(?:подавляющее|абсолютное)\s+)?(?:большинство|большая\s+часть|подавляющее\s+число)"
+NUMERIC_PERCENT = r"(?:от\s+)?[0-9]{1,3}(?:[.,][0-9]{1,3})?(?:\s*(?:[-–—]|до)\s*[0-9]{1,3}(?:[.,][0-9]{1,3})?)?\s*%"
+MAJORITY_FORWARD = re.compile(
+    rf"\b(?P<majority>{MAJORITY_WORD})\b(?P<group>[^0-9.!?%\n—–:=()\-]{{0,90}}?)"
+    rf"\s*(?:[—–:=\-(]|,?\s*(?:то\s+есть|а\s+именно)\s+)\s*(?P<percent>{NUMERIC_PERCENT})", re.I)
+MAJORITY_REVERSE = re.compile(
+    rf"(?<![0-9.,])(?P<percent>{NUMERIC_PERCENT})(?P<group>[^0-9.!?%\n—–:=()\-]{{0,90}}?)"
+    rf"\s*[—–:=\-]\s*(?:это\s+)?(?P<majority>{MAJORITY_WORD})\b", re.I)
+NUMERIC_GROUP = re.compile(
+    r"\b(?:участник[а-яё]*|опрошенн[а-яё]*|респондент[а-яё]*|избирател[а-яё]*|"
+    r"жител[а-яё]*|граждан[а-яё]*|депутат[а-яё]*|населени[а-яё]*|голос[а-яё]*)\b", re.I)
+NUMERIC_SCOPE_GUARD = re.compile(
+    r"\b(?:относительн[а-яё]*|определивш[а-яё]*|взросл[а-яё]*|мужчин[а-яё]*|женщин[а-яё]*|"
+    r"молод[а-яё]*|пенсионер[а-яё]*|сторонник[а-яё]*|противник[а-яё]*|"
+    r"полностью|частично|скорее|лишь|только|среди|коалици[а-яё]*|мандат[а-яё]*|"
+    r"оставш[а-яё]*|пришедш[а-яё]*|ответивш[а-яё]*|проголосовавш[а-яё]*|поддержавш[а-яё]*)\b|"
+    r"\b(?:из\s+них|в\s+том\s+числе|от\s+общего|от\s+всех|абсолютн[а-яё]*\s+процентн[а-яё]*\s+пункт[а-яё]*)\b", re.I)
+NUMERIC_APPROXIMATION = re.compile(
+    r"\b(?:около|примерно|порядка|почти|свыше|менее|более|до|не\s+более|не\s+менее)\s*$", re.I)
+
+
+def _numeric_clauses(value):
+    """Bounded same-sentence relations; decimals and count abbreviations survive."""
+    start = 0
+    for boundary in re.finditer(r"[.!?;\r\n]", value):
+        at = boundary.start()
+        if boundary[0] == "." and (
+                (at and at + 1 < len(value) and value[at - 1].isdigit() and value[at + 1].isdigit())
+                or re.search(r"\b(?:тыс|млн|млрд|г)$", value[max(0, at - 5):at], re.I)):
+            continue
+        if 0 < at - start <= 800:
+            yield start, value[start:at]
+        start = boundary.end()
+    if 0 < len(value) - start <= 800:
+        yield start, value[start:]
+
+
+def _number(value, scale="", exact=False):
+    """Exact decimal arithmetic with conservative reported-precision intervals."""
+    value = re.sub(r"[ \u00a0\u202f]", "", value).replace(",", ".")
+    if len(value) > 18 or re.fullmatch(r"[1-9][0-9]{0,2}\.[0-9]{3}", value):
+        # 1,000 / 1.000 can be either a decimal or a foreign thousands group.
+        return None
+    amount = Decimal(value)
+    factor = (Decimal(1000) if scale.lower().startswith("тыс") else
+              Decimal(1000000) if scale.lower().startswith(("млн", "миллион")) else
+              Decimal(1000000000) if scale else Decimal(1))
+    amount *= factor
+    if not 0 <= amount <= 10 ** 15:
+        return None
+    if "." in value:
+        resolution = Decimal(1).scaleb(-len(value.split(".")[1]))
+    else:
+        # News commonly round 100/10000 to the last nonzero digit. Accept that
+        # uncertainty rather than treating every written integer as exact.
+        resolution = Decimal(10) ** (len(value) - len(value.rstrip("0"))) if amount else Decimal(1)
+    radius = Decimal(0) if exact else resolution * factor / 2
+    return amount, max(Decimal(0), amount - radius), amount + radius
+
+
+def _number_text(value):
+    result = format(value, "f")
+    return result.rstrip("0").rstrip(".") if "." in result else result
+
+
+def _metric_key(value):
+    words = value.casefold().replace("ё", "е").split()
+    if any(re.fullmatch(NUMERIC_SCALE, word, re.I) for word in words):
+        return ""  # An unlabelled '100 thousand per day' is not a known metric.
+    aliases = {"событие": "событий", "события": "событий", "авария": "аварий", "аварии": "аварий",
+               "случай": "случаев", "случая": "случаев", "человек": "человек", "человека": "человек",
+               "людей": "человек", "рубль": "рублей", "рубля": "рублей"}
+    return " ".join(aliases.get(word, word) for word in words)
+
+
+def _numeric_signals(value):
+    """Book-inspired, local consistency questions, not verification of statistics."""
+    if not re.search(r"[0-9]", value):
+        return
+    for offset, clause in _numeric_clauses(value):
+        if not NUMERIC_SCOPE_GUARD.search(clause) and clause.count("%") == 1:
+            for pattern in (MAJORITY_FORWARD, MAJORITY_REVERSE):
+                for match in pattern.finditer(clause):
+                    prefix = clause[max(0, match.start() - 45):match.start()]
+                    if (re.search(r"\bне\s+(?:(?:абсолютное|подавляющее)\s+)?$", prefix, re.I)
+                            or NUMERIC_APPROXIMATION.search(prefix)
+                            or re.search(r"[-−]\s*$", prefix)
+                            or re.search(r"\b(?:около|примерно|порядка|почти|свыше|менее|более)\b", match["group"], re.I)):
+                        continue
+                    numbers = [Decimal(n.replace(",", ".")) for n in re.findall(
+                        r"[0-9]+(?:[.,][0-9]+)?", match["percent"])]
+                    if (not numbers or not all(0 <= n < 50 for n in numbers)
+                            or (len(numbers) == 2 and numbers[0] > numbers[1])
+                            or (len(numbers) == 1 and match["percent"].lower().startswith("от"))):
+                        continue
+                    # A percentage may describe an outcome within a majority,
+                    # or another denominator. Keep only direct, simple links.
+                    group = match["group"].strip(" ,«»\"")
+                    if (re.search(r"\b(?:из|среди|котор[а-яё]*|состав[а-яё]*)\b", group, re.I)
+                            or re.search(r"\b[а-яё]+(?:ли|ло|лся|лась|лось|лись|ют|ут|ет|ит)\b", group, re.I)):
+                        continue
+                    tail = clause[match.end():].split(",", 1)[0][:80]
+                    before_groups = NUMERIC_GROUP.findall(group.lower())
+                    after_groups = NUMERIC_GROUP.findall(tail.lower())
+                    if (after_groups and group and before_groups != after_groups
+                            or re.search(r"\b(?:рост[а-яё]*|прирост[а-яё]*|снижен[а-яё]*|увеличен[а-яё]*)\b", tail, re.I)):
+                        continue
+                    start, end = match.span()
+                    if "(" in match[0] and clause[end:end + 1] == ")":
+                        end += 1
+                    yield {"rule_id": "context.majority_percentage", "label": "Большинство и процент",
+                           "spans": [(offset + start, offset + end)],
+                           "observations": {"majority_percentage_check": True,
+                                            "stated_percent": match["percent"], "truth_checked": False},
+                           "detail": " Указано: «" + clause[start:end].strip() + "»."}
+
+        # A per-day rate and a year total need the same named measure and an
+        # explicit conversion/total link. Never combine arbitrary nearby numbers.
+        if (re.search(r"\b(?:сезон[а-яё]*|месяц[а-яё]*|недел[а-яё]*|"
+                      r"январ[а-яё]*|феврал[а-яё]*|март[а-яё]*|апрел[а-яё]*|ма[йяе]|июн[а-яё]*|июл[а-яё]*|"
+                      r"август[а-яё]*|сентябр[а-яё]*|октябр[а-яё]*|ноябр[а-яё]*|декабр[а-яё]*|"
+                      r"сегодня|вчера|пик[а-яё]*|прогноз[а-яё]*|максим[а-яё]*|миним[а-яё]*)\b", clause, re.I)
+                or re.search(r"\b(?:рабоч|учебн|торгов)[а-яё]*\s+(?:день|дня|дни|дней|сут[а-яё]*)\b", clause, re.I)
+                or re.search(r"\b(?:19|20)[0-9]{2}\s*(?:[-–—]|по|и)\s*(?:19|20)[0-9]{2}\b", clause)):
+            continue
+        days = [365, 366]
+        years = set(re.findall(r"\b((?:19|20)[0-9]{2})\s*(?:год[а-яё]*\b|г\.)", clause, re.I))
+        if len(years) > 1:
+            continue
+        if years:
+            days = [366 if calendar.isleap(int(next(iter(years)))) else 365]
+        daily = list(DAILY_NUMBER.finditer(clause))
+        annual = list(ANNUAL_NUMBER.finditer(clause))
+        if len(daily) != 1 or len(annual) != 1:
+            continue
+        rate, total = daily[0], annual[0]
+        if (rate.end() >= total.start() or total["metric"] and
+                _metric_key(rate["metric"]) != _metric_key(total["metric"])):
+            continue
+        if not _metric_key(rate["metric"]):
+            continue
+        link = clause[rate.end():total.start()]
+        if not re.fullmatch(r"[\s,():—–-]*(?:(?:а\s+)?(?:всего|итого|то\s+есть|или|следовательно|"
+                            r"значит|получается|это|суммарно|ровно|точно|что\s+составляет)\b[\s,:—–-]*)+", link, re.I):
+            continue
+        # Different named/deictic periods, exclusions and bounded/approximate
+        # rates are deliberately left to a human, not annualised as constants.
+        if (re.search(r"\b(?:летом|зимой|осенью|весной|сейчас|прошл[а-яё]*|предыдущ[а-яё]*|"
+                      r"текущ[а-яё]*|нынешн[а-яё]*|следующ[а-яё]*|кроме|исключая|выходн[а-яё]*)\b", clause, re.I)
+                or any(NUMERIC_APPROXIMATION.search(clause[max(0, m.start() - 35):m.start()])
+                       or re.search(r"(?:[+−-]|\bна|[0-9][ \u00a0\u202f]+)\s*$", clause[max(0, m.start() - 35):m.start()])
+                       for m in (rate, total))):
+            continue
+        parsed = []
+        for m in (rate, total):
+            exact = bool(re.search(r"\b(?:ровно|точно)\s*$", clause[max(0, m.start() - 20):m.start()], re.I))
+            parsed.append(_number(m["number"], m["scale"] or "", exact))
+        if not all(parsed):
+            continue
+        rate_number, total_number = parsed
+        expected_low, expected_high = rate_number[1] * min(days), rate_number[2] * max(days)
+        if expected_low <= total_number[2] and total_number[1] <= expected_high:
+            continue
+        nominal = [_number_text(rate_number[0] * d) for d in days]
+        yield {"rule_id": "context.daily_year_total", "label": "Суточное число и годовой итог",
+               "spans": [(offset + m.start(), offset + m.end()) for m in (rate, total)],
+               "observations": {"daily_year_check": True, "days_considered": days,
+                                "daily_number": _number_text(rate_number[0]),
+                                "stated_annual": _number_text(total_number[0]),
+                                "nominal_annual": nominal, "rounding_intervals_overlap": False,
+                                "annual_metric_inherited": not bool(total["metric"]),
+                                "expected_annual_interval": [_number_text(expected_low), _number_text(expected_high)],
+                                "truth_checked": False},
+               "detail": (" При буквальном пересчёте: " + _number_text(rate_number[0]) + " в день → "
+                          + "–".join(dict.fromkeys(nominal)) + " в год; указано "
+                          + _number_text(total_number[0]) + ".")}
+
+
 def _literature_notices(title, text, quotes):
     """Observable numeric/commercial/repetition cues, never fact-check verdicts.
 
@@ -1078,6 +1268,11 @@ def _literature_notices(title, text, quotes):
         combined, re.I,
     )
     for field, value in values.items():
+        for signal in _numeric_signals(value):
+            finding = notice(signal["rule_id"], signal["label"],
+                             [(field, start, end) for start, end in signal["spans"]], **signal["observations"])
+            finding["explanation"] += signal["detail"]
+            yield finding
         if not survey_basis:
             for match in re.finditer(
                 r"\b\d{1,3}(?:[.,]\d{1,3})?\s*%\s+(?:жител[а-яё]*|граждан[а-яё]*|избирател[а-яё]*|"
