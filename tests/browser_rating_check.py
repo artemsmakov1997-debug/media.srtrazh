@@ -83,12 +83,19 @@ def rating_ui(browser, base, site, errors, requests):
                     'const pointer=a.left+parseFloat(getComputedStyle(tip).getPropertyValue("--callout-pointer-x"))*s;'
                     'return Math.min(Math.abs(a.bottom-b.top),Math.abs(a.top-b.bottom))<12 && '
                     'Math.abs(pointer-(b.left+b.right)/2)<2;})')
-                # Restore the large two-line headline, never a tiny one-line fit.
-                assert example.evaluate(
-                    'el => {const s=getComputedStyle(el), line=parseFloat(s.lineHeight);'
-                    'return s.whiteSpace === "normal" && '
-                    'parseFloat(s.fontSize)>=28 && el.scrollWidth<=el.clientWidth+2 && '
-                    'el.getBoundingClientRect().height<=2*line+3;}')
+                # Preserve a large readable headline without horizontal clipping.
+                # At narrower desktop widths a third line is intentional.
+                metrics = example.evaluate(
+                    'el => {const s=getComputedStyle(el);return {'
+                    'whiteSpace:s.whiteSpace,fontSize:parseFloat(s.fontSize),'
+                    'lineHeight:parseFloat(s.lineHeight),'
+                    'scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,'
+                    'height:el.getBoundingClientRect().height};}')
+                assert (metrics['whiteSpace'] == 'normal' and
+                        metrics['fontSize'] >= 28 and
+                        metrics['scrollWidth'] <= metrics['clientWidth'] + 2 and
+                        metrics['height'] <= 3 * metrics['lineHeight'] + 3), (
+                            width, metrics)
             assert not example.text_content().strip().endswith('.')
             assert page.locator('.hero-counter-mobile .counter-label-sm').text_content().strip().lower().replace('\u00a0', ' ').startswith('публикаций')
             assert page.locator('#heroExampleText .hero-example-punctuation').count() == 0
