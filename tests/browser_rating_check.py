@@ -535,7 +535,8 @@ def rating_ui(browser, base, site, errors, requests):
         item = page.locator('.full-list-row[data-publisher="rt"]')
         assert item.locator('.fli-rating').inner_text() == '34%'
         # Exact per-hour cumulative scores remain in the full-list chart.
-        assert item.locator('.fli-graph circle[data-score]').count() == 24
+        assert item.locator('.fli-graph circle[data-score]').count() == sum(
+            point['score_percent'] is not None for point in sample['series'])
         actual = item.locator('.fli-graph circle[data-score]').evaluate_all(
             '([first, ...others], endAt) => {'
             'const point = [first, ...others].find(el => el.dataset.endAt === endAt);'
