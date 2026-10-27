@@ -5,51 +5,51 @@
 .container > .section {
   background:
     radial-gradient(ellipse 75% 100% at 2% 0%,rgba(60,136,166,.045),transparent 80%),
-    linear-gradient(145deg,#111d2d 0%,#101b2b 64%,#0c1828 100%);
-  border-color:rgba(114,157,183,.22);
+    linear-gradient(145deg,#142438 0%,#101d2e 64%,#0e1b2c 100%);
+  border-color:rgba(117,178,207,.27);
   box-shadow:0 16px 35px rgba(2,12,24,.20),inset 0 1px 0 rgba(215,240,250,.025);
 }
 .container > .section:nth-of-type(2) {
   background:
     radial-gradient(ellipse 67% 100% at 100% 4%,rgba(36,150,160,.055),transparent 80%),
-    linear-gradient(145deg,#122334 0%,#102131 55%,#0d1c2b 100%);
-  border-color:rgba(111,170,188,.23);
+    linear-gradient(145deg,#16293d 0%,#132538 55%,#101e2f 100%);
+  border-color:rgba(124,175,197,.21);
 }
 .container > .section:nth-of-type(3) {
   background:
     radial-gradient(ellipse 75% 110% at 95% 0%,rgba(79,120,181,.055),transparent 81%),
-    linear-gradient(153deg,#142438 0%,#122133 58%,#0e1b2d 100%);
-  border-color:rgba(123,156,191,.22);
+    linear-gradient(153deg,#142438 0%,#101d2e 58%,#0e1b2c 100%);
+  border-color:rgba(124,175,197,.21);
 }
 .container > .section .section-rule {
   background:linear-gradient(90deg,rgba(121,191,213,.33),rgba(129,169,197,.12) 58%,transparent);
 }
-.container > .section .section-title {color:#f0f5f9;}
-.container > .section .section-title .accent {color:#55dbed;}
+.container > .section .section-title {color:#f3f8fc;}
+.container > .section .section-title .accent {color:#22d3ee;}
 
 /* Конвейер: шаги различимы, но не выглядят ярче остального контента. */
 body #pipelineGrid .pipeline-card {
   background:
     radial-gradient(ellipse 82% 90% at 0% 0%,rgba(89,180,206,.045),transparent 83%),
-    linear-gradient(147deg,#182b3e 0%,#142638 100%) !important;
-  border-color:rgba(117,164,186,.26) !important;
+    linear-gradient(147deg,#16293d 0%,#132538 100%) !important;
+  border-color:rgba(124,175,197,.21) !important;
   box-shadow:0 10px 23px rgba(4,19,35,.20),inset 0 1px 0 rgba(237,250,255,.027) !important;
 }
 body #pipelineGrid .pipeline-card.is-active,
 body #pipelineGrid .pipeline-card:hover {
   background:
     radial-gradient(ellipse 85% 90% at 0% 0%,rgba(80,198,220,.065),transparent 81%),
-    linear-gradient(145deg,#1e374a,#172d40) !important;
-  border-color:rgba(97,204,226,.65) !important;
+    linear-gradient(145deg,#1b3648,#142c3d) !important;
+  border-color:rgba(99,202,225,.67) !important;
   box-shadow:0 10px 25px rgba(4,19,35,.23),inset 0 1px 0 rgba(237,250,255,.035) !important;
 }
-.pipeline-card .pipe-step {color:#9cbfcc;}
-.pipeline-card .pipe-title {color:#eef6f8;}
-.pipeline-card .pipe-text {color:#b9ccd5;}
-.pipeline-card .pipe-num {color:#68deed;}
+.pipeline-card .pipe-step {color:#acbdc8;}
+.pipeline-card .pipe-title {color:#f3f8fc;}
+.pipeline-card .pipe-text {color:#acbdc8;}
+.pipeline-card .pipe-num {color:#22d3ee;}
 .pipeline-card .pipe-more {
-  border-color:rgba(103,194,216,.42);
-  background:rgba(22,49,68,.88);
+  border-color:rgba(75,181,208,.37);
+  background:rgba(17,44,62,.90);
   color:#e7f9fd;
   transition:background-color .2s ease,color .2s ease,border-color .2s ease,
              box-shadow .2s ease,transform .2s ease;
@@ -81,8 +81,8 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
 .container > .section .live-card {
   background:
     radial-gradient(ellipse 75% 85% at 100% 0%,rgba(71,174,188,.045),transparent 80%),
-    linear-gradient(145deg,#192d40,#162a3d 80%,#132538);
-  border-color:rgba(104,161,185,.24);
+    linear-gradient(145deg,#142438,#101e2f 80%,#132538);
+  border-color:rgba(124,175,197,.21);
   box-shadow:0 12px 30px rgba(3,18,32,.22),inset 0 1px 0 rgba(218,246,250,.027);
 }
 .live-card .live-body-text {
@@ -93,35 +93,35 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
 .live-card .live-source-badge,
 .live-card .trigger-tag,
 .live-card .live-next-btn {
-  background:rgba(23,49,68,.89);
-  border-color:rgba(90,164,188,.33);
+  background:rgba(17,44,62,.90);
+  border-color:rgba(75,181,208,.37);
 }
 .live-card .live-triggers-label,
-.live-card .live-time {color:#b0c3ce;}
+.live-card .live-time {color:#acbdc8;}
 
 /* Каталог приёмов: умеренная глубина, цветовые метки остаются смысловыми. */
 .container > .section .manip-card {
   background:
     radial-gradient(ellipse 75% 70% at 100% 0%,rgba(76,155,185,.045),transparent 84%),
-    linear-gradient(145deg,#1a2c40,#15273a 70%,#112337);
-  border-color:rgba(115,159,185,.24);
+    linear-gradient(145deg,#16293d,#132538 70%,#101e2f);
+  border-color:rgba(124,175,197,.21);
   box-shadow:0 8px 21px rgba(4,17,30,.18),inset 0 1px 0 rgba(221,242,251,.025);
 }
 .container > .section .manip-card:hover,
 .container > .section .manip-card:focus-visible {
-  border-color:rgba(99,197,216,.68);
+  border-color:rgba(99,202,225,.67);
   box-shadow:0 12px 27px rgba(4,18,33,.25);
 }
-.manip-card .manip-title {color:#edf5f9;}
+.manip-card .manip-title {color:#f3f8fc;}
 .manip-card .manip-label,
-.manip-card .manip-preview {color:#b7c8d2;}
+.manip-card .manip-preview {color:#acbdc8;}
 .manip-card .manip-arrow {
-  background:rgba(29,59,80,.91);
+  background:rgba(27,56,75,.88);
   border-color:rgba(142,187,208,.27);
   color:#d3e7ef;
 }
 .manip-load-more {
-  background:linear-gradient(135deg,#1e374c,#152f42);
+  background:linear-gradient(135deg,#20384e,#172b40);
   border-color:rgba(105,199,218,.45);
 }
 
