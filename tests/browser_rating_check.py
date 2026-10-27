@@ -313,6 +313,11 @@ def rating_ui(browser, base, site, errors, requests):
             empty = page.locator(f'.full-list-row[data-publisher="{empty_publisher}"]')
             assert empty.locator('.fli-rating').inner_text() == '—'
             assert 'green' not in empty.locator('.fli-rating').get_attribute('class')
+            assert page.locator('#modalSort option').evaluate_all(
+                'nodes => nodes.map(node => node.value)') == [
+                    'rating-desc', 'rating-asc', 'name-asc', 'name-desc']
+            assert 'Сначала высокий показатель' not in page.locator('#modalSort').inner_text()
+            assert 'Сначала низкий показатель' not in page.locator('#modalSort').inner_text()
             page.locator('#modalSort').select_option('rating-asc')
             assert page.locator('.full-list-row').first.get_attribute('data-publisher') == 'kommersant'
             page.locator('#modalSearch').fill('RT на русском')

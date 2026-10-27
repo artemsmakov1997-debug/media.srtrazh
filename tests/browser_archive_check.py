@@ -119,7 +119,10 @@ def archive_ui(browser, base, site):
         assert page.locator('#modalFullText mark').first.inner_text() == 'Ад на пороге'
         assert page.locator('#messageModalTitle,.message-modal-title,.modal-fulltext-label').count() == 0
         assert page.locator('.message-modal').get_attribute('aria-labelledby') == 'messageModalLabel'
-        assert page.locator('#messageModalLabel').inner_text() == 'Разбор сообщения'
+        # CSS transforms the rendered label to uppercase; compare source text.
+        assert page.locator('#messageModalLabel').text_content().strip() == 'Разбор сообщения'
+        assert page.locator('#messageModalLabel').evaluate(
+            'el => getComputedStyle(el).textTransform === "uppercase"')
         assert 'Показаны сохранённые фрагменты' not in page.locator('#modalFullText').inner_text()
         assert page.locator('#modalMedia .archive-publisher-status').count() == 2
         assert page.locator('#modalMedia .archive-platform').count() == 0

@@ -679,7 +679,7 @@
       if (sort === 'name-asc') return a.name.localeCompare(b.name, 'ru');
       if (sort === 'name-desc') return b.name.localeCompare(a.name, 'ru');
       if (a.score_percent === null || b.score_percent === null) return Number(a.score_percent === null) - Number(b.score_percent === null) || a.name.localeCompare(b.name, 'ru');
-      const ascending = ['rating-asc', 'level-green'].includes(sort);
+      const ascending = sort === 'rating-asc';
       return (ascending ? a.score_percent - b.score_percent : b.score_percent - a.score_percent) || a.name.localeCompare(b.name, 'ru');
     });
   }
