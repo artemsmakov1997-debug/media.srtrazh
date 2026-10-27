@@ -65,7 +65,7 @@ class AnalysisTests(unittest.TestCase):
         self.assertIn("остальном материале", result["findings"][0]["review_question"])
 
     def test_headline_gap_has_two_evidence_fields(self):
-        result = analyze({"title": "Учёные доказали влияние продукта", "text": "Авторы обнаружили возможную связь на небольшой выборке."})
+        result = analyze({"title": "Учёные доказали влияние продукта на давление", "text": "Авторы обнаружили возможную связь продукта с давлением на небольшой выборке."})
         finding = result["findings"][0]
         self.assertEqual(finding["rule_id"], "headline.certainty_gap")
         self.assertEqual([e["field"] for e in finding["evidence"]], ["title", "text"])

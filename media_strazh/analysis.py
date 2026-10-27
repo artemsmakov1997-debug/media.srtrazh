@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.11.0"
+VERSION = "rules-0.11.1"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -1018,6 +1018,103 @@ def _rhetorical_notices(title, text, quotes, findings, image_count=0):
                              **({"image_count": image_count} if image_count else {}))
 
 
+# A deliberately small lexical linker: it observes overlapping claim vocabulary,
+# not semantic equivalence, coreference, causality, or the author's intentions.
+CLAIM_WORD = re.compile(r"[а-яёa-z][а-яёa-z0-9-]*", re.I)
+CLAIM_ENDING = re.compile(
+    r"(?:иями|ием|ями|ами|ого|ему|ому|ыми|ими|ией|иям|иях|ии|ий|ый|ой|ая|яя|ое|ее|ые|ие|ую|юю|"
+    r"ов|ев|ам|ям|ах|ях|ом|ем|ою|ею|ия|ию|ей|а|я|ы|и|у|ю|е|о)$"
+)
+CLAIM_STOP_WORDS = """
+и в во на по о об от до за из к с со для при у а но или что это как
+он она они его ее их мы вы наш ваш тот этот также уже еще только
+ученые ученый авторы автор исследователи исследователь эксперты эксперт
+исследование исследовании исследования данные данных результаты результат
+доказали доказано однозначно безусловно гарантированно
+возможная возможную возможный связь связи предварительные предварительных
+не доказывает причинную причинная обнаружили обнаружена установили
+сообщили считают отметили говорится показали показало год года году годы лет
+""".split()
+
+
+def _claim_stem(word):
+    word = word.lower().replace("ё", "е")
+    # Strip one inflection only. Short words and names are not reduced further.
+    return CLAIM_ENDING.sub("", word) if len(word) > 4 else word
+
+
+CLAIM_STOP = {_claim_stem(word) for word in CLAIM_STOP_WORDS}
+CLAIM_CONTRAST = re.compile(r";|\b(?:но|однако|тогда\s+как|а\s+также)\b", re.I)
+CLAIM_YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
+CLAIM_IDENTIFIER = re.compile(r"\b[a-z][a-z0-9-]*\b", re.I)
+
+
+def _claim_segment(text, start, end):
+    """Bound the cue to its sentence/clause, preserving original coordinates."""
+    sentence = _sentence(text, start, end)
+    if sentence["truncated"]:
+        return None
+    left, right = sentence["start"], sentence["end"]
+    for boundary in CLAIM_CONTRAST.finditer(text, left, right):
+        if boundary.end() <= start:
+            left = boundary.end()
+        elif boundary.start() >= end:
+            right = boundary.start()
+            break
+    return {"start": left, "end": right, "text": text[left:right]}
+
+
+def _claim_anchors(segment):
+    return {_claim_stem(word) for word in CLAIM_WORD.findall(segment)
+            if len(word) >= 3 and _claim_stem(word) not in CLAIM_STOP}
+
+
+def _linked_headline_gaps(title, text, quotes):
+    """Link only locally supported vocabulary; unresolved paraphrases are skipped."""
+    if not TITLE_CERTAINTY.search(title):
+        return
+    caveats = []
+    for caveat in BODY_UNCERTAINTY.finditer(text):
+        body = _evidence("text", text, *caveat.span(), quotes["text"])
+        segment = _claim_segment(text, *caveat.span())
+        if segment is not None and _status(body) == "needs_review":
+            caveats.append((body, segment, _claim_anchors(segment["text"])))
+    for certainty in TITLE_CERTAINTY.finditer(title):
+        heading = _evidence("title", title, *certainty.span(), quotes["title"])
+        claim = _claim_segment(title, *certainty.span())
+        if claim is None or re.search(r"\b(?:возможно|вероятно|предположительно)\b", claim["text"], re.I):
+            continue
+        anchors = _claim_anchors(claim["text"])
+        if len(anchors) < 2:
+            continue
+        for body, segment, body_anchors in caveats:
+            shared = anchors & body_anchors
+            # Generic scientific vocabulary never supplies either anchor.
+            if len(shared) < 2 or len(shared) / len(anchors) < 0.6:
+                continue
+            # Explicit incompatible years or Latin object identifiers (X/Y,
+            # drug names, etc.) must not be linked through generic vocabulary.
+            if any(first and second and first != second for first, second in (
+                (set(CLAIM_YEAR.findall(claim["text"])), set(CLAIM_YEAR.findall(segment["text"]))),
+                (set(CLAIM_IDENTIFIER.findall(claim["text"].lower())),
+                 set(CLAIM_IDENTIFIER.findall(segment["text"].lower()))),
+            )):
+                continue
+            yield {
+                "rule_id": "headline.certainty_gap", "category": "clickbait", "label": LABELS["clickbait"],
+                "status": _status(heading),
+                "explanation": "Категоричный заголовок и оговорка в тексте имеют общую предметную лексику. Возможное усиление уверенности требует проверки.",
+                "review_question": "Относятся ли эти фрагменты к одному утверждению, участнику, периоду и условиям? Сохранены ли источник и степень уверенности?",
+                "evidence": [heading, body],
+                "claim_link": {"method": "local_lexical_overlap", "shared_anchors": sorted(shared),
+                               "title_span": {"start": claim["start"], "end": claim["end"]},
+                               "text_span": {"start": segment["start"], "end": segment["end"]},
+                               "semantic_equivalence_verified": False},
+            }
+            # One supported body passage per headline cue, in document order.
+            break
+
+
 def analyze(document):
     """Return exact spans relative to unchanged input, in Unicode code points."""
     title, text = validate_document(document)
@@ -1079,25 +1176,11 @@ def analyze(document):
                 truncated = True
                 break
             findings.append(finding)
-        # Co-occurrence is a review cue, never proof that the claims contradict.
-        caveat = BODY_UNCERTAINTY.search(text)
-        if caveat:
-            for certainty in TITLE_CERTAINTY.finditer(title):
-                if len(findings) >= MAX_FINDINGS:
-                    truncated = True
-                    break
-                heading = _evidence("title", title, *certainty.span(), quotes["title"])
-                body = _evidence("text", text, *caveat.span(), quotes["text"])
-                # Do not turn a quoted/negated caveat into an asserted limitation.
-                if _status(body) != "needs_review":
-                    continue
-                findings.append({
-                    "rule_id": "headline.certainty_gap", "category": "clickbait", "label": LABELS["clickbait"],
-                    "status": _status(heading),
-                    "explanation": "В заголовке есть категоричный вывод, а в тексте — оговорка о неопределённости. Связь между ними требует проверки.",
-                    "review_question": "Относятся ли вывод и оговорка к одному исследованию, субъекту и утверждению?",
-                    "evidence": [heading, body],
-                })
+        for finding in _linked_headline_gaps(title, text, quotes):
+            if len(findings) >= MAX_FINDINGS:
+                truncated = True
+                break
+            findings.append(finding)
     findings.sort(key=lambda f: (f["evidence"][0]["field"] != "title", f["evidence"][0]["start"], f["rule_id"]))
     for index, finding in enumerate(findings, 1):
         finding["id"] = f"f{index}"
