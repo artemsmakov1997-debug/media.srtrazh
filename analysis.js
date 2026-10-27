@@ -223,90 +223,14 @@ const automaticModal = element('automaticModal');
 const automaticBody = element('automaticModalBody');
 const automaticTooltip = element('automaticTooltip');
 let previousModalFocus = null;
-let automaticTooltipTarget = null;
-let automaticTooltipTimer = null;
-
-function hideAutomaticTooltip() {
-  clearTimeout(automaticTooltipTimer);
-  if (automaticTooltipTarget) {
-    automaticTooltipTarget.setAttribute('aria-expanded', 'false');
-    automaticTooltipTarget.removeAttribute('aria-describedby');
-  }
-  automaticTooltip.hidden = true;
-  automaticTooltipTarget = null;
-}
-
-function scheduleAutomaticTooltipHide() {
-  clearTimeout(automaticTooltipTimer);
-  automaticTooltipTimer = setTimeout(() => {
-    if (document.activeElement !== automaticTooltipTarget && !automaticTooltip.matches(':hover')) hideAutomaticTooltip();
-  }, 160);
-}
-automaticTooltip.addEventListener('pointerenter', () => clearTimeout(automaticTooltipTimer));
-automaticTooltip.addEventListener('pointerleave', scheduleAutomaticTooltipHide);
-document.addEventListener('scroll', event => {
-  if (!automaticTooltip.contains(event.target)) hideAutomaticTooltip();
-}, {capture: true, passive: true});
-window.addEventListener('resize', hideAutomaticTooltip);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', hideAutomaticTooltip);
-  window.visualViewport.addEventListener('scroll', hideAutomaticTooltip);
-}
+const automaticComments = new window.PublicationTooltip(automaticTooltip);
+function hideAutomaticTooltip() { automaticComments.hide(); }
 
 function closeAutomaticModal() {
   automaticModal.hidden = true;
   hideAutomaticTooltip();
   document.body.style.overflow = '';
   if (previousModalFocus && previousModalFocus.isConnected) previousModalFocus.focus();
-}
-
-function showAutomaticTooltip(mark) {
-  if (automaticTooltipTarget === mark && !automaticTooltip.hidden) {
-    clearTimeout(automaticTooltipTimer);
-    return;
-  }
-  const wasVisible = !automaticTooltip.hidden;
-  hideAutomaticTooltip();
-  automaticTooltipTarget = mark;
-  mark.setAttribute('aria-expanded', 'true');
-  mark.setAttribute('aria-describedby', 'automaticTooltip');
-  automaticTooltip.toggleAttribute('data-instant', wasVisible || mark.matches(':focus-visible'));
-  automaticTooltip.replaceChildren(
-    node('strong', mark.dataset.label),
-    node('div', mark.dataset.explanation)
-  );
-  const viewport = window.visualViewport;
-  const leftEdge = (viewport ? viewport.offsetLeft : 0) + 12;
-  const topEdge = (viewport ? viewport.offsetTop : 0) + 12;
-  const width = (viewport ? viewport.width : innerWidth) - 24;
-  const height = (viewport ? viewport.height : innerHeight) - 24;
-  const style = getComputedStyle(automaticTooltip);
-  const widthCap = Number(style.getPropertyValue('--tooltip-width')) || 310;
-  const heightCap = Number(style.getPropertyValue('--tooltip-height')) || 360;
-  automaticTooltip.style.width = Math.max(1, Math.min(widthCap, width)) + 'px';
-  automaticTooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65)) + 'px';
-  automaticTooltip.style.visibility = 'hidden';
-  automaticTooltip.hidden = false;
-  const visibleRects = Array.from(mark.getClientRects()).filter(rect => rect.bottom > topEdge && rect.top < topEdge + height);
-  const firstRect = visibleRects[0] || mark.getBoundingClientRect();
-  const rect = {left: firstRect.left, width: firstRect.width,
-    top: visibleRects.length ? Math.max(topEdge, Math.min(...visibleRects.map(rect => rect.top))) : firstRect.top,
-    bottom: visibleRects.length ? Math.min(topEdge + height, Math.max(...visibleRects.map(rect => rect.bottom))) : firstRect.bottom};
-  const preferredHeight = automaticTooltip.offsetHeight;
-  const above = rect.top - topEdge - 10;
-  const below = topEdge + height - rect.bottom - 10;
-  const useAbove = above >= preferredHeight || (below < preferredHeight && above > below);
-  const room = Math.max(1, useAbove ? above : below);
-  automaticTooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65, room)) + 'px';
-  const tip = {width: automaticTooltip.offsetWidth, height: automaticTooltip.offsetHeight};
-  const left = Math.max(leftEdge, Math.min(rect.left + rect.width / 2 - tip.width / 2, leftEdge + width - tip.width));
-  const preferredTop = useAbove ? rect.top - tip.height - 10 : rect.bottom + 10;
-  const top = Math.max(topEdge, Math.min(preferredTop, topEdge + height - tip.height));
-  automaticTooltip.style.left = left + 'px';
-  automaticTooltip.style.top = top + 'px';
-  automaticTooltip.style.transformOrigin = Math.max(0, Math.min(tip.width, rect.left + rect.width / 2 - left)) +
-    'px ' + (useAbove ? 'bottom' : 'top');
-  automaticTooltip.style.visibility = '';
 }
 
 function modalExcerpt(sentence, evidences) {
@@ -338,27 +262,7 @@ function modalExcerpt(sentence, evidences) {
         : statuses[s.finding.status] || s.finding.status) + '. ' + s.finding.explanation))].join(' ');
     mark.dataset.question = [...new Set(matches.map(s => s.finding.review_question))].join(' ');
     mark.setAttribute('aria-label', text + ': ' + mark.dataset.label);
-    mark.setAttribute('aria-controls', 'automaticTooltip');
-    mark.setAttribute('aria-expanded', 'false');
-    mark.addEventListener('pointerenter', event => {
-      if (event.pointerType === 'mouse') showAutomaticTooltip(mark);
-    });
-    mark.addEventListener('pointerleave', event => {
-      if (event.pointerType === 'mouse') scheduleAutomaticTooltipHide();
-    });
-    mark.addEventListener('focus', () => showAutomaticTooltip(mark));
-    mark.addEventListener('blur', scheduleAutomaticTooltipHide);
-    let closeOnClick = false;
-    mark.addEventListener('pointerdown', () => {
-      closeOnClick = !automaticTooltip.hidden && automaticTooltipTarget === mark;
-    });
-    mark.addEventListener('click', () => {
-      // Touch focuses the mark before click. Use its pre-focus state so the
-      // first tap does not immediately close the tooltip that focus just opened.
-      if (closeOnClick) hideAutomaticTooltip();
-      else showAutomaticTooltip(mark);
-      closeOnClick = false;
-    });
+    automaticComments.bind(mark);
     paragraph.append(mark);
   }
   return paragraph;

@@ -1,0 +1,46 @@
+/* Shared publication metadata and marker comments. */
+.publication-header .publication-time,.archive-summary .publication-time {
+  flex-shrink:0;display:flex;align-items:flex-end;gap:8px;margin:0;padding:0;
+  border:0;border-radius:0;background:transparent;box-shadow:none;color:#d0f4fc;
+  font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.4;
+  text-align:right;white-space:nowrap;
+}
+.auto-modal-highlight {
+  padding:1px 3px;border-radius:4px;background:rgba(34,211,238,.22);
+  border-bottom:2px solid #22d3ee;color:#eaffff;cursor:help;
+}
+.auto-modal-highlight:hover,.auto-modal-highlight:focus {
+  background:rgba(34,211,238,.4);outline:1px solid #22d3ee;
+}
+.auto-modal-tooltip {
+  --tooltip-width:310;--tooltip-height:360;
+  position:fixed;z-index:450;max-height:50vh;overflow-y:auto;padding:12px 14px;
+  border:1px solid #4e899d;border-radius:12px;background:#0a141e;color:#eaf2f9;
+  box-shadow:0 15px 40px #0009;font:12px/1.55 Inter,sans-serif;
+  pointer-events:auto;overscroll-behavior:contain;overflow-wrap:anywhere;
+  opacity:1;transform:scale(1);
+}
+.auto-modal-tooltip[hidden] {display:none!important;}
+.auto-modal-tooltip strong {display:block;color:#7de4f4;margin-bottom:5px;}
+@media (max-width:760px) {
+  .publication-header .publication-time,.archive-summary .publication-time {
+    flex-direction:column;gap:0;padding:0;font-size:12px;line-height:1.25;
+  }
+}
+@media (min-width:761px) {
+  .auto-modal-tooltip {
+    --tooltip-width:480;--tooltip-height:520;padding:18px 20px;font-size:16px;line-height:1.65;
+  }
+  .auto-modal-tooltip strong {margin-bottom:8px;font-size:13px;line-height:1.5;}
+}
+@media (min-width:1100px) {
+  .auto-modal-tooltip {zoom:1.25;}
+}
+@media (prefers-reduced-motion:no-preference) {
+  .auto-modal-tooltip:not([data-instant]) {
+    transition:opacity 125ms cubic-bezier(.23,1,.32,1),transform 125ms cubic-bezier(.23,1,.32,1);
+  }
+  @starting-style {
+    .auto-modal-tooltip:not([hidden]):not([data-instant]) {opacity:0;transform:scale(.97);}
+  }
+}

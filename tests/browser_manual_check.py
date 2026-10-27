@@ -1276,15 +1276,15 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#ratingModalScale .scale-item").count() == 3
             assert "24 часа" in p.locator("#ratingModalDesc").inner_text()
             p.locator("#ratingModalClose").click()
-            # Archive category left, Details right, same horizontal row.
+            # Archive actions match Analysis: Details left, source right.
             p.goto(base + "/archive.html")
             p.wait_for_selector('#archiveList .archive-item')
             assert p.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
             archive_card = p.locator("#archiveList .archive-item").first
-            category_box = archive_card.locator(".cell-category").bounding_box()
+            source_box = archive_card.locator(".source-link").bounding_box()
             button_box = archive_card.locator(".more-btn").bounding_box()
-            assert category_box["x"] + category_box["width"] <= button_box["x"] + 2
-            assert abs((category_box["y"] + category_box["height"]/2) - (button_box["y"] + button_box["height"]/2)) < 6
+            assert button_box["x"] + button_box["width"] <= source_box["x"] + 2
+            assert abs((source_box["y"] + source_box["height"]/2) - (button_box["y"] + button_box["height"]/2)) < 6
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             p.goto(base + "/index.html")
             p.locator("#burgerBtn").click()
