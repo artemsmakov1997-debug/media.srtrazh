@@ -30,11 +30,13 @@
     gap:clamp(14px,1.7vw,24px) !important;
     min-width:0;
     min-height:352px;
+    /* The same containing block as #mediaGrid: exact shared left/right edges. */
     position:relative;
-    left:50%;
-    transform:translateX(-50%);
-    width:min(1440px,calc(100vw - 40px));
-    max-width:none;
+    left:auto;
+    transform:none;
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
     margin:20px 0 17px !important;
     padding:26px clamp(19px,2.7vw,33px) !important;
     border:1px solid rgba(24,156,196,.53) !important;

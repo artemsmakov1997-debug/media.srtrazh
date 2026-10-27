@@ -73,6 +73,14 @@ def rating_ui(browser, base, site, errors, requests):
                     's.backgroundImage.includes("gradient") && '
                     'parseFloat(k.borderLeftWidth)>=1 && '
                     'hero.scrollWidth<=hero.clientWidth+2;}')
+                # Desktop hero edges match the publisher cards, even at 80% zoom.
+                assert page.locator('.hero').evaluate(
+                    'hero => {const frame=hero.getBoundingClientRect();'
+                    'const grid=document.getElementById("mediaGrid").getBoundingClientRect();'
+                    'return Math.abs(frame.left-grid.left)<=1.5 && '
+                    'Math.abs(frame.right-grid.right)<=1.5 && '
+                    'frame.width>0 && '
+                    'Math.abs(frame.width-grid.width)<=2;}'), width
                 # Both first-sentence markers are on its first line: their
                 # labels must stay next to those words, even at 80% CSS zoom.
                 assert page.locator('#heroExampleCallouts').evaluate(
