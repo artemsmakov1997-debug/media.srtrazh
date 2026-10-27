@@ -1,0 +1,317 @@
+[
+  {
+    "id": "burden_of_proof",
+    "document": {
+      "text": "Докажите, что чиновник не получил взятку. Никто не опроверг эти сведения, значит, они верны."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "inaccessible_evidence",
+    "document": {
+      "text": "Доказательства причастности министра существуют, но они засекречены. Поэтому сомневаться в его вине нельзя."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "guilt_pressure",
+    "document": {
+      "text": "Если вы откажетесь поддержать эту партию, гибель детей будет на вашей совести."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "loyalty_test",
+    "document": {
+      "text": "Кто задаёт вопросы о решении правительства, тот работает против своей страны."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "reciprocity_pressure",
+    "document": {
+      "text": "Губернатор столько сделал для вас, что вы обязаны проголосовать за него."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "precision_without_method",
+    "document": {
+      "text": "97,3% жителей поддержали решение правительства."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "relative_without_baseline",
+    "document": {
+      "text": "После реформы риск вырос на 300%."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "loaded_question_variant",
+    "document": {
+      "text": "Когда министр вернёт украденные у граждан деньги?"
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "popularity_as_truth",
+    "document": {
+      "text": "У этого заявления двести тысяч репостов, следовательно, оно правдиво."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "unbounded_promise",
+    "document": {
+      "text": "Новый закон гарантированно избавит страну от кризисов навсегда."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "non_superiority_claim",
+    "document": {
+      "text": "Ни одна партия не сделала больше для людей, чем наша."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "join_majority",
+    "document": {
+      "text": "По всей стране люди выбирают нашу партию. Пора присоединиться и вам."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "repeated_slogan",
+    "document": {
+      "text": "Новый закон вернёт нам спокойствие.\n\nНа заседании представили проект. Новый закон вернёт нам спокойствие.\n\nЕго рассмотрят во вторник. Новый закон вернёт нам спокойствие."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "anecdote_to_group",
+    "document": {
+      "text": "Один чиновник опоздал на встречу. Этот случай доказывает: чиновники не способны выполнять свою работу."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "commercial_cues",
+    "document": {
+      "text": "Врачи советуют всем пройти уникальный курс. Запишитесь прямо сейчас по промокоду НОВОСТИ."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "scientific_veneer",
+    "document": {
+      "text": "Экспериментальная методика одобрена наукой и проверена самой жизнью."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "urgent_call",
+    "document": {
+      "text": "Только в ближайший час вы можете спасти будущее страны: немедленно поддержите инициативу."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "loaded_question_covered",
+    "document": {
+      "text": "Когда вы перестанете лгать народу?"
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [
+      {
+        "rule_id": "simplification.loaded_question",
+        "category": "oversimplification",
+        "status": "needs_review"
+      }
+    ],
+    "marker_fragments": 1,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "recognition_control"
+  },
+  {
+    "id": "false_dilemma_plural_variant",
+    "document": {
+      "text": "Либо вы с нами, либо вы против нас."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "candidate_probe"
+  },
+  {
+    "id": "authority_covered",
+    "document": {
+      "text": "Это правда, потому что министр так сказал."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [
+      {
+        "rule_id": "authority.status_as_proof",
+        "category": "appeal_to_authority",
+        "status": "needs_review"
+      }
+    ],
+    "marker_fragments": 1,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "recognition_control"
+  },
+  {
+    "id": "false_dilemma_covered",
+    "document": {
+      "text": "Кто не с нами, тот против нас."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [
+      {
+        "rule_id": "simplification.false_dilemma",
+        "category": "oversimplification",
+        "status": "needs_review"
+      }
+    ],
+    "marker_fragments": 1,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "recognition_control"
+  },
+  {
+    "id": "clinical_control",
+    "document": {
+      "text": "После аварии у пострадавшего диагностировали острую стрессовую реакцию."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  },
+  {
+    "id": "emergency_control",
+    "document": {
+      "text": "Метеослужба предупреждает об урагане и рекомендует эвакуацию до 18:00."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  },
+  {
+    "id": "poll_with_method_control",
+    "document": {
+      "text": "В опросе института N участвовали 1200 респондентов, из них 97,3% выбрали вариант А. Опрос проведён 10–12 октября; методика и анкета опубликованы."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  },
+  {
+    "id": "neutral_question_control",
+    "document": {
+      "text": "Когда министр вернёт документы в архив?"
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  },
+  {
+    "id": "public_count_control",
+    "document": {
+      "text": "Заявление собрало двести тысяч репостов за сутки."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  },
+  {
+    "id": "real_deadline_control",
+    "document": {
+      "text": "Приём заявлений завершится сегодня в 18:00 согласно опубликованному расписанию."
+    },
+    "algorithm_version": "rules-0.11.0",
+    "findings": [],
+    "marker_fragments": 0,
+    "purpose": "synthetic_development_probe_not_gold",
+    "group": "negative_control"
+  }
+]
