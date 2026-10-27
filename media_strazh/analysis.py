@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.11.0"
+VERSION = "rules-0.12.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -32,14 +32,15 @@ LABELS = {key: label for key, label, _ in TAXONOMY}
 LABELS["event_terminology"] = "Выбор обозначения события"
 LABELS["actor_terminology"] = "Обозначение участника"
 LABELS["territory_terminology"] = "Обозначение территории"
-LABELS["rhetorical_context"] = "Риторические сопоставления"
+LABELS["rhetorical_context"] = "Контекст подачи и сопоставления"
 INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
 COMPILED_RULES = [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in RULES
-                  if rule.context_requirement not in {"historical_juxtaposition", "structural_notice"}]
+                  if rule.context_requirement not in {"historical_juxtaposition", "structural_notice", "literature_structure"}]
 STRUCTURAL_NOTICES = {rule.id: rule for rule in RULES if rule.context_requirement == "structural_notice"}
+LITERATURE_NOTICES = {rule.id: rule for rule in RULES if rule.context_requirement == "literature_structure"}
 HISTORICAL_ANCHOR = re.compile(HISTORICAL_JUXTAPOSITION.pattern, re.I)
 # A name/date alone is insufficient. The structural pass requires at least two
 # recurring themes in a nearby current statement and a historical statement.
@@ -501,6 +502,24 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return True
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
+    fragment = text[start:end]
+    if rule.context_requirement == "affirmative_inference":
+        conclusion = re.split(r"\b(?:значит|следовательно|поэтому)\b", fragment, flags=re.I)[-1]
+        return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+                and not re.search(r"\b(?:не|нельзя)\b", conclusion, re.I))
+    if rule.context_requirement == "guilt_pressure":
+        guilt = re.search(r"\bна\s+(?:твоей|вашей)\s+совести\b", fragment, re.I)
+        rejected = guilt and re.search(r"\bне\s+(?:(?:будет|будут|ляжет|лягут|останется|останутся)\s+)?$",
+                                      fragment[max(0, guilt.start() - 45):guilt.start()], re.I)
+        return not rejected and not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+    if rule.context_requirement == "inaccessible_evidence":
+        return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+                and not re.search(r"\bне\s+(?:засекречен[а-яё]*|секретн[а-яё]*|недоступн[а-яё]*)\b", fragment, re.I))
+    if rule.context_requirement == "public_promise":
+        return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+                and not re.search(r"\bне\s+(?:избав[а-яё]*|обеспеч[а-яё]*|защит[а-яё]*|спас[а-яё]*)\b", fragment, re.I)
+                and bool(POLITICAL_CONTEXT.search(sentence) or re.search(
+                    r"\b(?:закон[а-яё]*|экономик[а-яё]*|населени[а-яё]*|реформ[а-яё]*)\b", sentence, re.I)))
     if rule.context_requirement == "degrading_place":
         nearby = text[max(0, start - 250):end]
         literal = re.search(r"\b(?:мусор[а-яё]*|отход[а-яё]*|контейнер[а-яё]*|вывоз[а-яё]*|уборк[а-яё]*|свалк[а-яё]*)\b", sentence, re.I)
@@ -849,6 +868,14 @@ def _evidence(field, text, start, end, quotes):
         ))
     quote_index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
     quoted = quote_index >= 0 and end <= quotes[quote_index][1]
+    if quoted:
+        # A marker may occur deep inside a multi-sentence teaching quotation.
+        # Its introductory «Фраза / пример:» belongs to the whole outer quote.
+        quote_start = quotes[quote_index][0]
+        discussed = discussed or bool(re.search(
+            r"\b(?:слово|слова|выражение|фраза|формулировка|термин|ярлык|тезис|лозунг|слоган|клише|цитата|пример)"
+            r"\s*[:—-]?\s*$", text[max(0, quote_start - 100):quote_start], re.I,
+        ))
     context = {"in_quotes": quoted, "nearby_negation": negated or denied,
                "metalinguistic": discussed, "reported_speech": reported}
     return {"field": field, "start": start, "end": end, "quote": text[start:end],
@@ -1018,6 +1045,103 @@ def _rhetorical_notices(title, text, quotes, findings, image_count=0):
                              **({"image_count": image_count} if image_count else {}))
 
 
+def _literature_notices(title, text, quotes):
+    """Observable numeric/commercial/repetition cues, never fact-check verdicts.
+
+    Search both complete input fields for an identifiable quantitative basis,
+    rather than mistaking a shortened display excerpt for the whole document.
+    Publisher identity, URL and publication date never supply or remove a cue.
+    """
+    values = {"title": title, "text": text}
+    combined = title + "\n" + text
+
+    def notice(rule_id, label, spans, **observations):
+        rule = LITERATURE_NOTICES[rule_id]
+        evidence = []
+        for field, start, end in spans:
+            item = _evidence(field, values[field], start, end, quotes[field])
+            item["context"].update(informational_notice=True, **observations)
+            evidence.append(item)
+        return {"rule_id": rule.id, "category": rule.category, "label": label,
+                "status": "context_only", "explanation": rule.explanation,
+                "review_question": rule.review_question, "evidence": evidence}
+
+    survey_basis = re.search(
+        r"\b(?:выборк[а-яё]*|методик[а-яё]*|анкет[а-яё]*|ВЦИОМ|ФОМ|Росстат|Gallup)\b|"
+        r"\b\d[\d\s]{0,10}\s+(?:респондент[а-яё]*|опрошенн[а-яё]*|участник[а-яё]*)\b|"
+        r"\bпо\s+(?:данным|результатам)\s+(?:опроса|исследования)\b", combined, re.I,
+    )
+    absolute_basis = re.search(
+        r"\b(?:с|от)\s+\d+(?:[.,]\d+)?\s*%?\s+до\s+\d+(?:[.,]\d+)?\s*%?|"
+        r"\b\d+\s+из\s+\d+\b|\bодин\s+случай\s+из\s+\d+\b|"
+        r"\b(?:исходн[а-яё]*|абсолютн[а-яё]*|базов[а-яё]*)\s+(?:риск[а-яё]*|уров[а-яё]*)\b",
+        combined, re.I,
+    )
+    for field, value in values.items():
+        if not survey_basis:
+            for match in re.finditer(
+                r"\b\d{1,3}(?:[.,]\d{1,3})?\s*%\s+(?:жител[а-яё]*|граждан[а-яё]*|избирател[а-яё]*|"
+                r"россиян[а-яё]*|опрошенн[а-яё]*)\s+(?:[а-яё-]+\s+){0,2}"
+                r"(?:поддерж[а-яё]*|одобр[а-яё]*|выбра[а-яё]*|предпоч[а-яё]*|проголос[а-яё]*)\b", value, re.I,
+            ):
+                percent = float(re.match(r"\d+(?:[.,]\d+)?", match[0])[0].replace(",", "."))
+                if percent <= 100:
+                    yield notice("context.percent_basis", "Основание процентной оценки",
+                                 [(field, *match.span())], quantitative_basis_not_recognized=True,
+                                 full_input_checked=True, truth_checked=False)
+        if not absolute_basis:
+            for match in re.finditer(
+                r"\bриск\s+(?:вырос|увеличился|снизился|сократился)\s+на\s+\d+(?:[.,]\d+)?\s*%", value, re.I,
+            ):
+                yield notice("context.relative_risk_basis", "Относительное изменение риска",
+                             [(field, *match.span())], absolute_basis_not_recognized=True,
+                             full_input_checked=True, truth_checked=False)
+        for match in re.finditer(
+            r"\b(?:запишитесь|записывайтесь|купите|закажите|покупайте|успейте\s+купить)\b"
+            r"[^.!?\n]{0,160}\bпо\s+промокоду\s+[\w-]{2,40}\b", value, re.I,
+        ):
+            yield notice("context.commercial_call", "Коммерческий призыв",
+                         [(field, *match.span())], commercial_cue=True,
+                         hidden_payment_established=False)
+
+    # Sentence equality is deliberately narrower than semantic similarity.
+    # No title/body duplicates; only public evaluative theses in >=3 paragraphs.
+    if re.search(r"\b(?:учебн[а-яё]*\s+пример|разбор\s+повтор[а-яё]*|обсуждени[а-яё]*\s+лозунг[а-яё]*|"
+                 r"в\s+(?:романе|фильме|спектакле))\b",
+                 title + "\n" + text[:400], re.I):
+        return
+    paragraph_starts = [0] + [match.end() for match in re.finditer(r"\n+", text)]
+    repeated = {}
+    for segment in re.finditer(r"[^.!?\n]+", text):
+        words = []
+        for word in re.finditer(r"[а-яё]+(?:-[а-яё]+)*", segment[0], re.I):
+            words.append(word)
+            if len(words) > 12:
+                break
+        if not 4 <= len(words) <= 12:
+            continue
+        phrase = segment[0]
+        if (not re.search(r"\b(?:закон[а-яё]*|партия|правительств[а-яё]*|власт[а-яё]*|страна|народ)\b", phrase, re.I)
+                or not re.search(r"\b(?:верн[её]т[а-яё]*|принес[её]т[а-яё]*|обеспеч[а-яё]*|досто[йи]н[а-яё]*|"
+                                 r"поддерж[а-яё]*|защит[а-яё]*|спас[а-яё]*)\b", phrase, re.I)):
+            continue
+        start, end = segment.start() + words[0].start(), segment.start() + words[-1].end()
+        canonical = tuple(word[0].casefold().replace("ё", "е") for word in words)
+        paragraph = bisect_right(paragraph_starts, start) - 1
+        group = repeated.setdefault(canonical, {"spans": [], "last_paragraph": -1, "paragraphs": 0, "occurrences": 0})
+        group["occurrences"] += 1
+        if paragraph != group["last_paragraph"]:
+            group["last_paragraph"] = paragraph
+            group["paragraphs"] += 1
+            if len(group["spans"]) < 3:
+                group["spans"].append(("text", start, end))
+    for group in repeated.values():
+        if group["paragraphs"] >= 3:
+            yield notice("context.repeated_thesis", "Повторение тезиса", group["spans"],
+                         repeated_thesis=True, occurrences=group["occurrences"],
+                         distinct_paragraphs=group["paragraphs"], semantic_similarity_used=False)
+
+
 def analyze(document):
     """Return exact spans relative to unchanged input, in Unicode code points."""
     title, text = validate_document(document)
@@ -1067,12 +1191,14 @@ def analyze(document):
                         "review_question": rule.review_question, "evidence": [evidence],
                     })
         if informational:
-            for finding in _rhetorical_notices(title, text, quotes, findings,
-                                               document.get("media", {}).get("image_count", 0)):
-                if len(findings) >= MAX_FINDINGS:
-                    truncated = True
-                    break
-                findings.append(finding)
+            for notices in (_rhetorical_notices(title, text, quotes, findings,
+                                               document.get("media", {}).get("image_count", 0)),
+                            _literature_notices(title, text, quotes)):
+                for finding in notices:
+                    if len(findings) >= MAX_FINDINGS:
+                        truncated = True
+                        break
+                    findings.append(finding)
             continue
         for finding in _historical_juxtapositions(title, text, quotes):
             if len(findings) >= MAX_FINDINGS:
