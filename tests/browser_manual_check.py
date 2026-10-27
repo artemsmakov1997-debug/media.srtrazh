@@ -633,10 +633,28 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 assert 'С фрагментами для проверки: 1.' in page.locator('#totals').inner_text()
                 select_analysis_filter(page, '#marker', expected['findings'][0]['category'])
                 assert page.locator('.publication').count() == 1
+                page.evaluate('''() => {
+                    window.tipHistory=[];
+                    for(const name of ['show','hide']) {
+                        const original=PublicationTooltip.prototype[name];
+                        PublicationTooltip.prototype[name]=function(...args) {
+                            if(this.tooltip.id==='automaticTooltip') tipHistory.push({name,
+                                hidden:this.tooltip.hidden,scroll:scrollY,
+                                why:new Error().stack.split('\\n').slice(2,4).join(' ')});
+                            return original.apply(this,args);
+                        };
+                    }
+                }''')
                 page.locator('.auto-details-button').click()
                 marker = page.locator('#automaticModal mark').first
                 marker.tap() if mobile else marker.hover()
-                page.locator('#automaticTooltip').wait_for(state='visible')
+                try:
+                    page.locator('#automaticTooltip').wait_for(state='visible')
+                except Exception as error:
+                    details=page.evaluate('''() => ({events:tipHistory.slice(-7),
+                        scroll:scrollY,focus:document.activeElement?.outerHTML.slice(0,100)})''')
+                    raise AssertionError(json.dumps({'case':key,'mobile':mobile,
+                        'source':item['source_id'],'platform':item['platform'],'details':details})) from error
                 assert expected['findings'][0]['explanation'] in page.locator('#automaticTooltip').inner_text()
                 page.wait_for_function("getComputedStyle(document.getElementById('automaticTooltip')).opacity === '1'")
                 assert page.locator('#automaticModalClose').evaluate('''button => {
