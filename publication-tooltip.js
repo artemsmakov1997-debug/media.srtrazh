@@ -43,41 +43,53 @@ window.PublicationTooltip = class PublicationTooltip {
     tooltip.replaceChildren(label, explanation);
     const viewport = window.visualViewport;
     const leftEdge = (viewport ? viewport.offsetLeft : 0) + 12;
-    let topEdge = (viewport ? viewport.offsetTop : 0) + 12;
+    const topEdge = (viewport ? viewport.offsetTop : 0) + 12;
     const width = (viewport ? viewport.width : innerWidth) - 24;
-    const bottomEdge = topEdge + (viewport ? viewport.height : innerHeight) - 24;
-    // A short mobile dialog can start near the bottom of the screen. Keep its
-    // close control reachable even when a long comment has to scroll.
-    const close = mark.closest('[role="dialog"]')?.querySelector('.auto-modal-close, .message-close');
-    if (close) {
-      const control = close.getBoundingClientRect();
-      if (control.bottom > topEdge && control.top < bottomEdge) {
-        topEdge = Math.max(topEdge, Math.min(control.bottom + 8, bottomEdge - 1));
-      }
-    }
-    const height = bottomEdge - topEdge;
+    const height = (viewport ? viewport.height : innerHeight) - 24;
     const style = getComputedStyle(tooltip);
     const widthCap = Number(style.getPropertyValue('--tooltip-width')) || 310;
     const heightCap = Number(style.getPropertyValue('--tooltip-height')) || 360;
-    tooltip.style.width = Math.max(1, Math.min(widthCap, width)) + 'px';
-    tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65)) + 'px';
     tooltip.style.visibility = 'hidden'; tooltip.hidden = false;
     const visibleRects = Array.from(mark.getClientRects()).filter(rect => rect.bottom > topEdge && rect.top < topEdge + height);
     const firstRect = visibleRects[0] || mark.getBoundingClientRect();
     const rect = {left:firstRect.left, width:firstRect.width,
       top:visibleRects.length ? Math.max(topEdge, Math.min(...visibleRects.map(r => r.top))) : firstRect.top,
       bottom:visibleRects.length ? Math.min(topEdge + height, Math.max(...visibleRects.map(r => r.bottom))) : firstRect.bottom};
-    const preferredHeight = tooltip.offsetHeight;
-    const above = rect.top - topEdge - 10, below = topEdge + height - rect.bottom - 10;
-    const useAbove = above >= preferredHeight || (below < preferredHeight && above > below);
-    const room = Math.max(1, useAbove ? above : below);
-    tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, height * .65, room)) + 'px';
-    const tip = {width:tooltip.offsetWidth, height:tooltip.offsetHeight};
-    const left = Math.max(leftEdge, Math.min(rect.left + rect.width / 2 - tip.width / 2, leftEdge + width - tip.width));
-    const preferredTop = useAbove ? rect.top - tip.height - 10 : rect.bottom + 10;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top = Math.max(topEdge, Math.min(preferredTop, topEdge + height - tip.height)) + 'px';
-    tooltip.style.transformOrigin = Math.max(0, Math.min(tip.width, rect.left + rect.width / 2 - left)) + 'px ' + (useAbove ? 'bottom' : 'top');
+    const place = (left, top, availableWidth, availableHeight) => {
+      tooltip.style.width = Math.max(1, Math.min(widthCap, availableWidth)) + 'px';
+      tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, availableHeight * .65)) + 'px';
+      const preferredHeight = tooltip.offsetHeight;
+      const above = rect.top - top - 10, below = top + availableHeight - rect.bottom - 10;
+      const useAbove = above >= preferredHeight || (below < preferredHeight && above > below);
+      const room = Math.max(1, useAbove ? above : below);
+      tooltip.style.maxHeight = Math.max(1, Math.min(heightCap, availableHeight * .65, room)) + 'px';
+      const size = {width:tooltip.offsetWidth, height:tooltip.offsetHeight};
+      const x = Math.max(left, Math.min(rect.left + rect.width / 2 - size.width / 2, left + availableWidth - size.width));
+      const preferredTop = useAbove ? rect.top - size.height - 10 : rect.bottom + 10;
+      return {...size, x, y:Math.max(top, Math.min(preferredTop, top + availableHeight - size.height)), useAbove};
+    };
+    let tip = place(leftEdge, topEdge, width, height);
+    const close = mark.closest('[role="dialog"]')?.querySelector('.auto-modal-close, .message-close');
+    if (close) {
+      const control = close.getBoundingClientRect();
+      if (tip.x < control.right && tip.x + tip.width > control.left &&
+          tip.y < control.bottom && tip.y + tip.height > control.top) {
+        // Prefer moving beside the close control: moving below it could cover
+        // the next marker. Reflow long comments only when they collide.
+        const leftRoom = control.left - 8 - leftEdge;
+        const rightRoom = leftEdge + width - control.right - 8;
+        if (Math.max(leftRoom, rightRoom) >= Math.min(160, width)) {
+          tip = leftRoom >= rightRoom ? place(leftEdge, topEdge, leftRoom, height)
+            : place(control.right + 8, topEdge, rightRoom, height);
+        } else {
+          const safeTop = Math.min(topEdge + height - 1, Math.max(topEdge, control.bottom + 8));
+          tip = place(leftEdge, safeTop, width, topEdge + height - safeTop);
+        }
+      }
+    }
+    tooltip.style.left = tip.x + 'px';
+    tooltip.style.top = tip.y + 'px';
+    tooltip.style.transformOrigin = Math.max(0, Math.min(tip.width, rect.left + rect.width / 2 - tip.x)) + 'px ' + (tip.useAbove ? 'bottom' : 'top');
     tooltip.style.visibility = '';
   }
   bind(mark) {
