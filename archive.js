@@ -8,7 +8,7 @@
   const shortLabels = {emotional_evaluation: 'Оценочная лексика', euphemism_dysphemism: 'Дисфемизмы',
     appeal_to_authority: 'Авторитет', vague_source: 'Размытый источник'};
   const requestedPublisher = new URLSearchParams(location.search).get('publisher') || '';
-  let report = null, messages = [], filter = 'all', search = '', previousFocus = null, loading = false;
+  let report = null, messages = [], filter = 'all', search = '', previousFocus = null, loading = false, refreshFailed = false;
   function node(tag, text = '', className = '') {
     const result = document.createElement(tag);
     result.textContent = text;
@@ -34,7 +34,6 @@
       line.title = 'Справочный статус в РФ, проверен ' + checkedAt + '. Не влияет на оценку текста.';
       result.append(line);
     }
-    result.append(node('small', item.platform === 'telegram' ? 'Telegram' : 'Сайт', 'archive-platform'));
     return result;
   }
   function original(item) {
@@ -72,7 +71,7 @@
       const category = status === 'pending' ? 'Не проверено' : !categories.length
         ? status === 'danger' ? 'Есть признаки' : status === 'risky' ? 'Контекст' : 'Не найдены'
         : categories[0] + (categories.length > 1 ? ' +' + (categories.length - 1) : '');
-      return {raw, source, publisher, media, title, platform: source.platform, active, status, category};
+      return {raw, source, publisher, media, title, active, status, category};
     });
   }
   function explain(item) {
@@ -165,8 +164,17 @@
       (filter === 'all' || item.status === filter) && (!term ||
         [item.media, item.title, item.raw.message_preview, ...item.raw.findings.flatMap(f =>
           [f.label, f.explanation, ...f.evidence.map(e => e.quote)])].join(' ').toLocaleLowerCase('ru').includes(term)));
-    list.replaceChildren(...selected.map(createItem));
-    if (!selected.length) list.append(node('div', 'Публикации по заданным условиям не найдены.', 'empty-state'));
+    const visible = selected.slice(0, 10);
+    list.replaceChildren(...visible.map(createItem));
+    if (!visible.length) list.append(node('div', 'Публикации по заданным условиям не найдены.', 'empty-state'));
+    if (report) {
+      const stale = Date.now() - Date.parse(report.generated_at) > 2 * 3600000;
+      const publisherName = requestedPublisher && (messages.find(item => item.publisher === requestedPublisher)?.media ||
+        report.sources.find(source => source.publisher_id === requestedPublisher)?.name);
+      $('rtText').textContent = (refreshFailed ? 'Не удалось обновить. Данные от ' : 'Обновлено: ') + date(report.generated_at) +
+        '. Показано: ' + visible.length + (publisherName ? '. Фильтр СМИ: ' + publisherName : '') +
+        '. Часть собранных публикаций; полный охват СМИ не гарантирован.' + (stale ? ' Данные не обновлялись более двух часов.' : '');
+    }
   }
   async function load() {
     if (loading) return;
@@ -177,14 +185,9 @@
       if (!response.ok) throw Error('http');
       const text = await response.text(); if (text.length > 8000000) throw Error('size');
       const next = JSON.parse(text), items = adapt(next);
-      report = next; messages = items; render();
-      const stale = Date.now() - Date.parse(next.generated_at) > 2 * 3600000;
-      const publisherName = requestedPublisher && (messages.find(item => item.publisher === requestedPublisher)?.media ||
-        next.sources.find(source => source.publisher_id === requestedPublisher)?.name);
-      $('rtText').textContent = 'Обновлено: ' + date(next.generated_at) + '. В подборке: ' + messages.length +
-        (publisherName ? '. Фильтр СМИ: ' + publisherName : '') +
-        '. Часть собранных публикаций; полный охват СМИ не гарантирован.' + (stale ? ' Данные не обновлялись более двух часов.' : '');
+      report = next; messages = items; refreshFailed = false; render();
     } catch {
+      refreshFailed = true;
       if (!report) list.replaceChildren(node('div', 'Не удалось загрузить реальные публикации. Попробуйте обновить страницу позже.', 'empty-state'));
       $('rtText').textContent = report ? 'Не удалось обновить подборку. Показаны данные от ' + date(report.generated_at) + '.'
         : 'Данные анализа недоступны.';

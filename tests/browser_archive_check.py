@@ -68,6 +68,7 @@ def archive_ui(browser, base, site):
         assert page.locator('.archive-item[data-id="1"] .archive-publisher-status').all_text_contents() == ['иноагент', 'нежелательная организация']
         assert page.locator('.archive-item[data-id="2"] .archive-publisher-status').all_text_contents() == ['иноагент']
         assert page.locator('.archive-item[data-id="3"] .archive-publisher-status').count() == 0
+        assert page.locator('.archive-platform').count() == 0
         assert page.locator('.archive-item[data-id="4"]').get_attribute('data-status') == 'danger'
         assert '10:00 МСК' in page.locator('.cell-time').first.inner_text()
         assert page.locator('#archiveList img').count() == 0
@@ -88,6 +89,7 @@ def archive_ui(browser, base, site):
         assert 'не полный текст' in page.locator('#modalFullText').inner_text()
         assert page.locator('#modalOriginal a').get_attribute('href') == data['articles'][0]['url']
         assert page.locator('#modalMedia .archive-publisher-status').count() == 2
+        assert page.locator('#modalMedia .archive-platform').count() == 0
         page.locator('#modalFullText mark').first.click()
         assert 'Запугивание' in page.locator('#archiveMarkerNote').inner_text()
         assert 'они не доказывают манипуляцию' in page.locator('#modalExplain').inner_text()
@@ -98,28 +100,48 @@ def archive_ui(browser, base, site):
         assert not errors, errors
         page.close()
 
-    # Match the production snapshot size. Four test rows fit the height cap
-    # and cannot reveal the flex-shrink regression seen with 100 publications.
+    # A full incoming snapshot is limited to ten rows after applying filters.
+    # Filtering and search still reach publications beyond the initial ten.
     full = copy.deepcopy(data)
     full['articles'] = [dict(copy.deepcopy(data['articles'][i % 4]), id=i+1) for i in range(100)]
+    full['articles'][-1]['message_preview'] = 'Уникальный фрагмент из конца подборки'
     for width in (320, 375, 390, 768, 1024, 1280, 1440):
         page = browser.new_page(viewport={'width': width, 'height': 900}, device_scale_factor=1)
         page.route('**/data/analysis.json', lambda route: route.fulfill(json=full))
         page.goto(base + ('/archive.html' if width == 1024 else '/archive/'))
-        page.wait_for_function('document.querySelectorAll(".archive-item").length === 100')
+        page.wait_for_function('document.querySelectorAll(".archive-item").length === 10')
+        assert page.locator('.archive-item').evaluate_all('(els)=>els.map(el=>Number(el.dataset.id))') == list(range(1, 11))
+        assert 'Показано: 10' in page.locator('#rtText').inner_text()
+        assert page.locator('.archive-platform').count() == 0
         assert_rows_contain_content(page)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), width
-        page.screenshot(path=str(screenshots / f'archive-100-{width}.png'))
+        page.screenshot(path=str(screenshots / f'archive-ten-{width}.png'))
         last = page.locator('.archive-item').last.locator('.more-btn')
         last.click()
         assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'false'
         page.keyboard.press('Escape')
         page.locator('.chip[data-status="danger"]').click()
+        assert page.locator('.archive-item').count() == 10
+        assert page.locator('.archive-item').evaluate_all('(els)=>els.every(el=>el.dataset.status === "danger")')
         assert_rows_contain_content(page)
         page.locator('.chip[data-status="all"]').click()
-        assert page.locator('.archive-item').count() == 100
+        assert page.locator('.archive-item').count() == 10
+        page.locator('#searchInput').fill('Уникальный фрагмент из конца подборки')
+        assert page.locator('.archive-item').count() == 1
+        assert page.locator('.archive-item').get_attribute('data-id') == '100'
+        assert 'Показано: 1' in page.locator('#rtText').inner_text()
+        page.locator('#searchInput').fill('')
+        assert page.locator('.archive-item').count() == 10
         assert_rows_contain_content(page)
         page.close()
+
+    page = browser.new_page()
+    page.route('**/data/analysis.json', lambda route: route.fulfill(json=full))
+    page.goto(base + '/archive/?publisher=mediazona')
+    page.wait_for_selector('.archive-item')
+    assert page.locator('.archive-item').count() == 10
+    assert page.locator('.archive-item').evaluate_all('(els)=>els.every(el=>el.dataset.publisher === "mediazona")')
+    page.close()
 
     page = browser.new_page()
     page.route('**/data/analysis.json', lambda route: route.fulfill(json=data))
@@ -158,12 +180,13 @@ def archive_ui(browser, base, site):
     page = browser.new_page(); page.goto(base + '/archive/')
     page.wait_for_selector('.archive-item')
     snapshot = json.loads((Path(site) / 'data/analysis.json').read_text())
-    assert page.locator('.archive-item').count() == len(snapshot['articles'])
+    assert page.locator('.archive-item').count() == min(10, len(snapshot['articles']))
+    assert page.locator('.archive-platform').count() == 0
     assert_rows_contain_content(page)
     page.close()
     print(json.dumps({'archive_viewports': 7, 'real_snapshot_ids': 'passed', 'source_links_and_legal_labels': 'passed',
                       'unicode_evidence_and_touch': 'passed', 'no_fabricated_fallback': 'passed',
-                      'full_100_row_heights_and_scrolling': 'passed'}))
+                      'ten_row_limit_after_filtering_and_search': 'passed', 'platform_labels_removed': 'passed'}))
 
 
 if __name__ == '__main__':
