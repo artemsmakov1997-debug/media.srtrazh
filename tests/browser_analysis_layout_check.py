@@ -42,11 +42,13 @@ async def run(site, output):
                   return {label:time.textContent,iso:time.getAttribute('datetime'),tag:time.tagName,
                     contains:t.left>=c.left&&t.right<=c.right&&t.top>=c.top,
                     separate:s.right<=t.left,aboveTitle:t.bottom<=card.querySelector('.publication-title').getBoundingClientRect().top,
-                    dateHeight:t.height,aligned:!link||Math.abs(link.getBoundingClientRect().right-t.right)<1};
+                    dateHeight:t.height,background:getComputedStyle(time).backgroundColor,border:getComputedStyle(time).borderTopWidth,
+                    aligned:!link||Math.abs(link.getBoundingClientRect().right-t.right)<1};
                 })""")
                 assert len(dates) == len(expected_dates)
                 for row, raw in zip(dates, expected_dates):
                     assert row['contains'] and row['separate'] and row['aboveTitle'], (width,row)
+                    assert row['background'] == 'rgba(0, 0, 0, 0)' and row['border'] == '0px', (width,row)
                     assert (row['tag']=='TIME' and row['iso']) if raw else (row['tag']=='SPAN' and row['iso'] is None)
                     if width<=760:
                         assert row['aligned'] and row['dateHeight']<=40, (width,row)

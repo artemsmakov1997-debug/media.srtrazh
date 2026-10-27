@@ -64,38 +64,78 @@ def archive_ui(browser, base, site):
         page.wait_for_function('document.querySelectorAll(".archive-item").length === 4')
         assert page.locator('.archive-item').evaluate_all('(els) => els.map(el=>Number(el.dataset.id))') == [1,2,3,4]
         assert_rows_contain_content(page)
+        assert page.locator('.chip,.cell-category').count() == 0
+        for selector in ('#source', '#platform', '#marker'):
+            assert page.locator(selector).is_visible()
         assert 'демо' not in page.locator('#rtText').inner_text()
         assert page.locator('.archive-item[data-id="1"] .archive-publisher-status').all_text_contents() == ['иноагент', 'нежелательная организация']
         assert page.locator('.archive-item[data-id="2"] .archive-publisher-status').all_text_contents() == ['иноагент']
         assert page.locator('.archive-item[data-id="3"] .archive-publisher-status').count() == 0
         assert page.locator('.archive-platform').count() == 0
         assert page.locator('.archive-item[data-id="4"]').get_attribute('data-status') == 'danger'
-        assert '10:00 МСК' in page.locator('.cell-time').first.inner_text()
+        assert '10:00:00 МСК' in page.locator('.cell-time').first.inner_text()
+        assert page.locator('.cell-time').first.evaluate('(el)=>getComputedStyle(el).backgroundColor') == 'rgba(0, 0, 0, 0)'
+        assert page.locator('.cell-time').first.evaluate('(el)=>getComputedStyle(el).borderTopWidth') == '0px'
+        assert page.locator('.cell-original .source-link').count() == 4
+        assert page.locator('.cell-original .source-link').first.get_attribute('href') == data['articles'][0]['url']
+        assert 'Категория' not in page.locator('.archive-header-row').inner_text()
         assert page.locator('#archiveList img').count() == 0
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), width
-        page.locator('.chip[data-status="risky"]').click()
+        page.select_option('#source', 'mediazona')
+        page.select_option('#platform', 'telegram')
+        page.select_option('#marker', 'actor_terminology')
         assert page.locator('.archive-item').count() == 1
         assert page.locator('.archive-item').get_attribute('data-id') == '2'
-        page.locator('.chip[data-status="neutral"]').click()
-        assert page.locator('.archive-item').get_attribute('data-id') == '3'
-        page.locator('.chip[data-status="all"]').click()
+        page.locator('#resetFilters').click()
+        assert page.locator('.archive-item').count() == 4
+        assert page.locator('#resetFilters').is_disabled()
+        page.select_option('#marker', 'fear')
+        assert page.locator('.archive-item').count() == 2
+        page.select_option('#platform', 'website')
+        assert page.locator('.archive-item').get_attribute('data-id') == '1'
+        page.locator('#resetFilters').click()
         page.locator('#searchInput').fill('политзаключённый')
         assert page.locator('.archive-item').get_attribute('data-id') == '2'
         page.locator('#searchInput').fill('')
+        if width == 1280:
+            source_link = page.locator('.cell-original .source-link').first
+            source_link.evaluate('(el)=>el.addEventListener("click",event=>event.preventDefault(),{once:true})')
+            source_link.click()
+            assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'true'
         button = page.locator('.archive-item[data-id="1"] .more-btn')
         button.click()
         assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'false'
         assert page.locator('#modalFullText mark').first.inner_text() == 'Ад на пороге'
         assert 'не полный текст' in page.locator('#modalFullText').inner_text()
-        assert page.locator('#modalOriginal a').get_attribute('href') == data['articles'][0]['url']
         assert page.locator('#modalMedia .archive-publisher-status').count() == 2
         assert page.locator('#modalMedia .archive-platform').count() == 0
-        page.locator('#modalFullText mark').first.click()
-        assert 'Запугивание' in page.locator('#archiveMarkerNote').inner_text()
-        assert 'они не доказывают манипуляцию' in page.locator('#modalExplain').inner_text()
-        assert 'Отсутствие признаков не означает нейтральность текста.' in page.locator('#modalExplain').inner_text()
+        assert page.locator('.message-modal-body').evaluate('(el)=>Array.from(el.children).map(el=>el.className)') == ['modal-fulltext-wrap', 'modal-meta-row', 'modal-method-link']
+        assert page.locator('#modalOriginal,#modalExplain').count() == 0
+        mark = page.locator('#modalFullText mark').first
+        mark.hover()
+        page.wait_for_selector('#archiveTooltip:not([hidden])')
+        assert 'Запугивание' in page.locator('#archiveTooltip').inner_text()
+        assert mark.get_attribute('aria-describedby') == 'archiveTooltip'
+        assert mark.get_attribute('title') is None
+        popup = page.locator('#archiveTooltip').bounding_box()
+        assert popup['x'] >= 10 and popup['x'] + popup['width'] <= width - 10
+        assert popup['y'] >= 10 and popup['y'] + popup['height'] <= 890
+        if width > 760: assert popup['width'] >= 420
+        assert 'они не доказывают манипуляцию' in page.locator('#modalFullText').inner_text()
+        assert 'Отсутствие признаков не означает нейтральность текста.' in page.locator('#modalFullText').inner_text()
         page.keyboard.press('Escape')
         assert button.evaluate('(el)=>el===document.activeElement')
+        assert page.locator('#archiveTooltip').is_hidden()
+        if width <= 900:
+            card = page.locator('.archive-item').first
+            assert card.locator('.cell-count').is_visible()
+            more = card.locator('.more-btn').bounding_box()
+            source = card.locator('.source-link').bounding_box()
+            time = card.locator('.cell-time').bounding_box()
+            assert more['x'] + more['width'] <= source['x'] + 2
+            assert abs(more['y'] - source['y']) < 2
+            assert abs(source['x'] + source['width'] - time['x'] - time['width']) < 2
+            assert more['height'] >= 44
         page.screenshot(path=str(screenshots / f'archive-{width}.png'), full_page=True)
         assert not errors, errors
         page.close()
@@ -120,11 +160,11 @@ def archive_ui(browser, base, site):
         last.click()
         assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'false'
         page.keyboard.press('Escape')
-        page.locator('.chip[data-status="danger"]').click()
+        page.select_option('#marker', 'fear')
         assert page.locator('.archive-item').count() == 10
         assert page.locator('.archive-item').evaluate_all('(els)=>els.every(el=>el.dataset.status === "danger")')
         assert_rows_contain_content(page)
-        page.locator('.chip[data-status="all"]').click()
+        page.locator('#resetFilters').click()
         assert page.locator('.archive-item').count() == 10
         page.locator('#searchInput').fill('Уникальный фрагмент из конца подборки')
         assert page.locator('.archive-item').count() == 1
@@ -141,6 +181,9 @@ def archive_ui(browser, base, site):
     page.wait_for_selector('.archive-item')
     assert page.locator('.archive-item').count() == 10
     assert page.locator('.archive-item').evaluate_all('(els)=>els.every(el=>el.dataset.publisher === "mediazona")')
+    assert page.locator('#source').input_value() == 'mediazona'
+    page.locator('#resetFilters').click()
+    assert page.locator('.archive-item').evaluate_all('(els)=>els.some(el=>el.dataset.publisher !== "mediazona")')
     page.close()
 
     page = browser.new_page()
@@ -154,9 +197,20 @@ def archive_ui(browser, base, site):
     bad = copy.deepcopy(data); bad['articles'][0]['url'] = 'javascript:alert(1)'
     page = browser.new_page(); page.route('**/data/analysis.json', lambda route: route.fulfill(json=bad))
     page.goto(base + '/archive.html'); page.wait_for_selector('.archive-item')
-    page.locator('.more-btn').first.click()
-    assert page.locator('#modalOriginal a').count() == 0
+    assert page.locator('.archive-item[data-id="1"] .source-link').count() == 0
+    assert 'Источник недоступен' in page.locator('.archive-item[data-id="1"]').inner_text()
     page.close()
+    # First tap opens a comment, the second closes it. Reduced motion has no animation.
+    context = browser.new_context(viewport={'width':375,'height':844}, has_touch=True, is_mobile=True, reduced_motion='reduce')
+    page = context.new_page(); page.route('**/data/analysis.json', lambda route: route.fulfill(json=data))
+    page.goto(base + '/archive/'); page.wait_for_selector('.archive-item')
+    page.locator('.more-btn').first.click()
+    page.locator('#modalFullText mark').first.tap()
+    page.wait_for_selector('#archiveTooltip:not([hidden])')
+    assert page.locator('#archiveTooltip').evaluate('(el)=>getComputedStyle(el).transitionDuration') == '0s'
+    page.locator('#modalFullText mark').first.tap()
+    assert page.locator('#archiveTooltip').is_hidden()
+    context.close()
     # Bounded publication snippets may omit an active finding. The complete
     # summary must still prevent classification as a finding-free publication.
     omitted = copy.deepcopy(data); omitted['articles'][0]['findings'] = []
@@ -186,7 +240,8 @@ def archive_ui(browser, base, site):
     page.close()
     print(json.dumps({'archive_viewports': 7, 'real_snapshot_ids': 'passed', 'source_links_and_legal_labels': 'passed',
                       'unicode_evidence_and_touch': 'passed', 'no_fabricated_fallback': 'passed',
-                      'ten_row_limit_after_filtering_and_search': 'passed', 'platform_labels_removed': 'passed'}))
+                      'ten_row_limit_after_filtering_and_search': 'passed', 'platform_labels_removed': 'passed',
+                      'analysis_filters_mobile_cards_and_shared_tooltips':'passed'}))
 
 
 if __name__ == '__main__':

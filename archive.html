@@ -1753,53 +1753,10 @@
   <script defer src="pro-gateway.js?v=20261012-pro3"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
-<style id="archive-mobile-category-action-row">
-  .archive-section { margin-top: 12px; }
-  .archive-filters { margin-top: 0; }
-  @media (max-width: 767px) {
-    .archive-summary {
-      grid-template-columns: minmax(0,1fr) auto !important;
-      grid-template-areas:
-        "media time"
-        "title title"
-        "category button" !important;
-      align-items: center;
-      gap: 9px 8px;
-    }
-    .archive-summary .cell-category {
-      grid-area: category;
-      justify-self: start !important;
-      align-self: center !important;
-      min-width: 0 !important;
-      max-width: 100% !important;
-      height: auto !important;
-      min-height: 34px !important;
-      padding: 7px 9px !important;
-      line-height: 1.2 !important;
-      font-size: 10px !important;
-      text-align: left !important;
-      white-space: normal !important;
-    }
-    .archive-summary .cell-button {
-      grid-area: button;
-      justify-self: end;
-      align-self: center;
-      text-align: right;
-      min-width: 0;
-    }
-    .archive-summary .more-btn {
-      width: auto !important;
-      min-height: 36px;
-      padding: 0 12px !important;
-      font-size: 10px !important;
-      line-height: 1.2;
-      letter-spacing: .04em;
-      white-space: nowrap;
-    }
-  }
-</style>
+
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
-  <link rel="stylesheet" href="archive-data.css?v=20261027-3">
+  <link rel="stylesheet" href="archive-data.css?v=20261027-4">
+  <link rel="stylesheet" href="publication-ui.css?v=20261027-1">
 </head>
 <body>
 
@@ -1833,18 +1790,16 @@
         <div class="archive-search">
           <input id="searchInput" type="text" placeholder="Найти по СМИ, заголовку или типу манипуляции" aria-label="Поиск по архиву">
         </div>
-        <div class="status-chips-wrapper">
-          <div class="status-chips">
-            <button class="chip chip-active" data-status="all"     type="button" aria-pressed="true">Все</button>
-            <button class="chip"             data-status="danger"  type="button" aria-pressed="false">С признаками</button>
-            <button class="chip"             data-status="risky"   type="button" aria-pressed="false">Контекст</button>
-            <button class="chip"             data-status="neutral" type="button" aria-pressed="false">Без признаков</button>
-          </div>
+        <div class="archive-controls" role="group" aria-label="Параметры отбора публикаций">
+          <div class="archive-control"><label for="source">Издание / канал</label><select id="source"><option value="">Все издания</option></select></div>
+          <div class="archive-control"><label for="platform">Площадка публикации</label><select id="platform"><option value="">Все площадки</option><option value="website">Сайты изданий</option><option value="telegram">Telegram</option></select></div>
+          <div class="archive-control"><label for="marker">Маркер анализа</label><select id="marker"><option value="">Все маркеры</option></select></div>
+          <button id="resetFilters" class="archive-filter-reset" type="button" disabled>Сбросить</button>
         </div>
       </div>
       <div class="archive-header-row">
         <div>СМИ</div><div>Время</div><div>Сообщение</div>
-        <div>Категория</div><div></div>
+        <div>Источник</div><div></div>
       </div>
       <div class="archive-list" id="archiveList"></div>
       <div class="realtime-note">
@@ -1876,7 +1831,7 @@
 
       <!-- 1. Полное сообщение с подсветкой -->
       <div class="modal-fulltext-wrap">
-        <span class="modal-fulltext-label">Сохранённые фрагменты публикации</span>
+        <span class="modal-fulltext-label">Сохранённый фрагмент публикации</span>
         <div class="modal-fulltext" id="modalFullText"></div>
       </div>
 
@@ -1896,14 +1851,6 @@
         </div>
       </div>
 
-      <!-- 3. Почему система пометила -->
-      <div class="modal-why-wrap">
-        <span class="modal-why-label">Почему система пометила текст</span>
-        <div class="modal-why-text" id="modalExplain"></div>
-      </div>
-
-      <div id="modalOriginal"></div>
-
       <!-- Кнопка на методику -->
       <a class="modal-method-link" href="method.html">
         <div class="modal-method-copy">
@@ -1918,6 +1865,8 @@
 </div>
 
 <script defer src="publisher-statuses.js?v=20261027-archive"></script>
-<script defer src="archive.js?v=20261027-3"></script>
+<div id="archiveTooltip" class="auto-modal-tooltip" role="tooltip" hidden></div>
+<script defer src="publication-tooltip.js?v=20261027-1"></script>
+<script defer src="archive.js?v=20261027-4"></script>
 </body>
 </html>
