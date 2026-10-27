@@ -55,6 +55,10 @@ def browser_rating_fixture():
             save_publication(store, index, source_id="tass", findings=[finding(status="quoted_candidate")] if index == 1 else [])
         save_publication(store, 1, source_id="ria", findings=[finding(), finding("enemy_image")])
         save_publication(store, 1, source_id="mediazona_telegram", findings=[finding("actor_terminology", "context_only", True)])
+        # A contextual marker now contributes one vote out of five. Retain
+        # neutral items so the desktop's three-card layout still includes RT.
+        for index in range(2, 6):
+            save_publication(store, index, source_id="mediazona_telegram", findings=[])
         save_publication(store, 1, source_id="kommersant", findings=[])
         return rating_snapshot(store, END)
 
