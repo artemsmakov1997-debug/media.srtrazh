@@ -114,6 +114,8 @@ class PublishingTests(unittest.TestCase):
         self.assertEqual(item["algorithm_version"], VERSION)
         self.assertEqual(item["summary"]["review_fragments"], 0)
         self.assertEqual(item["summary"]["candidate_fragments"], 11)
+        self.assertEqual(item["summary"]["marker_fragments"], 12)
+        self.assertTrue(all(f["rating_weight"] == 1 for f in item["findings"]))
         self.assertEqual(item["findings"], [{key: f[key] for key in
                          ("category", "label", "rule_id", "status", "rating_weight", "explanation", "review_question", "evidence")}
                         for f in saved["findings"]])
