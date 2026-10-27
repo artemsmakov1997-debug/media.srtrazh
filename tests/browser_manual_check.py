@@ -994,16 +994,16 @@ def pro_business_navigation_ui(browser, base, site):
             assert "gradient" in page.locator(surface).first.evaluate(
                 "el => getComputedStyle(el).backgroundImage"), surface
         # The approved editorial card has a logo/title/status heading,
-        # a prominent percentage line, a compact signal chart and archive link.
+        # a soft accent percentage line and an archive link.
         rating_cards = page.locator("#mediaGrid .media-card")
         rating_cards.first.wait_for(state="visible")
         # The front page displays one row of up to three cards on desktop.
         assert 1 <= rating_cards.count() <= 3
         assert not page.locator("#ratingStatus").inner_text().startswith("Обновлено:")
-        assert rating_cards.first.locator(".media-name, .rating-headline, .small-graph, .media-footer .link-button").count() == 4
+        assert rating_cards.first.locator(".media-name, .rating-headline, .media-footer .link-button").count() == 3
         assert rating_cards.first.locator(".rating-headline-label").inner_text() in ("спорных сообщений", "нет данных за 24 часа")
         assert rating_cards.first.locator(".media-level-badge, .rating-caption-row").count() == 0
-        assert rating_cards.first.locator('.small-graph svg').get_attribute('aria-label').find('Часы Москвы от 00 до 24') >= 0
+        assert rating_cards.first.locator('.small-graph').count() == 0
         assert rating_cards.first.locator(".media-meta, .media-details, .rating-health, .rating-graph-caption, .rating-caption, .media-footer .badge").count() == 0
         first_card_rect = rating_cards.first.bounding_box()
         first_button_rect = rating_cards.first.locator(".media-footer .link-button").bounding_box()
@@ -1239,7 +1239,7 @@ def pro_business_navigation_ui(browser, base, site):
             assert list_box["x"] + list_box["width"] <= footer_box["x"] + footer_box["width"] + 1
             assert footer_box["x"] >= card_rect["x"] and (
                 footer_box["x"] + footer_box["width"] <= card_rect["x"] + card_rect["width"])
-            assert rating_card.locator(".small-graph").is_visible()
+            assert rating_card.locator(".small-graph").count() == 0
             slider = p.locator(".media-grid.is-mobile-slider")
             grid_box = slider.bounding_box()
             card_box = rating_card.bounding_box()

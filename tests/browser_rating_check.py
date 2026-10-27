@@ -187,22 +187,11 @@ def rating_ui(browser, base, site, errors, requests):
                 'Math.abs(x.top-y.top)<2 && y.right<=a.right+2 : '
                 'Math.abs(x.width-a.width)<2 && getComputedStyle(full).display==="none"; }')
             assert card.locator('.rating-headline').evaluate(
-                'el => {const s=getComputedStyle(el);const r=el.getBoundingClientRect();'
-                'return s.justifyContent==="center" && s.textAlign==="center" && '
-                'parseFloat(s.borderTopWidth)>=1 && s.backgroundImage!=="none" && el.offsetHeight>=50;}')
-            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '. Часы Москвы от 00 до 24.')
-            assert card.locator('.small-graph circle').count() == 24
-            assert sum(int(value) for value in card.locator('.small-graph circle').evaluate_all(
-                'els => els.map(el => el.dataset.hourlyFlagged)')) == chosen['flagged']
-            # SVGTextElement does not consistently expose innerText to Playwright.
-            # Read the actual SVG text nodes, including the axis tick at level 1.
-            svg_labels = card.locator('.small-graph svg text').evaluate_all(
-                'els => els.map(el => el.textContent.trim())')
-            assert [value for value in svg_labels if value in ('00', '06', '12', '18', '24')] == [
-                '00', '06', '12', '18', '24']
-            assert '1' not in svg_labels
-            chart_height = card.locator('.small-graph').bounding_box()['height']
-            assert 40 <= chart_height <= 90, chart_height  # Visual px can differ under responsive scaling.
+                'el => {const s=getComputedStyle(el), v=el.querySelector(".rating-score");'
+                'return s.justifyContent==="flex-start" && s.textAlign==="left" && '
+                's.borderTopWidth==="0px" && s.backgroundImage!=="none" && '
+                'getComputedStyle(v,"::before").content!=="none" && el.offsetHeight>=50;}')
+            assert card.locator('.small-graph, .rating-progress').count() == 0
             assert card.locator('.rating-legal-info, .media-top-badges, .media-level-badge, .rating-caption-row').count() == 0
             assert card.locator('.media-name').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
             assert card.locator('.media-name').evaluate('el => el.scrollWidth <= el.clientWidth + 300')
@@ -210,7 +199,7 @@ def rating_ui(browser, base, site, errors, requests):
                 'el => el.closest(".media-card-header") !== null')
             assert card.locator('.rating-headline').evaluate(
                 'el => el.previousElementSibling.classList.contains("media-card-header") && '
-                'el.nextElementSibling.classList.contains("small-graph")')
+                'el.nextElementSibling.classList.contains("media-footer")')
             assert card.locator('.rating-score').inner_text() == f'{chosen["score_percent"]:g}%'
             assert card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
             assert 'собранных публикаций с признаками' in card.locator('.rating-headline').get_attribute('aria-label')
@@ -224,7 +213,6 @@ def rating_ui(browser, base, site, errors, requests):
                 assert card.locator('.rating-status-stack .media-status-tag').count() == 1
                 assert card.locator('.rating-status-stack').evaluate(
                     'el => el.closest(".media-identity-text") !== null')
-            assert card.locator('.small-graph svg').get_attribute('aria-label').startswith(chosen['name'] + '.')
             if not mobile:
                 expected_cards = min(3 if width >= 1024 else 2, len(fixture['publishers']))
                 assert page.locator('.media-card').count() == expected_cards
@@ -260,9 +248,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
-                assert 'Часы Москвы от 00 до 24' in zero_card.locator('.small-graph svg').get_attribute('aria-label')
-                assert zero_card.locator('.small-graph svg circle').count() == 24
-                assert zero_card.locator('.rating-signal-peak').count() == 0
+                assert zero_card.locator('.small-graph, .rating-signal-peak').count() == 0
                 assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
                 meduza = next(item['name'] for item in fixture['publishers'] if item['id'] == 'meduza')
                 page.locator(f'#mediaDots button[aria-label="Показать {meduza}"]').click()
@@ -544,18 +530,18 @@ def rating_ui(browser, base, site, errors, requests):
         assert rt.locator('.rating-score').inner_text() == '34%'
         assert rt.locator('.rating-headline-label').evaluate(
             'el => getComputedStyle(el).fontWeight === "400"')
-        assert rt.locator('.small-graph circle[data-score]').count() == 24
-        # Circles run in Moscow clock order (00..23), which differs from the
-        # rolling 24-hour report's chronological end. Match by end_at, not DOM
-        # position: the final clock tick is not the last collected hour.
-        actual = rt.locator('.small-graph circle[data-score]').evaluate_all(
+        assert rt.locator('.small-graph').count() == 0
+        page.locator('.show-full-list-trigger:visible').first.click()
+        item = page.locator('.full-list-row[data-publisher="rt"]')
+        assert item.locator('.fli-rating').inner_text() == '34%'
+        # Exact per-hour cumulative scores remain in the full-list chart.
+        assert item.locator('.fli-graph circle[data-score]').count() == 24
+        actual = item.locator('.fli-graph circle[data-score]').evaluate_all(
             '([first, ...others], endAt) => {'
             'const point = [first, ...others].find(el => el.dataset.endAt === endAt);'
             'return point ? Number(point.dataset.score) : null;'
             '}', sample['series'][-1]['end_at'])
         assert actual is not None and abs(actual - sample['score_percent']) < .0001
-        page.locator('.show-full-list-trigger:visible').first.click()
-        assert page.locator('.full-list-row[data-publisher="rt"] .fli-rating').inner_text() == '34%'
     finally:
         context.close()
 

@@ -74,6 +74,17 @@ def archive_ui(browser, base, site):
         assert page.locator('.archive-platform').count() == 0
         assert page.locator('.archive-item[data-id="4"]').get_attribute('data-status') == 'danger'
         assert '10:00:00 МСК' in page.locator('.cell-time').first.inner_text()
+        assert page.locator('.publication-time-clock').first.inner_text() == '10:00:00 МСК'
+        assert page.locator('.publication-time-date').first.inner_text() == '27.10.2026'
+        assert page.locator('.archive-item .publication-time').first.evaluate(
+            'el => {const clock=el.querySelector(".publication-time-clock").getBoundingClientRect();'
+            'const date=el.querySelector(".publication-time-date").getBoundingClientRect();'
+            'return getComputedStyle(el).flexDirection==="column" && clock.bottom<=date.top+1;}')
+        if width > 900:
+            assert page.locator('.archive-item').first.evaluate(
+                'el => {const media=el.querySelector(".cell-media").getBoundingClientRect();'
+                'const stamp=el.querySelector(".cell-time").getBoundingClientRect();'
+                'return media.right+5<=stamp.left;}')
         assert page.locator('.cell-time').first.evaluate('(el)=>getComputedStyle(el).backgroundColor') == 'rgba(0, 0, 0, 0)'
         assert page.locator('.cell-time').first.evaluate('(el)=>getComputedStyle(el).borderTopWidth') == '0px'
         assert page.locator('.cell-original .source-link').count() == 4

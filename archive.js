@@ -100,8 +100,8 @@
     if (valid) {
       time.dateTime = value;
       const stamp = new Date(value);
-      time.append(node('span', stamp.toLocaleDateString('ru-RU', {timeZone:'Europe/Moscow'}), 'publication-time-date'),
-        node('span', stamp.toLocaleTimeString('ru-RU', {timeZone:'Europe/Moscow'}) + ' МСК', 'publication-time-clock'));
+      time.append(node('span', stamp.toLocaleTimeString('ru-RU', {timeZone:'Europe/Moscow'}) + ' МСК', 'publication-time-clock'),
+        node('span', stamp.toLocaleDateString('ru-RU', {timeZone:'Europe/Moscow'}), 'publication-time-date'));
     } else time.textContent = 'Дата не указана';
     return time;
   }

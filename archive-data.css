@@ -35,12 +35,12 @@
 }
 .archive-filter-reset:disabled {opacity:.55;cursor:default;}
 .archive-list .archive-summary {
-  grid-template-columns:minmax(120px,1.05fr) minmax(110px,.85fr) minmax(0,3fr) 160px 112px;
+  grid-template-columns:minmax(155px,1.05fr) minmax(145px,.85fr) minmax(0,3fr) 160px 112px;
   grid-template-areas:"media time title original button";
 }
-.archive-header-row {grid-template-columns:minmax(120px,1.05fr) minmax(110px,.85fr) minmax(0,3fr) 160px 112px;}
+.archive-header-row {grid-template-columns:minmax(155px,1.05fr) minmax(145px,.85fr) minmax(0,3fr) 160px 112px;}
 .archive-summary .cell-media {grid-area:media;min-width:0;overflow-wrap:anywhere;}
-.archive-summary .cell-time {grid-area:time;justify-self:end;color:#d0f4fc!important;}
+.archive-summary .cell-time {grid-area:time;justify-self:start;min-width:0;color:#d0f4fc!important;}
 .archive-summary .cell-title {grid-area:title;min-width:0;overflow-wrap:anywhere;}
 .archive-summary .cell-button {grid-area:button;}
 .archive-summary .cell-original {grid-area:original;justify-self:end;min-width:0;}
@@ -89,4 +89,17 @@
 }
 @media(max-width:480px) {
   .message-modal-body .modal-meta-row {grid-template-columns:1fr;}
+}
+
+/* Clock on top, date beneath; no interference with publication names. */
+.archive-summary .cell-time.publication-time {
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:3px;min-width:0;margin:0;padding:0;font-variant-numeric:tabular-nums;
+  line-height:1.28;text-align:left;white-space:nowrap;
+}
+.archive-summary .publication-time-clock {color:#d0f4fc;font-weight:650;}
+.archive-summary .publication-time-date {color:#94a6b4;font-size:.88em;font-weight:450;}
+@media(max-width:900px) {
+  .archive-summary .cell-time {justify-self:end;}
+  .archive-summary .cell-time.publication-time {align-items:flex-end;text-align:right;}
 }

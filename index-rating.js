@@ -612,9 +612,7 @@
         + ' из ' + row.collected + ' публикаций за последние 24 часа');
     score.append(value, description);
 
-    const graph = node('div', '', 'small-graph');
-    graph.append(makeCardGraph(row));
-    graph.tabIndex = 0;
+    // Detailed charts remain available in the full publisher list.
     const footer = node('div', '', 'media-footer');
     footer.append(examplesLink(row));
     // The full list belongs beside "Смотреть примеры" on mobile cards.
@@ -623,7 +621,7 @@
     fullListButton.setAttribute('aria-label', 'Открыть полный список СМИ');
     fullListButton.addEventListener('click', () => openModal('fullListModal', fullListButton));
     footer.append(fullListButton);
-    card.append(header, score, graph, footer);
+    card.append(header, score, footer);
     return card;
   }
 

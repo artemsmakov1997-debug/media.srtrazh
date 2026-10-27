@@ -154,3 +154,55 @@
 @media(prefers-reduced-motion:reduce) {
   .current-rating-section .media-footer .media-full-list-button {transition:none;}
 }
+
+/* Subtle editorial highlight, deliberately not button-shaped or clickable. */
+.current-rating-section .rating-headline {
+  --metric-rgb:237,190,28;
+  display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;
+  width:100%;min-width:0;min-height:58px;gap:0;
+  margin:0 0 18px !important;padding:0 !important;
+  border:0 !important;border-radius:14px !important;
+  background:linear-gradient(90deg,rgba(var(--metric-rgb),.09),rgba(48,77,98,.13)) !important;
+  box-shadow:none !important;text-align:left !important;cursor:default;
+}
+.current-rating-section .rating-headline:has(.red-score) {--metric-rgb:247,87,96;}
+.current-rating-section .rating-headline:has(.green-score) {--metric-rgb:64,217,165;}
+.current-rating-section .rating-headline:has(.no-data-score) {--metric-rgb:159,180,194;}
+.current-rating-section .rating-headline .rating-score {
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;gap:10px;min-height:58px;
+  padding:9px 14px;border:0;border-radius:14px;
+  background:rgba(var(--metric-rgb),.14);
+  font-size:clamp(1.65rem,2.45vw,2.15rem);
+  line-height:1.1;white-space:nowrap;text-align:left;
+}
+.current-rating-section .rating-headline .rating-score::before {
+  content:"";flex:0 0 15px;width:15px;height:15px;
+  border-radius:50%;background:rgba(var(--metric-rgb),.3);
+}
+.current-rating-section .rating-headline .rating-headline-label {
+  display:block;flex:1 1 auto;min-width:0;max-width:100%;
+  padding:8px 12px;overflow:visible;text-overflow:clip;
+  white-space:normal;color:#aab8c6 !important;
+  font:400 clamp(.82rem,1.15vw,1rem)/1.38 "Inter",sans-serif;
+  letter-spacing:-.01em;text-align:left;
+}
+.current-rating-section .media-card {min-height:0 !important;}
+.current-rating-section .media-footer {margin-top:auto;}
+@media(max-width:767px) {
+  .current-rating-section .rating-headline {min-height:55px;margin:0 0 15px !important;}
+  .current-rating-section .rating-headline .rating-score {
+    min-height:55px;gap:8px;padding:9px 10px;
+    font-size:clamp(1.5rem,6.5vw,2rem);
+  }
+  .current-rating-section .rating-headline .rating-score::before {
+    flex-basis:12px;width:12px;height:12px;
+  }
+  .current-rating-section .rating-headline .rating-headline-label {
+    padding:8px 9px;font-size:clamp(.79rem,3.3vw,.93rem);
+  }
+}
+@media(max-width:360px) {
+  .current-rating-section .rating-headline .rating-score {padding:9px 8px;gap:6px;}
+  .current-rating-section .rating-headline .rating-headline-label {padding:7px 6px;}
+}
