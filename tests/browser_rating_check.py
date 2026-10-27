@@ -90,9 +90,15 @@ def rating_ui(browser, base, site, errors, requests):
             assert 'Демонстрационные примеры · не цитаты СМИ' not in page.locator('main').inner_text()
             if mobile:
                 assert page.locator('.hero-kicker').inner_text() == 'Первый независимый рейтинг российских СМИ'
-                assert page.locator('.hero-nav a').all_inner_texts() == ['О проекте', 'Методика', 'Возможности']
-                assert page.locator('.hero-nav a').evaluate_all(
-                    'links => links.every(a => a.getBoundingClientRect().height >= 44 && a.scrollWidth <= a.clientWidth+1)')
+                assert page.locator('.hero-nav a').all_inner_texts() == ['Узнать о возможностях проекта\n→']
+                assert page.locator('.hero-nav .hero-pro-link').count() == 1
+                assert page.locator('.hero-nav .hero-pro-link').get_attribute('data-pro-gateway') == ''
+                assert page.locator('.hero-nav .hero-pro-link').evaluate(
+                    'a => {const s=getComputedStyle(a), n=a.getBoundingClientRect();'
+                    'const c=a.querySelector(".hero-pro-arrow");'
+                    'return n.height>=44 && a.scrollWidth<=a.clientWidth+1 && '
+                    's.backgroundImage==="none" && s.backgroundColor==="rgba(0, 0, 0, 0)" && '
+                    's.borderTopWidth==="0px" && !!c && c.getAttribute("aria-hidden")==="true";}')
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
                 # Example text and counter must be centered and large without
@@ -352,17 +358,15 @@ def rating_ui(browser, base, site, errors, requests):
                     })''')
                     example.evaluate('el => el.style.removeProperty("font-size")')
             if width == 390:
-                # Every new mobile entry point works, including PRO choices.
-                for title, path in (('О проекте', 'about'), ('Методика', 'method')):
-                    page.locator('.hero-nav a', has_text=title).click()
-                    page.wait_for_url('**/' + path + '/')
-                    page.go_back()
-                    page.locator('.media-card').first.wait_for()
-                page.locator('.hero-nav a', has_text='Возможности').click()
+                # The single text link opens the existing PRO chooser and restores focus.
+                link = page.locator('.hero-nav .hero-pro-link')
+                link.click()
                 page.locator('.pro-gateway-dialog').wait_for(state='visible')
                 assert page.locator('.pro-gateway-option').count() == 2
+                assert page.locator('.pro-gateway-option--research').get_attribute('href') == '/analysis/'
+                assert page.locator('.pro-gateway-option--business').get_attribute('href') == '/business/'
                 page.keyboard.press('Escape')
-                assert page.locator('.hero-nav a', has_text='Возможности').evaluate('a => a === document.activeElement')
+                assert link.evaluate('a => a === document.activeElement')
                 page.locator('#burgerBtn').click()
                 assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'true'
                 page.keyboard.press('Escape')
