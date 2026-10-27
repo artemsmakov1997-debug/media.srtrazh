@@ -424,7 +424,7 @@ def comparative_framing_ui(browser, base, site, errors, requests):
                     assert "не анализировал" in tooltip
                 else:
                     assert "Историческая отсылка" in tooltip
-                    assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
+                    assert ("Найдено фрагментов для проверки: " + str(automatic["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
                 page.locator("#automaticModalClose").click()
                 page.locator('[data-mode="manual"]').click()
                 page.locator("#manualText").fill(text)
