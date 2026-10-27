@@ -297,6 +297,7 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
             assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
+            assert "С фрагментами для проверки: 1." in page.locator("#totals").inner_text()
             page.locator(".auto-details-button").click()
             page.locator("#automaticModal").wait_for(state="visible")
             marks = page.locator("#automaticModal mark")

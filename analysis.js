@@ -491,7 +491,7 @@ async function load() {
       '. Проанализировано: ' +
       report.totals.analyzed +
       '. С фрагментами для проверки: ' +
-      report.totals.with_review_candidates +
+      (report.totals.with_markers ?? report.articles.filter(item => item.findings?.length > 0).length) +
       '.';
     if (report.collection) {
       element('totals').append(document.createTextNode(
