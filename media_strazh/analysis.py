@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.10.0"
+VERSION = "rules-0.10.1"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
