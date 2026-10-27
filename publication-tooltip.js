@@ -43,9 +43,19 @@ window.PublicationTooltip = class PublicationTooltip {
     tooltip.replaceChildren(label, explanation);
     const viewport = window.visualViewport;
     const leftEdge = (viewport ? viewport.offsetLeft : 0) + 12;
-    const topEdge = (viewport ? viewport.offsetTop : 0) + 12;
+    let topEdge = (viewport ? viewport.offsetTop : 0) + 12;
     const width = (viewport ? viewport.width : innerWidth) - 24;
-    const height = (viewport ? viewport.height : innerHeight) - 24;
+    const bottomEdge = topEdge + (viewport ? viewport.height : innerHeight) - 24;
+    // A short mobile dialog can start near the bottom of the screen. Keep its
+    // close control reachable even when a long comment has to scroll.
+    const close = mark.closest('[role="dialog"]')?.querySelector('.auto-modal-close, .message-close');
+    if (close) {
+      const control = close.getBoundingClientRect();
+      if (control.bottom > topEdge && control.top < bottomEdge) {
+        topEdge = Math.max(topEdge, Math.min(control.bottom + 8, bottomEdge - 1));
+      }
+    }
+    const height = bottomEdge - topEdge;
     const style = getComputedStyle(tooltip);
     const widthCap = Number(style.getPropertyValue('--tooltip-width')) || 310;
     const heightCap = Number(style.getPropertyValue('--tooltip-height')) || 360;

@@ -638,6 +638,11 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 marker.tap() if mobile else marker.hover()
                 page.locator('#automaticTooltip').wait_for(state='visible')
                 assert expected['findings'][0]['explanation'] in page.locator('#automaticTooltip').inner_text()
+                page.wait_for_function("getComputedStyle(document.getElementById('automaticTooltip')).opacity === '1'")
+                assert page.locator('#automaticModalClose').evaluate('''button => {
+                    const rect = button.getBoundingClientRect();
+                    return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+                }'''), (mobile, key, 'The comment must leave the close control reachable')
                 page.locator('#automaticModalClose').click()
                 page.locator('[data-mode="manual"]').click()
                 page.locator('#manualTitle').fill(document['title'])

@@ -132,8 +132,16 @@ def archive_ui(browser, base, site):
         assert popup['x'] >= 10 and popup['x'] + popup['width'] <= width - 10
         assert popup['y'] >= 10 and popup['y'] + popup['height'] <= 890
         if width > 760: assert popup['width'] >= 420
+        page.wait_for_function("getComputedStyle(document.getElementById('archiveTooltip')).opacity === '1'")
+        assert page.locator('#messageCloseBtn').evaluate('''button => {
+            const rect = button.getBoundingClientRect();
+            return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+        }'''), (width, 'The comment must leave the close control reachable')
         assert 'они не доказывают манипуляцию' in page.locator('#modalFullText').inner_text()
         assert 'Отсутствие признаков не означает нейтральность текста.' in page.locator('#modalFullText').inner_text()
+        page.locator('#messageCloseBtn').click()
+        assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'true'
+        button.click()
         page.keyboard.press('Escape')
         assert button.evaluate('(el)=>el===document.activeElement')
         assert page.locator('#archiveTooltip').is_hidden()
