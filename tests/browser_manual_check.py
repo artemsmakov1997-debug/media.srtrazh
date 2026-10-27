@@ -35,6 +35,7 @@ import test_historical_juxtaposition
 import test_comparative_framing
 import test_person_labels
 import test_literature_rhetoric
+import test_numeric_consistency
 from browser_fixtures import business_evidence_fixture
 
 
@@ -58,7 +59,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -78,6 +79,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_person_labels.PersonLabelTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_comparative_framing.ComparativeFramingTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_literature_rhetoric.LiteratureRhetoricTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_numeric_consistency.NumericConsistencyTests),
     ])
     try:
         output = io.StringIO()
@@ -624,8 +626,10 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 },true);""")
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
-            for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan'):
-                document = {'title': 'Проверочный пример', **test_literature_rhetoric.DOCUMENTS[key]}
+            documents = {**test_literature_rhetoric.DOCUMENTS, **test_numeric_consistency.DOCUMENTS}
+            for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan',
+                        'numeric_majority', 'numeric_daily'):
+                document = {'title': 'Проверочный пример', **documents[key]}
                 expected = analyze(document)
                 snapshot = json.loads((site / 'data/analysis.json').read_text())
                 item = copy.deepcopy(snapshot['articles'][0])

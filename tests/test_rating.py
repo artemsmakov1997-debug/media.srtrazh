@@ -127,6 +127,21 @@ class RatingTests(unittest.TestCase):
         self.assertEqual((item['collected'], item['flagged'], item['score_percent'], item['level']), (4, 2, 50, 'yellow'))
         self.assertEqual(item['by_type'], {'emotional_evaluation': 1, 'fear': 1})
 
+    def test_book_numeric_checks_count_once_per_publication_and_match_chart(self):
+        daily = 'В 2025 году в среднем 100 аварий в день — всего 10 тысяч аварий за год.'
+        row, _ = save_publication(self.store, 1, text=daily)
+        save_publication(self.store, 2, text='По данным опроса, большинство участников (37%) поддержали решение.')
+        save_publication(self.store, 3, text='100 аварий в день — всего 36 500 аварий за год.')
+        result = self.store.article(row['id'])['analysis']
+        self.assertEqual(result['summary']['marker_fragments'], 2)
+        self.assertEqual(result['summary']['marker_count'], 1)
+        self.assertEqual(result['findings'][0]['rating_weight'], 1)
+        item = self.outlet()
+        self.assertEqual((item['collected'], item['flagged'], item['score_percent']), (3, 2, 66.666667))
+        self.assertEqual(item['series'][-1]['cumulative_flagged'], 2)
+        self.assertEqual(item['series'][-1]['score_percent'], item['score_percent'])
+        self.assertEqual(item['by_type'], {'rhetorical_context': 2})
+
     def test_literature_candidates_and_notices_update_one_publication_vote_and_the_chart(self):
         save_publication(self.store, 1, text='Губернатор столько сделал для вас, что вы обязаны проголосовать за него.')
         save_publication(self.store, 2, text='97,3% жителей поддержали решение правительства.')
