@@ -168,7 +168,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert card.locator('.logo-icon').inner_text().strip()
             assert card.locator('.media-details, .media-meta, .media-type').count() == 0
             assert card.locator('.media-footer .link-button').inner_text() == 'Смотреть примеры'
-            assert card.locator('.media-footer .link-button').get_attribute('href') == '/archive/'
+            assert card.locator('.media-footer .link-button').get_attribute('href') == '/archive/?publisher=' + chosen['id']
             if mobile:
                 assert card.locator('.media-card-arrow').count() == 2
                 assert card.locator('.media-card-arrow-prev').get_attribute('aria-label') == 'Предыдущее СМИ'
@@ -386,10 +386,12 @@ def rating_ui(browser, base, site, errors, requests):
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == '3'
                 # Auto-rotation can replace RT in the displayed group.
-                # All example buttons must navigate to the same archive route.
+                # Every example button opens the archive filtered to that outlet.
+                publisher = page.locator('.media-card').first.get_attribute('data-publisher')
                 page.locator('.media-card .link-button').first.click()
-                page.wait_for_url('**/archive/')
-                assert page.locator('#archiveList .archive-item').count() > 0
+                page.wait_for_url('**/archive/?publisher=' + publisher)
+                page.wait_for_function('document.querySelector("#rtText").textContent.startsWith("Обновлено:")')
+                assert page.locator('#archiveList .archive-item').evaluate_all('(els,id) => els.every(el=>el.dataset.publisher === id)', publisher)
         finally:
             context.close()
 

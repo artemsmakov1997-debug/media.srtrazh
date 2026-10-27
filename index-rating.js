@@ -540,9 +540,8 @@
 
   function examplesLink(row) {
     const link = node('a', 'Смотреть примеры', 'link-button');
-    // The archive does not currently support publisher URL filters.
-    link.href = '/archive/';
-    link.setAttribute('aria-label', 'Смотреть архив публикаций');
+    link.href = '/archive/?publisher=' + encodeURIComponent(row.id);
+    link.setAttribute('aria-label', 'Смотреть публикации: ' + row.name);
     return link;
   }
 

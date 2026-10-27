@@ -96,6 +96,15 @@ class RatingTests(unittest.TestCase):
         self.assertEqual(self.outlet()["flagged"], 0)
         self.assertEqual(self.outlet()["score_percent"], 0)
 
+    def test_new_rhetoric_rules_count_real_findings_without_changing_denominator(self):
+        save_publication(self.store, 1, text='Летающий морг готовят на Украине.')
+        save_publication(self.store, 2, text='Министр заявил: «Ад на пороге».')
+        save_publication(self.store, 3, text='Открылась городская библиотека.')
+        save_publication(self.store, 4, text='Житель в панике выбежал из квартиры.')
+        item = self.outlet()
+        self.assertEqual((item['collected'], item['flagged'], item['score_percent'], item['level']), (4, 2, 50, 'yellow'))
+        self.assertEqual(item['by_type'], {'emotional_evaluation': 1, 'fear': 1})
+
     def test_time_window_uses_publication_date_and_handles_offsets_microseconds_and_future(self):
         inside = ["2026-10-24T12:00:00.000001+00:00", END, "2026-10-25T15:00:00+03:00"]
         outside = [START, "2026-10-25T12:00:00.000001+00:00", "2026-10-23T12:00:00+00:00", "", "not a date", "2026-10-25T11:00:00"]

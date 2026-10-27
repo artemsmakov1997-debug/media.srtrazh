@@ -1,0 +1,12 @@
+/* Data annotations only; the existing archive row and modal design is retained. */
+.archive-publisher-status,.archive-platform {
+  display:block;margin-top:3px;font-size:.66rem;line-height:1.35;font-weight:400;
+  color:#a8bbc8;letter-spacing:0;text-transform:none;overflow-wrap:anywhere;
+}
+.archive-publisher-status {color:#bfcbd5;}
+.modal-fulltext p {margin:0 0 14px;}
+.archive-context-note {font-size:.78rem;line-height:1.6;color:#a8bbc8;}
+.archive-original-link {display:inline-block;margin:8px 0 18px;color:var(--accent-blue);font-weight:600;}
+.highlight-word:focus-visible {outline:2px solid var(--accent-blue);outline-offset:3px;}
+.modal-why-text p {margin:0 0 12px;}
+.archive-list:empty {min-height:60px;}

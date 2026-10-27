@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.9.0"
+VERSION = "rules-0.10.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -592,6 +592,13 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return bool(COUNT_CONTEXT.search(prefix + " " + suffix)) and not DIRECT_DIFFERENCE.match(tail)
     if rule.context_requirement == "nonfiction":
         return not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+    if rule.context_requirement == "headline_or_lead":
+        return (field == "title" or start < 220) and not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
+    if rule.context_requirement == "collective_blame":
+        nearby = text[max(0, start - 250):min(len(text), end + 250)] + " " + event_context
+        return bool(re.search(r"\b(?:сомали[а-яё]*|европейц[а-яё]*|россиян[а-яё]*|украинц[а-яё]*|"
+                              r"американц[а-яё]*|мигрант[а-яё]*|беженц[а-яё]*|чиновник[а-яё]*|"
+                              r"политик[а-яё]*)\b", nearby, re.I)) and not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
     if rule.context_requirement == "quote_omission":
         index = bisect_right(quotes, start, key=lambda interval: interval[0]) - 1
         return index >= 0 and end <= quotes[index][1]
