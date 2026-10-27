@@ -127,6 +127,18 @@ class RatingTests(unittest.TestCase):
         self.assertEqual((item['collected'], item['flagged'], item['score_percent'], item['level']), (4, 2, 50, 'yellow'))
         self.assertEqual(item['by_type'], {'emotional_evaluation': 1, 'fear': 1})
 
+    def test_literature_candidates_and_notices_update_one_publication_vote_and_the_chart(self):
+        save_publication(self.store, 1, text='Губернатор столько сделал для вас, что вы обязаны проголосовать за него.')
+        save_publication(self.store, 2, text='97,3% жителей поддержали решение правительства.')
+        save_publication(self.store, 3, text='Заявление собрало 200 000 репостов за сутки.')
+        repeated = 'Новый закон вернёт нам спокойствие.\n' * 3
+        save_publication(self.store, 4, text=repeated)
+        item = self.outlet()
+        self.assertEqual((item['collected'], item['analyzed'], item['flagged'], item['score_percent']), (4, 4, 3, 75))
+        self.assertEqual(item['by_type'], {'emotional_evaluation': 1, 'rhetorical_context': 2})
+        self.assertEqual(item['series'][-1]['cumulative_flagged'], 3)
+        self.assertEqual(item['series'][-1]['score_percent'], 75)
+
     def test_time_window_uses_publication_date_and_handles_offsets_microseconds_and_future(self):
         inside = ["2026-10-24T12:00:00.000001+00:00", END, "2026-10-25T15:00:00+03:00"]
         outside = [START, "2026-10-25T12:00:00.000001+00:00", "2026-10-23T12:00:00+00:00", "", "not a date", "2026-10-25T11:00:00"]

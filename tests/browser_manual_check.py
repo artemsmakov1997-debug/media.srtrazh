@@ -34,6 +34,7 @@ import test_context_precision
 import test_historical_juxtaposition
 import test_comparative_framing
 import test_person_labels
+import test_literature_rhetoric
 from browser_fixtures import business_evidence_fixture
 
 
@@ -57,7 +58,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -76,6 +77,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_historical_juxtaposition.HistoricalJuxtapositionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_person_labels.PersonLabelTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_comparative_framing.ComparativeFramingTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_literature_rhetoric.LiteratureRhetoricTests),
     ])
     try:
         output = io.StringIO()
@@ -602,6 +604,59 @@ def inline_touch_and_overlap(browser, base, errors, requests):
         assert not page.locator("#manualTooltip").is_visible()
     finally:
         context.close()
+
+
+def literature_rhetoric_ui(browser, base, site, errors, requests):
+    """Real native/Wasm output, inline comments and counters on desktop and touch."""
+    for mobile in (False, True):
+        context = browser.new_context(viewport={'width': 375 if mobile else 1280, 'height': 900},
+                                      is_mobile=mobile, has_touch=mobile, accept_downloads=True)
+        try:
+            page = context.new_page()
+            page.on('pageerror', lambda error: errors.append(str(error)))
+            page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
+            for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan'):
+                document = {'title': 'Проверочный пример', **test_literature_rhetoric.DOCUMENTS[key]}
+                expected = analyze(document)
+                snapshot = json.loads((site / 'data/analysis.json').read_text())
+                item = copy.deepcopy(snapshot['articles'][0])
+                item.update(title=document['title'], display_excerpt=document['text'],
+                            summary=expected['summary'], findings=expected['findings'], findings_omitted=0,
+                            algorithm_version=expected['algorithm_version'])
+                snapshot['articles'] = [item]
+                snapshot['totals'].update(displayed=1, analyzed=1, with_markers=1)
+                page.route('**/data/analysis.json', lambda route: route.fulfill(json=snapshot))
+                page.goto(base + '/analysis.html')
+                page.locator('.publication').wait_for()
+                count = expected['summary']['marker_fragments']
+                assert 'Найдено фрагментов для проверки: ' + str(count) in page.locator('.publication > .badge').inner_text()
+                assert 'С фрагментами для проверки: 1.' in page.locator('#totals').inner_text()
+                select_analysis_filter(page, '#marker', expected['findings'][0]['category'])
+                assert page.locator('.publication').count() == 1
+                page.locator('.auto-details-button').click()
+                marker = page.locator('#automaticModal mark').first
+                marker.tap() if mobile else marker.hover()
+                page.locator('#automaticTooltip').wait_for(state='visible')
+                assert expected['findings'][0]['explanation'] in page.locator('#automaticTooltip').inner_text()
+                page.locator('#automaticModalClose').click()
+                page.locator('[data-mode="manual"]').click()
+                page.locator('#manualTitle').fill(document['title'])
+                page.locator('#manualText').fill(document['text'])
+                page.locator('#manualSubmit').click()
+                page.locator('#manualResult').wait_for(state='visible', timeout=120000)
+                assert page.locator('#manualTextEvidence').inner_text() == document['text']
+                assert page.locator('#manualTextEvidence mark').count() == count
+                marker = page.locator('#manualTextEvidence mark').first
+                marker.tap() if mobile else marker.hover()
+                page.locator('#manualTooltip').wait_for(state='visible')
+                assert expected['findings'][0]['explanation'] in page.locator('#manualTooltip').inner_text()
+                with page.expect_download() as download_info:
+                    page.locator('#manualDownload').click()
+                assert json.loads(Path(download_info.value.path()).read_text()) == expected
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+                page.unroute('**/data/analysis.json')
+        finally:
+            context.close()
 
 
 def contextual_analysis_ui(browser, base, site, errors, requests):
@@ -1723,6 +1778,7 @@ def main():
             context_precision_ui(browser, base, site, errors, requests)
             historical_juxtaposition_ui(browser, base, site, errors, requests)
             comparative_framing_ui(browser, base, site, errors, requests)
+            literature_rhetoric_ui(browser, base, site, errors, requests)
             contextual_analysis_ui(browser, base, site, errors, requests)
             new_media_filters_ui(browser, base, site, errors, requests)
             real_business_ui(browser, base, errors, requests)
