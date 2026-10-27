@@ -95,10 +95,13 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero-nav .hero-pro-link').get_attribute('data-pro-gateway') == ''
                 assert page.locator('.hero-nav .hero-pro-link').evaluate(
                     'a => {const s=getComputedStyle(a), n=a.getBoundingClientRect();'
+                    'const label=a.querySelector("span:first-child").getBoundingClientRect();'
                     'const c=a.querySelector(".hero-pro-arrow");'
+                    'const arrow=c.getBoundingClientRect();'
                     'return n.height>=44 && a.scrollWidth<=a.clientWidth+1 && '
+                    'label.right+4<=arrow.left && Math.abs((label.top+label.bottom-arrow.top-arrow.bottom)/2)<8 && '
                     's.backgroundImage==="none" && s.backgroundColor==="rgba(0, 0, 0, 0)" && '
-                    's.borderTopWidth==="0px" && !!c && c.getAttribute("aria-hidden")==="true";}')
+                    's.borderTopWidth==="0px" && c.getAttribute("aria-hidden")==="true";}')
                 assert not page.locator('.hero .hero-counter').is_visible()
                 assert page.locator('.hero-counter-mobile').is_visible()
                 # Example text and counter must be centered and large without

@@ -27,10 +27,11 @@
     margin:clamp(11px,3.2vw,21px) 0 5px;
   }
   .hero-nav .hero-pro-link {
+    box-sizing:border-box;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
     gap:5px 11px;
     min-width:0;
     max-width:100%;
@@ -47,6 +48,7 @@
     letter-spacing:-.01em;
     transition:color .18s ease;
   }
+  .hero-nav .hero-pro-link > span:first-child {white-space:nowrap;}
   .hero-nav .hero-pro-arrow {
     display:inline-block;
     flex:0 0 auto;
