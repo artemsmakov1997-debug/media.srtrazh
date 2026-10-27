@@ -132,8 +132,11 @@
     gap: 10px;
     border-radius: 11px;
   }
-  .pro-gateway-option h3 { font-size: 19px; line-height: 1.2; }
+  .pro-gateway-option h3 {
+    width:100%; font-size:19px; line-height:1.2; text-align:center;
+  }
   .pro-gateway-audience {
+    width:100%; text-align:center;
     margin-top: 7px;
     font-size: 11px;
     line-height: 1.4;

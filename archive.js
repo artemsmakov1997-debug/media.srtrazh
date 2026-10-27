@@ -134,7 +134,6 @@
   function openModal(item, trigger) {
     previousFocus = trigger || document.activeElement;
     comments.hide();
-    $('messageModalTitle').textContent = item.title;
     $('modalMedia').replaceChildren(publisherElement(item, ''));
     $('modalTime').textContent = date(item.raw.published_at);
     $('modalCategory').textContent = [...new Set(item.raw.findings.map(f => f.label))].join(' · ') || item.category;
@@ -148,10 +147,7 @@
     }
     for (const group of groups.values()) body.append(excerpt(group));
     if (!groups.size) body.append(node('p', item.raw.message_preview || item.title));
-    body.append(node('p', 'Показаны сохранённые фрагменты, а не полный текст публикации. Полный материал доступен у источника.', 'archive-context-note'));
     if (item.raw.findings_omitted) body.append(node('p', 'Других сохранённых меток: ' + item.raw.findings_omitted + '.', 'archive-context-note'));
-    body.append(node('p', 'Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов.', 'archive-context-note'));
-    body.append(node('p', 'Отсутствие признаков не означает нейтральность текста.', 'archive-context-note'));
     overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden'; $('messageCloseBtn').focus();
   }

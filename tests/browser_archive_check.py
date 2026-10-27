@@ -117,7 +117,10 @@ def archive_ui(browser, base, site):
         button.click()
         assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'false'
         assert page.locator('#modalFullText mark').first.inner_text() == 'Ад на пороге'
-        assert 'не полный текст' in page.locator('#modalFullText').inner_text()
+        assert page.locator('#messageModalTitle,.message-modal-title,.modal-fulltext-label').count() == 0
+        assert page.locator('.message-modal').get_attribute('aria-labelledby') == 'messageModalLabel'
+        assert page.locator('#messageModalLabel').inner_text() == 'Разбор сообщения'
+        assert 'Показаны сохранённые фрагменты' not in page.locator('#modalFullText').inner_text()
         assert page.locator('#modalMedia .archive-publisher-status').count() == 2
         assert page.locator('#modalMedia .archive-platform').count() == 0
         assert page.locator('.message-modal-body').evaluate('(el)=>Array.from(el.children).map(el=>el.className)') == ['modal-fulltext-wrap', 'modal-meta-row', 'modal-method-link']
@@ -137,8 +140,8 @@ def archive_ui(browser, base, site):
             const rect = button.getBoundingClientRect();
             return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
         }'''), (width, 'The comment must leave the close control reachable')
-        assert 'они не доказывают манипуляцию' in page.locator('#modalFullText').inner_text()
-        assert 'Отсутствие признаков не означает нейтральность текста.' in page.locator('#modalFullText').inner_text()
+        assert 'они не доказывают манипуляцию' not in page.locator('#modalFullText').inner_text()
+        assert 'Отсутствие признаков не означает нейтральность текста.' not in page.locator('#modalFullText').inner_text()
         page.locator('#messageCloseBtn').click()
         assert page.locator('#messageModalOverlay').get_attribute('aria-hidden') == 'true'
         button.click()

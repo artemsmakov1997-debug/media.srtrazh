@@ -4,25 +4,25 @@
 /* Три главы методики — приглушённый графит с едва заметным синим подтоном. */
 .container > .section {
   background:
-    radial-gradient(ellipse 75% 100% at 2% 0%,rgba(60,136,166,.045),transparent 80%),
-    linear-gradient(145deg,#142438 0%,#101d2e 64%,#0e1b2c 100%);
+    radial-gradient(ellipse 75% 100% at 2% 0%,rgba(52,156,190,.025),transparent 80%),
+    linear-gradient(145deg,#0d1b2a 0%,#091522 64%,#08121e 100%);
   border-color:rgba(117,178,207,.27);
   box-shadow:0 16px 35px rgba(2,12,24,.20),inset 0 1px 0 rgba(215,240,250,.025);
 }
 .container > .section:nth-of-type(2) {
   background:
-    radial-gradient(ellipse 67% 100% at 100% 4%,rgba(36,150,160,.055),transparent 80%),
-    linear-gradient(145deg,#16293d 0%,#132538 55%,#101e2f 100%);
+    radial-gradient(ellipse 67% 100% at 100% 4%,rgba(36,150,160,.025),transparent 80%),
+    linear-gradient(145deg,#0d1d2d 0%,#0a1827 55%,#081421 100%);
   border-color:rgba(124,175,197,.21);
 }
 .container > .section:nth-of-type(3) {
   background:
-    radial-gradient(ellipse 75% 110% at 95% 0%,rgba(79,120,181,.055),transparent 81%),
-    linear-gradient(153deg,#142438 0%,#101d2e 58%,#0e1b2c 100%);
+    radial-gradient(ellipse 75% 110% at 95% 0%,rgba(79,120,181,.025),transparent 81%),
+    linear-gradient(153deg,#0d1b2a 0%,#091522 58%,#07131f 100%);
   border-color:rgba(124,175,197,.21);
 }
 .container > .section .section-rule {
-  background:linear-gradient(90deg,rgba(121,191,213,.33),rgba(129,169,197,.12) 58%,transparent);
+  background:linear-gradient(90deg,rgba(121,191,213,.20),rgba(129,169,197,.12) 58%,transparent);
 }
 .container > .section .section-title {color:#f3f8fc;}
 .container > .section .section-title .accent {color:#22d3ee;}
@@ -30,16 +30,16 @@
 /* Конвейер: шаги различимы, но не выглядят ярче остального контента. */
 body #pipelineGrid .pipeline-card {
   background:
-    radial-gradient(ellipse 82% 90% at 0% 0%,rgba(89,180,206,.045),transparent 83%),
-    linear-gradient(147deg,#16293d 0%,#132538 100%) !important;
+    radial-gradient(ellipse 82% 90% at 0% 0%,rgba(89,180,206,.025),transparent 83%),
+    linear-gradient(147deg,#12263a 0%,#0c1d2e 100%) !important;
   border-color:rgba(124,175,197,.21) !important;
   box-shadow:0 10px 23px rgba(4,19,35,.20),inset 0 1px 0 rgba(237,250,255,.027) !important;
 }
 body #pipelineGrid .pipeline-card.is-active,
 body #pipelineGrid .pipeline-card:hover {
   background:
-    radial-gradient(ellipse 85% 90% at 0% 0%,rgba(80,198,220,.065),transparent 81%),
-    linear-gradient(145deg,#1b3648,#142c3d) !important;
+    radial-gradient(ellipse 85% 90% at 0% 0%,rgba(80,198,220,.035),transparent 81%),
+    linear-gradient(145deg,#152b40,#102235) !important;
   border-color:rgba(99,202,225,.67) !important;
   box-shadow:0 10px 25px rgba(4,19,35,.23),inset 0 1px 0 rgba(237,250,255,.035) !important;
 }
@@ -80,13 +80,13 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
 /* Пример аналитики: сдержанный контраст между блоком и самим текстом. */
 .container > .section .live-card {
   background:
-    radial-gradient(ellipse 75% 85% at 100% 0%,rgba(71,174,188,.045),transparent 80%),
-    linear-gradient(145deg,#142438,#101e2f 80%,#132538);
+    radial-gradient(ellipse 75% 85% at 100% 0%,rgba(71,174,188,.025),transparent 80%),
+    linear-gradient(145deg,#102336,#0c1d2e 80%,#0b1929);
   border-color:rgba(124,175,197,.21);
   box-shadow:0 12px 30px rgba(3,18,32,.22),inset 0 1px 0 rgba(218,246,250,.027);
 }
 .live-card .live-body-text {
-  background:linear-gradient(155deg,rgba(10,27,43,.94),rgba(12,32,49,.94));
+  background:linear-gradient(155deg,rgba(8,24,39,.94),rgba(10,27,43,.94));
   border-color:rgba(105,157,184,.24);
   color:#e6f2f7;
 }
@@ -102,8 +102,8 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
 /* Каталог приёмов: умеренная глубина, цветовые метки остаются смысловыми. */
 .container > .section .manip-card {
   background:
-    radial-gradient(ellipse 75% 70% at 100% 0%,rgba(76,155,185,.045),transparent 84%),
-    linear-gradient(145deg,#16293d,#132538 70%,#101e2f);
+    radial-gradient(ellipse 75% 70% at 100% 0%,rgba(76,155,185,.025),transparent 84%),
+    linear-gradient(145deg,#112439,#0e2031 70%,#0a1a2b);
   border-color:rgba(124,175,197,.21);
   box-shadow:0 8px 21px rgba(4,17,30,.18),inset 0 1px 0 rgba(221,242,251,.025);
 }
@@ -121,7 +121,7 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
   color:#d3e7ef;
 }
 .manip-load-more {
-  background:linear-gradient(135deg,#20384e,#172b40);
+  background:linear-gradient(135deg,#1b3549,#12273a);
   border-color:rgba(105,199,218,.45);
 }
 
@@ -133,4 +133,10 @@ body #pipelineGrid .pipeline-card .pipe-more:focus-visible {
   body #pipelineGrid .pipeline-card {
     box-shadow:0 4px 13px rgba(2,16,29,.19),inset 0 1px 0 rgba(237,250,255,.035) !important;
   }
+}
+
+/* Only desktop steps 01 and 03 omit the secondary details action. */
+@media (min-width:1024px) {
+  #pipelineGrid .pipeline-card[data-step="0"] .pipe-more,
+  #pipelineGrid .pipeline-card[data-step="2"] .pipe-more {display:none !important;}
 }
