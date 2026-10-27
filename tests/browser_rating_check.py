@@ -65,8 +65,9 @@ def rating_ui(browser, base, site, errors, requests):
                 # the bottom of the much taller reserved annotation stage.
                 assert page.locator('.hero').evaluate(
                     'hero => {const stage=hero.querySelector(".hero-example-stage").getBoundingClientRect();'
-                    'const c=hero.querySelector(".hero-counter").getBoundingClientRect();'
-                    'const s=getComputedStyle(hero), k=getComputedStyle(c);'
+                    'const aside=hero.querySelector(".hero-counter");'
+                    'const c=aside.getBoundingClientRect();'
+                    'const s=getComputedStyle(hero), k=getComputedStyle(aside);'
                     'return Math.abs((stage.top+stage.bottom-c.top-c.bottom)/2)<20 && '
                     'parseFloat(s.borderTopWidth)>=1 && parseFloat(s.borderTopLeftRadius)>=20 && '
                     's.backgroundImage.includes("gradient") && '
