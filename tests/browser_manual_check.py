@@ -613,6 +613,15 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                                       is_mobile=mobile, has_touch=mobile, accept_downloads=True)
         try:
             page = context.new_page()
+            # Keep the emulated phone on touch throughout: a mouse click can
+            # hover a marker as the dialog opens, making its first tap close it.
+            def activate(selector):
+                target = page.locator(selector)
+                target.tap() if mobile else target.click()
+            page.add_init_script("""window.literaturePointerTypes=[];
+                document.addEventListener('pointerdown',event=>{
+                    if(event.target.closest('button,mark')) literaturePointerTypes.push(event.pointerType);
+                },true);""")
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
             for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan'):
@@ -633,21 +642,28 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 assert 'С фрагментами для проверки: 1.' in page.locator('#totals').inner_text()
                 select_analysis_filter(page, '#marker', expected['findings'][0]['category'])
                 assert page.locator('.publication').count() == 1
-                page.locator('.auto-details-button').click()
+                activate('.auto-details-button')
                 marker = page.locator('#automaticModal mark').first
+                if mobile:
+                    assert page.locator('#automaticTooltip').is_hidden(), (key, 'No mouse hover before the first tap')
                 marker.tap() if mobile else marker.hover()
                 page.locator('#automaticTooltip').wait_for(state='visible')
                 assert expected['findings'][0]['explanation'] in page.locator('#automaticTooltip').inner_text()
+                if mobile:
+                    marker.tap()
+                    page.locator('#automaticTooltip').wait_for(state='hidden')
+                    marker.tap()
+                    page.locator('#automaticTooltip').wait_for(state='visible')
                 page.wait_for_function("getComputedStyle(document.getElementById('automaticTooltip')).opacity === '1'")
                 assert page.locator('#automaticModalClose').evaluate('''button => {
                     const rect = button.getBoundingClientRect();
                     return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
                 }'''), (mobile, key, 'The comment must leave the close control reachable')
-                page.locator('#automaticModalClose').click()
-                page.locator('[data-mode="manual"]').click()
+                activate('#automaticModalClose')
+                activate('[data-mode="manual"]')
                 page.locator('#manualTitle').fill(document['title'])
                 page.locator('#manualText').fill(document['text'])
-                page.locator('#manualSubmit').click()
+                activate('#manualSubmit')
                 page.locator('#manualResult').wait_for(state='visible', timeout=120000)
                 assert page.locator('#manualTextEvidence').inner_text() == document['text']
                 assert page.locator('#manualTextEvidence mark').count() == count
@@ -656,8 +672,9 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 page.locator('#manualTooltip').wait_for(state='visible')
                 assert expected['findings'][0]['explanation'] in page.locator('#manualTooltip').inner_text()
                 with page.expect_download() as download_info:
-                    page.locator('#manualDownload').click()
+                    activate('#manualDownload')
                 assert json.loads(Path(download_info.value.path()).read_text()) == expected
+                assert set(page.evaluate('literaturePointerTypes')) == ({'touch'} if mobile else {'mouse'}), (mobile, key)
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
                 page.unroute('**/data/analysis.json')
         finally:
