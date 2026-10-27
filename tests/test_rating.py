@@ -38,7 +38,7 @@ def save_publication(store, number, source_id="rt", published=END, findings=None
 
 def finding(category="fear", status="needs_review", notice=False):
     return {"id": "fixture", "rule_id": "fixture." + category, "category": category, "status": status,
-            "label": "Проверочный тип", "explanation": "Синтетический пример агрегации.",
+            "rating_weight": 1, "label": "Проверочный тип", "explanation": "Синтетический пример агрегации.",
             "review_question": "Проверочный вопрос.",
             "evidence": [{"field": "text", "start": 0, "end": 13, "quote": "Синтетический",
                           "sentence": {"start": 0, "end": 13, "text": "Синтетический", "truncated": True},
@@ -55,6 +55,7 @@ def browser_rating_fixture():
             save_publication(store, index, source_id="tass", findings=[finding(status="quoted_candidate")] if index == 1 else [])
         save_publication(store, 1, source_id="ria", findings=[finding(), finding("enemy_image")])
         save_publication(store, 1, source_id="mediazona_telegram", findings=[finding("actor_terminology", "context_only", True)])
+        save_publication(store, 1, source_id="kommersant", findings=[])
         return rating_snapshot(store, END)
 
 
@@ -84,17 +85,34 @@ class RatingTests(unittest.TestCase):
         save_publication(self.store, 4, findings=[finding("actor_terminology", "context_only", True)])
         item = self.outlet()
         self.assertEqual((item["collected"], item["analyzed"], item["flagged"], item["score_percent"], item["level"]),
-                         (4, 4, 2, 50, "yellow"))
-        self.assertEqual(item["by_type"], {"fear": 2, "enemy_image": 1})
+                         (4, 4, 3, 75, "red"))
+        self.assertEqual(item["by_type"], {"fear": 2, "enemy_image": 1, "actor_terminology": 1})
 
-    def test_information_denial_discussion_and_omission_notices_do_not_create_votes(self):
+    def test_information_denial_discussion_and_omission_notices_now_create_votes(self):
         rows = [finding("territory_terminology", "context_only", True), finding("rhetorical_context", "context_only", True),
                 finding("event_terminology", "context_only", True), finding("selective_context", "context_only"),
                 finding("fear", "context_only"), finding("fear", "needs_review", True)]
         for number, marker in enumerate(rows, 1):
             save_publication(self.store, number, findings=[marker])
-        self.assertEqual(self.outlet()["flagged"], 0)
-        self.assertEqual(self.outlet()["score_percent"], 0)
+        self.assertEqual(self.outlet()["flagged"], len(rows))
+        self.assertEqual(self.outlet()["score_percent"], 100)
+        formula = rating_snapshot(self.store, END)["formula"]
+        self.assertEqual(formula["marker_weight"], 1)
+        self.assertTrue(formula["context_only_counted"])
+        self.assertTrue(formula["informational_notices_counted"])
+
+    def test_territory_example_is_counted_but_unmatched_publication_stays_zero(self):
+        article, _ = save_publication(self.store, 1, text='Режим прекращения огня в оккупированных Олешках продлится до ночи 1 ноября.')
+        save_publication(self.store, 2, text='В городе открылась библиотека.')
+        result = self.store.article(article["id"])["analysis"]
+        self.assertEqual(result["summary"]["candidate_fragments"], 0)
+        self.assertEqual(result["summary"]["marker_fragments"], 1)
+        self.assertEqual(result["findings"][0]["rating_weight"], 1)
+        self.assertEqual(result["findings"][0]["status"], 'context_only')
+        item = self.outlet()
+        self.assertEqual((item["collected"], item["flagged"], item["score_percent"]), (2, 1, 50))
+        self.assertEqual(item["by_type"], {'territory_terminology': 1})
+        self.assertEqual(item["series"][-1]["score_percent"], 50)
 
     def test_new_rhetoric_rules_count_real_findings_without_changing_denominator(self):
         save_publication(self.store, 1, text='Летающий морг готовят на Украине.')

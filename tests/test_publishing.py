@@ -90,6 +90,7 @@ class PublishingTests(unittest.TestCase):
         result = snapshot(self.store)
         self.assertEqual(result["algorithm_version"], VERSION)
         self.assertEqual(result["totals"], {"displayed": 3, "analyzed": 3,
+                                           "with_markers": 0, "marker_fragments": 0,
                                            "with_review_candidates": 0, "review_fragments": 0})
         self.assertEqual({item["source_id"] for item in result["articles"]}, {"rt", "tass", "ria"})
         encoded = json.dumps(result, ensure_ascii=False)
@@ -114,7 +115,7 @@ class PublishingTests(unittest.TestCase):
         self.assertEqual(item["summary"]["review_fragments"], 0)
         self.assertEqual(item["summary"]["candidate_fragments"], 11)
         self.assertEqual(item["findings"], [{key: f[key] for key in
-                         ("category", "label", "rule_id", "status", "explanation", "review_question", "evidence")}
+                         ("category", "label", "rule_id", "status", "rating_weight", "explanation", "review_question", "evidence")}
                         for f in saved["findings"]])
 
     def test_quoted_cues_are_separate_from_active_review_fragments(self):

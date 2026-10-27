@@ -296,7 +296,7 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             select_analysis_filter(page, "#marker", "territory_terminology")
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
-            assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+            assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
             page.locator(".auto-details-button").click()
             page.locator("#automaticModal").wait_for(state="visible")
             marks = page.locator("#automaticModal mark")
@@ -369,7 +369,7 @@ def context_precision_ui(browser, base, site, errors, requests):
                     page.locator(".auto-details-button").click()
                     page.locator("#automaticModal").wait_for(state="visible")
                     assert page.locator("#automaticModal mark").filter(has_text=literal).count() == 0
-                    assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+                    assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
                     page.locator("#automaticModalClose").click()
                 else:
                     page.wait_for_function("document.getElementById('selection').textContent === 'Показано публикаций: 0.'")
@@ -424,7 +424,7 @@ def comparative_framing_ui(browser, base, site, errors, requests):
                     assert "не анализировал" in tooltip
                 else:
                     assert "Историческая отсылка" in tooltip
-                    assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+                    assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
                 page.locator("#automaticModalClose").click()
                 page.locator('[data-mode="manual"]').click()
                 page.locator("#manualText").fill(text)

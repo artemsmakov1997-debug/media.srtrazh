@@ -203,6 +203,13 @@ def archive_ui(browser, base, site):
     page.wait_for_selector('.archive-item')
     assert page.locator('.archive-item').count() == 1
     assert page.locator('.archive-item').get_attribute('data-publisher') == 'mediazona'
+    assert 'Найдено фрагментов для проверки: 1' in page.locator('.archive-item .cell-count').inner_text()
+    page.locator('.more-btn').click()
+    assert 'Обозначение участника' in page.locator('#modalCategory').inner_text()
+    marker = page.locator('#modalFullText mark').first
+    marker.hover()
+    page.wait_for_selector('#archiveTooltip:not([hidden])')
+    assert 'Информационная отметка' in page.locator('#archiveTooltip').inner_text()
     page.close()
     # A bad source URL never becomes a clickable outbound link.
     bad = copy.deepcopy(data); bad['articles'][0]['url'] = 'javascript:alert(1)'

@@ -5,7 +5,7 @@
   const list = $('archiveList'), overlay = $('messageModalOverlay');
   const fields = ['source', 'platform', 'marker'].map(id => $(id));
   const comments = new window.PublicationTooltip($('archiveTooltip'));
-  const countedStatuses = new Set(['needs_review', 'quoted_candidate']);
+  const countedStatuses = new Set(['needs_review', 'quoted_candidate', 'context_only']);
   const shortLabels = {emotional_evaluation: 'Оценочная лексика', euphemism_dysphemism: 'Дисфемизмы',
     appeal_to_authority: 'Авторитет', vague_source: 'Размытый источник'};
   const requestedPublisher = new URLSearchParams(location.search).get('publisher') || '';
@@ -56,18 +56,17 @@
         data.articles.length > 100 || !Array.isArray(data.sources) || data.sources.length > 200 ||
         !Array.isArray(data.coverage) || !Number.isFinite(Date.parse(data.generated_at))) throw Error('format');
     const sources = new Map(data.sources.map(source => [source.id, source]));
-    const types = new Set(data.coverage.filter(type => type.coverage !== 'context_notices').map(type => type.id));
+    const types = new Set(data.coverage.map(type => type.id));
     return data.articles.map(raw => {
       const source = sources.get(raw.source_id);
       if (!source || typeof raw.source !== 'string' || !Array.isArray(raw.findings) || raw.findings.length > 40) throw Error('article');
-      const active = raw.findings.filter(f => types.has(f.category) && countedStatuses.has(f.status) &&
-        !f.evidence?.some(e => e.context?.informational_notice));
+      const active = raw.findings.filter(f => types.has(f.category) && countedStatuses.has(f.status));
       const categories = [...new Map(active.map(f => [f.category, shortLabels[f.category] || f.label])).values()];
       const publisher = source.publisher_id || raw.publisher_id || raw.source_id;
       const website = data.sources.find(s => s.id === publisher);
       const media = website?.name || raw.source.replace(/\s*·\s*Telegram$/, '');
       const title = raw.title || raw.display_excerpt || raw.message_preview || 'Публикация в Telegram';
-      const hasCandidates = active.length > 0 || raw.summary?.candidate_fragments > 0;
+      const hasCandidates = active.length > 0 || (raw.summary?.marker_fragments ?? raw.summary?.candidate_fragments) > 0;
       const status = !raw.summary ? 'pending' : hasCandidates ? 'danger' : raw.findings.length ? 'risky' : 'neutral';
       const category = status === 'pending' ? 'Не проверено' : !categories.length
         ? status === 'danger' ? 'Есть признаки' : status === 'risky' ? 'Контекст' : 'Не найдены'
@@ -169,7 +168,7 @@
     row.append(publisherElement(item, 'cell-media'));
     row.append(publicationTime(item.raw.published_at), node('div', item.title, 'cell-title'));
     const summary = item.raw.summary;
-    row.append(node('p', summary ? 'Найдено фрагментов для проверки: ' + (summary.candidate_fragments ?? summary.review_fragments)
+    row.append(node('p', summary ? 'Найдено фрагментов для проверки: ' + (summary.marker_fragments ?? summary.candidate_fragments ?? summary.review_fragments)
       : 'Анализ текущей версии отсутствует.', 'cell-count'));
     const cell = node('div', '', 'cell-button'), button = node('button', 'Подробнее', 'more-btn');
     button.type = 'button'; button.setAttribute('aria-label', 'Разбор: ' + item.title);

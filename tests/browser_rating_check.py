@@ -277,14 +277,14 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero .counter-value').evaluate(
                     'el => getComputedStyle(el).fontFamily.includes("Orbitron")')
             else:
-                zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'mediazona')
+                zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'kommersant')
                 page.locator(f'#mediaDots button[aria-label="Показать {zero_name}"]').click()
                 zero_card = page.locator('.media-card.is-active')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
                 assert zero_card.locator('.small-graph, .rating-signal-peak').count() == 0
-                assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
+                assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').count() == 0
                 meduza = next(item['name'] for item in fixture['publishers'] if item['id'] == 'meduza')
                 page.locator(f'#mediaDots button[aria-label="Показать {meduza}"]').click()
                 double = page.locator('.media-card.is-active .media-identity-text .rating-status-stack')
@@ -304,7 +304,7 @@ def rating_ui(browser, base, site, errors, requests):
             trigger.click()
             page.locator('#fullListModal.open').wait_for()
             assert page.locator('.full-list-row').count() == len(fixture['publishers'])
-            for publisher, score, level in (('ria', '100%', 'red'), ('tass', '50%', 'yellow'), ('rt', '25%', 'yellow'), ('mediazona', '0%', 'green')):
+            for publisher, score, level in (('ria', '100%', 'red'), ('tass', '50%', 'yellow'), ('rt', '25%', 'yellow'), ('mediazona', '100%', 'red')):
                 row = page.locator(f'.full-list-row[data-publisher="{publisher}"]')
                 assert row.locator('.fli-rating').inner_text() == score
                 assert level in row.locator('.fli-rating').get_attribute('class')

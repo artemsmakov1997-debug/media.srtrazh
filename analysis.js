@@ -414,7 +414,7 @@ function render() {
     article.append(
       node(
         'p',
-        counts ? 'Найдено фрагментов для проверки: ' + (counts.candidate_fragments ?? counts.review_fragments)
+        counts ? 'Найдено фрагментов для проверки: ' + (counts.marker_fragments ?? counts.candidate_fragments ?? counts.review_fragments)
           : 'Анализ текущей версии отсутствует.',
         'badge'
       )

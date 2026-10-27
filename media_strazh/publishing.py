@@ -104,7 +104,7 @@ def snapshot(store, limit=100):
                 for finding in bounded_findings(analysis["findings"]):
                     findings.append({
                         key: finding[key] for key in
-                        ("category", "label", "rule_id", "status", "explanation", "review_question", "evidence")
+                        ("category", "label", "rule_id", "status", "rating_weight", "explanation", "review_question", "evidence")
                     })
             forwarded = source.platform == "telegram" and item["extraction_method"].endswith(".forwarded")
             display_excerpt = telegram_display_excerpt(document["text"], forwarded) if source.platform == "telegram" else ""
@@ -130,6 +130,8 @@ def snapshot(store, limit=100):
             "coverage": taxonomy(), "articles": articles,
             "collection": {key: value for key, value in status["quality"].items() if key != "sources"},
             "totals": {"displayed": len(articles), "analyzed": len(analyzed),
+                       "with_markers": sum(item["summary"]["marker_fragments"] > 0 for item in analyzed),
+                       "marker_fragments": sum(item["summary"]["marker_fragments"] for item in analyzed),
                        "with_review_candidates": sum(item["summary"].get("candidate_fragments", item["summary"]["review_fragments"]) > 0
                                                      for item in analyzed),
                        "review_fragments": sum(item["summary"]["review_fragments"] for item in analyzed)},
