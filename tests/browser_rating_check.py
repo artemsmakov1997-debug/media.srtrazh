@@ -66,7 +66,12 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero').evaluate(
                     'hero => {const stage=hero.querySelector(".hero-example-stage").getBoundingClientRect();'
                     'const c=hero.querySelector(".hero-counter").getBoundingClientRect();'
-                    'return Math.abs((stage.top+stage.bottom-c.top-c.bottom)/2)<20;}')
+                    'const s=getComputedStyle(hero), k=getComputedStyle(c);'
+                    'return Math.abs((stage.top+stage.bottom-c.top-c.bottom)/2)<20 && '
+                    'parseFloat(s.borderTopWidth)>=1 && parseFloat(s.borderTopLeftRadius)>=20 && '
+                    's.backgroundImage.includes("gradient") && '
+                    'parseFloat(k.borderLeftWidth)>=1 && '
+                    'hero.scrollWidth<=hero.clientWidth+2;}')
                 # Both first-sentence markers are on its first line: their
                 # labels must stay next to those words, even at 80% CSS zoom.
                 assert page.locator('#heroExampleCallouts').evaluate(
@@ -134,6 +139,11 @@ def rating_ui(browser, base, site, errors, requests):
             else:
                 assert page.locator('.hero .hero-counter').is_visible()
                 assert not page.locator('.hero-counter-mobile').is_visible()
+                assert page.locator('.hero .hero-desktop-pro-link').is_visible() == (width >= 1024)
+                if width >= 1024:
+                    assert page.locator('.hero .hero-desktop-pro-link').inner_text().startswith(
+                        'Узнать о возможностях проекта')
+                    assert page.locator('.hero .hero-desktop-pro-link').get_attribute('data-pro-gateway') == ''
                 if width >= 1024:
                     assert page.locator('.hero .hero-counter .counter-label').evaluate(
                         'el => el.innerHTML.toLowerCase().includes("публикаций<br>с признаками<br>за ")')
@@ -375,6 +385,12 @@ def rating_ui(browser, base, site, errors, requests):
                 page.keyboard.press('Escape')
                 assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'false'
             if width == 1280:
+                desktop_pro = page.locator('.hero .hero-desktop-pro-link')
+                desktop_pro.click()
+                page.locator('.pro-gateway-dialog').wait_for(state='visible')
+                assert page.locator('.pro-gateway-option').count() == 2
+                page.keyboard.press('Escape')
+                assert desktop_pro.evaluate('a => a === document.activeElement')
                 page.clock.install()
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == '3'
