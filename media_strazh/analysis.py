@@ -1193,6 +1193,10 @@ def _numeric_signals(value):
         if len(daily) != 1 or len(annual) != 1:
             continue
         rate, total = daily[0], annual[0]
+        if re.match(r"\s+(?:в|на|по|среди|для|у|при)\b", clause[total.end():], re.I):
+            # A trailing population/location may narrow only the annual count.
+            # Do not infer that 'per year in another country' shares the rate's scope.
+            continue
         if (rate.end() >= total.start() or total["metric"] and
                 _metric_key(rate["metric"]) != _metric_key(total["metric"])):
             continue
