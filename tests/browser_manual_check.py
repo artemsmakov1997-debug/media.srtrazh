@@ -296,7 +296,8 @@ def terminology_layer_ui(browser, base, site, errors, requests):
             select_analysis_filter(page, "#marker", "territory_terminology")
             assert page.locator(".publication").count() == 1
             assert page.locator(".publication .legal-status-tag").all_text_contents() == ["иноагент"]
-            assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+            assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
+            assert "С фрагментами для проверки: 1." in page.locator("#totals").inner_text()
             page.locator(".auto-details-button").click()
             page.locator("#automaticModal").wait_for(state="visible")
             marks = page.locator("#automaticModal mark")
@@ -369,7 +370,7 @@ def context_precision_ui(browser, base, site, errors, requests):
                     page.locator(".auto-details-button").click()
                     page.locator("#automaticModal").wait_for(state="visible")
                     assert page.locator("#automaticModal mark").filter(has_text=literal).count() == 0
-                    assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+                    assert ("Найдено фрагментов для проверки: " + str(expected["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
                     page.locator("#automaticModalClose").click()
                 else:
                     page.wait_for_function("document.getElementById('selection').textContent === 'Показано публикаций: 0.'")
@@ -424,7 +425,7 @@ def comparative_framing_ui(browser, base, site, errors, requests):
                     assert "не анализировал" in tooltip
                 else:
                     assert "Историческая отсылка" in tooltip
-                    assert "Найдено фрагментов для проверки: 0" in page.locator(".publication > .badge").inner_text()
+                    assert ("Найдено фрагментов для проверки: " + str(automatic["summary"]["marker_fragments"])) in page.locator(".publication > .badge").inner_text()
                 page.locator("#automaticModalClose").click()
                 page.locator('[data-mode="manual"]').click()
                 page.locator("#manualText").fill(text)
@@ -630,7 +631,7 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
         select_analysis_filter(page, "#marker", marker)
         assert page.locator(".publication").count() == 1
         select_analysis_filter(page, "#marker", "")
-        assert "Найдено фрагментов для проверки: 11" in page.locator(".publication > .badge").inner_text()
+        assert "Найдено фрагментов для проверки: 12" in page.locator(".publication > .badge").inner_text()
         assert page.locator(".legal-status-note").count() == 0
         assert page.locator(".publication-title").count() == 1
         # Telegram captions are not headlines; never show "Forwarded from"
@@ -1591,6 +1592,8 @@ def main():
                                else f'https://{metadata["allowed_hosts"][0]}/news/123')
                 item["summary"]["review_fragments"] = 0
                 item["summary"]["candidate_fragments"] = 0
+                item["summary"]["marker_fragments"] = 0
+                item["summary"]["marker_count"] = 0
                 if source_id == "rt_telegram":
                     item["title"] = ""
                     item["message_preview"] = "Городская библиотека открыла новый читальный зал."

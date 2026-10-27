@@ -91,7 +91,7 @@
         const title = node('h2', '');
         const link = node('a', item.title); link.href = '/?article=' + item.id; title.append(link);
         card.append(title, node('p', labels[item.source_id] + ' · ' + date(item.published_at || item.retrieved_at), 'muted'));
-        card.append(node('p', item.analysis_summary ? 'Фрагментов для проверки: ' + (item.analysis_summary.review_fragments ?? item.analysis_summary.review_candidates) + (item.analysis_summary.findings_truncated ? ' (неполный результат)' : '') : 'Анализ текущей версией ещё не выполнен.'));
+        card.append(node('p', item.analysis_summary ? 'Фрагментов для проверки: ' + (item.analysis_summary.marker_fragments ?? item.analysis_summary.candidate_fragments ?? item.analysis_summary.review_fragments ?? item.analysis_summary.review_candidates) + (item.analysis_summary.findings_truncated ? ' (неполный результат)' : '') : 'Анализ текущей версией ещё не выполнен.'));
         if (item.last_error) card.append(node('p', 'Не удалось обновить текст: ' + item.last_error, 'error'));
         el('articles').append(card);
       }

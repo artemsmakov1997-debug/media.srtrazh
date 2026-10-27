@@ -8,7 +8,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.10.1"
+VERSION = "rules-0.11.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -1101,6 +1101,9 @@ def analyze(document):
     findings.sort(key=lambda f: (f["evidence"][0]["field"] != "title", f["evidence"][0]["start"], f["rule_id"]))
     for index, finding in enumerate(findings, 1):
         finding["id"] = f"f{index}"
+        # Operational rating weight, separate from attribution and semantics.
+        # A notice, quotation or denial remains labelled as such.
+        finding["rating_weight"] = 1
     active = Counter(f["category"] for f in findings if f["status"] == "needs_review")
     content = {"title": title, "text": text, **({"media": dict(document["media"])} if "media" in document else {})}
     digest = hashlib.sha256(json.dumps(content, ensure_ascii=False,
@@ -1121,7 +1124,10 @@ def analyze(document):
                      **{key: document[key] for key in ("source", "url", "published_at") if key in document},
                      "sha256": digest},
         "offset_unit": "unicode_code_points", "findings": findings,
-        "summary": {"review_candidates": sum(active.values()), "by_category": dict(active),
+        "summary": {"marker_count": len(findings),
+                    "marker_fragments": len({(e["field"], e["start"], e["end"])
+                                             for f in findings for e in f["evidence"]}),
+                    "review_candidates": sum(active.values()), "by_category": dict(active),
                     "review_fragments": len({(e["field"], e["start"], e["end"])
                                              for f in findings if f["status"] == "needs_review"
                                              for e in f["evidence"]}),

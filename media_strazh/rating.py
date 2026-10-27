@@ -4,14 +4,14 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 import json
 
-from .analysis import TAXONOMY, VERSION
+from .analysis import LABELS, VERSION
 from .quality import collection_quality
 from .sources import SOURCES
 from .storage import utcnow
 
 SCHEMA = "rating-snapshot-1.0"
-COUNTED_TYPES = frozenset(key for key, _, _ in TAXONOMY)
-COUNTED_STATUSES = frozenset({"needs_review", "quoted_candidate"})
+COUNTED_TYPES = frozenset(LABELS)
+COUNTED_STATUSES = frozenset({"needs_review", "quoted_candidate", "context_only"})
 
 
 def rating_level(flagged, collected):
@@ -24,15 +24,13 @@ def rating_level(flagged, collected):
 def publication_types(findings):
     """One publication can have several types but contributes only one vote.
 
-    Reported/quoted candidates count by the project's operational convention.
-    Negation/discussion, quotation-omission notices and informational layers do
-    not establish the use of a rhetoric type and never create a flagged vote.
+    All detected markers count by the project's operational convention, including
+    terminology, quotation omissions, denial and discussion. Their status and
+    explanation remain intact; inclusion does not establish manipulation.
     """
     return sorted({finding["category"] for finding in findings
                    if finding.get("category") in COUNTED_TYPES
-                   and finding.get("status") in COUNTED_STATUSES
-                   and not any(e.get("context", {}).get("informational_notice")
-                               for e in finding.get("evidence", []))})
+                   and finding.get("status") in COUNTED_STATUSES})
 
 
 def _percentage(flagged, collected, analyzed):
@@ -130,11 +128,12 @@ def rating_snapshot(store, now=None):
             "schema_version": SCHEMA, "algorithm_version": VERSION, "generated_at": stamp,
             "window": {"start_at": begin, "end_at": stamp, "hours": 24,
                        "boundary": "start_exclusive_end_inclusive", "time_basis": "published_at"},
-            "formula": {"numerator": "publications_with_at_least_one_rhetoric_type",
+            "formula": {"numerator": "publications_with_at_least_one_marker",
                         "denominator": "all_collected_publications_in_window", "multiplier": 100,
                         "counted_statuses": sorted(COUNTED_STATUSES), "counted_categories": sorted(COUNTED_TYPES),
                         "count_each_publication_once": True, "include_quoted_candidates": True,
-                        "informational_notices_counted": False, "rounding_affects_level": False,
+                        "marker_weight": 1, "context_only_counted": True,
+                        "informational_notices_counted": True, "rounding_affects_level": False,
                         "green_below": 25, "yellow_from": 25, "yellow_through": 50, "red_above": 50},
             "chart": {"kind": "cumulative_share", "intervals": 24, "y_min": 0, "y_max": 100},
             "scope": "collected_sample", "coverage_complete": False,

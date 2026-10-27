@@ -86,7 +86,7 @@
   }
   function render(result) {
     const counts = result.summary;
-    el('summary').textContent = `Фрагментов для проверки: ${counts.review_fragments ?? counts.review_candidates}. Меток приёмов: ${counts.review_candidates}. В цитатах или переданной речи: ${counts.quoted_candidates}. В отрицании или обсуждении: ${counts.context_only}.` + (counts.findings_truncated ? ' Показаны первые 500 совпадений; сводка неполная.' : '');
+    el('summary').textContent = `Фрагментов для проверки: ${counts.marker_fragments ?? counts.candidate_fragments ?? counts.review_fragments ?? counts.review_candidates}. Меток: ${counts.marker_count ?? counts.review_candidates}. В цитатах или переданной речи: ${counts.quoted_candidates}. Контекстных отметок: ${counts.context_only}.` + (counts.findings_truncated ? ' Показаны первые 500 совпадений; сводка неполная.' : '');
     for (const field of ['title', 'text']) {
       const ranges = result.findings.flatMap(f => f.evidence.filter(e => e.field === field));
       highlight(el(field + 'Evidence'), result.document[field], ranges);

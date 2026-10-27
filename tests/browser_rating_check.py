@@ -277,14 +277,14 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero .counter-value').evaluate(
                     'el => getComputedStyle(el).fontFamily.includes("Orbitron")')
             else:
-                zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'mediazona')
+                zero_name = next(item['name'] for item in fixture['publishers'] if item['id'] == 'kommersant')
                 page.locator(f'#mediaDots button[aria-label="Показать {zero_name}"]').click()
                 zero_card = page.locator('.media-card.is-active')
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-score').inner_text() == '0%'
                 assert zero_card.locator('.rating-headline-label').inner_text() == 'спорных сообщений'
                 assert zero_card.locator('.small-graph, .rating-signal-peak').count() == 0
-                assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').all_inner_texts() == ['иноагент']
+                assert zero_card.locator('.media-identity-text .rating-status-stack .media-status-tag').count() == 0
                 meduza = next(item['name'] for item in fixture['publishers'] if item['id'] == 'meduza')
                 page.locator(f'#mediaDots button[aria-label="Показать {meduza}"]').click()
                 double = page.locator('.media-card.is-active .media-identity-text .rating-status-stack')
@@ -304,16 +304,17 @@ def rating_ui(browser, base, site, errors, requests):
             trigger.click()
             page.locator('#fullListModal.open').wait_for()
             assert page.locator('.full-list-row').count() == len(fixture['publishers'])
-            for publisher, score, level in (('ria', '100%', 'red'), ('tass', '50%', 'yellow'), ('rt', '25%', 'yellow'), ('mediazona', '0%', 'green')):
+            for publisher, score, level in (('ria', '100%', 'red'), ('tass', '50%', 'yellow'), ('rt', '25%', 'yellow'), ('mediazona', '20%', 'green'), ('kommersant', '0%', 'green')):
                 row = page.locator(f'.full-list-row[data-publisher="{publisher}"]')
                 assert row.locator('.fli-rating').inner_text() == score
                 assert level in row.locator('.fli-rating').get_attribute('class')
             assert 'иноагент' in page.locator('.full-list-row[data-publisher="mediazona"]').inner_text()
-            empty = page.locator('.full-list-row[data-publisher="kommersant"]')
+            empty_publisher = next(row['id'] for row in fixture['publishers'] if not row['collected'])
+            empty = page.locator(f'.full-list-row[data-publisher="{empty_publisher}"]')
             assert empty.locator('.fli-rating').inner_text() == '—'
             assert 'green' not in empty.locator('.fli-rating').get_attribute('class')
             page.locator('#modalSort').select_option('rating-asc')
-            assert page.locator('.full-list-row').first.get_attribute('data-publisher') == 'mediazona'
+            assert page.locator('.full-list-row').first.get_attribute('data-publisher') == 'kommersant'
             page.locator('#modalSearch').fill('RT на русском')
             assert page.locator('.full-list-row').count() == 1
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
@@ -409,7 +410,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert desktop_pro.evaluate('a => a === document.activeElement')
                 page.clock.install()
                 page.clock.fast_forward(16000)
-                assert page.locator('#dailyCounterValue').inner_text() == '3'
+                assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])
                 # Auto-rotation can replace RT in the displayed group.
                 # Every example button opens the archive filtered to that outlet.
                 publisher = page.locator('.media-card').first.get_attribute('data-publisher')
