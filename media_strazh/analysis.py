@@ -10,7 +10,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.14.0"
+VERSION = "rules-0.15.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -36,7 +36,15 @@ LABELS["actor_terminology"] = "Обозначение участника"
 LABELS["territory_terminology"] = "Обозначение территории"
 LABELS["rhetorical_context"] = "Контекст подачи и сопоставления"
 INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
-DISCOURSE_LABELS = {
+RULE_LABELS = {
+    "terminology.collective_west": "Обобщение «Коллективный Запад»",
+    "terminology.western_partners": "Обозначение «Западные партнёры»",
+    "terminology.geopolitical_west": "Обобщённое обозначение Запада",
+    "dysphemism.putinoid_group": "Групповой ярлык «путиноид»",
+    "dysphemism.vatnik_group": "Групповой ярлык «ватник»",
+    "terminology.occupier_actor": "Обозначение участника «оккупант»",
+    "terminology.liberator_actor": "Обозначение участника «освободитель»",
+    "terminology.propagandist_actor": "Обозначение роли «пропагандист»",
     "simplification.question_deflection": "Отвод от вопроса",
     "simplification.consequence_chain": "Цепочка последствий",
     "simplification.circular_justification": "Круговое обоснование",
@@ -505,6 +513,98 @@ def _human_attack_context(text, start, end, sentence_span, event_context, requir
     return direct or bool(POLITICAL_CONTEXT.search(nearby))
 
 
+def _vocabulary_context(rule, text, start, end, sentence_span, event_context):
+    """Local word sense guards; never infer irony, truth or political allegiance."""
+    sentence = sentence_span["text"]
+    before = text[sentence_span["start"]:start]
+    after = text[end:sentence_span["end"]]
+    # Proper titles and product names are not political labels. A real actor
+    # commenting on politics is not excluded merely for being an actor.
+    if re.search(r"\b(?:фильм[а-яё]*|роман[а-яё]*|сериал[а-яё]*|спектакл[а-яё]*|книг[а-яё]*|"
+                 r"игр[а-яё]*|бренд[а-яё]*|магазин[а-яё]*|компани[а-яё]*|газет[а-яё]*|"
+                 r"журнал[а-яё]*|издани[а-яё]*|утилит[а-яё]*|программ[а-яё]*)\s*[«\"“„]\s*$", before, re.I):
+        return False
+    kind = rule.context_requirement
+    if kind in {"collective_actor_term", "supporter_label", "regime_label"}:
+        return True
+    if kind == "vatnik_group":
+        clothing = re.search(r"\b(?:одежд[а-яё]*|телогрейк[а-яё]*|рукав[а-яё]*|подкладк[а-яё]*|"
+                             r"куртк[а-яё]*|ст[её]ган[а-яё]*|утепл[её]н[а-яё]*)\b", before[-70:] + after[:50], re.I)
+        clothing = clothing or re.search(
+            r"\b(?:шить|шьют|сшил[а-яё]*|сшит[а-яё]*|"
+            r"надел[а-яё]*|надет[а-яё]*|надев[а-яё]*|одет[а-яё]*|снял[а-яё]*|носил[а-яё]*|носить|носят|"
+            r"купил[а-яё]*|купить|покупа[а-яё]*|прода[а-яё]*|стира[а-яё]*|постира[а-яё]*|"
+            r"суши[а-яё]*|сохнут|выда[а-яё]*)\s+(?:[а-яё-]+\s+){0,3}$", before[-100:], re.I)
+        garment_modifiers = r"(?:(?:стар|нов|рван|ч[её]рн|син|сер|зел[её]н|грязн|т[её]пл|военн)[а-яё]*\s+){0,2}"
+        clothing = clothing or (
+            re.fullmatch(r"ватник(?:е|ах)", text[start:end], re.I)
+            and re.search(r"\bв\s+" + garment_modifiers + r"$", before[-70:], re.I)
+        )
+        clothing = clothing or re.search(
+            r"\bна\s+(?:н[её]м|ней|них|мне|тебе|вас|нас|президенте|политике|солдате|рабочем)"
+            r"\s+(?:был(?:а|о|и)?\s+)?" + garment_modifiers + r"$", before[-100:], re.I)
+        clothing = clothing or re.match(
+            r"\s+(?:(?:был(?:а|о|и)?|сейчас|пока|ещ[её])\s+){0,2}"
+            r"(?:леж[а-яё]*|вис[а-яё]*)\s+(?:на|в|под)\s+"
+            r"(?:стул[а-яё]*|полу|полк[а-яё]*|вешалк[а-яё]*|шкаф[а-яё]*|плечик[а-яё]*)\b", after, re.I)
+        if clothing:
+            return False
+        address = re.search(r"\b(?:ты|вы|он|она|они)\s*(?:[—:-]\s*|это\s+)?(?:не\s+)?$", before, re.I)
+        naming = re.search(r"\b(?:назвал[а-яё]*|называ[а-яё]*|обозвал[а-яё]*|обзыва[а-яё]*|окрестил[а-яё]*)\b",
+                           before[-80:], re.I)
+        behaviour = re.search(r"\b(?:голосу[а-яё]*|поддержива[а-яё]*|одобря[а-яё]*|"
+                              r"счита[а-яё]*|дума[а-яё]*|верят|верит|крича[а-яё]*|"
+                              r"говор[а-яё]*|пишут|пишет|спор[а-яё]*|руга[а-яё]*|"
+                              r"выбира[а-яё]*|соглаша[а-яё]*|требу[а-яё]*|призыва[а-яё]*)\b", sentence, re.I)
+        return bool(address or naming or behaviour or POLITICAL_CONTEXT.search(sentence + " " + event_context))
+    if kind == "conflict_actor_term":
+        if re.match(r"\s+(?:(?:оперативной|дисковой|свободной)\s+)?"
+                    r"(?:памяти|диска|места|кэша|кеша|пространства)\b", after, re.I):
+            return False
+        pets = re.search(r"\b(?:кот(?:а|у|ом|е|ы|ов|ам|ами|ах)?|кошк[а-яё]*|кот[её]нок|"
+                         r"котят[а-яё]*|собак[а-яё]*|щен[а-яё]*)\b", sentence, re.I)
+        home = re.search(r"\b(?:диван[а-яё]*|кухн[а-яё]*|кресл[а-яё]*|кроват[а-яё]*|"
+                         r"подоконник[а-яё]*)\b", sentence, re.I)
+        return not (pets and home)
+    if kind == "propagandist_term":
+        return not re.match(r"\s+(?:здорового\s+образа\s+жизни|науки|спорта|трезвости|"
+                            r"чтения|грамотности|образования|туризма|правил\s+дорожного\s+движения)\b", after, re.I)
+    if kind == "geopolitical_west":
+        if TERRITORY_AFTER.search(after) or re.match(r"\s+(?:страны|области|региона|района|острова|города|материка|континента|"
+                    r"полуострова|Европы|России|Украины)\b", after, re.I):
+            return False
+        movement = re.search(r"\b(?:поезд[а-яё]*|маршрут[а-яё]*|путешеств[а-яё]*|дорог[а-яё]*|"
+                             r"двиг[а-яё]*|двин[а-яё]*|пош[её]л[а-яё]*|пошли|ехать|ехал[а-яё]*|поех[а-яё]*|"
+                             r"посмотрел[а-яё]*|повернул[а-яё]*|развернул[а-яё]*|компас[а-яё]*|"
+                             r"ветер|направлени[а-яё]*|сторон[а-яё]*\s+света)\b", before, re.I)
+        directional = re.search(r"\b(?:на|к|с|со|из)\s+(?:(?:крайн|дал[её]к|дальн)[а-яё]*\s+)?"
+                                r"(?:северо-|юго-)?$", before, re.I)
+        if movement and directional:
+            return False
+        action = re.match(r"\s*(?:[—:-]\s*)?(?:(?:вновь|снова|уже|теперь|первым|якобы|"
+                          r"всегда|намерен|продолжает)\s+){0,3}"
+                          r"(?:(?:это|наш|главный|ключевой|общий)\s+){0,2}"
+                          r"(?:ввод[а-яё]*|заяв[а-яё]*|потреб[а-яё]*|требу[а-яё]*|одобр[а-яё]*|"
+                          r"поддерж[а-яё]*|решил[а-яё]*|навя[а-яё]*|угрожа[а-яё]*|отказ[а-яё]*|"
+                          r"выступ[а-яё]*|обеща[а-яё]*|добива[а-яё]*|финансир[а-яё]*|соглас[а-яё]*|"
+                          r"вмешива[а-яё]*|осужда[а-яё]*|счита[а-яё]*|хочет|хотел[а-яё]*|"
+                          r"пыта[а-яё]*|стреми[а-яё]*|собира[а-яё]*|готовит[а-яё]*|планиру[а-яё]*|"
+                          r"вед[её]т|рассчитыва[а-яё]*|призыва[а-яё]*|призна[а-яё]*|провоцир[а-яё]*|"
+                          r"помога[а-яё]*|лж[её]т|лгут|враг|союзник|противник)\b", after, re.I)
+        physical = re.search(r"\b(?:солнц[а-яё]*|закат[а-яё]*|ветер|дожд[а-яё]*|снег[а-яё]*|"
+                             r"циклон[а-яё]*|ураган[а-яё]*|пожар[а-яё]*|землетрясени[а-яё]*)\b", sentence, re.I)
+        if physical and not action:
+            return False
+        political = POLITICAL_CONTEXT.search(sentence) or re.search(
+            r"\b(?:санкци[а-яё]*|дипломат[а-яё]*|НАТО|альянс[а-яё]*|переговор[а-яё]*|"
+            r"элит[а-яё]*|вооружени[а-яё]*|военн[а-яё]*|эконом(?:ик|ическ)[а-яё]*|инвестиц[а-яё]*|"
+            r"финансир[а-яё]*|сотрудничеств[а-яё]*)\b", sentence, re.I)
+        object_role = re.search(r"\b(?:критику[а-яё]*|осужда[а-яё]*|обвиня[а-яё]*|"
+                                r"противосто[а-яё]*)\s+(?:(?:коллективный|весь)\s+)?$", before, re.I)
+        return bool(action or political or object_role)
+    raise ValueError("Неизвестный контекст словаря.")
+
+
 def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     if field not in rule.fields:
         return False
@@ -513,6 +613,9 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
     fragment = text[start:end]
+    if rule.context_requirement in {"collective_actor_term", "geopolitical_west", "vatnik_group",
+                                    "conflict_actor_term", "propagandist_term", "supporter_label", "regime_label"}:
+        return _vocabulary_context(rule, text, start, end, sentence_span, event_context)
     if rule.context_requirement in {"public_discourse", "consequence_chain", "unspecified_measures", "unattributed_decision"}:
         if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
             return False
@@ -1424,7 +1527,7 @@ def analyze(document):
                         evidence["context"]["informational_notice"] = True
                     spans.append(match.span())
                     findings.append({
-                        "rule_id": rule.id, "category": rule.category, "label": DISCOURSE_LABELS.get(rule.id, LABELS[rule.category]),
+                        "rule_id": rule.id, "category": rule.category, "label": RULE_LABELS.get(rule.id, LABELS[rule.category]),
                         "status": "context_only" if rule.id == "context.quotation_omission" or rule.category in INFORMATIONAL else _status(evidence),
                         "explanation": rule.explanation,
                         "review_question": rule.review_question, "evidence": [evidence],

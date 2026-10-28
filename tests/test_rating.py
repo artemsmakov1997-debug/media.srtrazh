@@ -127,6 +127,25 @@ class RatingTests(unittest.TestCase):
         self.assertEqual((item['collected'], item['flagged'], item['score_percent'], item['level']), (4, 2, 50, 'yellow'))
         self.assertEqual(item['by_type'], {'emotional_evaluation': 1, 'fear': 1})
 
+    def test_new_political_words_keep_one_vote_and_same_text_copies_are_not_doubled(self):
+        text = 'Коллективный Запад поддержал решение. Эти ватники голосуют за президента. Оккупанты вошли в город.'
+        save_publication(self.store, 1, text=text)
+        save_publication(self.store, 2, 'rt_telegram', text=text)
+        save_publication(self.store, 3, 'rt_telegram', text='В городе открылась новая библиотека для детей и взрослых.')
+        item = self.outlet()
+        self.assertEqual((item['raw_publications'], item['collected'], item['flagged'], item['score_percent']), (3, 2, 1, 50))
+        self.assertEqual(item['by_type'], {'actor_terminology': 1, 'euphemism_dysphemism': 1})
+        self.assertEqual(item['series'][-1]['score_percent'], 50)
+
+    def test_new_role_notices_alone_keep_the_unit_marker_weight(self):
+        row, _ = save_publication(self.store, 1, text='Журналиста назвали пропагандистом.')
+        save_publication(self.store, 2, text='Ветер дует с запада.')
+        result = self.store.article(row['id'])['analysis']
+        self.assertEqual(result['summary']['candidate_fragments'], 0)
+        self.assertEqual(result['summary']['marker_fragments'], 1)
+        self.assertEqual(result['findings'][0]['rating_weight'], 1)
+        self.assertEqual((self.outlet()['collected'], self.outlet()['flagged']), (2, 1))
+
     def test_book_numeric_checks_count_once_per_publication_and_match_chart(self):
         daily = 'В 2025 году в среднем 100 аварий в день — всего 10 тысяч аварий за год.'
         row, _ = save_publication(self.store, 1, text=daily)
