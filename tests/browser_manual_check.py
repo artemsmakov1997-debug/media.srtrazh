@@ -37,6 +37,7 @@ import test_person_labels
 import test_literature_rhetoric
 import test_numeric_consistency
 import test_discourse_expansion
+import test_political_vocabulary
 from browser_fixtures import business_evidence_fixture
 
 
@@ -60,7 +61,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency, test_discourse_expansion)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency, test_discourse_expansion, test_political_vocabulary)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -82,6 +83,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_literature_rhetoric.LiteratureRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_numeric_consistency.NumericConsistencyTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_discourse_expansion.DiscourseExpansionTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_political_vocabulary.PoliticalVocabularyTests),
     ])
     try:
         output = io.StringIO()
@@ -639,10 +641,12 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
             documents = {**test_literature_rhetoric.DOCUMENTS, **test_numeric_consistency.DOCUMENTS,
-                         **test_discourse_expansion.DOCUMENTS}
+                         **test_discourse_expansion.DOCUMENTS, **test_political_vocabulary.DOCUMENTS}
             for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan',
                         'numeric_majority', 'numeric_daily', 'question_deflection', 'consequence_chain',
-                        'circular_justification', 'absence_as_concealment', 'unspecified_measures', 'unattributed_decision'):
+                        'circular_justification', 'absence_as_concealment', 'unspecified_measures', 'unattributed_decision',
+                        'geopolitical_west', 'collective_west', 'western_partners', 'putinoid_group', 'vatnik_group',
+                        'occupier_actor', 'liberator_actor', 'propagandist_actor'):
                 document = {'title': 'Проверочный пример', **documents[key]}
                 expected = analyze(document)
                 snapshot = json.loads((site / 'data/analysis.json').read_text())
