@@ -181,7 +181,7 @@ class RatingTests(unittest.TestCase):
 
     def test_website_and_channel_group_by_publisher_but_different_messages_count_separately(self):
         save_publication(self.store, 1, findings=[finding()])
-        save_publication(self.store, 1, source_id="rt_telegram", findings=[])
+        save_publication(self.store, 1, source_id="rt_telegram", text="Отдельное сообщение канала.", findings=[])
         save_publication(self.store, 1, source_id="oldlentach_telegram", findings=[finding()])
         self.assertEqual((self.outlet()["collected"], self.outlet()["flagged"]), (2, 1))
         self.assertEqual(self.outlet("oldlentach")["collected"], 1)

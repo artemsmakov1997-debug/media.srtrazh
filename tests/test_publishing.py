@@ -205,17 +205,17 @@ class PublishingTests(unittest.TestCase):
         self.save_item("interfax", 1, "2026-10-10T08:00:00+00:00")
         self.save_item("rt_telegram", 1, "2026-10-10T07:00:00+00:00")
         result = snapshot(self.store, limit=3)
-        self.assertEqual({row["source_id"] for row in result["articles"]},
+        self.assertEqual({variant["source_id"] for row in result["articles"] for variant in [row, *row.get("variants", [])]},
                          {"rt", "interfax", "rt_telegram"})
-        self.assertEqual([row["source_id"] for row in result["articles"]],
-                         ["rt", "interfax", "rt_telegram"])
+        self.assertEqual(len(result["articles"]), 3)
+        self.assertTrue(any(row.get("variants") for row in result["articles"]))
 
     def test_every_configured_feed_with_data_can_appear_in_default_pilot_limit(self):
         configured = [source for source in SOURCES.values() if not source.configuration_error]
         for source in configured:
             self.save_item(source.id, 1)
         result = snapshot(self.store, limit=100)
-        self.assertEqual({item["source_id"] for item in result["articles"]},
+        self.assertEqual({variant["source_id"] for item in result["articles"] for variant in [item, *item.get("variants", [])]},
                          {source.id for source in configured})
         self.assertEqual(len(result["sources"]), len(SOURCES))
 

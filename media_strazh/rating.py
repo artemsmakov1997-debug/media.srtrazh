@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import json
 
 from .analysis import LABELS, VERSION
+from .crossposts import MAX_GAP, VERSION_DEDUP, aware_date, current_publications, group_publications
 from .quality import collection_quality
 from .sources import SOURCES
 from .storage import utcnow
@@ -60,6 +61,7 @@ def rating_snapshot(store, now=None):
                 publishers[publisher] = {
                     "id": publisher, "name": website.name if website else source.name.removesuffix(" · Telegram"),
                     "platforms": [], "sources": [], "collected": 0, "analyzed": 0, "flagged": 0,
+                    "raw_publications": 0, "duplicates_excluded": 0,
                     "by_type": Counter(), "series": [{"collected": 0, "analyzed": 0, "flagged": 0} for _ in range(24)],
                 }
             item = publishers[publisher]
@@ -69,30 +71,22 @@ def rating_snapshot(store, now=None):
                                     **{key: health[source.id][key] for key in
                                        ("state", "error", "last_text_at", "pending", "undated", "future_dated")}})
 
-        placeholders = ",".join("?" for _ in SOURCES)
-        rows = store.db.execute("""
-            SELECT a.source_id,r.published_at,n.revision_id AS analyzed,
-                   json_extract(n.result_json,'$.findings') AS findings_json
-            FROM articles a JOIN revisions r ON r.id=a.current_revision_id
-            LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=?
-            WHERE a.source_id IN (""" + placeholders + """)
-              AND julianday(r.published_at)>=julianday(?)-1.0/86400
-              AND julianday(r.published_at)<=julianday(?)+1.0/86400
-            ORDER BY r.id
-        """, [VERSION, *SOURCES, begin, stamp])
+        # Look behind the window so a newly posted copy cannot give an old
+        # publication another vote. Never inspect versions dated after end.
+        rows = current_publications(store, start - MAX_GAP, end, findings=True)
+        rows = [row for row in rows if (date := aware_date(row["published_at"])) is not None and date <= end]
         for row in rows:
-            # A malformed/naive stored date must not be treated as a precise UTC
-            # publication time, even if SQLite can interpret it.
-            try:
-                published = datetime.fromisoformat(row["published_at"].replace("Z", "+00:00"))
-                if published.utcoffset() is None or not start < published <= end:
-                    continue
-            except (ValueError, TypeError):
+            if start < aware_date(row["published_at"]) <= end:
+                publishers[SOURCES[row["source_id"]].publisher]["raw_publications"] += 1
+        for group in group_publications(rows):
+            published = group.published_at
+            if published is None or not start < published <= end:
                 continue
-            item = publishers[SOURCES[row["source_id"]].publisher]
+            item = publishers[SOURCES[group.members[0]["source_id"]].publisher]
             bucket = min(23, int((published - start).total_seconds() // 3600))
-            analyzed = row["analyzed"] is not None
-            types = publication_types(json.loads(row["findings_json"])) if analyzed else []
+            analyzed = all(row["analyzed"] for row in group.members)
+            types = sorted({kind for row in group.members
+                            for kind in publication_types(json.loads(row["findings_json"]))}) if analyzed else []
             flagged = bool(types)
             for target in (item, item["series"][bucket]):
                 target["collected"] += 1
@@ -102,7 +96,8 @@ def rating_snapshot(store, now=None):
 
         totals = Counter()
         for item in publishers.values():
-            for key in ("collected", "analyzed", "flagged"):
+            item["duplicates_excluded"] = item["raw_publications"] - item["collected"]
+            for key in ("collected", "analyzed", "flagged", "raw_publications", "duplicates_excluded"):
                 totals[key] += item[key]
             item["by_type"] = dict(item["by_type"])
             item["pending_analysis"] = item["collected"] - item["analyzed"]
@@ -134,10 +129,14 @@ def rating_snapshot(store, now=None):
                         "count_each_publication_once": True, "include_quoted_candidates": True,
                         "marker_weight": 1, "context_only_counted": True,
                         "informational_notices_counted": True, "rounding_affects_level": False,
+                        "cross_platform_duplicates_count_once": True,
+                        "duplicate_time_basis": "earliest_publication", "duplicate_marker_types": "union_of_variants",
                         "green_below": 25, "yellow_from": 25, "yellow_through": 50, "red_above": 50},
+            "deduplication": {"version": VERSION_DEDUP, "scope": "same_publisher_cross_platform",
+                              "max_gap_hours": int(MAX_GAP.total_seconds() / 3600), "originals_retained": True},
             "chart": {"kind": "cumulative_share", "intervals": 24, "y_min": 0, "y_max": 100},
             "scope": "collected_sample", "coverage_complete": False,
-            "totals": {**{key: totals[key] for key in ("collected", "analyzed", "flagged")},
+            "totals": {**{key: totals[key] for key in ("collected", "analyzed", "flagged", "raw_publications", "duplicates_excluded")},
                        "publishers": len(items), "rated_publishers": sum(item["level"] is not None for item in items),
                        "pending_analysis": totals["collected"] - totals["analyzed"],
                        "undated_in_retained_corpus": quality["undated"],

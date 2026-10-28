@@ -10,7 +10,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.13.0"
+VERSION = "rules-0.14.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -36,6 +36,14 @@ LABELS["actor_terminology"] = "Обозначение участника"
 LABELS["territory_terminology"] = "Обозначение территории"
 LABELS["rhetorical_context"] = "Контекст подачи и сопоставления"
 INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
+DISCOURSE_LABELS = {
+    "simplification.question_deflection": "Отвод от вопроса",
+    "simplification.consequence_chain": "Цепочка последствий",
+    "simplification.circular_justification": "Круговое обоснование",
+    "simplification.absence_as_concealment": "Отсутствие доказательств как подтверждение",
+    "context.unspecified_measures": "Неконкретные меры",
+    "context.unattributed_decision": "Неуказанный субъект решения",
+}
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
@@ -505,6 +513,37 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
     fragment = text[start:end]
+    if rule.context_requirement in {"public_discourse", "consequence_chain", "unspecified_measures", "unattributed_decision"}:
+        if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+            return False
+        nearby = text[max(0, start - 220):min(len(text), end + 280)]
+        public = bool(POLITICAL_CONTEXT.search(fragment) or re.search(
+            r"\b(?:бюджет[а-яё]*|налог[а-яё]*|тариф[а-яё]*|цен[а-яё]*|митинг[а-яё]*|"
+            r"реформ[а-яё]*|закон[а-яё]*|пенси[а-яё]*|пособи[а-яё]*|гражданск[а-яё]*)\b", fragment, re.I))
+        if not public:
+            # Generic measures require a local public subject, not an unrelated
+            # political paragraph elsewhere in the document.
+            public = rule.context_requirement == "unspecified_measures" and bool(POLITICAL_CONTEXT.search(nearby + " " + event_context))
+        if not public:
+            return False
+        if rule.context_requirement == "consequence_chain":
+            last = re.split(r"[—–-]|\b(?:затем|потом|следом|в\s+итоге|в\s+конце\s+концов)\b", fragment, flags=re.I)[-1]
+            return not (re.search(r"\b(?:не|без)\s+(?:[а-яё]+\s+){0,2}(?:развал[а-яё]*|разруш[а-яё]*|"
+                                  r"катастроф[а-яё]*|диктатур[а-яё]*|гражданск[а-яё]*)\b", last, re.I)
+                        or re.match(r"\s+(?:не|никак\s+не)\s+(?:будет|случится|произойдёт|произойдет)\b",
+                                    text[end:end + 55], re.I))
+        if rule.context_requirement == "unspecified_measures":
+            detail = text[max(0, start - 150):min(len(text), end + 280)]
+            return not re.search(r"\b(?:в\s+частности|а\s+именно|например|меры\s+включают|"
+                                 r"проверят|опубликуют|снизят|запретят|направят|выделят|создадут|"
+                                 r"введут|увеличат|закроют|откроют|отремонтируют|проиндексируют)\b|"
+                                 r"меры\s*:\s*\S", detail, re.I)
+        if rule.context_requirement == "unattributed_decision":
+            return not re.search(r"\b(?:правительств[а-яё]*|президент[а-яё]*|министр[а-яё]*|"
+                                 r"министерств[а-яё]*|депутат[а-яё]*|губернатор[а-яё]*|мэр[а-яё]*|"
+                                 r"администраци[а-яё]*|ведомств[а-яё]*|парламент[а-яё]*|совет[а-яё]*|"
+                                 r"дума|думой|суд[а-яё]*|комисси[а-яё]*)\b", nearby + " " + event_context, re.I)
+        return True
     if rule.context_requirement == "affirmative_inference":
         conclusion = re.split(r"\b(?:значит|следовательно|поэтому)\b", fragment, flags=re.I)[-1]
         return (not LITERAL_ENTERTAINMENT_CONTEXT.search(sentence)
@@ -1385,7 +1424,7 @@ def analyze(document):
                         evidence["context"]["informational_notice"] = True
                     spans.append(match.span())
                     findings.append({
-                        "rule_id": rule.id, "category": rule.category, "label": LABELS[rule.category],
+                        "rule_id": rule.id, "category": rule.category, "label": DISCOURSE_LABELS.get(rule.id, LABELS[rule.category]),
                         "status": "context_only" if rule.id == "context.quotation_omission" or rule.category in INFORMATIONAL else _status(evidence),
                         "explanation": rule.explanation,
                         "review_question": rule.review_question, "evidence": [evidence],

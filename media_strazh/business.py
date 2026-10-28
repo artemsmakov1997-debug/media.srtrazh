@@ -2,11 +2,11 @@
 
 from datetime import datetime, timedelta, timezone
 import json
-from itertools import chain
 import re
 import unicodedata
 
 from .sources import SOURCES, normalize_url
+from .crossposts import VERSION_DEDUP, group_publications
 from .storage import utcnow
 
 SCHEMA = "business-evidence-1.0"
@@ -124,40 +124,50 @@ def business_snapshot(store, now=None):
         first_collected = store.db.execute("SELECT MIN(a.first_seen_at) " + base, args).fetchone()[0]
         query = "SELECT a.id,a.source_id,r.canonical_url AS url,r.title,r.text,r.published_at,r.retrieved_at,julianday(r.published_at) AS sort_at "
         order = " ORDER BY julianday(r.published_at) DESC,a.id DESC"
-        # A rare tracked company must not lose an older mention merely because
-        # thousands of newer, unrelated political posts fill the public sample.
-        likely = " AND (r.title LIKE '%XXI%' OR r.text LIKE '%XXI%' OR r.title LIKE '%21%' OR r.text LIKE '%21%')"
-        priority = store.db.execute(query + base + scope + likely + order, [*args, start, stamp])
-        priority = (row for row in priority if watchlist_matches(row["title"] + "\n" + row["text"])[0])
-        newest = store.db.execute(query + base + scope + order, [*args, start, stamp])
-        records, size, seen, seen_ids, duplicate_count = [], 0, set(), set(), 0
+        rows = list(store.db.execute(query + base + scope + order, [*args, start, stamp]))
+        groups = group_publications(rows)
+        # Prioritize a tracked name in either original platform variant.
+        groups.sort(key=lambda group: (
+            any(watchlist_matches(row["title"] + "\n" + row["text"])[0] for row in group.members),
+            max(row["sort_at"] for row in group.members), group.representative["id"]), reverse=True)
+        records, size, seen, duplicate_count = [], 0, set(), len(rows) - len(groups)
         sort_keys = {}
-        limited = eligible > MAX_RECORDS
-        for row in chain(priority, newest):
-            if row["id"] in seen_ids:
-                continue
-            seen_ids.add(row["id"])
-            if len(records) >= MAX_RECORDS:
-                limited = True
-                break
+        limited = False
+        for group in groups:
+            row = group.representative
             source = SOURCES[row["source_id"]]
             url = normalize_url(row["url"], source)
             if url in seen:
                 duplicate_count += 1
                 continue
+            if len(records) >= MAX_RECORDS:
+                limited = True
+                break
             seen.add(url)
-            names, truncated = name_candidates(row["title"], row["text"])
+            all_names = set()
+            truncated = False
+            topic_ids, entities = set(), set()
+            for variant in group.members:
+                names, names_truncated = name_candidates(variant["title"], variant["text"])
+                all_names.update(names)
+                truncated |= names_truncated
+                value = variant["title"] + "\n" + variant["text"]
+                entities.update(watchlist_matches(value)[0])
+                topic_ids.update(key for key, pattern in COMPILED_TOPICS if pattern.search(value))
+            truncated |= len(all_names) > MAX_NAMES
+            names = sorted(all_names, key=lambda name: (len(name.split()), name))[:MAX_NAMES]
             value = row["title"] + "\n" + row["text"]
-            entities, match_at = watchlist_matches(value)
+            _, match_at = watchlist_matches(value)
             excerpt = " ".join(value[max(0, match_at - 120):match_at + 220].split()) if match_at is not None else " ".join(row["text"].split())[:320]
             record = {
                 "id": row["id"], "source_id": source.id, "source": source.name,
+                "publication_id": group.key,
                 "publisher_id": source.publisher, "platform": source.platform,
                 "url": url, "title": row["title"][:500],
-                "excerpt": excerpt, "watchlists": entities,
+                "excerpt": excerpt, "watchlists": sorted(entities),
                 "published_at": row["published_at"], "retrieved_at": row["retrieved_at"],
                 "names": names, "names_truncated": truncated,
-                "topics": [key for key, pattern in COMPILED_TOPICS if pattern.search(value)],
+                "topics": sorted(topic_ids),
             }
             amount = len(json.dumps(record, ensure_ascii=False).encode("utf-8"))
             if size + amount > MAX_BYTES:
@@ -170,6 +180,7 @@ def business_snapshot(store, now=None):
         status = store.status()
         return {
             "schema_version": SCHEMA, "generated_at": stamp,
+            "deduplication": {"version": VERSION_DEDUP, "scope": "same_publisher_cross_platform"},
             "coverage": {"corpus_total": corpus_total, "eligible": eligible, "published": len(records),
                          "undated_excluded": undated, "limited": limited, "duplicates_excluded": duplicate_count,
                          "publication_sources": len({row["source_id"] for row in records}),

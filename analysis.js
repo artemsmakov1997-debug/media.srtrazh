@@ -365,7 +365,7 @@ function render() {
   const namedOutlets = new Set(Array.from(element('source').options)
     .map(option => option.value).filter(value => value && value !== 'other'));
 
-  const selected = report.articles.filter(item => {
+  const selected = window.PublicationGroups.unique(window.PublicationGroups.candidates(report.articles).filter(item => {
     const outletMatch =
       !source ||
       publisherOf(item) === source ||
@@ -379,7 +379,7 @@ function render() {
     const hasMetrics = findings.length > 0;
     const markerMatch = !marker || findings.some(finding => finding.category === marker);
     return outletMatch && platformMatch && hasMetrics && markerMatch;
-  });
+  }));
 
   element('selection').textContent =
     'Показано публикаций: ' + selected.length + '.';
