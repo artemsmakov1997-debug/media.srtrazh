@@ -130,6 +130,8 @@ class CrosspostIntegrationTests(unittest.TestCase):
         item = self.publisher()
         self.assertEqual((item['collected'], item['analyzed']), (1, 0))
         self.assertIsNone(item['score_percent'])
+        self.assertEqual(item['flagged'], 0)
+        self.assertTrue(all(p['flagged'] <= p['analyzed'] <= p['collected'] for p in item['series']))
 
     def test_copy_does_not_reenter_window_or_move_its_hour(self):
         first = (datetime.fromisoformat(START) - timedelta(hours=1)).isoformat()

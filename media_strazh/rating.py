@@ -85,8 +85,8 @@ def rating_snapshot(store, now=None):
             item = publishers[SOURCES[group.members[0]["source_id"]].publisher]
             bucket = min(23, int((published - start).total_seconds() // 3600))
             analyzed = all(row["analyzed"] for row in group.members)
-            types = sorted({kind for row in group.members if row["analyzed"]
-                            for kind in publication_types(json.loads(row["findings_json"]))})
+            types = sorted({kind for row in group.members
+                            for kind in publication_types(json.loads(row["findings_json"]))}) if analyzed else []
             flagged = bool(types)
             for target in (item, item["series"][bucket]):
                 target["collected"] += 1
