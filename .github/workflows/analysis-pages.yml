@@ -137,6 +137,26 @@ jobs:
           retention-days: 30
       - name: Build public site
         run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 100
+      - name: Report unique publication counts
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          rating = json.loads(Path('_site/data/rating.json').read_text())
+          analysis = json.loads(Path('_site/data/analysis.json').read_text())
+          audit = {'algorithm_version': rating['algorithm_version'],
+                   'rating_24h': {k: rating['totals'][k] for k in ('raw_publications', 'collected', 'flagged', 'duplicates_excluded')},
+                   'retained_corpus': analysis['deduplication']}
+          print('::notice title=Unique publication audit::' + json.dumps(audit))
+          lines = ['## Уникальные публикации за 24 часа',
+                   'Обе площадки учитываются; одинаковый текст одного издания даёт один голос.', '',
+                   '| Издание | Исходные записи | Уникальные | Копии исключены | С маркерами |',
+                   '| --- | ---: | ---: | ---: | ---: |']
+          for item in rating['publishers']:
+              lines.append(f"| {item['name']} | {item['raw_publications']} | {item['collected']} | {item['duplicates_excluded']} | {item['flagged']} |")
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('\n'.join(lines) + '\n')
+          PY
       - name: Check browser analysis against Python
         if: github.event_name != 'schedule'
         run: |

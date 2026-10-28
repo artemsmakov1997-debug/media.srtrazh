@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections import defaultdict
 from pathlib import Path
 import shutil
 import tempfile
@@ -9,6 +10,7 @@ import tempfile
 from .analysis import VERSION, taxonomy
 from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
 from .business import business_snapshot
+from .crossposts import VERSION_DEDUP, current_publications, group_publications
 from .rating import rating_snapshot
 from .sources import SOURCES, normalize_url, resolve_source
 from .storage import utcnow
@@ -69,30 +71,24 @@ def snapshot(store, limit=100):
         sources = {source.id: resolve_source(source, status_by_id.get(source.id, {}).get("feed_url", ""))
                    for source in SOURCES.values()}
         articles = []
-        # One busy outlet must not displace every smaller outlet or Telegram feed.
-        # Keep the newest item from each available feed before taking its next item.
-        source_ids = list(sources)
-        placeholders = ",".join("?" for _ in source_ids)
-        # Select identifiers before loading full analyses: an old, large local
-        # corpus should not deserialize limit * source_count complete results.
-        selected = list(store.db.execute("""
-            SELECT id,published_at,retrieved_at FROM (
-                SELECT a.id,a.source_id,r.published_at,r.retrieved_at,
-                       (n.revision_id IS NOT NULL) AS analyzed,
-                       (COALESCE(json_array_length(json_extract(n.result_json, '$.findings')),0) > 0)
-                           AS has_findings,
-                       ROW_NUMBER() OVER (PARTITION BY a.source_id ORDER BY
-                           (n.revision_id IS NOT NULL) DESC,
-                           (COALESCE(json_array_length(json_extract(n.result_json, '$.findings')),0) > 0) DESC,
-                           COALESCE(NULLIF(r.published_at,''),r.retrieved_at) DESC,a.id DESC) AS rank
-                FROM articles a JOIN revisions r ON r.id=a.current_revision_id
-                LEFT JOIN analyses n ON n.revision_id=r.id AND n.algorithm_version=?
-                WHERE a.source_id IN (""" + placeholders + """))
-            ORDER BY has_findings DESC,analyzed DESC,rank,source_id LIMIT ?
-        """, [VERSION, *source_ids, limit]))
-        selected.sort(key=lambda row: (row["published_at"] or row["retrieved_at"], row["id"]),
-                      reverse=True)
-        for row in selected:
+        # Group before the public limit, while preserving the existing fair
+        # rotation between feeds. Load full analyses only for selected variants.
+        rows = current_publications(store)
+        feeds = defaultdict(list)
+        for row in rows:
+            feeds[row["source_id"]].append(row)
+        rank = {}
+        for feed in feeds.values():
+            feed.sort(key=lambda row: (row["analyzed"], bool(row["finding_count"]),
+                                      row["published_at"] or row["retrieved_at"], row["id"]), reverse=True)
+            for index, row in enumerate(feed):
+                rank[row["id"]] = (-bool(row["finding_count"]), -row["analyzed"], index, row["source_id"])
+        groups = group_publications(rows)
+        selected = sorted(groups, key=lambda group: min(rank[row["id"]] for row in group.members))[:limit]
+        selected.sort(key=lambda group: (group.representative["published_at"] or group.representative["retrieved_at"],
+                                        group.representative["id"]), reverse=True)
+
+        def public_item(row, group):
             item = store.article(row["id"])
             document, analysis = item["document"], item["analysis"]
             source = sources[item["source_id"]]
@@ -101,15 +97,16 @@ def snapshot(store, limit=100):
                 preview = preview[:159].rstrip() + "…"
             findings = []
             if analysis:
-                for finding in bounded_findings(analysis["findings"]):
+                for finding in bounded_findings(analysis["findings"], 40 // len(group.members)):
                     findings.append({
                         key: finding[key] for key in
                         ("category", "label", "rule_id", "status", "rating_weight", "explanation", "review_question", "evidence")
                     })
             forwarded = source.platform == "telegram" and item["extraction_method"].endswith(".forwarded")
             display_excerpt = telegram_display_excerpt(document["text"], forwarded) if source.platform == "telegram" else ""
-            articles.append({
+            return {
                 "id": item["id"], "source_id": source.id, "source": source.name,
+                "publication_id": group.key,
                 "publisher_id": source.publisher, "platform": source.platform,
                 "forwarded": forwarded,
                 "title": document["title"], "url": normalize_url(document["url"], source),
@@ -121,12 +118,22 @@ def snapshot(store, limit=100):
                 "summary": analysis["summary"] if analysis else None,
                 "findings": findings,
                 "findings_omitted": max(0, len(analysis["findings"]) - len(findings)) if analysis else 0,
-            })
+            }
+        for group in selected:
+            primary = public_item(group.representative, group)
+            if len(group.members) > 1:
+                primary["variants"] = [public_item(row, group) for row in group.members
+                                       if row["id"] != primary["id"]]
+                primary["crosspost_method"] = group.method
+            articles.append(primary)
         analyzed = [item for item in articles if item["summary"] is not None]
         if not analyzed:
             raise ValueError("Нет публикаций с анализом текущей версии; предыдущий сайт не заменён.")
         return {
             "schema_version": SCHEMA, "generated_at": utcnow(), "algorithm_version": VERSION,
+            "deduplication": {"version": VERSION_DEDUP, "originals_retained": True,
+                              "raw_publications": len(rows), "unique_publications": len(groups),
+                              "duplicates_excluded": len(rows) - len(groups)},
             "coverage": taxonomy(), "articles": articles,
             "collection": {key: value for key, value in status["quality"].items() if key != "sources"},
             "totals": {"displayed": len(articles), "analyzed": len(analyzed),
@@ -141,7 +148,8 @@ def snapshot(store, limit=100):
                  "allowed_hosts": list(dict.fromkeys((source.host,) + source.allowed_hosts)),
                  "channel": source.channel,
                  "configuration_error": source.configuration_error,
-                 "displayed": sum(item["source_id"] == source.id for item in articles),
+                 "displayed": sum(any(variant["source_id"] == source.id
+                                      for variant in [item, *item.get("variants", [])]) for item in articles),
                  "health": next(s for s in status["quality"]["sources"] if s["id"] == source.id),
                  "status": ({
                      key: status_by_id[source.id][key] for key in

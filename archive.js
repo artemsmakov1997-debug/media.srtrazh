@@ -57,7 +57,7 @@
         !Array.isArray(data.coverage) || !Number.isFinite(Date.parse(data.generated_at))) throw Error('format');
     const sources = new Map(data.sources.map(source => [source.id, source]));
     const types = new Set(data.coverage.map(type => type.id));
-    return data.articles.map(raw => {
+    return window.PublicationGroups.candidates(data.articles).map(raw => {
       const source = sources.get(raw.source_id);
       if (!source || typeof raw.source !== 'string' || !Array.isArray(raw.findings) || raw.findings.length > 40) throw Error('article');
       const active = raw.findings.filter(f => types.has(f.category) && countedStatuses.has(f.status));
@@ -179,10 +179,10 @@
     const term = search.trim().toLocaleLowerCase('ru');
     const source = $('source').value, platform = $('platform').value, marker = $('marker').value;
     $('resetFilters').disabled = fields.every(field => !field.value) && !term;
-    const selected = messages.filter(item => (!source || item.publisher === source) &&
+    const selected = window.PublicationGroups.unique(messages.filter(item => (!source || item.publisher === source) &&
       (!platform || item.source.platform === platform) && (!marker || item.raw.findings.some(f => f.category === marker)) && (!term ||
         [item.media, item.title, item.raw.message_preview, ...item.raw.findings.flatMap(f =>
-          [f.label, f.explanation, ...f.evidence.map(e => e.quote)])].join(' ').toLocaleLowerCase('ru').includes(term)));
+          [f.label, f.explanation, ...f.evidence.map(e => e.quote)])].join(' ').toLocaleLowerCase('ru').includes(term))), item => item.raw);
     const visible = selected.slice(0, 10);
     list.replaceChildren(...visible.map(createItem));
     if (!visible.length) list.append(node('div', 'Публикации по заданным условиям не найдены.', 'empty-state'));

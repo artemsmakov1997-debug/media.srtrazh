@@ -36,6 +36,7 @@ import test_comparative_framing
 import test_person_labels
 import test_literature_rhetoric
 import test_numeric_consistency
+import test_discourse_expansion
 from browser_fixtures import business_evidence_fixture
 
 
@@ -59,7 +60,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency, test_discourse_expansion)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -80,6 +81,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_comparative_framing.ComparativeFramingTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_literature_rhetoric.LiteratureRhetoricTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_numeric_consistency.NumericConsistencyTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_discourse_expansion.DiscourseExpansionTests),
     ])
     try:
         output = io.StringIO()
@@ -245,6 +247,8 @@ def person_labels_automatic_ui(browser, base, site, errors, requests):
     expected = analyze(document)
     snapshot = json.loads((site / "data/analysis.json").read_text())
     item = copy.deepcopy(snapshot["articles"][0])
+    item.pop("variants", None)  # This fixture constructs a different publication.
+    item.pop("publication_id", None)
     item.update(title="Обозначения политических участников", summary=expected["summary"],
                 findings=expected["findings"], display_excerpt=document["text"], findings_omitted=0)
     snapshot["articles"] = [item]
@@ -280,6 +284,8 @@ def terminology_layer_ui(browser, base, site, errors, requests):
     snapshot = json.loads((site / "data/analysis.json").read_text())
     source = next(source for source in snapshot["sources"] if source["id"] == "mediazona_telegram")
     item = copy.deepcopy(snapshot["articles"][0])
+    item.pop("variants", None)  # This fixture constructs a different publication.
+    item.pop("publication_id", None)
     item.update(id=1, source_id=source["id"], source=source["name"], publisher_id="mediazona",
                 platform="telegram", title=document["title"], summary=expected["summary"], findings=expected["findings"],
                 display_excerpt=document["text"], findings_omitted=0, url="https://t.me/mediazzzona/1")
@@ -364,6 +370,8 @@ def context_precision_ui(browser, base, site, errors, requests):
                 expected = analyze(document)
                 snapshot = json.loads((site / "data/analysis.json").read_text())
                 item = copy.deepcopy(snapshot["articles"][0])
+                item.pop("variants", None)  # This fixture constructs a different publication.
+                item.pop("publication_id", None)
                 item.update(title=document["title"], summary=expected["summary"], findings=expected["findings"],
                             display_excerpt=document["text"], findings_omitted=0)
                 snapshot["articles"] = [item]
@@ -410,6 +418,8 @@ def comparative_framing_ui(browser, base, site, errors, requests):
                 manual = analyze(document)
                 snapshot = json.loads((site / "data/analysis.json").read_text())
                 item = copy.deepcopy(snapshot["articles"][0])
+                item.pop("variants", None)  # This fixture constructs a different publication.
+                item.pop("publication_id", None)
                 item.update(title="Проверочная публикация", summary=automatic["summary"], findings=automatic["findings"],
                             display_excerpt=text, findings_omitted=0)
                 snapshot["articles"] = [item]
@@ -466,6 +476,8 @@ def historical_juxtaposition_ui(browser, base, site, errors, requests):
             page.on("request", lambda request: requests.append((request.method, request.url, request.post_data)))
             snapshot = json.loads((site / "data/analysis.json").read_text())
             item = copy.deepcopy(snapshot["articles"][0])
+            item.pop("variants", None)  # This fixture constructs a different publication.
+            item.pop("publication_id", None)
             item.update(title="Сопоставление заявлений", summary=expected["summary"], findings=expected["findings"],
                         display_excerpt=text, findings_omitted=0)
             snapshot["articles"] = [item]
@@ -626,13 +638,17 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 },true);""")
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
-            documents = {**test_literature_rhetoric.DOCUMENTS, **test_numeric_consistency.DOCUMENTS}
+            documents = {**test_literature_rhetoric.DOCUMENTS, **test_numeric_consistency.DOCUMENTS,
+                         **test_discourse_expansion.DOCUMENTS}
             for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan',
-                        'numeric_majority', 'numeric_daily'):
+                        'numeric_majority', 'numeric_daily', 'question_deflection', 'consequence_chain',
+                        'circular_justification', 'absence_as_concealment', 'unspecified_measures', 'unattributed_decision'):
                 document = {'title': 'Проверочный пример', **documents[key]}
                 expected = analyze(document)
                 snapshot = json.loads((site / 'data/analysis.json').read_text())
                 item = copy.deepcopy(snapshot['articles'][0])
+                item.pop("variants", None)  # This fixture constructs a different publication.
+                item.pop("publication_id", None)
                 item.update(title=document['title'], display_excerpt=document['text'],
                             summary=expected['summary'], findings=expected['findings'], findings_omitted=0,
                             algorithm_version=expected['algorithm_version'])
@@ -692,6 +708,8 @@ def contextual_analysis_ui(browser, base, site, errors, requests):
     snapshot = json.loads((site / "data/analysis.json").read_text())
     source = next(source for source in snapshot["sources"] if source["id"] == "izvestia_telegram")
     item = copy.deepcopy(snapshot["articles"][0])
+    item.pop("variants", None)  # This fixture constructs a different publication.
+    item.pop("publication_id", None)
     item.update(id=253503, source_id=source["id"], publisher_id=source["publisher_id"],
                 platform="telegram", source=source["name"], title="", forwarded=True,
                 display_excerpt="Эксперты обсудили изменения медиарынка и представили результаты исследования.",
@@ -1456,7 +1474,9 @@ def new_media_filters_ui(browser, base, site, errors, requests):
     """Local fixtures test the three publisher choices across their platforms."""
     snapshot = json.loads((site / "data/analysis.json").read_text())
     sources = {source["id"]: source for source in snapshot["sources"]}
-    sample = snapshot["articles"][0]
+    sample = copy.deepcopy(snapshot["articles"][0])
+    sample.pop("variants", None)
+    sample.pop("publication_id", None)
     snapshot["articles"] = []
     for number, source_id in enumerate(("aif", "aif_telegram", "inosmi", "inosmi_telegram", "smotri_telegram", "mediazona_telegram"), 1):
         source = sources[source_id]
@@ -1659,6 +1679,8 @@ def main():
             fixture["generated_at"] = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
             source_meta = {source["id"]: source for source in fixture["sources"]}
             sample = copy.deepcopy(displayed[0])
+            sample.pop("variants", None)
+            sample.pop("publication_id", None)
             # The published feed can contain zero matches; seed a deterministic
             # finding so filtering and the details dialog can be tested reliably.
             sample["findings"] = [{
@@ -1821,6 +1843,8 @@ def main():
             rating_ui(browser, base, site, errors, requests)
             from browser_archive_check import archive_ui
             archive_ui(browser, base, site)
+            from browser_crossposts_check import crosspost_ui
+            crosspost_ui(browser, base, site, errors)
             assert not errors, errors
             from urllib.parse import unquote
             assert all(
