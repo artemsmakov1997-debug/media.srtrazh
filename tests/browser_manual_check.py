@@ -1052,10 +1052,17 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # About: approved compact monitor, two interactive demos and three plain principle cards.
+        # About: a single full-width monitor; demos switch INSIDE it only on click.
         page.goto(base + "/about.html")
-        assert page.locator(".manifest-section,.mission-section,.map-wrap").count() == 0
+        assert page.locator(".manifest-section,.mission-section,.map-wrap,.about-side").count() == 0
+        monitor = page.locator(".about-monitor")
+        intro = page.locator("#aboutStageIntro")
+        journalist_stage = page.locator("#aboutStageJournalist")
+        reader_stage = page.locator("#aboutStageReader")
         assert page.locator(".about-experience .about-monitor h1").inner_text().replace("\n"," ").startswith("ДЕЛАЕМ")
+        assert intro.is_visible()
+        assert not journalist_stage.is_visible() and not reader_stage.is_visible()
+        assert abs(monitor.bounding_box()["width"] - page.locator(".about-pro").bounding_box()["width"]) < 2
         assert page.locator(".about-value").count() == 3
         assert page.locator(".about-value a").evaluate_all(
             'links => links.map(a=>a.getAttribute("href"))') == ["/method/", "/help/", "/archive/"]
@@ -1063,15 +1070,27 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".about-pro-cta").get_attribute("data-pro-gateway") == ""
         assert page.locator(".about-author-avatar").evaluate("img => img.complete && img.naturalWidth > 0")
         journalist = page.locator('[data-about-choose="journalist"]')
-        journalist.hover()
-        assert journalist.get_attribute("aria-pressed") == "true"
-        page.wait_for_timeout(950)
-        assert page.locator("#aboutRatingNumber").inner_text() == "36%"
         reader = page.locator('[data-about-choose="reader"]')
-        reader.hover()
+        journalist.hover()
+        assert intro.is_visible() and journalist.get_attribute("aria-pressed") == "false"
+        journalist.click()
+        assert not intro.is_visible() and journalist_stage.is_visible()
+        assert not reader_stage.is_visible()
+        assert journalist.get_attribute("aria-pressed") == "true"
+        page.wait_for_timeout(1100)
+        assert page.locator("#aboutRatingNumber").inner_text() == "36%"
+        assert page.locator("#aboutRatingFill").evaluate(
+            'el => parseFloat(el.style.width)') == 36
+        reader.click()
+        assert reader_stage.is_visible() and not journalist_stage.is_visible()
         assert reader.get_attribute("aria-pressed") == "true"
-        page.wait_for_timeout(1600)
+        page.wait_for_timeout(1800)
         assert page.locator("#aboutReaderSentence mark").inner_text() == "снова пытается"
+        assert page.locator("#aboutReaderNote").is_visible()
+        reader_stage.locator('[data-about-reset]').click()
+        assert intro.is_visible() and not reader_stage.is_visible()
+        assert journalist.get_attribute("aria-pressed") == "false"
+        assert reader.get_attribute("aria-pressed") == "false"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
@@ -1079,7 +1098,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".about-monitor h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 42
+        assert page.locator(".about-monitor h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 54
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1391,20 +1410,29 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
-            # Compact About hero, working on tap without hover; Method headings remain unchanged.
+            # Mobile: the intro is the initial state and touch switches only the screen.
             p.goto(base + "/about.html")
             assert p.locator(".about-monitor h1").evaluate(
                 "el => parseFloat(getComputedStyle(el).fontSize)") <= 36
             assert p.locator(".about-value").count() == 3
+            assert p.locator(".about-side").count() == 0
+            assert p.locator("#aboutStageIntro").is_visible()
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
             p.locator('[data-about-choose="reader"]').click()
-            p.wait_for_timeout(1600)
+            assert not p.locator("#aboutStageIntro").is_visible()
+            assert p.locator("#aboutStageReader").is_visible()
+            p.wait_for_timeout(1750)
             assert p.locator('#aboutReaderSentence mark').count() == 1
             p.locator('[data-about-choose="journalist"]').click()
-            p.wait_for_timeout(950)
+            assert not p.locator("#aboutStageReader").is_visible()
+            assert p.locator("#aboutStageJournalist").is_visible()
+            p.wait_for_timeout(1050)
             assert p.locator('#aboutRatingNumber').inner_text() == "36%"
+            p.locator('[data-about-choose="journalist"]').click()
+            assert p.locator("#aboutStageIntro").is_visible()
             assert p.locator('.about-author-avatar').is_visible()
             assert p.locator('.about-pro-cta').is_visible()
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
             p.goto(base + "/method.html")
             assert p.locator(".container > .section").count() == 3
             assert p.locator(".container > .section").first.evaluate(
