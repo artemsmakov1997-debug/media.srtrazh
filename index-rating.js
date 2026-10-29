@@ -74,29 +74,40 @@
     const sourceTop = (source.top - area.top) / sy;
     const sourceBottom = (source.bottom - area.top) / sy;
     const gap = 8 / sy;
-    const lanes = [
-      {above: true, top: Math.min(sourceTop, titleTop) - bubbleHeight - gap,
-       distance: sourceTop - Math.min(sourceTop, titleTop)},
-      {above: false, top: Math.max(sourceBottom, titleBottom) + gap,
-       distance: Math.max(sourceBottom, titleBottom) - sourceBottom}
-    ];
-    const candidates = [];
-    for (const lane of lanes) {
-      const top = Math.max(3, Math.min(lane.top, stageHeight - bubbleHeight - 3));
-      const lefts = [idealLeft, ...occupied.flatMap(rect => [rect.left - bubbleWidth - 8, rect.right + 8])];
-      for (const left of lefts) {
-        if (left < 6 || left + bubbleWidth > stageWidth - 6) continue;
-        const right = left + bubbleWidth, bottom = top + bubbleHeight;
-        const overlaps = occupied.some(rect => left < rect.right + 5 && right > rect.left - 5 &&
-          top < rect.bottom + 5 && bottom > rect.top - 5);
-        if (overlaps) continue;
-        candidates.push({left, right, top, bottom, above: lane.above,
-          score: lane.distance + Math.abs(left - idealLeft) * .3 + (lane.above === (preference === 'above') ? 0 : .1)});
+    let chosen;
+    if (mobile()) {
+      // Each mobile mark reserves its own annotation space before typing.
+      // Keep the first caption above its word and the second below: never
+      // swap them into a distant lane at the other end of a wrapped title.
+      const above = preference === 'above';
+      const top = above ? sourceTop - bubbleHeight - gap : sourceBottom + gap;
+      chosen = {left: idealLeft, right: idealLeft + bubbleWidth,
+        top, bottom: top + bubbleHeight, above};
+    } else {
+      const lanes = [
+        {above: true, top: Math.min(sourceTop, titleTop) - bubbleHeight - gap,
+         distance: sourceTop - Math.min(sourceTop, titleTop)},
+        {above: false, top: Math.max(sourceBottom, titleBottom) + gap,
+         distance: Math.max(sourceBottom, titleBottom) - sourceBottom}
+      ];
+      const candidates = [];
+      for (const lane of lanes) {
+        const top = Math.max(3, Math.min(lane.top, stageHeight - bubbleHeight - 3));
+        const lefts = [idealLeft, ...occupied.flatMap(rect => [rect.left - bubbleWidth - 8, rect.right + 8])];
+        for (const left of lefts) {
+          if (left < 6 || left + bubbleWidth > stageWidth - 6) continue;
+          const right = left + bubbleWidth, bottom = top + bubbleHeight;
+          const overlaps = occupied.some(rect => left < rect.right + 5 && right > rect.left - 5 &&
+            top < rect.bottom + 5 && bottom > rect.top - 5);
+          if (overlaps) continue;
+          candidates.push({left, right, top, bottom, above: lane.above,
+            score: lane.distance + Math.abs(left - idealLeft) * .3 + (lane.above === (preference === 'above') ? 0 : .1)});
+        }
       }
+      candidates.sort((a, b) => a.score - b.score);
+      chosen = candidates[0] || {left: idealLeft, top: Math.max(3, lanes[0].top),
+        right: idealLeft + bubbleWidth, bottom: Math.max(3, lanes[0].top) + bubbleHeight, above: true};
     }
-    candidates.sort((a, b) => a.score - b.score);
-    const chosen = candidates[0] || {left: idealLeft, top: Math.max(3, lanes[0].top),
-      right: idealLeft + bubbleWidth, bottom: Math.max(3, lanes[0].top) + bubbleHeight, above: true};
     const {left, top: y, above: placeAbove} = chosen;
     callout.style.left = Math.round(left) + 'px';
     callout.style.top = Math.round(y) + 'px';
@@ -203,6 +214,7 @@
       appendWords(part, content);
       target.append(part);
       if (emph) {
+        part.dataset.calloutSide = marks.length % 2 === 0 ? 'above' : 'below';
         part.title = explanations[marks.length] || 'Пример возможного маркера';
         part.setAttribute('aria-label', part.title + ': ' + (emph ? piece[0] : piece));
         marks.push(part);

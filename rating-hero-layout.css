@@ -82,6 +82,14 @@
     letter-spacing:.01em;font-weight:700;
   }
   .hero .hero-example-callout {font-size:10px;padding:5px 8px;}
+  /* Reserve each caption's line space from the start, including while the
+     letters are invisible. Reflow cannot separate a bubble from its word. */
+  .hero .hero-example-text .hero-trigger {
+    display:inline-block;
+    vertical-align:baseline;
+  }
+  .hero .hero-example-text .hero-trigger[data-callout-side="above"] {margin-top:36px;}
+  .hero .hero-example-text .hero-trigger[data-callout-side="below"] {margin-bottom:36px;}
 }
 @media(max-width:360px) {
   .hero .hero-text .hero-example-stage {min-height:200px;}

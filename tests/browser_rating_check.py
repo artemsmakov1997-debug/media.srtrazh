@@ -2,6 +2,7 @@
 
 import argparse
 import copy
+from datetime import datetime, timedelta, timezone
 import functools
 import http.server
 import json
@@ -14,6 +15,118 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from playwright.sync_api import sync_playwright
 from test_rating import browser_rating_fixture
+
+
+def hero_callout_geometry(page):
+    """Captions point to their own marks, clear of every actual text row."""
+    metrics = page.locator('.hero-example-stage').evaluate('''stage => {
+      const box = el => {const r=el.getBoundingClientRect();
+        return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
+      const layer=stage.querySelector('#heroExampleCallouts');
+      return {stage:box(stage),words:[...stage.querySelectorAll('.hero-example-word')].map(box),
+        tips:[...layer.children].map(tip=>{
+          const mark=stage.querySelectorAll('mark')[+tip.dataset.triggerIndex];
+          const a=box(tip),b=box(mark);
+          // Include the caption's appearance scale, not just the page zoom.
+          const scale=(a.right-a.left)/tip.offsetWidth;
+          return {...a,mark:b,label:tip.textContent,caption:mark.title,
+            side:tip.classList.contains('is-above')?'above':'below',
+            expected:mark.dataset.calloutSide,
+            pointer:a.left+parseFloat(tip.style.getPropertyValue('--callout-pointer-x'))*scale};
+        })};}''')
+    area = metrics['stage']
+    tips = metrics['tips']
+    assert tips and len(tips) == page.locator('#heroExampleText mark').count(), metrics
+    for tip in tips:
+        word = tip['mark']
+        assert tip['label'] == tip['caption'], metrics
+        assert tip['side'] == tip['expected'], metrics
+        gap = word['top'] - tip['bottom'] if tip['side'] == 'above' else tip['top'] - word['bottom']
+        assert 6 <= gap <= 10, metrics
+        assert abs(tip['pointer'] - (word['left'] + word['right']) / 2) <= 1.5, metrics
+        assert tip['left'] >= area['left'] - 1 and tip['right'] <= area['right'] + 1, metrics
+        assert tip['top'] >= area['top'] - 1 and tip['bottom'] <= area['bottom'] + 1, metrics
+        for text in metrics['words']:
+            assert (tip['right'] <= text['left'] + .5 or tip['left'] >= text['right'] - .5 or
+                    tip['bottom'] <= text['top'] + .5 or tip['top'] >= text['bottom'] - .5), metrics
+    for first, second in zip(tips, tips[1:]):
+        assert (first['right'] <= second['left'] or first['left'] >= second['right'] or
+                first['bottom'] <= second['top'] or first['top'] >= second['bottom']), metrics
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), metrics
+    return metrics
+
+
+def wait_for_hero_reflow(page):
+    # ResizeObserver is delivered on a real rendering frame, independently
+    # of the mocked typing timers. Wait for the geometry, not a fixed delay.
+    for _ in range(20):
+        try:
+            return hero_callout_geometry(page)
+        except AssertionError as error:
+            latest = error
+        page.wait_for_timeout(50)
+    raise latest
+
+
+def hero_rotation_ui(browser, base, errors):
+    """All ten natural rotations, narrow/wide phones, text resize and rotation."""
+    fixture = browser_rating_fixture()
+    output = Path('/tmp/media-strazh-rating-checks')
+    output.mkdir(exist_ok=True)
+    for width in (320, 360, 375, 390, 430, 767):
+        context = browser.new_context(viewport={'width': width, 'height': 900},
+                                      is_mobile=True, has_touch=True, reduced_motion='no-preference')
+        try:
+            page = context.new_page()
+            page.on('pageerror', lambda error: errors.append(str(error)))
+            page.route('**/data/rating.json', lambda route: route.fulfill(json=fixture))
+            start = datetime(2026, 10, 29, tzinfo=timezone.utc)
+            page.clock.install(time=start)
+            page.clock.pause_at(start + timedelta(seconds=1))
+            page.goto(base + '/index.html')
+            page.evaluate('document.fonts.ready')
+            example = page.locator('#heroExampleText')
+
+            def advance_until(condition):
+                for _ in range(85):
+                    if condition():
+                        return
+                    page.clock.run_for(200)
+                raise AssertionError((width, example.get_attribute('data-example-index'),
+                                      example.get_attribute('data-phase')))
+
+            def text_box():
+                return example.evaluate('''el => {
+                  const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();
+                  return {top:a.top-b.top,height:a.height,stageHeight:b.height};}''')
+
+            for index in range(10):
+                advance_until(lambda: example.get_attribute('data-example-index') == str(index))
+                before = text_box()
+                advance_until(lambda: example.get_attribute('data-phase') == 'highlighted')
+                page.clock.run_for(250)  # Finish the bubble's appearance transition.
+                after = text_box()
+                assert all(abs(before[key] - after[key]) <= 1 for key in before), (width, index, before, after)
+                metrics = hero_callout_geometry(page)
+                if index == 7:
+                    assert [tip['label'] for tip in metrics['tips']] == ['Катастрофизация', 'Неуточнённый источник']
+                    page.locator('.hero').screenshot(path=str(output / f'hero-annotations-{width}.png'))
+                    if width == 390:
+                        # Fonts can reflow the words without a window resize.
+                        example.evaluate('el=>el.style.setProperty("font-size","28px","important")')
+                        page.clock.run_for(250)
+                        wait_for_hero_reflow(page)
+                        example.evaluate('el=>el.style.removeProperty("font-size")')
+                        # Cross the mobile breakpoint and return to portrait.
+                        page.set_viewport_size({'width': 844, 'height': 390})
+                        page.clock.run_for(250)
+                        page.set_viewport_size({'width': 390, 'height': 900})
+                        page.clock.run_for(250)
+                        wait_for_hero_reflow(page)
+        finally:
+            context.close()
+    assert not errors, errors
+    print('Hero annotations: all 10 examples at 6 mobile widths, typing, fonts and rotation passed', flush=True)
 
 
 def rating_ui(browser, base, site, errors, requests):
@@ -57,9 +170,12 @@ def rating_ui(browser, base, site, errors, requests):
                 'stage:{top:a.top,bottom:a.bottom,height:a.height}, '
                 'tips:[...layer.children].map(b=>{const r=b.getBoundingClientRect(); '
                 'return {top:r.top,bottom:r.bottom,height:r.height,label:b.textContent};})}; }')
-            assert all(b['bottom'] <= geometry['title']['top']-5 or
-                       b['top'] >= geometry['title']['bottom']+5
-                       for b in geometry['tips']), (width, geometry)
+            if mobile:
+                hero_callout_geometry(page)
+            else:
+                assert all(b['bottom'] <= geometry['title']['top']-5 or
+                           b['top'] >= geometry['title']['bottom']+5
+                           for b in geometry['tips']), (width, geometry)
             if width >= 1024:
                 # The daily count shares the headline's vertical centre, not
                 # the bottom of the much taller reserved annotation stage.
@@ -482,10 +598,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
                 assert page.locator('#heroExampleCallouts .hero-example-callout').all_inner_texts() == [
                     'Катастрофизация', 'Оценочная лексика']
-                assert page.locator('#heroExampleCallouts').evaluate(
-                    'layer => {const t=document.querySelector("#heroExampleText").getBoundingClientRect();'
-                    'return [...layer.children].every(b => {const r=b.getBoundingClientRect();'
-                    'return r.bottom <= t.top-5 || r.top >= t.bottom+5;}); }')
+                hero_callout_geometry(page)
                 # Each callout remains within the fixed stage bounds.
                 assert page.locator('#heroExampleCallouts').evaluate(
                     'el => Array.from(el.children).every(box => { '
@@ -647,6 +760,7 @@ def rating_ui(browser, base, site, errors, requests):
         assert page.locator('.media-card img[onerror]').count() == 0
     finally:
         context.close()
+    hero_rotation_ui(browser, base, errors)
     assert not errors, errors
     print(json.dumps({'rating_viewports': 9, 'real_formula_and_chart': 'passed',
                       'appeal_optional_url_and_local_download': 'passed', 'appeal_input_not_transmitted': True,
