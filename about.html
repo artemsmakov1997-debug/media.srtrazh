@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=focus1">
 <link rel="manifest" href="site.webmanifest?v=focus1">
   <meta name="theme-color" content="#00c7df">
-  <meta name="description" content="«МЕДИА.СТРАЖ» — алгоритм, который круглосуточно отслеживает манипуляции в заголовках и текстах российских СМИ. О проекте, принципах и авторе." />
+  <meta name="description" content="О проекте МЕДИА.СТРАЖ: открытый анализ спорных формулировок в СМИ, рейтинг публикаций, инструменты PRO и принципы работы.">
   <meta property="og:title" content="МЕДИА.СТРАЖ — О проекте" />
   <meta property="og:description" content="Алгоритм 24/7 отслеживает манипуляции в российских СМИ. Прозрачная методика, независимость, открытый архив." />
   <meta property="og:type" content="website" />
@@ -1164,6 +1164,7 @@
     .values-grid .value-card p { margin-bottom: 16px; }
   }
 </style>
+  <link rel="stylesheet" href="about-experience.css?v=20261030-1">
 </head>
 
 <body>
@@ -1196,327 +1197,112 @@
 
 <div class="container">
 
-  <section class="manifest-section" id="manifestSection">
-    <div class="manifest-inner">
-      <div class="manifest-text">
-        <div class="manifest-kicker">О ПРОЕКТЕ</div>
-        <h1 class="manifest-title">ДЕЛАЕМ МАНИПУЛЯЦИИ ВИДИМЫМИ</h1>
-        <p class="manifest-subtitle">
-          <span class="manifest-subtitle-desktop">
-            «МЕДИА.СТРАЖ» — это алгоритм, который круглосуточно отслеживает новостные ленты
-            и фиксирует манипуляции и другие скрытые приёмы в заголовках и текстах российских СМИ.
-          </span>
-          <span class="manifest-subtitle-mobile">
-            «МЕДИА.СТРАЖ» — это алгоритм, который круглосуточно отслеживает новостные ленты и фиксирует манипуляции
-          </span>
-        </p>
-      </div>
-
-      <div class="manifest-visual" aria-hidden="true">
-        <div class="map-wrap" id="mapWrap">
-          <div class="map-grid"></div>
-          <svg class="map-russia" viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet">
-            <path class="map-shape" d="M80 300 L120 230 L210 210 L260 150 L340 130 L420 160 L480 120 L560 140 L620 110 L700 130 L780 170 L860 160 L920 210 L950 260 L930 320 L960 380 L910 430 L820 420 L760 470 L660 450 L580 500 L500 470 L430 480 L360 450 L290 420 L220 430 L160 400 L120 360 Z"/>
-          </svg>
-          <div class="map-scan"></div>
-          <span class="map-dot" data-dot="0"></span>
-          <span class="map-dot" data-dot="1"></span>
-          <span class="map-dot" data-dot="2"></span>
-          <span class="map-dot" data-dot="3"></span>
-          <span class="map-dot" data-dot="4"></span>
-          <span class="map-dot" data-dot="5"></span>
-          <span class="map-dot" data-dot="6"></span>
-          <div class="map-tooltip" id="mapTip">
-            <div class="tip-top">
-              <div class="tip-title" id="tipTitle">ОРБИТА НЬЮС</div>
-              <div class="tip-time"  id="tipTime">12:41</div>
-            </div>
-            <div class="tip-line" id="tipLine">фиксируем заголовок + текст, выделяем приёмы</div>
-            <div class="tip-tag"  id="tipTag">СИГНАЛ</div>
+  <main class="about-page" aria-label="О проекте МЕДИА.СТРАЖ">
+    <section class="about-experience" data-about-experience aria-label="Кому полезен МЕДИА.СТРАЖ">
+      <aside class="about-side about-side--journalist" aria-label="Демонстрация рейтинга СМИ">
+        <span class="about-side-kicker">Рейтинг · демонстрация</span>
+        <div class="about-journal-demo">
+          <div class="about-demo-top"><span class="about-demo-dot"></span> СМИ · пример</div>
+          <div class="about-rating">
+            <strong class="about-rating-num" id="aboutRatingNumber">36%</strong>
+            <span class="about-rating-bars" aria-hidden="true">
+              <i style="--bar:28%;--i:0"></i><i style="--bar:38%;--i:1"></i>
+              <i style="--bar:55%;--i:2"></i><i style="--bar:64%;--i:3"></i>
+              <i style="--bar:76%;--i:4"></i><i style="--bar:89%;--i:5"></i>
+            </span>
           </div>
+          <div class="about-rating-lines" aria-hidden="true"><i></i><i></i><i></i></div>
         </div>
+        <p>Рейтинг показывает долю публикаций со спорными маркерами.</p>
+        <a href="index.html">Смотреть рейтинг →</a>
+      </aside>
 
-        <div class="map-caption" id="cap">
-          <span class="cap-label">СКАНИРОВАНИЕ ЛЕНТ</span>
-          <span class="cap-value" id="scanCounter">0</span>
-          <span class="cap-unit">сообщ./сутки</span>
-          <span class="cap-demo-note">демо</span>
+      <div class="about-monitor">
+        <div class="about-monitor-screen">
+          <h1>ДЕЛАЕМ <span>МАНИПУЛЯЦИИ</span> ВИДИМЫМИ</h1>
+          <p>Помогаем журналистам и читателям распознавать манипулятивные приёмы в медиатекстах.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ════ МИССИЯ — улучшенная ════ -->
-  <section class="mission-section" aria-labelledby="missionTitle">
-    <div class="mission-lens">
-
-      <!-- Символ миссии -->
-      <div class="mission-radar" aria-hidden="true">
-        <div class="mission-symbol">!</div>
-      </div>
-
-      <!-- Текст миссии -->
-      <div class="mission-copy">
-        <!-- Мини-иконка (только мобайл) -->
-        <div class="mission-copy-icon" aria-hidden="true">
-          <span class="mission-symbol mission-symbol-mobile">!</span>
-        </div>
-
-        <!-- Обёртка для заголовочных текстов (нужна для flex на мобайле) -->
-        <div class="mission-copy-texts">
-          <div class="mission-kicker">Миссия проекта</div>
-          <h2 class="mission-title" id="missionTitle">Сделать журналистику лучше</h2>
-          <p class="mission-text">
-            Мы помогаем читателю замечать, где новость давит на эмоции,
-            подменяет факт оценкой или прячет важный контекст — и не поддаваться этим приёмам.
-          </p>
+        <div class="about-monitor-choices" aria-label="Посмотреть демонстрацию для аудитории">
+          <button class="about-choose" type="button" data-about-choose="journalist"
+            aria-pressed="false" aria-controls="aboutRatingNumber">
+            ДЛЯ ЖУРНАЛИСТА <b aria-hidden="true">→</b>
+          </button>
+          <button class="about-choose" type="button" data-about-choose="reader"
+            aria-pressed="false" aria-controls="aboutReaderSentence">
+            ДЛЯ ЧИТАТЕЛЯ <b aria-hidden="true">→</b>
+          </button>
         </div>
       </div>
 
-      <!-- Карточки для/против -->
-      <div class="mission-outcomes">
-        <div class="mission-outcome">
-          <span class="mission-outcome-label">Для читателя</span>
-          <p>больше ясности, меньше чужих эмоций под видом фактов</p>
+      <aside class="about-side about-side--reader" aria-label="Демонстрация анализа формулировки">
+        <span class="about-side-kicker">Анализ текста · демонстрация</span>
+        <div class="about-reader-demo">
+          <div class="about-demo-top"><span class="about-demo-dot"></span> Пример формулировки</div>
+          <div id="aboutReaderSentence" class="about-reader-sentence">Запад <mark>снова пытается</mark> дестабилизировать ситуацию в регионе.</div>
+          <div class="about-reader-note">Маркер: оценочная формулировка</div>
         </div>
+        <p>Система выделяет спорные формулировки и поясняет найденные признаки.</p>
+        <a href="method.html">Как работает анализ →</a>
+      </aside>
+    </section>
 
-        <div class="mission-outcome">
-          <span class="mission-outcome-label">Для СМИ</span>
-          <p>когда приёмы видны всем, честность становится выгоднее манипуляции</p>
-        </div>
+    <section class="about-values" aria-label="Принципы проекта">
+      <div class="about-values-grid">
+        <article class="about-value" data-n="1">
+          <span class="about-value-num">01</span>
+          <h2>Прозрачность</h2>
+          <p>Показываем, какие приёмы найдены в тексте.</p>
+          <a href="method.html">Смотреть методику →</a>
+        </article>
+        <article class="about-value" data-n="2">
+          <span class="about-value-num">02</span>
+          <h2>Независимость</h2>
+          <p>Развиваем проект самостоятельно и открыто.</p>
+          <a href="help.html">Поддержать проект →</a>
+        </article>
+        <article class="about-value" data-n="3">
+          <span class="about-value-num">03</span>
+          <h2>Динамика</h2>
+          <p>Регулярно обновляем данные и отслеживаем изменения.</p>
+          <a href="archive.html">Перейти к архиву →</a>
+        </article>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="values-section">
-    <div class="values-grid">
-
-      <article class="value-card" data-n="1">
-        <div class="value-num">Принцип 01</div>
-        <div class="value-title-row"><h3>Прозрачность</h3></div>
-        <p>
-          Для каждого сообщения видно, какие именно факторы повлияли на индекс манипулятивности.
-        </p>
-        <a href="method.html" class="value-link">Смотреть методику →</a>
-      </article>
-
-      <article class="value-card" data-n="2">
-        <div class="value-num">Принцип 02</div>
-        <div class="value-title-row"><h3>Независимость</h3></div>
-        <p>
-          Мы развиваем добровольную и прозрачную модель финансирования. Это позволяет проекту сохранять самостоятельность.
-        </p>
-        <a href="help.html" class="value-link">Поддержать проект →</a>
-      </article>
-
-      <article class="value-card" data-n="3">
-        <div class="value-num">Принцип 03</div>
-        <div class="value-title-row"><h3>Динамика</h3></div>
-        <p>
-          Система регулярно перечитывает новостные ленты и обновляет индексы.
-        </p>
-        <a href="archive.html" class="value-link">Перейти к архиву →</a>
-      </article>
-
-    </div>
-  </section>
-
-  <section class="author-section">
-    <h2 class="section-title">Кто стоит за проектом</h2>
-    <p class="section-subtitle"></p>
-
-    <div class="author-label">создатель и идейный вдохновитель</div>
-
-    <article class="author-card">
-      <div class="author-avatar" aria-hidden="true">АШ</div>
-      <div class="author-content">
-        <div class="author-name">Артём Ш.</div>
-        <p class="author-role">Журналист, исследователь манипуляций в медиа.</p>
-        <div class="author-links">
-          <a class="author-link" href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer">Telegram</a>
-          <a class="author-link" href="mailto:artem_shmakow@vk.com">Email</a>
+    <section class="about-pro" aria-labelledby="aboutProTitle">
+      <div class="about-pro-header">
+        <div>
+          <span class="about-pro-kicker">PRO</span>
+          <h2 id="aboutProTitle">Больше возможностей с PRO</h2>
         </div>
+        <a class="about-pro-cta" href="analysis.html" data-pro-gateway aria-haspopup="dialog">Узнать о возможностях PRO →</a>
       </div>
-    </article>
-  </section>
+      <div class="about-pro-options" aria-label="Инструменты и развитие PRO">
+        <span>Расширенная аналитика</span>
+        <span>Экспорт результатов</span>
+        <span>API — в разработке</span>
+        <span>Бизнес-панель</span>
+      </div>
+    </section>
 
+    <section class="about-author" aria-label="Кто стоит за проектом">
+      <img class="about-author-avatar" src="about-author-avatar.png" width="96" height="96"
+        alt="Стилизованный силуэт автора проекта" loading="lazy"/>
+      <div class="about-author-body">
+        <span class="about-author-label">Кто стоит за проектом</span>
+        <h2>Артём Ш.</h2>
+        <p>Журналист, исследователь манипуляций в медиа.</p>
+      </div>
+      <div class="about-author-links">
+        <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <a href="mailto:artem_shmakow@vk.com">Email</a>
+      </div>
+    </section>
+  </main>
 </div>
 
-<footer>© 2025 Проект «МЕДИА.СТРАЖ»</footer>
+<footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script>
-  function nowHHMM() {
-    const d = new Date();
-    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-  }
-  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
-  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
-  function animateNumber(el, from, to, duration = 650) {
-    const start = performance.now();
-    const diff  = to - from;
-    function tick(now) {
-      const t = Math.min((now - start) / duration, 1);
-      el.textContent = Math.floor(from + diff * easeOutCubic(t)).toLocaleString('ru-RU');
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  const manifestSection = document.getElementById('manifestSection');
-  const mapWrap  = document.getElementById('mapWrap');
-  const cap      = document.getElementById('cap');
-  const scanCounter = document.getElementById('scanCounter');
-  const tip      = document.getElementById('mapTip');
-  const tipTitle = document.getElementById('tipTitle');
-  const tipTime  = document.getElementById('tipTime');
-  const tipLine  = document.getElementById('tipLine');
-  const tipTag   = document.getElementById('tipTag');
-  const dots     = Array.from(document.querySelectorAll('.map-dot'));
-
-  const BASE_PER_DAY = 42518;
-
-  const sources = [
-    { name: 'ОРБИТА НЬЮС',        x: 28, y: 45, tag: 'ПРИЁМ: ПСЕВДОСТАТИСТИКА',      line: 'фиксируем «большинство» без методики + оценочные маркеры' },
-    { name: 'СЕВЕРНЫЙ ПУЛЬС',     x: 44, y: 33, tag: 'ПРИЁМ: ФРЕЙМИНГ',              line: 'вырезан контекст → событие подано как «угроза»' },
-    { name: 'ИНФОЛУЧ',            x: 56, y: 41, tag: 'СИГНАЛ: ССЫЛКА НА ИСТОЧНИК',   line: 'проверяемость повышена: документ + методика' },
-    { name: 'ГРАДУС ДНЯ',         x: 40, y: 58, tag: 'ПРИЁМ: ДАВЛЕНИЕ СТРАХОМ',      line: 'катастрофизация + тайм-прессинг в заголовке' },
-    { name: 'ДЕЛОВОЙ МЕРИДИАН',   x: 62, y: 29, tag: 'СИГНАЛ: НЕЙТРАЛЬНО',           line: 'факт без оценки, низкая плотность триггеров' },
-    { name: 'СИГНАЛ НОВА',        x: 73, y: 46, tag: 'ПРИЁМ: ОБРАЗ ВРАГА',           line: 'обобщение + противопоставление «мы/они»' },
-    { name: 'КОМПАС ВЕСТЕЙ',      x: 67, y: 62, tag: 'ПРИЁМ: ЭМОЦИОНАЛЬНАЯ ПОДМЕНА', line: 'оценка вместо факта, усилители эмоций' },
-  ];
-
-  function placeDots() {
-    dots.forEach((dot, i) => {
-      const s = sources[i % sources.length];
-      dot.style.left = s.x + '%';
-      dot.style.top  = s.y + '%';
-      dot.style.animationDelay = (i * 0.22).toFixed(2) + 's';
-    });
-  }
-  placeDots();
-
-  let pulseTimer = null;
-
-  function startCounter() { animateNumber(scanCounter, 0, BASE_PER_DAY, 950); }
-
-  function pulseCaption() {
-    cap.classList.remove('pulse');
-    void cap.offsetWidth;
-    cap.classList.add('pulse');
-  }
-
-  function beginPulseFlow() {
-    if (pulseTimer) clearInterval(pulseTimer);
-    pulseTimer = setInterval(() => {
-      const jitter = BASE_PER_DAY + Math.round((Math.random() - 0.5) * BASE_PER_DAY * 0.006);
-      animateNumber(scanCounter, BASE_PER_DAY, jitter, 600);
-      pulseCaption();
-    }, 8000);
-  }
-
-  function positionTooltip(s) {
-    const wr = mapWrap.getBoundingClientRect();
-    const x  = (s.x / 100) * wr.width;
-    const y  = (s.y / 100) * wr.height;
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    const TIP_W = isMobile ? Math.min(wr.width * 0.52, 160) : Math.min(wr.width * 0.72, 280);
-    const TIP_H = isMobile ? 58 : 90;
-    tip.style.maxWidth = TIP_W + 'px';
-    const flipX = x > wr.width / 2;
-    const flipY = y > wr.height * 0.62;
-    let left = flipX ? x - TIP_W - 8 : x + 10;
-    let top  = flipY ? y - TIP_H - 6  : y - 14;
-    left = clamp(left, 8, wr.width  - TIP_W - 8);
-    top  = clamp(top,  8, wr.height - TIP_H - 8);
-    tip.style.left = left + 'px';
-    tip.style.top  = top + 'px';
-  }
-
-  function showTipForSource(s) {
-    tipTitle.textContent = s.name;
-    tipTime.textContent  = nowHHMM();
-    tipLine.textContent  = s.line;
-    tipTag.textContent   = s.tag;
-    positionTooltip(s);
-    tip.classList.add('show');
-  }
-
-  let dotIndex = 0;
-  let dotTimer = null;
-
-  function cycleDots() {
-    dots.forEach(d => d.classList.remove('active'));
-    const s   = sources[dotIndex % sources.length];
-    const dot = dots[dotIndex % dots.length];
-    dot.classList.add('active');
-    showTipForSource(s);
-    dotIndex++;
-  }
-
-  function startDotCycle() {
-    cycleDots();
-    dotTimer = setInterval(cycleDots, 1600);
-  }
-
-  let fxStarted = false;
-
-  function startManifestFX() {
-    mapWrap.classList.add('scan-on');
-    startCounter();
-    setTimeout(() => { beginPulseFlow(); startDotCycle(); }, 1050);
-  }
-
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !fxStarted) {
-          fxStarted = true;
-          startManifestFX();
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.35 });
-    io.observe(manifestSection);
-  } else {
-    startManifestFX();
-  }
-
-  const burgerBtn = document.getElementById('burgerBtn');
-  const navLinks  = document.getElementById('navLinks');
-
-  if (burgerBtn && navLinks) {
-    burgerBtn.addEventListener('click', () => {
-      const isOpen = navLinks.classList.toggle('open');
-      burgerBtn.setAttribute('aria-expanded', String(isOpen));
-    });
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('open');
-        burgerBtn.setAttribute('aria-expanded', 'false');
-      });
-    });
-    document.addEventListener('click', (e) => {
-      if (!navLinks.contains(e.target) && !burgerBtn.contains(e.target)) {
-        navLinks.classList.remove('open');
-        burgerBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (navLinks)  navLinks.classList.remove('open');
-      if (burgerBtn) burgerBtn.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  window.addEventListener('resize', () => {
-    const currentSource = sources[(dotIndex - 1 + sources.length) % sources.length];
-    if (currentSource && tip.classList.contains('show')) {
-      positionTooltip(currentSource);
-    }
-  });
-</script>
+<script defer src="about-experience.js?v=20261030-1"></script>
 </body>
 </html>

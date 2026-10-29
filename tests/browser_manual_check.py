@@ -1052,24 +1052,34 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # Principles lead to functional destinations and show raised buttons.
+        # About: approved compact monitor, two interactive demos and three plain principle cards.
         page.goto(base + "/about.html")
-        assert page.locator(".value-card .value-link").count() == 3
-        assert page.locator('.value-card[data-n="2"] .value-link').get_attribute("href") == "/help/"
-        assert "0px 5px 0px" in page.locator(".value-card .value-link").first.evaluate("el => getComputedStyle(el).boxShadow")
-        assert "добровольную и прозрачную модель финансирования" in page.locator('.value-card[data-n="2"]').inner_text().lower()
-        assert page.locator('.value-card[data-n="2"] p').inner_text().strip().endswith("сохранять самостоятельность.")
-        kicker = page.locator(".manifest-kicker").bounding_box()
-        map_box = page.locator(".map-wrap").bounding_box()
-        assert abs(kicker["y"] - map_box["y"]) < 4, (kicker, map_box)
-        assert page.locator(".manifest-subtitle-desktop").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") >= 17
+        assert page.locator(".manifest-section,.mission-section,.map-wrap").count() == 0
+        assert page.locator(".about-experience .about-monitor h1").inner_text().replace("\n"," ").startswith("ДЕЛАЕМ")
+        assert page.locator(".about-value").count() == 3
+        assert page.locator(".about-value a").evaluate_all(
+            'links => links.map(a=>a.getAttribute("href"))') == ["/method/", "/help/", "/archive/"]
+        assert page.locator(".about-value svg,.about-value img").count() == 0
+        assert page.locator(".about-pro-cta").get_attribute("data-pro-gateway") == ""
+        assert page.locator(".about-author-avatar").evaluate("img => img.complete && img.naturalWidth > 0")
+        journalist = page.locator('[data-about-choose="journalist"]')
+        journalist.hover()
+        assert journalist.get_attribute("aria-pressed") == "true"
+        page.wait_for_timeout(950)
+        assert page.locator("#aboutRatingNumber").inner_text() == "36%"
+        reader = page.locator('[data-about-choose="reader"]')
+        reader.hover()
+        assert reader.get_attribute("aria-pressed") == "true"
+        page.wait_for_timeout(1600)
+        assert page.locator("#aboutReaderSentence mark").inner_text() == "снова пытается"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
         page.wait_for_selector('#archiveList .archive-item')
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 35
+        assert page.locator(".about-monitor h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 42
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1381,9 +1391,20 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
-            # Compact About title and single-line Method headings on mobile.
+            # Compact About hero, working on tap without hover; Method headings remain unchanged.
             p.goto(base + "/about.html")
-            assert p.locator(".manifest-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 24
+            assert p.locator(".about-monitor h1").evaluate(
+                "el => parseFloat(getComputedStyle(el).fontSize)") <= 36
+            assert p.locator(".about-value").count() == 3
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+            p.locator('[data-about-choose="reader"]').click()
+            p.wait_for_timeout(1600)
+            assert p.locator('#aboutReaderSentence mark').count() == 1
+            p.locator('[data-about-choose="journalist"]').click()
+            p.wait_for_timeout(950)
+            assert p.locator('#aboutRatingNumber').inner_text() == "36%"
+            assert p.locator('.about-author-avatar').is_visible()
+            assert p.locator('.about-pro-cta').is_visible()
             p.goto(base + "/method.html")
             assert p.locator(".container > .section").count() == 3
             assert p.locator(".container > .section").first.evaluate(
