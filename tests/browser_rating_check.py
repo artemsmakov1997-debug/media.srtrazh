@@ -23,7 +23,11 @@ def hero_callout_geometry(page):
       const box = el => {const r=el.getBoundingClientRect();
         return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
       const layer=stage.querySelector('#heroExampleCallouts');
-      return {stage:box(stage),words:[...stage.querySelectorAll('.hero-example-word')].map(box),
+      const title=stage.querySelector('#heroExampleText');
+      const rows=[...title.querySelectorAll('.hero-example-line')];
+      return {stage:box(stage),title:box(title),lineHeight:parseFloat(getComputedStyle(title).lineHeight),
+        rows:rows.map(row=>({...box(row),scrollWidth:row.scrollWidth,clientWidth:row.clientWidth})),
+        words:[...stage.querySelectorAll('.hero-example-word')].map(box),
         tips:[...layer.children].map(tip=>{
           const mark=stage.querySelectorAll('mark')[+tip.dataset.triggerIndex];
           const a=box(tip),b=box(mark);
@@ -31,16 +35,31 @@ def hero_callout_geometry(page):
           const scale=(a.right-a.left)/tip.offsetWidth;
           return {...a,mark:b,label:tip.textContent,caption:mark.title,
             side:tip.classList.contains('is-above')?'above':'below',
+            row:rows.indexOf(mark.closest('.hero-example-line')),
             expected:mark.dataset.calloutSide,
             pointer:a.left+parseFloat(tip.style.getPropertyValue('--callout-pointer-x'))*scale};
         })};}''')
     area = metrics['stage']
+    title = metrics['title']
+    rows = metrics['rows']
     tips = metrics['tips']
+    assert len(rows) == 3, metrics
+    for index, row in enumerate(rows):
+        assert abs(row['bottom'] - row['top'] - metrics['lineHeight']) <= 1, metrics
+        assert row['scrollWidth'] <= row['clientWidth'] + 1, metrics
+        if index:
+            assert abs(row['top'] - rows[index - 1]['bottom']) <= 1, metrics
+    assert ' '.join(page.locator('#heroExampleText').inner_text().split()) == ' '.join(
+        page.locator('#heroExampleText').get_attribute('aria-label').split())
     assert tips and len(tips) == page.locator('#heroExampleText mark').count(), metrics
     for tip in tips:
         word = tip['mark']
         assert tip['label'] == tip['caption'], metrics
         assert tip['side'] == tip['expected'], metrics
+        assert tip['row'] in (0, 2), metrics
+        assert (tip['side'] == 'above') == (tip['row'] == 0), metrics
+        assert tip['bottom'] <= title['top'] - 5 or tip['top'] >= title['bottom'] + 5, metrics
+        assert word['left'] >= title['left'] - 1 and word['right'] <= title['right'] + 1, metrics
         gap = word['top'] - tip['bottom'] if tip['side'] == 'above' else tip['top'] - word['bottom']
         assert 6 <= gap <= 10, metrics
         assert abs(tip['pointer'] - (word['left'] + word['right']) / 2) <= 1.5, metrics
@@ -100,9 +119,13 @@ def hero_rotation_ui(browser, base, errors):
                   const a=el.getBoundingClientRect(),b=el.parentElement.getBoundingClientRect();
                   return {top:a.top-b.top,height:a.height,stageHeight:b.height};}''')
 
+            baseline = None
             for index in range(10):
                 advance_until(lambda: example.get_attribute('data-example-index') == str(index))
                 before = text_box()
+                if baseline is None:
+                    baseline = before
+                assert all(abs(before[key] - baseline[key]) <= 1 for key in baseline), (width, index, baseline, before)
                 advance_until(lambda: example.get_attribute('data-phase') == 'highlighted')
                 page.clock.run_for(250)  # Finish the bubble's appearance transition.
                 after = text_box()
@@ -120,9 +143,16 @@ def hero_rotation_ui(browser, base, errors):
                         # Cross the mobile breakpoint and return to portrait.
                         page.set_viewport_size({'width': 844, 'height': 390})
                         page.clock.run_for(250)
+                        assert page.locator('.hero-example-line').count() == 0
                         page.set_viewport_size({'width': 390, 'height': 900})
                         page.clock.run_for(250)
+                        advance_until(lambda: example.get_attribute('data-phase') == 'highlighted')
+                        page.clock.run_for(250)
                         wait_for_hero_reflow(page)
+                if index == 8:
+                    assert [text.strip() for text in example.locator('.hero-example-line').all_inner_texts()] == [
+                        'Это последний шанс', 'остановить', 'надвигающийся кризис']
+                    page.locator('.hero').screenshot(path=str(output / f'hero-three-lines-{width}.png'))
         finally:
             context.close()
     assert not errors, errors
@@ -623,7 +653,7 @@ def rating_ui(browser, base, site, errors, requests):
                 page.wait_for_function(
                     '() => document.querySelector("#heroExampleText")?.dataset.phase === "highlighted"',
                     timeout=9500)
-                assert 'Страну ждёт катастрофа' in example.text_content()
+                assert 'Грядёт катастрофа' in example.text_content()
                 assert page.locator('#heroExampleCallouts .hero-example-callout.is-visible').count() == 2
                 assert example.locator('mark.hero-trigger.is-highlighted').count() == 2
                 assert page.locator('.media-card.is-active').count() == 1

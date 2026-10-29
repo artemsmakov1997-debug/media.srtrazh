@@ -35,6 +35,21 @@
     ['Решение властей приведёт к ', ['необратимым'], ' последствиям']
   ];
 
+  // Compact fictional mobile examples: markers belong to the first/last
+  // lines, with ordinary context between them. Captions stay outside the text.
+  const HERO_MOBILE_LINES = [
+    [['Экономика ', ['рухнула']], ['после решений'], [['бездарной'], ' власти']],
+    [['Грядёт ', ['катастрофа'], ','], ['если не действовать'], [['срочно']]],
+    [['Власти ', ['скрывают']], ['истинные масштабы'], [['кризиса']]],
+    [['Рынок ', ['обвалился']], ['после'], [['провального'], ' шага']],
+    [['Закон ', ['уничтожит']], ['будущее'], [['всех детей']]],
+    [['Всё ', ['рушится'], '.'], ['Нужны меры'], [['немедленно']]],
+    [[['Все знают'], ':'], ['чиновники'], [['обманывают'], ' людей']],
+    [[['Полный коллапс']], ['грозит региону,'], ['заявили ', ['эксперты']]],
+    [['Это ', ['последний шанс']], ['остановить'], [['надвигающийся кризис']]],
+    [['Последствия'], ['решений будут'], [['необратимыми']]]
+  ];
+
   // Short interpretive names, not verified assessments of published articles.
   // Order follows the highlighted fragments in each fictional sample.
   const HERO_EXPLANATIONS = [
@@ -135,14 +150,14 @@
     const bubble = node('span', caption, 'hero-example-callout');
     bubble.dataset.triggerIndex = String(index);
     bubble.setAttribute('aria-hidden', 'true');
-    const preference = index % 2 === 0 ? 'above' : 'below';
+    const preference = mark.dataset.calloutSide || (index % 2 === 0 ? 'above' : 'below');
     layer.append(bubble);
     heroCalloutTargets.push({callout:bubble,mark,preference});
     positionHeroCallouts();
     if (immediate) bubble.classList.add('is-visible');
     else requestAnimationFrame(() => { if (bubble.isConnected) bubble.classList.add('is-visible'); });
   }
-  let heroExampleIndex = 0, heroExampleTimer = null, heroExampleRun = 0;
+  let heroExampleIndex = 0, heroExampleTimer = null, heroExampleRun = 0, heroMobileLayout = mobile();
   const exampleFullText = parts => parts.map(p => Array.isArray(p) ? p[0] : p).join('');
   function stopHeroExamples() {
     ++heroExampleRun; clearTimeout(heroExampleTimer); heroExampleTimer = null;
@@ -156,14 +171,17 @@
   function renderHeroExample(index, instant = false) {
     const target = $('heroExampleText');
     if (!target) return;
-    const parts = HERO_EXAMPLES[index];
+    const narrow = mobile();
+    heroMobileLayout = narrow;
+    const lines = narrow ? HERO_MOBILE_LINES[index] : [HERO_EXAMPLES[index]];
     target.replaceChildren();
     clearHeroCallouts();
     $('heroExampleCallouts')?.classList.remove('is-exiting');
     target.classList.remove('is-exiting');
     target.dataset.exampleIndex = String(index);
     target.dataset.exampleTotal = String(HERO_EXAMPLES.length);
-    target.setAttribute('aria-label', exampleFullText(parts));
+    target.dataset.layout = narrow ? 'mobile-lines' : 'flow';
+    target.setAttribute('aria-label', lines.map(exampleFullText).join(' '));
 
     // Reserve the full paragraph's layout before typing a single character.
     // Invisible letters take up space, so the first line and hero height stay
@@ -186,7 +204,7 @@
         parent.append(word);
       }
     };
-    for (const piece of parts) {
+    const appendPiece = (parent, piece, lineIndex) => {
       const emph = Array.isArray(piece);
       let content = emph ? piece[0] : piece;
       // Punctuation immediately following a highlighted phrase is a separate
@@ -194,10 +212,10 @@
       // the punctuation inside its highlighted mark. Applies to all examples.
       if (!emph) {
         const leadingPunctuation = content.match(/^[.,!?;:…]+/u);
-        if (leadingPunctuation && target.lastElementChild) {
-          const previous = target.lastElementChild;
+        if (leadingPunctuation && parent.lastElementChild) {
+          const previous = parent.lastElementChild;
           const joined = node('span', '', 'hero-example-joined');
-          target.replaceChild(joined, previous);
+          parent.replaceChild(joined, previous);
           joined.append(previous);
           const punctuation = node('span', '', 'hero-example-punctuation');
           for (const character of Array.from(leadingPunctuation[0])) {
@@ -209,16 +227,23 @@
           content = content.slice(leadingPunctuation[0].length);
         }
       }
-      if (!content) continue;
+      if (!content) return;
       const part = node(emph ? 'mark' : 'span', '', emph ? 'hero-trigger' : 'hero-example-segment');
       appendWords(part, content);
-      target.append(part);
+      parent.append(part);
       if (emph) {
-        part.dataset.calloutSide = marks.length % 2 === 0 ? 'above' : 'below';
+        part.dataset.calloutSide = narrow ? (lineIndex === 0 ? 'above' : 'below') :
+          (marks.length % 2 === 0 ? 'above' : 'below');
         part.title = explanations[marks.length] || 'Пример возможного маркера';
         part.setAttribute('aria-label', part.title + ': ' + (emph ? piece[0] : piece));
         marks.push(part);
       }
+    };
+    for (const [lineIndex, parts] of lines.entries()) {
+      const parent = narrow ? node('span', '', 'hero-example-line') : target;
+      if (narrow) target.append(parent);
+      parts.forEach(piece => appendPiece(parent, piece, lineIndex));
+      if (narrow && lineIndex < lines.length - 1) parent.append(document.createTextNode(' '));
     }
     // Keep the stylesheet's large typography rather than shrinking the
     // message to one line. Reposition labels once web fonts have loaded.
@@ -856,7 +881,8 @@
     resize = setTimeout(() => {
       renderCards();
       restartCycle();
-      positionHeroCallouts();
+      if (heroMobileLayout !== mobile()) startHeroExamples();
+      else positionHeroCallouts();
     }, 150);
   });
   setInterval(() => { if (!document.hidden) loadRating(); }, 300000);

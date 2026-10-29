@@ -15,7 +15,7 @@
   }
   .hero .hero-text .hero-example-stage {min-height:180px;padding:34px 0;}
   .hero .hero-text h1.hero-example-text {
-    font-size:clamp(22px,6.1vw,28px) !important;
+    font-size:clamp(20px,6.1vw,28px) !important;
     line-height:1.35 !important;letter-spacing:-.025em !important;
   }
   /* One clear editorial PRO link: accessible hit area, no button container. */
@@ -82,14 +82,8 @@
     letter-spacing:.01em;font-weight:700;
   }
   .hero .hero-example-callout {font-size:10px;padding:5px 8px;}
-  /* Reserve each caption's line space from the start, including while the
-     letters are invisible. Reflow cannot separate a bubble from its word. */
-  .hero .hero-example-text .hero-trigger {
-    display:inline-block;
-    vertical-align:baseline;
-  }
-  .hero .hero-example-text .hero-trigger[data-callout-side="above"] {margin-top:36px;}
-  .hero .hero-example-text .hero-trigger[data-callout-side="below"] {margin-bottom:36px;}
+  /* Three close-set lines; annotations use the space outside the headline. */
+  .hero .hero-example-line {display:block;white-space:nowrap;}
 }
 @media(max-width:360px) {
   .hero .hero-text .hero-example-stage {min-height:200px;}
