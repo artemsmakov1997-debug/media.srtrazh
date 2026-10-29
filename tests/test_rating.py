@@ -166,6 +166,18 @@ class RatingTests(unittest.TestCase):
         self.assertEqual(result['findings'][0]['rating_weight'], 1)
         self.assertEqual((self.outlet()['collected'], self.outlet()['flagged']), (2, 1))
 
+    def test_full_collective_accusation_and_its_crosspost_count_once_with_chart(self):
+        text = Path(__file__).with_name('collective_publication.txt').read_text().rstrip('\n')
+        row, _ = save_publication(self.store, 1, text=text)
+        save_publication(self.store, 2, 'rt_telegram', text=text)
+        save_publication(self.store, 3, text='В городе открылась библиотека.')
+        result = self.store.article(row['id'])['analysis']
+        self.assertEqual(result['summary']['marker_fragments'], 13)
+        item = self.outlet()
+        self.assertEqual((item['raw_publications'], item['collected'], item['flagged'], item['score_percent']), (3, 2, 1, 50))
+        self.assertEqual(item['by_type'], {'oversimplification': 1, 'generalization': 1, 'enemy_image': 1})
+        self.assertEqual(item['series'][-1]['score_percent'], 50)
+
     def test_book_numeric_checks_count_once_per_publication_and_match_chart(self):
         daily = 'В 2025 году в среднем 100 аварий в день — всего 10 тысяч аварий за год.'
         row, _ = save_publication(self.store, 1, text=daily)

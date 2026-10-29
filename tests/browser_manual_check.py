@@ -39,6 +39,7 @@ import test_numeric_consistency
 import test_discourse_expansion
 import test_political_vocabulary
 import test_political_framing
+import test_collective_accusations
 from browser_fixtures import business_evidence_fixture
 
 
@@ -62,7 +63,7 @@ def examples():
         cases.append(case)
         return case["result"]
 
-    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency, test_discourse_expansion, test_political_vocabulary, test_political_framing)
+    modules = (test_analysis, test_rhetoric, test_expanded_rhetoric, test_contextual_rhetoric, test_latest_media_rhetoric, test_quantitative_cues, test_event_terminology, test_territory_terminology, test_oct15_rhetoric, test_hostile_rhetoric, test_context_precision, test_historical_juxtaposition, test_person_labels, test_comparative_framing, test_literature_rhetoric, test_numeric_consistency, test_discourse_expansion, test_political_vocabulary, test_political_framing, test_collective_accusations)
     originals = [module.analyze for module in modules]
     for module in modules:
         module.analyze = capture
@@ -86,6 +87,7 @@ def examples():
         unittest.defaultTestLoader.loadTestsFromTestCase(test_discourse_expansion.DiscourseExpansionTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_political_vocabulary.PoliticalVocabularyTests),
         unittest.defaultTestLoader.loadTestsFromTestCase(test_political_framing.PoliticalFramingTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_collective_accusations.CollectiveAccusationTests),
     ])
     try:
         output = io.StringIO()
@@ -624,7 +626,7 @@ def inline_touch_and_overlap(browser, base, errors, requests):
         context.close()
 
 
-def literature_rhetoric_ui(browser, base, site, errors, requests):
+def literature_rhetoric_ui(browser, base, site, errors, requests, document_keys=None):
     """Real native/Wasm output, inline comments and counters on desktop and touch."""
     for mobile in (False, True):
         context = browser.new_context(viewport={'width': 375 if mobile else 1280, 'height': 900},
@@ -644,15 +646,16 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
             documents = {**test_literature_rhetoric.DOCUMENTS, **test_numeric_consistency.DOCUMENTS,
                          **test_discourse_expansion.DOCUMENTS, **test_political_vocabulary.DOCUMENTS,
-                         **test_political_framing.DOCUMENTS}
-            for key in ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan',
+                         **test_political_framing.DOCUMENTS, **test_collective_accusations.DOCUMENTS}
+            keys = document_keys or ('guilt_pressure', 'inaccessible_evidence', 'precision_without_method', 'repeated_slogan',
                         'numeric_majority', 'numeric_daily', 'question_deflection', 'consequence_chain',
                         'circular_justification', 'absence_as_concealment', 'unspecified_measures', 'unattributed_decision',
                         'geopolitical_west', 'collective_west', 'western_partners', 'putinoid_group', 'vatnik_group',
                         'occupier_actor', 'liberator_actor', 'propagandist_actor',
                         'denazification', 'demilitarization', 'anti_russian', 'liberal_actor',
                         'political_persecution', 'repression', 'oppression', 'ideological_slur',
-                        'bought_voice', 'double_standards', 'betrayal_label'):
+                        'bought_voice', 'double_standards', 'betrayal_label', 'collective_full', 'collective_hook')
+            for key in keys:
                 document = {'title': 'Проверочный пример', **documents[key]}
                 expected = analyze(document)
                 snapshot = json.loads((site / 'data/analysis.json').read_text())
@@ -696,7 +699,14 @@ def literature_rhetoric_ui(browser, base, site, errors, requests):
                 activate('#manualSubmit')
                 page.locator('#manualResult').wait_for(state='visible', timeout=120000)
                 assert page.locator('#manualTextEvidence').inner_text() == document['text']
-                assert page.locator('#manualTextEvidence mark').count() == count
+                if key == 'collective_full':
+                    # The loaded question and its national-essence claim overlap.
+                    # Rendered segments may merge/split; counters count evidence.
+                    highlighted = page.locator('#manualTextEvidence mark').all_text_contents()
+                    for phrase in ('всем известны', 'дементник', 'русские - да, они очень хотят войны'):
+                        assert any(phrase in segment for segment in highlighted), (mobile, phrase, highlighted)
+                else:
+                    assert page.locator('#manualTextEvidence mark').count() == count
                 marker = page.locator('#manualTextEvidence mark').first
                 marker.tap() if mobile else marker.hover()
                 page.locator('#manualTooltip').wait_for(state='visible')

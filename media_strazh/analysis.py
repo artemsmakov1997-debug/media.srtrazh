@@ -10,7 +10,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.16.0"
+VERSION = "rules-0.17.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -37,6 +37,13 @@ LABELS["territory_terminology"] = "Обозначение территории"
 LABELS["rhetorical_context"] = "Контекст подачи и сопоставления"
 INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
 RULE_LABELS = {
+    "simplification.presupposed_confession": "Обвинение в предпосылке вопроса",
+    "generalization.violent_national_essence": "Приписывание общей разрушительной цели",
+    "generalization.immutable_collective": "Утверждение о неизменности общества",
+    "enemy.civilizational_inferiority": "Общая оценка страны или культуры",
+    "enemy.collective_pathology": "Психологическая характеристика общества",
+    "enemy.foreign_hook": "Образ скрытой зависимости",
+    "enemy.civilizational_threat": "Приписывание угрозы цивилизации",
     "terminology.denazification": "Обозначение «денацификация»",
     "terminology.demilitarization": "Обозначение «демилитаризация»",
     "terminology.anti_russian": "Характеристика «антироссийский»",
@@ -129,6 +136,18 @@ POLITICAL_CONTEXT = re.compile(
     r"европ[а-яё]*|государств[а-яё]*|стран[а-яё]*|(?:евро)?парламент[а-яё]*|народ[а-яё]*|наци[а-яё]*|граждан[а-яё]*|"
     r"украин[а-яё]*|росси[а-яё]*|беларус[а-яё]*|америк[а-яё]*|германи[а-яё]*|франци[а-яё]*|испан[а-яё]*|ЕС|США|"
     r"Трамп[а-яё]*|Путин[а-яё]*|Зеленск[а-яё]*|Макрон[а-яё]*|Байден[а-яё]*|Шольц[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*)\b", re.I,
+)
+COLLECTIVE_TARGET = re.compile(
+    r"\b(?:стран(?:а|ы|е|у|ой|ою|ам|ами|ах)?|государств(?:о|а|у|ом|е|ам|ами|ах)?|"
+    r"народ(?:а|у|ом|е|ы|ов|ам|ами|ах)?|наци(?:я|и|ю|ей|ею|й|ям|ями|ях)|"
+    r"обществ(?:о|а|у|ом|е|ам|ами|ах)?|Росси(?:я|и|ю|ей|ею)|Украин(?:а|ы|е|у|ой|ою)|"
+    r"Европ(?:а|ы|е|у|ой|ою)|РФ|США|ЕС|Кита(?:й|я|ю|ем|е)|Израил(?:ь|я|ю|ем|е)|"
+    r"(?:Палестин|Польш)(?:а|ы|е|у|ой|ою)|(?:Германи|Франци|Британи)(?:я|и|ю|ей|ею)|"
+    r"Иран(?:а|у|ом|е)?|русск(?:ие|их|им|ими)|россиян(?:е|ам|ами|ах)?|"
+    r"(?:украинц|европейц|американц|немц|китайц|британц|палестинц)(?:ы|ев|ам|ами|ах)|"
+    r"(?:мигрант|француз|белорус)(?:ы|ов|ам|ами|ах)|поляк(?:и|ов|ам|ами|ах)|беженц(?:ы|ев|ам|ами|ах)|"
+    r"жител(?:и|ей|ям|ями|ях)|граждан(?:е|ам|ами|ах)?|молод[её]ж(?:ь|и|ью)|"
+    r"израильтян(?:е|ам|ами|ах)?)\b", re.I,
 )
 MODERN_CUE = re.compile(
     r"\b(?:нынешн[а-яё]*|современн[а-яё]*|сегодня|сейчас|действующ[а-яё]*|"
@@ -465,6 +484,8 @@ def _psychological_label_context(text, start, end, sentence_span, event_context)
     sentence = sentence_span["text"]
     if LITERAL_CLINICAL_CONTEXT.search(sentence) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
         return False
+    if re.match(r"дементник", text[start:end], re.I) and not POLITICAL_PERSON_CONTEXT.search(sentence):
+        return False
     if re.match(r"истерик", text[start:end], re.I):
         prefix = text[max(sentence_span["start"], start - 100):start]
         # Reported distress, including inside quotes, is not a political label.
@@ -485,6 +506,35 @@ def _psychological_label_context(text, start, end, sentence_span, event_context)
     previous = text[paragraph_start:sentence_span["start"]] + "\n" + event_context
     return bool(re.search(r"\b(?:он|она|они|его|её|ее|их)\b", sentence, re.I)
                 and POLITICAL_ACTOR_CONTEXT.search(previous))
+
+
+def _collective_judgment_context(rule, text, start, end, sentence_span, event_context):
+    """Local public targets; do not resolve a nation from an unrelated story."""
+    sentence = sentence_span["text"]
+    if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+        return False
+    if rule.id == "enemy.collective_pathology" and LITERAL_CLINICAL_CONTEXT.search(sentence):
+        return False
+    if rule.id == "enemy.civilizational_inferiority" and re.match(
+        r"\s+(?:клет[а-яё]*|бактери[а-яё]*|микроорганизм[а-яё]*|ткан[а-яё]*|гриб[а-яё]*)\b", text[end:end + 70], re.I,
+    ):
+        return False
+    if rule.id == "enemy.foreign_hook" and re.search(
+        r"\b(?:рыб[а-яё]*|удочк[а-яё]*|спиннинг[а-яё]*|блесн[а-яё]*|"
+        r"вешалк[а-яё]*|гардероб[а-яё]*)\b", sentence, re.I,
+    ):
+        return False
+    if rule.context_requirement == "public_judgment":
+        return bool(POLITICAL_CONTEXT.search(sentence) or COLLECTIVE_TARGET.search(sentence))
+    if COLLECTIVE_TARGET.search(sentence):
+        return True
+    # Only the immediately preceding sentence or an explicit paired heading;
+    # no article-wide pronoun resolution, especially for a private patient.
+    prefix = text[max(0, sentence_span["start"] - 350):sentence_span["start"]]
+    units = [unit.strip() for unit in re.split(r"[.!?\n]+", prefix) if unit.strip()]
+    previous = units[-1] if units else event_context
+    return bool(re.search(r"\b(?:она|они|е[её]|их)\b", sentence, re.I)
+                and COLLECTIVE_TARGET.search(previous))
 
 
 def _human_attack_context(text, start, end, sentence_span, event_context, require_actor=False):
@@ -674,6 +724,8 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
     fragment = text[start:end]
+    if rule.context_requirement in {"public_judgment", "collective_judgment"}:
+        return _collective_judgment_context(rule, text, start, end, sentence_span, event_context)
     if rule.context_requirement in {"collective_actor_term", "geopolitical_west", "vatnik_group",
                                     "conflict_actor_term", "propagandist_term", "supporter_label", "regime_label",
                                     "framing_term", "demilitarization_term", "rights_term", "framing_label", "comparison_standards_term"}:
@@ -829,10 +881,15 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         return index >= 0 and end <= quotes[index][1]
     if rule.context_requirement in {"political_speech_metaphor", "political_nickname", "political_mocking_emoji", "group_mental_state"}:
         nearby = text[max(0, start - 900):min(len(text), end + 200)]
-        if not POLITICAL_CONTEXT.search(nearby) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
+        group_subject = rule.context_requirement == "group_mental_state" and COLLECTIVE_TARGET.search(sentence)
+        if not (POLITICAL_CONTEXT.search(nearby) or group_subject) or LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):
             return False
         if rule.context_requirement == "political_speech_metaphor":
-            return not LITERAL_ANIMAL_CONTEXT.search(sentence)
+            before = text[sentence_span["start"]:start]
+            livestock = r"(?:овц[а-яё]*|баран[а-яё]*|ягн(?:[её]н[а-яё]*|ят[а-яё]*)|коз(?:а|ы|у|е|ой|ам|ами|ах)|козл[а-яё]*)"
+            livestock_subject = re.search(r"\b" + livestock + r"\b[^.!?]{0,55}$", before, re.I)
+            livestock_tail = re.match(r"\s+(?:[а-яё]+\s+){0,2}" + livestock + r"\b", text[end:end + 80], re.I)
+            return not (LITERAL_ANIMAL_CONTEXT.search(sentence) or livestock_subject or livestock_tail)
         if rule.context_requirement == "political_mocking_emoji":
             return not re.search(r"\b(?:цирк[а-яё]*|клоун[а-яё]*|маскарад[а-яё]*)\b", sentence, re.I)
         if rule.context_requirement == "political_nickname":
@@ -847,7 +904,7 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
         # whole population. This is local scope, not a survey fact check.
         prefix = text[max(sentence_span["start"], start - 65):start]
         return not re.search(
-            r"\b(?:часть|большинство|меньшинство|некоторые|многие|немногие|несколько)\s*$|"
+            r"\b(?:часть|большинство|меньшинство|некоторые|многие|немногие|несколько|отдельные|не\s+все|опрошенн[а-яё]*)\s*$|"
             r"(?:\d+(?:[.,]\d+)?\s*%|\d+\s+процент[а-яё]*)\s*$", prefix, re.I,
         )
     if rule.context_requirement in {"current_political", "modern_label", "modern_analogy",
@@ -1052,6 +1109,14 @@ def _evidence(field, text, start, end, quotes):
         r"(?:опроверг[а-яё]*|отверг[а-яё]*)\s+(?:утверждени[ея]|тезис|предположени[ея]|версию))"
         r"\s*,\s*(?:что|будто)\s+(?:[а-яё]+\s+){0,3}(?:[—:-]\s*)?[«\"“„]?\s*$",
         text[sentence["start"]:start][-180:], re.I,
+    ))
+    # A rejection can govern a longer proposition with internal commas, e.g.
+    # «Неверно утверждать, что страна, даже если захочет, ...». A contrast or
+    # separate clause ends this bounded scope; it is not global negation.
+    denied = denied or bool(re.search(
+        r"\b(?:нельзя|неверно|неправильно)\s+(?:считать|утверждать)\s*,\s*(?:что|будто)\s+"
+        r"(?:(?!\b(?:но|однако|зато|а)\b)[^.!?;:\n]){0,140}$",
+        text[sentence["start"]:start][-190:], re.I,
     ))
     statement_prefix = text[sentence["start"]:start][-220:]
     reported = bool(re.search(
