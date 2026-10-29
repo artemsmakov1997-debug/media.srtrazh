@@ -10,7 +10,7 @@ import re
 
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.15.0"
+VERSION = "rules-0.16.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -37,6 +37,17 @@ LABELS["territory_terminology"] = "Обозначение территории"
 LABELS["rhetorical_context"] = "Контекст подачи и сопоставления"
 INFORMATIONAL = {"event_terminology", "actor_terminology", "territory_terminology", "rhetorical_context"}
 RULE_LABELS = {
+    "terminology.denazification": "Обозначение «денацификация»",
+    "terminology.demilitarization": "Обозначение «демилитаризация»",
+    "terminology.anti_russian": "Характеристика «антироссийский»",
+    "terminology.liberal_actor": "Обозначение взглядов «либерал»",
+    "terminology.political_persecution": "Квалификация политического преследования",
+    "terminology.repression": "Квалификация «репрессии»",
+    "terminology.oppression": "Обозначение «угнетение»",
+    "dysphemism.ideological_slur": "Уничижительный идеологический ярлык",
+    "dysphemism.bought_voice": "Обвинение в продажности или оплате",
+    "context.double_standards": "Обвинение в двойных стандартах",
+    "enemy.betrayal_label": "Ярлык «предатель»",
     "terminology.collective_west": "Обобщение «Коллективный Запад»",
     "terminology.western_partners": "Обозначение «Западные партнёры»",
     "terminology.geopolitical_west": "Обобщённое обозначение Запада",
@@ -513,6 +524,54 @@ def _human_attack_context(text, start, end, sentence_span, event_context, requir
     return direct or bool(POLITICAL_CONTEXT.search(nearby))
 
 
+def _framing_context(rule, sentence, before, after):
+    """Disambiguate the new vocabulary locally; retain factual/history notices."""
+    kind = rule.context_requirement
+    if kind == "framing_term":
+        return True
+    if kind == "demilitarization_term":
+        cyber_tail = re.match(r"\s+(?:зон[а-яё]*\s*(?:[([]\s*)?)?"
+                              r"(?:DMZ|сервер[а-яё]*|маршрутизатор[а-яё]*|"
+                              r"(?:компьютерн|локальн|корпоративн|офисн|сетев)[а-яё]*\s+"
+                              r"(?:сет[ьи][а-яё]*|сегмент[а-яё]*|периметр[а-яё]*|зон[а-яё]*))\b", after, re.I)
+        cyber_subject = re.search(r"\b(?:сервер[а-яё]*|маршрутизатор[а-яё]*|ф(?:ай|ае|айе)рвол[а-яё]*)\s+"
+                                 r"(?:(?:находит[а-яё]*|размещ[а-яё]*|помещ[а-яё]*|расположен[а-яё]*|стоит)\s+)?"
+                                 r"(?:в|из)\s*$", before[-100:], re.I)
+        return not (cyber_tail or cyber_subject)
+    if kind == "comparison_standards_term":
+        return not re.match(r"\s+(?:напряжения|кодировки|резьбы|разъ[её]м(?:а|ов)|передачи\s+данных)\b", after, re.I)
+    if kind == "framing_label":
+        if re.search(r"\b(?:сыграл[а-яё]*|играл[а-яё]*|в\s+роли)\s+(?:роль\s+)?$", before, re.I):
+            return False
+        real_speaker = re.search(r"\b(?:акт[её]р[а-яё]*|режисс[её]р[а-яё]*|писател[а-яё]*)\b", before, re.I)
+        attributed = re.search(r"\b(?:назвал[а-яё]*|обозвал[а-яё]*|заявил[а-яё]*)\b"
+                               r"(?:(?!\b(?:геро[а-яё]*|персонаж[а-яё]*)\b)[^.!?]){0,90}$", before, re.I)
+        if real_speaker and attributed:
+            return True
+        work = re.search(r"\b(?:роман(?:а|е|у|ом)?|фильм(?:а|е|у|ом)?|сериал(?:а|е|у|ом)?|"
+                         r"спектакл(?:я|е|ю|ем|ь)|игр(?:а|е|ы|у|ой))\b", sentence, re.I)
+        role = re.search(r"\b(?:геро(?:й|я|и|ев|ем)|персонаж[а-яё]*|сюжет[а-яё]*|"
+                         r"игрок[а-яё]*|настольн[а-яё]*|компьютерн[а-яё]*)\b", sentence, re.I)
+        return not (work and role or re.search(r"\bпо\s+сюжету\b", sentence, re.I))
+    if kind == "rights_term":
+        if rule.id == "terminology.repression":
+            if re.match(r"\s+(?:(?:экспрессии|активности)\s+)?(?:ген(?:а|ов)|белк(?:а|ов)|транскрипции|трансляции|оперона|ДНК|РНК)\b", after, re.I):
+                return False
+            return not re.search(r"\b(?:генн|генетическ|транскрипционн|эпигенетическ)[а-яё]*\s*$", before, re.I)
+        if rule.id == "terminology.oppression":
+            if re.match(r"\s+(?:(?:центральной|периферической)\s+)?(?:дыхания|сознания|ЦНС|нервной\s+системы|"
+                        r"кроветворения|костного\s+мозга|дыхательного\s+центра|роста|синтеза|метаболизма|"
+                        r"фермент[а-яё]*|фотосинтеза|иммунитет[а-яё]*|иммунн[а-яё]*\s+систем[а-яё]*|"
+                        r"растений|рассады|всходов|бактерий|микроорганизмов)\b", after, re.I):
+                return False
+            social = re.search(r"\b(?:политическ[а-яё]*|народ[а-яё]*|граждан[а-яё]*|людей|"
+                               r"женщин[а-яё]*|меньшинств[а-яё]*|верующ[а-яё]*|инакомысли[а-яё]*|"
+                               r"несогласн[а-яё]*|работник[а-яё]*|этническ[а-яё]*|социальн[а-яё]*)\b", sentence, re.I)
+            return bool(social) or not LITERAL_CLINICAL_CONTEXT.search(sentence)
+        return True
+    raise ValueError("Неизвестный контекст политической формулировки.")
+
+
 def _vocabulary_context(rule, text, start, end, sentence_span, event_context):
     """Local word sense guards; never infer irony, truth or political allegiance."""
     sentence = sentence_span["text"]
@@ -525,6 +584,8 @@ def _vocabulary_context(rule, text, start, end, sentence_span, event_context):
                  r"журнал[а-яё]*|издани[а-яё]*|утилит[а-яё]*|программ[а-яё]*)\s*[«\"“„]\s*$", before, re.I):
         return False
     kind = rule.context_requirement
+    if kind in {"framing_term", "demilitarization_term", "rights_term", "framing_label", "comparison_standards_term"}:
+        return _framing_context(rule, sentence, before, after)
     if kind in {"collective_actor_term", "supporter_label", "regime_label"}:
         return True
     if kind == "vatnik_group":
@@ -614,7 +675,8 @@ def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     sentence = sentence_span["text"]
     fragment = text[start:end]
     if rule.context_requirement in {"collective_actor_term", "geopolitical_west", "vatnik_group",
-                                    "conflict_actor_term", "propagandist_term", "supporter_label", "regime_label"}:
+                                    "conflict_actor_term", "propagandist_term", "supporter_label", "regime_label",
+                                    "framing_term", "demilitarization_term", "rights_term", "framing_label", "comparison_standards_term"}:
         return _vocabulary_context(rule, text, start, end, sentence_span, event_context)
     if rule.context_requirement in {"public_discourse", "consequence_chain", "unspecified_measures", "unattributed_decision"}:
         if LITERAL_ENTERTAINMENT_CONTEXT.search(sentence):

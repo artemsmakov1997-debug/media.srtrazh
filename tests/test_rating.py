@@ -146,6 +146,26 @@ class RatingTests(unittest.TestCase):
         self.assertEqual(result['findings'][0]['rating_weight'], 1)
         self.assertEqual((self.outlet()['collected'], self.outlet()['flagged']), (2, 1))
 
+    def test_new_framing_terms_and_slurs_vote_once_with_exact_website_telegram_copies(self):
+        text = 'Либералы заявили о политических преследованиях. Этот депутат — предатель.'
+        save_publication(self.store, 1, text=text)
+        save_publication(self.store, 2, 'rt_telegram', text=text)
+        save_publication(self.store, 3, 'rt_telegram', text='В городе открылась новая библиотека для детей и взрослых.')
+        item = self.outlet()
+        self.assertEqual((item['raw_publications'], item['collected'], item['flagged'], item['score_percent']), (3, 2, 1, 50))
+        self.assertEqual(item['by_type'], {'actor_terminology': 1, 'event_terminology': 1, 'enemy_image': 1})
+        self.assertEqual(item['series'][-1]['score_percent'], 50)
+
+    def test_new_informational_ideology_notice_counts_without_an_enemy_verdict(self):
+        row, _ = save_publication(self.store, 1, text='Либералы представили программу реформ.')
+        save_publication(self.store, 2, text='Рабочие отремонтировали городскую библиотеку.')
+        result = self.store.article(row['id'])['analysis']
+        self.assertEqual(result['summary']['candidate_fragments'], 0)
+        self.assertEqual(result['summary']['marker_fragments'], 1)
+        self.assertEqual(result['findings'][0]['status'], 'context_only')
+        self.assertEqual(result['findings'][0]['rating_weight'], 1)
+        self.assertEqual((self.outlet()['collected'], self.outlet()['flagged']), (2, 1))
+
     def test_book_numeric_checks_count_once_per_publication_and_match_chart(self):
         daily = 'В 2025 году в среднем 100 аварий в день — всего 10 тысяч аварий за год.'
         row, _ = save_publication(self.store, 1, text=daily)
