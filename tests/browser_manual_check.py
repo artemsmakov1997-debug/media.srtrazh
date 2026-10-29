@@ -1052,45 +1052,68 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # About: a single full-width monitor; demos switch INSIDE it only on click.
+        # About: five selectable channels share one screen, with fixed button rows.
         page.goto(base + "/about.html")
         assert page.locator(".manifest-section,.mission-section,.map-wrap,.about-side").count() == 0
-        monitor = page.locator(".about-monitor")
+        assert page.locator(".about-value,.about-pro,.about-author").count() == 0
+        screen = page.locator("#aboutMonitorScreen")
         intro = page.locator("#aboutStageIntro")
-        journalist_stage = page.locator("#aboutStageJournalist")
-        reader_stage = page.locator("#aboutStageReader")
-        assert page.locator(".about-experience .about-monitor h1").inner_text().replace("\n"," ").startswith("ДЕЛАЕМ")
         assert intro.is_visible()
-        assert not journalist_stage.is_visible() and not reader_stage.is_visible()
-        assert abs(monitor.bounding_box()["width"] - page.locator(".about-pro").bounding_box()["width"]) < 2
-        assert page.locator(".about-value").count() == 3
-        assert page.locator(".about-value a").evaluate_all(
-            'links => links.map(a=>a.getAttribute("href"))') == ["/method/", "/help/", "/archive/"]
-        assert page.locator(".about-value svg,.about-value img").count() == 0
-        assert page.locator(".about-pro-cta").get_attribute("data-pro-gateway") == ""
-        assert page.locator(".about-author-avatar").evaluate("img => img.complete && img.naturalWidth > 0")
-        journalist = page.locator('[data-about-choose="journalist"]')
-        reader = page.locator('[data-about-choose="reader"]')
+        assert intro.locator("h1").inner_text().strip() == "МЕДИА.СТРАЖ"
+        assert "журналистам и читателям" in intro.inner_text()
+        assert page.locator(".about-choose").count() == 2
+        assert page.locator(".about-channel-tab").all_inner_texts() == [
+            "Принципы", "Возможности", "Создатель"]
+        assert page.locator('[data-about-channel]').count() == 5
+        assert page.locator(".about-stage").count() == 6
+        assert page.locator(".about-stage:visible").count() == 1
+        assert page.locator(".about-channel-tab svg,.about-choose svg").count() == 0
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        journalist = page.locator('[data-about-channel="journalist"]')
+        reader = page.locator('[data-about-channel="reader"]')
         journalist.hover()
         assert intro.is_visible() and journalist.get_attribute("aria-pressed") == "false"
         journalist.click()
-        assert not intro.is_visible() and journalist_stage.is_visible()
-        assert not reader_stage.is_visible()
+        assert page.locator("#aboutStageJournalist").is_visible() and not intro.is_visible()
         assert journalist.get_attribute("aria-pressed") == "true"
-        page.wait_for_timeout(1100)
+        page.wait_for_timeout(1050)
         assert page.locator("#aboutRatingNumber").inner_text() == "36%"
         assert page.locator("#aboutRatingFill").evaluate(
             'el => parseFloat(el.style.width)') == 36
         reader.click()
-        assert reader_stage.is_visible() and not journalist_stage.is_visible()
-        assert reader.get_attribute("aria-pressed") == "true"
-        page.wait_for_timeout(1800)
+        assert page.locator("#aboutStageReader").is_visible()
+        page.wait_for_timeout(1700)
         assert page.locator("#aboutReaderSentence mark").inner_text() == "снова пытается"
         assert page.locator("#aboutReaderNote").is_visible()
-        reader_stage.locator('[data-about-reset]').click()
-        assert intro.is_visible() and not reader_stage.is_visible()
-        assert journalist.get_attribute("aria-pressed") == "false"
-        assert reader.get_attribute("aria-pressed") == "false"
+        principles = page.locator('[data-about-channel="principles"]')
+        principles.click()
+        assert page.locator("#aboutStagePrinciples").is_visible()
+        assert page.locator(".about-principle").count() == 3
+        assert page.locator(".about-principle a").evaluate_all(
+            'links => links.map(a => a.getAttribute("href"))') == [
+                "/method/", "/help/", "/archive/"]
+        assert page.locator("#aboutStagePrinciples svg").count() == 0
+        opportunities = page.locator('[data-about-channel="opportunities"]')
+        opportunities.click()
+        assert page.locator("#aboutStageOpportunities").is_visible()
+        assert page.locator(".about-feature").count() == 4
+        assert "в разработке" in page.locator("#aboutStageOpportunities").inner_text()
+        assert page.locator(".about-pro-cta").get_attribute("data-pro-gateway") == ""
+        creator = page.locator('[data-about-channel="creator"]')
+        creator.click()
+        assert page.locator("#aboutStageCreator").is_visible()
+        assert page.locator(".about-creator-links a").count() == 2
+        page.wait_for_function("""() => {
+            const img = document.querySelector('#aboutStageCreator img');
+            return img && img.complete && img.naturalWidth > 0;
+        }""")
+        creator.click()
+        assert intro.is_visible()
+        assert page.locator(".about-stage:visible").count() == 1
+        assert all(tab == "false" for tab in
+                   page.locator('[data-about-channel]').evaluate_all(
+                       'buttons => buttons.map(b => b.getAttribute("aria-pressed"))'))
+        assert screen.evaluate('el => el.clientWidth > 0')
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
@@ -1098,7 +1121,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".about-monitor h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 54
+        assert page.locator(".about-intro h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1410,29 +1433,33 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
-            # Mobile: the intro is the initial state and touch switches only the screen.
+            # Mobile: all channels are reachable by touch without page overflow.
             p.goto(base + "/about.html")
-            assert p.locator(".about-monitor h1").evaluate(
-                "el => parseFloat(getComputedStyle(el).fontSize)") <= 36
-            assert p.locator(".about-value").count() == 3
-            assert p.locator(".about-side").count() == 0
             assert p.locator("#aboutStageIntro").is_visible()
+            assert p.locator("#aboutStageIntro h1").inner_text().strip() == "МЕДИА.СТРАЖ"
+            assert p.locator(".about-channel-tab").count() == 3
+            assert p.locator(".about-choose").count() == 2
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-            p.locator('[data-about-choose="reader"]').click()
-            assert not p.locator("#aboutStageIntro").is_visible()
+            p.locator('[data-about-channel="reader"]').click()
             assert p.locator("#aboutStageReader").is_visible()
-            p.wait_for_timeout(1750)
-            assert p.locator('#aboutReaderSentence mark').count() == 1
-            p.locator('[data-about-choose="journalist"]').click()
-            assert not p.locator("#aboutStageReader").is_visible()
+            p.wait_for_timeout(1700)
+            assert p.locator("#aboutReaderSentence mark").count() == 1
+            p.locator('[data-about-channel="journalist"]').click()
             assert p.locator("#aboutStageJournalist").is_visible()
-            p.wait_for_timeout(1050)
-            assert p.locator('#aboutRatingNumber').inner_text() == "36%"
-            p.locator('[data-about-choose="journalist"]').click()
+            p.wait_for_timeout(1000)
+            assert p.locator("#aboutRatingNumber").inner_text() == "36%"
+            for channel, stage in (
+                    ("principles", "aboutStagePrinciples"),
+                    ("opportunities", "aboutStageOpportunities"),
+                    ("creator", "aboutStageCreator")):
+                p.locator(f'[data-about-channel="{channel}"]').click()
+                assert p.locator(f"#{stage}").is_visible()
+                assert p.locator(".about-stage:visible").count() == 1
+                assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+            assert p.locator("#aboutStageCreator .about-author-avatar").is_visible()
+            assert p.locator("#aboutStageCreator .about-creator-links a").count() == 2
+            p.locator('[data-about-channel="creator"]').click()
             assert p.locator("#aboutStageIntro").is_visible()
-            assert p.locator('.about-author-avatar').is_visible()
-            assert p.locator('.about-pro-cta').is_visible()
-            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
             p.goto(base + "/method.html")
             assert p.locator(".container > .section").count() == 3
             assert p.locator(".container > .section").first.evaluate(

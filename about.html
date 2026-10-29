@@ -1164,7 +1164,7 @@
     .values-grid .value-card p { margin-bottom: 16px; }
   }
 </style>
-  <link rel="stylesheet" href="about-experience.css?v=20261030-2">
+  <link rel="stylesheet" href="about-experience.css?v=20261030-3">
 </head>
 
 <body>
@@ -1198,119 +1198,152 @@
 <div class="container">
 
   <main class="about-page" aria-label="О проекте МЕДИА.СТРАЖ">
-    <section class="about-experience" data-about-experience aria-label="Интерактивная демонстрация МЕДИА.СТРАЖ">
+    <section class="about-experience" data-about-experience aria-label="Интерактивная презентация проекта">
       <div class="about-monitor">
-        <div class="about-monitor-screen" id="aboutMonitorScreen">
-          <div class="about-stage about-stage--intro" id="aboutStageIntro" aria-labelledby="aboutMainTitle">
-            <h1 id="aboutMainTitle">ДЕЛАЕМ <span>МАНИПУЛЯЦИИ</span> ВИДИМЫМИ</h1>
-            <p>Помогаем журналистам и читателям распознавать манипулятивные приёмы в медиатекстах.</p>
-          </div>
+        <div class="about-monitor-screen" id="aboutMonitorScreen" aria-label="Экран МЕДИА.СТРАЖ" aria-live="polite">
+          <section class="about-stage about-stage--intro" id="aboutStageIntro" aria-labelledby="aboutMainTitle">
+            <div class="about-stage-shell about-intro">
+              <div class="about-intro-eyebrow">О проекте</div>
+              <h1 id="aboutMainTitle">МЕДИА.<span>СТРАЖ</span></h1>
+              <p>Помогаем журналистам и читателям распознавать манипулятивные приёмы в медиатекстах.</p>
+            </div>
+          </section>
 
-          <div class="about-stage about-stage--journalist" id="aboutStageJournalist"
-               aria-label="Демонстрация рейтинга СМИ" hidden>
-            <div class="about-stage-topline">
-              <span>РЕЙТИНГ СМИ</span><span class="about-demo-badge">ДЕМОНСТРАЦИЯ</span>
-            </div>
-            <div class="about-journal-demo">
-              <div class="about-demo-source"><span class="about-demo-source-logo" aria-hidden="true">СМИ</span>
-                <span>Пример издания<small>Анализ публикаций за 24 часа</small></span>
+          <section class="about-stage" id="aboutStageJournalist" aria-label="Для журналиста" hidden>
+            <div class="about-stage-shell">
+              <div class="about-stage-heading">
+                <h2>Для журналиста</h2>
+                <p>Смотрите, какие спорные приёмы встречаются в публикациях СМИ.</p>
               </div>
-              <div class="about-rating">
-                <strong class="about-rating-num" id="aboutRatingNumber">0%</strong>
-                <span class="about-rating-label">спорных сообщений</span>
-              </div>
-              <div class="about-rating-track" aria-hidden="true"><span id="aboutRatingFill"></span></div>
-              <p class="about-demo-explanation">Показатель отражает долю публикаций с обнаруженными признаками, а не доказанные манипуляции.</p>
-            </div>
-            <button type="button" class="about-reset" data-about-reset>← Вернуться к заголовку</button>
-          </div>
-
-          <div class="about-stage about-stage--reader" id="aboutStageReader"
-               aria-label="Демонстрация разбора формулировки" hidden>
-            <div class="about-stage-topline">
-              <span>АНАЛИЗ ТЕКСТА</span><span class="about-demo-badge">ДЕМОНСТРАЦИЯ</span>
-            </div>
-            <div class="about-reader-demo">
-              <div class="about-demo-source">ПРИМЕР ПУБЛИКАЦИИ</div>
-              <p id="aboutReaderSentence" class="about-reader-sentence"></p>
-              <div class="about-reader-note" id="aboutReaderNote" hidden>
-                <strong>НАЙДЕН ПРИЗНАК</strong>
-                <span>Оценочная формулировка — требует проверки контекста.</span>
+              <div class="about-demo-layout">
+                <div class="about-demo-rating">
+                  <div class="about-demo-kicker">Пример рейтинга · демонстрация</div>
+                  <div class="about-demo-publisher">Пример издания</div>
+                  <div class="about-rating-line"><strong id="aboutRatingNumber">0%</strong><span>спорных сообщений</span></div>
+                  <div class="about-rating-track" aria-hidden="true"><span id="aboutRatingFill"></span></div>
+                  <div class="about-rating-caption">Доля публикаций с найденными маркерами за 24 часа</div>
+                </div>
+                <div class="about-demo-explain">
+                  <div class="about-demo-kicker">Что показывает система</div>
+                  <p>Долю публикаций с признаками, конкретные примеры и изменения во времени.</p>
+                  <p class="about-demo-disclaimer">Найденный маркер не доказывает манипуляцию.</p>
+                  <a href="index.html">Открыть рейтинг →</a>
+                </div>
               </div>
             </div>
-            <button type="button" class="about-reset" data-about-reset>← Вернуться к заголовку</button>
-          </div>
-        </div>
-        <div class="about-monitor-choices" aria-label="Выбрать демонстрацию">
-          <button class="about-choose" type="button" data-about-choose="journalist"
-                  aria-pressed="false" aria-controls="aboutStageJournalist">
-            ДЛЯ ЖУРНАЛИСТА <b aria-hidden="true">→</b>
-          </button>
-          <button class="about-choose" type="button" data-about-choose="reader"
-                  aria-pressed="false" aria-controls="aboutStageReader">
-            ДЛЯ ЧИТАТЕЛЯ <b aria-hidden="true">→</b>
-          </button>
-        </div>
-      </div>
-    </section>
+          </section>
 
-    <section class="about-values" aria-label="Принципы проекта">
-      <div class="about-values-grid">
-        <article class="about-value" data-n="1">
-          <span class="about-value-num">01</span>
-          <h2>Прозрачность</h2>
-          <p>Показываем, какие приёмы найдены в тексте.</p>
-          <a href="method.html">Смотреть методику →</a>
-        </article>
-        <article class="about-value" data-n="2">
-          <span class="about-value-num">02</span>
-          <h2>Независимость</h2>
-          <p>Развиваем проект самостоятельно и открыто.</p>
-          <a href="help.html">Поддержать проект →</a>
-        </article>
-        <article class="about-value" data-n="3">
-          <span class="about-value-num">03</span>
-          <h2>Динамика</h2>
-          <p>Регулярно обновляем данные и отслеживаем изменения.</p>
-          <a href="archive.html">Перейти к архиву →</a>
-        </article>
-      </div>
-    </section>
+          <section class="about-stage" id="aboutStageReader" aria-label="Для читателя" hidden>
+            <div class="about-stage-shell">
+              <div class="about-stage-heading">
+                <h2>Для читателя</h2>
+                <p>Замечайте спорные формулировки и проверяйте контекст.</p>
+              </div>
+              <div class="about-demo-layout">
+                <div class="about-demo-quote">
+                  <div class="about-demo-kicker">Фрагмент публикации · демонстрация</div>
+                  <p id="aboutReaderSentence" class="about-reader-sentence"></p>
+                  <div class="about-reader-lines" aria-hidden="true"><i></i><i></i></div>
+                </div>
+                <div class="about-demo-explain">
+                  <div class="about-demo-kicker">Разбор формулировки</div>
+                  <div class="about-reader-note" id="aboutReaderNote" hidden>
+                    <strong>«снова пытается»</strong>
+                    <p>Оценочная формулировка. Сам по себе маркер не доказывает манипуляцию.</p>
+                  </div>
+                  <a href="method.html">Смотреть методику →</a>
+                </div>
+              </div>
+            </div>
+          </section>
 
-    <section class="about-pro" aria-labelledby="aboutProTitle">
-      <div class="about-pro-header">
-        <div>
-          <span class="about-pro-kicker">PRO</span>
-          <h2 id="aboutProTitle">Больше возможностей с PRO</h2>
+          <section class="about-stage" id="aboutStagePrinciples" aria-labelledby="aboutPrinciplesTitle" hidden>
+            <div class="about-stage-shell">
+              <div class="about-stage-heading">
+                <h2 id="aboutPrinciplesTitle">Принципы</h2>
+                <p>Три основы нашей работы.</p>
+              </div>
+              <div class="about-principles-grid">
+                <article class="about-principle">
+                  <span class="about-principle-num">01</span>
+                  <h3>Прозрачность</h3>
+                  <p>Показываем, какие приёмы найдены в тексте.</p>
+                  <a href="method.html">Смотреть методику</a>
+                </article>
+                <article class="about-principle">
+                  <span class="about-principle-num">02</span>
+                  <h3>Независимость</h3>
+                  <p>Развиваем проект самостоятельно и открыто.</p>
+                  <a href="help.html">Поддержать проект</a>
+                </article>
+                <article class="about-principle">
+                  <span class="about-principle-num">03</span>
+                  <h3>Динамика</h3>
+                  <p>Регулярно обновляем данные и отслеживаем изменения.</p>
+                  <a href="archive.html">Перейти к архиву</a>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section class="about-stage" id="aboutStageOpportunities" aria-labelledby="aboutOpportunitiesTitle" hidden>
+            <div class="about-stage-shell">
+              <div class="about-stage-heading">
+                <span class="about-pro-tag">PRO</span>
+                <h2 id="aboutOpportunitiesTitle">Больше возможностей</h2>
+                <p>Инструменты для исследований и работы с медиаповесткой.</p>
+              </div>
+              <div class="about-features-grid">
+                <div class="about-feature"><strong>Расширенная аналитика</strong><span>Дополнительные инструменты анализа текстов.</span></div>
+                <div class="about-feature"><strong>Экспорт результатов</strong><span>Сохранение данных для дальнейшей работы.</span></div>
+                <div class="about-feature"><strong>API — в разработке</strong><span>Планируемая интеграция с другими сервисами.</span></div>
+                <div class="about-feature"><strong>Бизнес-панель</strong><span>Упоминания, инфоповоды и подготовка материалов.</span></div>
+              </div>
+              <a class="about-pro-cta" href="analysis.html" data-pro-gateway aria-haspopup="dialog">Узнать о возможностях PRO</a>
+            </div>
+          </section>
+
+          <section class="about-stage" id="aboutStageCreator" aria-labelledby="aboutCreatorTitle" hidden>
+            <div class="about-stage-shell">
+              <div class="about-stage-heading">
+                <h2 id="aboutCreatorTitle">Создатель проекта</h2>
+              </div>
+              <div class="about-creator-content">
+                <img class="about-author-avatar" src="about-author-avatar.png" width="180" height="180"
+                     alt="Стилизованный портрет автора проекта" loading="lazy">
+                <div class="about-creator-detail">
+                  <h3>Артём Ш.</h3>
+                  <p>Журналист, исследователь манипуляций в медиа.</p>
+                  <div class="about-creator-links">
+                    <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.6l6.9 2.5L18.4 6 11.7 14l.2 6 3.6-4.2 3.7 2.8z" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg>Telegram</a>
+                    <a href="mailto:artem_shmakow@vk.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="m3.5 7 8.5 6 8.5-6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>Email</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-        <a class="about-pro-cta" href="analysis.html" data-pro-gateway aria-haspopup="dialog">Узнать о возможностях PRO →</a>
+        <div class="about-monitor-choices" aria-label="Каналы для аудитории">
+          <button type="button" class="about-choose" data-about-channel="journalist"
+                  aria-controls="aboutStageJournalist" aria-pressed="false">Для журналиста</button>
+          <button type="button" class="about-choose" data-about-channel="reader"
+                  aria-controls="aboutStageReader" aria-pressed="false">Для читателя</button>
+        </div>
       </div>
-      <div class="about-pro-options" aria-label="Инструменты и развитие PRO">
-        <span>Расширенная аналитика</span>
-        <span>Экспорт результатов</span>
-        <span>API — в разработке</span>
-        <span>Бизнес-панель</span>
-      </div>
-    </section>
-
-    <section class="about-author" aria-label="Кто стоит за проектом">
-      <img class="about-author-avatar" src="about-author-avatar.png" width="96" height="96"
-        alt="Стилизованный силуэт автора проекта" loading="lazy"/>
-      <div class="about-author-body">
-        <span class="about-author-label">Кто стоит за проектом</span>
-        <h2>Артём Ш.</h2>
-        <p>Журналист, исследователь манипуляций в медиа.</p>
-      </div>
-      <div class="about-author-links">
-        <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer">Telegram</a>
-        <a href="mailto:artem_shmakow@vk.com">Email</a>
-      </div>
+      <nav class="about-channel-nav" aria-label="Разделы презентации">
+        <button type="button" class="about-channel-tab" data-about-channel="principles"
+                aria-controls="aboutStagePrinciples" aria-pressed="false">Принципы</button>
+        <button type="button" class="about-channel-tab" data-about-channel="opportunities"
+                aria-controls="aboutStageOpportunities" aria-pressed="false">Возможности</button>
+        <button type="button" class="about-channel-tab" data-about-channel="creator"
+                aria-controls="aboutStageCreator" aria-pressed="false">Создатель</button>
+      </nav>
     </section>
   </main>
 </div>
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261030-2"></script>
+<script defer src="about-experience.js?v=20261030-3"></script>
 </body>
 </html>

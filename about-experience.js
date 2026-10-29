@@ -1,136 +1,145 @@
-/* About: one screen, switchable journalist/reader demonstrations. */
+/* МЕДИА.СТРАЖ / about — five TV channels, one screen. */
 (() => {
   'use strict';
   const burger = document.getElementById('burgerBtn');
   const menu = document.getElementById('navLinks');
   if (burger && menu) {
-    const close = () => { menu.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); };
+    const closeMenu = () => {
+      menu.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+    };
     burger.addEventListener('click', () => {
-      const open = menu.classList.toggle('open');
-      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-expanded', String(menu.classList.toggle('open')));
     });
-    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-    document.addEventListener('click', event => {
-      if (!menu.contains(event.target) && !burger.contains(event.target)) close();
+    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+    document.addEventListener('click', e => {
+      if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
     });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMenu();
+    });
   }
 
   const root = document.querySelector('[data-about-experience]');
   if (!root) return;
+  const screen = document.getElementById('aboutMonitorScreen');
   const stages = {
     intro: document.getElementById('aboutStageIntro'),
     journalist: document.getElementById('aboutStageJournalist'),
-    reader: document.getElementById('aboutStageReader')
+    reader: document.getElementById('aboutStageReader'),
+    principles: document.getElementById('aboutStagePrinciples'),
+    opportunities: document.getElementById('aboutStageOpportunities'),
+    creator: document.getElementById('aboutStageCreator')
   };
-  const triggers = Array.from(root.querySelectorAll('[data-about-choose]'));
-  const reader = document.getElementById('aboutReaderSentence');
-  const readerNote = document.getElementById('aboutReaderNote');
+  const tabs = Array.from(root.querySelectorAll('[data-about-channel]'));
   const percent = document.getElementById('aboutRatingNumber');
-  const bar = document.getElementById('aboutRatingFill');
-  if (Object.values(stages).some(stage => !stage) ||
-      !reader || !readerNote || !percent || !bar || triggers.length !== 2) return;
+  const fill = document.getElementById('aboutRatingFill');
+  const sentence = document.getElementById('aboutReaderSentence');
+  const note = document.getElementById('aboutReaderNote');
+  if (!screen || Object.values(stages).some(stage => !stage) ||
+      tabs.length !== 5 || !percent || !fill || !sentence || !note) return;
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const phrase = 'Запад снова пытается дестабилизировать ситуацию в регионе.';
-  let current = 'intro';
-  let serial = 0;
-  let timer = null;
-  let animationFrame = null;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let currentChannel = 'intro';
+  let generation = 0;
+  let timeoutId = null;
+  let frameId = null;
 
-  function cancelAnimations() {
-    serial++;
-    if (timer !== null) clearTimeout(timer);
-    if (animationFrame !== null) cancelAnimationFrame(animationFrame);
-    timer = null;
-    animationFrame = null;
+  function cancel() {
+    generation++;
+    if (timeoutId !== null) clearTimeout(timeoutId);
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    timeoutId = null;
+    frameId = null;
   }
 
-  function highlightPhrase() {
-    reader.replaceChildren(document.createTextNode('Запад '));
+  function highlight() {
     const mark = document.createElement('mark');
     mark.textContent = 'снова пытается';
-    reader.append(mark, document.createTextNode(' дестабилизировать ситуацию в регионе.'));
+    sentence.replaceChildren(
+      document.createTextNode('Запад '), mark,
+      document.createTextNode(' дестабилизировать ситуацию в регионе.')
+    );
   }
 
-  function animateJournalist(version) {
+  function animateRating(sequence) {
     percent.textContent = '0%';
-    bar.style.width = '0%';
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
     if (reducedMotion) {
       percent.textContent = '36%';
-      bar.style.width = '36%';
+      fill.style.width = '36%';
       return;
     }
-    const started = performance.now();
-    const step = now => {
-      if (serial !== version) return;
-      const t = Math.min((now - started) / 840, 1);
-      percent.textContent = Math.round(36 * (1 - Math.pow(1 - t, 3))) + '%';
-      if (t < 1) animationFrame = requestAnimationFrame(step);
+    const start = performance.now();
+    const frame = time => {
+      if (sequence !== generation) return;
+      const progress = Math.min((time - start) / 850, 1);
+      percent.textContent = Math.round(36 * (1 - (1 - progress) ** 3)) + '%';
+      if (progress < 1) frameId = requestAnimationFrame(frame);
     };
-    animationFrame = requestAnimationFrame(() => {
-      if (serial !== version) return;
-      bar.style.width = '36%';
-      animationFrame = requestAnimationFrame(step);
+    frameId = requestAnimationFrame(() => {
+      if (sequence !== generation) return;
+      fill.style.transition = '';
+      fill.style.width = '36%';
+      frameId = requestAnimationFrame(frame);
     });
   }
 
-  function animateReader(version) {
-    readerNote.hidden = true;
+  function animateReader(sequence) {
+    sentence.textContent = '';
+    note.hidden = true;
     if (reducedMotion) {
-      highlightPhrase();
-      readerNote.hidden = false;
+      highlight();
+      note.hidden = false;
       return;
     }
-    reader.textContent = '';
     let index = 0;
-    function typeNext() {
-      if (serial !== version) return;
-      reader.textContent = phrase.slice(0, index);
+    const type = () => {
+      if (sequence !== generation) return;
+      sentence.textContent = phrase.slice(0, index);
       if (index < phrase.length) {
         index++;
-        timer = setTimeout(typeNext, 22);
+        timeoutId = setTimeout(type, 20);
       } else {
-        timer = setTimeout(() => {
-          if (serial !== version) return;
-          highlightPhrase();
-          readerNote.hidden = false;
-        }, 240);
+        timeoutId = setTimeout(() => {
+          if (sequence !== generation) return;
+          highlight();
+          note.hidden = false;
+        }, 260);
       }
-    }
-    typeNext();
+    };
+    type();
   }
 
-  function show(view) {
-    if (!Object.hasOwn(stages, view)) return;
-    cancelAnimations();
-    current = view;
-    Object.entries(stages).forEach(([name, element]) => {
-      element.hidden = name !== view;
+  function show(name) {
+    if (!Object.prototype.hasOwnProperty.call(stages, name)) return;
+    cancel();
+    currentChannel = name;
+    Object.entries(stages).forEach(([key, stage]) => {
+      stage.hidden = key !== name;
+      if (key === name) stage.scrollTop = 0;
     });
-    triggers.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.aboutChoose === view));
+    tabs.forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.aboutChannel === name));
     });
-    const version = serial;
-    if (view === 'journalist') animateJournalist(version);
-    if (view === 'reader') animateReader(version);
+    screen.dataset.activeChannel = name;
+    const sequence = generation;
+    if (name === 'journalist') animateRating(sequence);
+    if (name === 'reader') animateReader(sequence);
   }
 
-  triggers.forEach(button => {
+  tabs.forEach(button => {
     button.addEventListener('click', () => {
-      const view = button.dataset.aboutChoose;
-      show(current === view ? 'intro' : view);
-    });
-  });
-  root.querySelectorAll('[data-about-reset]').forEach(button => {
-    button.addEventListener('click', () => {
-      const oldView = current;
-      show('intro');
-      triggers.find(el => el.dataset.aboutChoose === oldView)?.focus({preventScroll:true});
+      const chosen = button.dataset.aboutChannel;
+      show(chosen === currentChannel ? 'intro' : chosen);
     });
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && current !== 'intro') show('intro');
+    if (event.key !== 'Escape' || currentChannel === 'intro') return;
+    if (document.querySelector('.pro-gateway-overlay:not([hidden])')) return;
+    show('intro');
   });
   show('intro');
 })();
