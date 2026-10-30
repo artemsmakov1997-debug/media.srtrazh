@@ -1052,68 +1052,60 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # About: five channels use the full TV screen; active buttons become "Назад".
+        # About: the logo starts a narrated story and three channels fill the screen.
         page.goto(base + "/about.html")
-        assert page.locator(".manifest-section,.mission-section,.map-wrap,.about-side").count() == 0
-        assert page.locator(".about-value,.about-pro,.about-author,.about-stage-heading").count() == 0
         screen = page.locator("#aboutMonitorScreen")
         intro = page.locator("#aboutStageIntro")
+        story = page.locator("#aboutStory")
         assert intro.is_visible()
-        assert intro.locator("h1").inner_text().strip() == "МЕДИА.СТРАЖ"
-        assert "журналистам и читателям" in intro.inner_text()
-        assert page.locator(".about-choose").all_inner_texts() == [
-            "Для журналиста", "Для читателя"]
-        assert page.locator(".about-channel-tab").all_inner_texts() == [
+        assert page.locator(".story-brand-mark").inner_text() == "МЕДИА.СТРАЖ"
+        assert story.get_attribute("data-step") in ("logo", "news")
+        assert page.locator(".about-stage").count() == 4
+        assert page.locator('[data-about-channel]').count() == 3
+        assert page.locator(".about-monitor-choices .about-choose").all_inner_texts() == [
             "Принципы", "Возможности", "Создатель"]
-        assert page.locator('[data-about-channel]').count() == 5
-        assert page.locator(".about-stage").count() == 6
-        assert page.locator(".about-stage:visible").count() == 1
-        assert page.locator(".about-channel-tab svg,.about-choose svg").count() == 0
+        assert page.locator(".about-channel-nav,.about-stage-heading,.about-side").count() == 0
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-        journalist = page.locator('[data-about-channel="journalist"]')
-        reader = page.locator('[data-about-channel="reader"]')
-        journalist.hover()
-        assert intro.is_visible() and journalist.get_attribute("aria-pressed") == "false"
-        journalist.click()
-        assert page.locator("#aboutStageJournalist").is_visible()
-        assert journalist.inner_text() == "Назад"
-        assert journalist.get_attribute("aria-label") == "Назад — Для журналиста"
-        assert journalist.get_attribute("aria-pressed") == "true"
-        page.wait_for_timeout(1050)
-        assert page.locator("#aboutRatingNumber").inner_text() == "36%"
-        assert page.locator("#aboutRatingFill").evaluate(
-            'el => parseFloat(el.style.width)') == 36
-        assert page.locator(".about-stage:visible").count() == 1
-        assert journalist.evaluate(
-            'el => getComputedStyle(el).transform') != "none"
-        reader.click()
-        assert page.locator("#aboutStageReader").is_visible()
-        assert reader.inner_text() == "Назад"
-        assert journalist.inner_text() == "Для журналиста"
-        page.wait_for_timeout(1700)
-        assert page.locator("#aboutReaderSentence mark").inner_text() == "снова пытается"
-        assert page.locator("#aboutReaderNote").is_visible()
+        speed = page.locator("#storySpeed")
+        replay = page.locator("#storyReplay")
+        assert speed.inner_text() == "Скорость ×1"
+        speed.click()
+        assert speed.inner_text() == "Скорость ×2"
+        speed.click()
+        assert speed.inner_text() == "Скорость ×3"
+        replay.click()
+        assert story.get_attribute("data-step") in ("logo", "news")
+        page.wait_for_function(
+            'document.querySelector("#aboutStory").dataset.step === "done"', timeout=15000)
+        assert page.locator("#storyRatingNumber").inner_text() == "36%"
+        assert page.locator("#storyScanPercent").inner_text() == "100%"
+        replay.click()
+        assert story.get_attribute("data-step") == "logo"
         principles = page.locator('[data-about-channel="principles"]')
         principles.click()
         assert page.locator("#aboutStagePrinciples").is_visible()
         assert principles.inner_text() == "Назад"
         assert page.locator(".about-principle").count() == 3
+        assert page.locator(".about-principle-head h2").all_inner_texts() == [
+            "Прозрачность", "Независимость", "Динамика"]
         assert page.locator(".about-principle a").evaluate_all(
             'links => links.map(a => a.getAttribute("href"))') == [
                 "/method/", "/help/", "/archive/"]
-        assert page.locator("#aboutStagePrinciples svg").count() == 0
         page.wait_for_timeout(550)
+        assert page.locator(".about-stage:visible").count() == 1
         grid = page.locator(".about-principles-grid").bounding_box()
-        monitor_box = screen.bounding_box()
-        assert grid["width"] >= monitor_box["width"] * .72, (grid, monitor_box)
-        assert grid["height"] >= monitor_box["height"] * .65, (grid, monitor_box)
+        monitor = screen.bounding_box()
+        assert grid["width"] >= monitor["width"] * .72, (grid,monitor)
+        assert grid["height"] >= monitor["height"] * .65, (grid,monitor)
         opportunities = page.locator('[data-about-channel="opportunities"]')
         opportunities.click()
-        assert page.locator("#aboutStageOpportunities").is_visible()
         assert opportunities.inner_text() == "Назад"
-        assert page.locator(".about-feature").count() == 4
-        assert "в разработке" in page.locator("#aboutStageOpportunities").inner_text()
-        assert page.locator(".about-pro-cta").get_attribute("data-pro-gateway") == ""
+        assert page.locator("#aboutStageOpportunities").is_visible()
+        assert page.locator(".about-audience").count() == 2
+        assert page.locator(".about-audience--research a").get_attribute("href") == "/analysis/"
+        assert page.locator(".about-audience--business a").get_attribute("href") == "/business/"
+        assert "JSON" in page.locator(".about-audience--research").inner_text()
+        assert "PDF" in page.locator(".about-audience--business").inner_text()
         creator = page.locator('[data-about-channel="creator"]')
         creator.click()
         assert page.locator("#aboutStageCreator").is_visible()
@@ -1125,21 +1117,28 @@ def pro_business_navigation_ui(browser, base, site):
         }""")
         creator.click()
         assert intro.is_visible()
-        page.wait_for_timeout(540)
+        page.wait_for_timeout(550)
         assert page.locator(".about-stage:visible").count() == 1
         assert creator.inner_text() == "Создатель"
-        assert all(tab == "false" for tab in
-                   page.locator('[data-about-channel]').evaluate_all(
-                       'buttons => buttons.map(b => b.getAttribute("aria-pressed"))'))
         assert screen.evaluate('el => el.clientWidth > 0')
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        # Desktop rating CTA now visibly glows only on hover.
+        page.goto(base + "/index.html")
+        full_list = page.locator(".show-full-list-trigger.full-list-button-desktop")
+        normal_style = full_list.evaluate(
+            'el => ({background:getComputedStyle(el).backgroundImage, shadow:getComputedStyle(el).boxShadow})')
+        full_list.hover()
+        page.wait_for_timeout(260)
+        hovered_style = full_list.evaluate(
+            'el => ({background:getComputedStyle(el).backgroundImage, shadow:getComputedStyle(el).boxShadow})')
+        assert normal_style != hovered_style
         # Archive starts directly with search/filter controls on desktop.
         page.goto(base + "/archive.html")
         page.wait_for_selector('#archiveList .archive-item')
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".about-intro h1").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
+        assert page.locator(".story-brand-mark").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1451,31 +1450,25 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
-            # Mobile: touch switches full-screen channels and pressed button reads "Назад".
+            # Mobile: three TV channels, replay and speed controls work by touch.
             p.goto(base + "/about.html")
             assert p.locator("#aboutStageIntro").is_visible()
-            assert p.locator("#aboutStageIntro h1").inner_text().strip() == "МЕДИА.СТРАЖ"
-            assert p.locator(".about-channel-tab").count() == 3
-            assert p.locator(".about-choose").count() == 2
-            assert p.locator(".about-stage-heading").count() == 0
+            assert p.locator(".story-brand-mark").inner_text() == "МЕДИА.СТРАЖ"
+            assert p.locator(".about-choose").count() == 3
+            assert p.locator(".about-channel-tab,.about-channel-nav").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-            p.locator('[data-about-channel="reader"]').click()
-            assert p.locator("#aboutStageReader").is_visible()
-            assert p.locator('[data-about-channel="reader"]').inner_text() == "Назад"
-            p.wait_for_timeout(1700)
-            assert p.locator("#aboutReaderSentence mark").count() == 1
-            p.locator('[data-about-channel="journalist"]').click()
-            assert p.locator("#aboutStageJournalist").is_visible()
-            assert p.locator('[data-about-channel="reader"]').inner_text() == "Для читателя"
-            p.wait_for_timeout(1000)
-            assert p.locator("#aboutRatingNumber").inner_text() == "36%"
-            for channel, stage in (
-                    ("principles", "aboutStagePrinciples"),
-                    ("opportunities", "aboutStageOpportunities"),
-                    ("creator", "aboutStageCreator")):
-                p.locator(f'[data-about-channel="{channel}"]').click()
+            p.locator("#storySpeed").click()
+            assert p.locator("#storySpeed").inner_text() == "Скорость ×2"
+            p.locator("#storyReplay").click()
+            assert p.locator("#aboutStory").get_attribute("data-step") == "logo"
+            for channel,stage in (
+                    ("principles","aboutStagePrinciples"),
+                    ("opportunities","aboutStageOpportunities"),
+                    ("creator","aboutStageCreator")):
+                button = p.locator(f'[data-about-channel="{channel}"]')
+                button.click()
                 assert p.locator(f"#{stage}").is_visible()
-                assert p.locator(f'[data-about-channel="{channel}"]').inner_text() == "Назад"
+                assert button.inner_text() == "Назад"
                 p.wait_for_timeout(540)
                 assert p.locator(".about-stage:visible").count() == 1
                 assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
@@ -1486,6 +1479,7 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator('[data-about-channel="creator"]').inner_text() == "Создатель"
             p.wait_for_timeout(540)
             assert p.locator(".about-stage:visible").count() == 1
+            assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
             p.goto(base + "/method.html")
             assert p.locator(".container > .section").count() == 3
             assert p.locator(".container > .section").first.evaluate(

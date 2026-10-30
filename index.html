@@ -797,6 +797,34 @@
   <link rel="stylesheet" href="rating-live.css?v=hero-mobile-nav-anchored-20261026">
   <link rel="stylesheet" href="rating-hero-layout.css?v=20261029-mobile-lines">
   <link rel="stylesheet" href="rating-card-polish.css?v=20261027-aligned-grid">
+<style id="desktop-full-list-hover-v2">
+  /* Only the desktop rating entry: intentionally noticeable, without resizing neighbours. */
+  @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+    .current-rating-section .full-list-button-desktop.show-full-list-trigger {
+      transition: background .22s ease, border-color .22s ease,
+                  box-shadow .22s ease, color .22s ease, transform .22s ease;
+    }
+    .current-rating-section .full-list-button-desktop.show-full-list-trigger:hover {
+      color:#d6faff;
+      background:linear-gradient(120deg,#0b415a,#0c273d);
+      border-color:#26d7f2;
+      box-shadow:0 0 0 1px #24d8f322,0 0 19px #11c4ea55,
+                 inset 0 0 16px #11c4ea21;
+      transform:translateY(-2px);
+    }
+  }
+  @media (min-width:768px) {
+    .current-rating-section .full-list-button-desktop.show-full-list-trigger:focus-visible {
+      outline:2px solid #67e8f9;
+      outline-offset:3px;
+      background:#0b415a;
+      border-color:#22d3ee;
+    }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .current-rating-section .full-list-button-desktop.show-full-list-trigger {transition:none!important}
+  }
+</style>
 </head>
 <body>
   <header>

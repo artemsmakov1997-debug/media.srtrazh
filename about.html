@@ -1164,7 +1164,7 @@
     .values-grid .value-card p { margin-bottom: 16px; }
   }
 </style>
-  <link rel="stylesheet" href="about-experience.css?v=20261030-4">
+  <link rel="stylesheet" href="about-experience.css?v=20261030-5">
 </head>
 
 <body>
@@ -1200,99 +1200,114 @@
   <main class="about-page" aria-label="О проекте МЕДИА.СТРАЖ">
     <section class="about-experience" data-about-experience aria-label="Интерактивная презентация проекта">
       <div class="about-monitor">
-        <div class="about-monitor-screen" id="aboutMonitorScreen" aria-label="Экран МЕДИА.СТРАЖ" aria-live="polite">
-          <section class="about-stage about-stage--intro" id="aboutStageIntro" aria-labelledby="aboutMainTitle">
-            <div class="about-stage-shell about-intro">
-              <div class="about-intro-eyebrow">О проекте</div>
-              <h1 id="aboutMainTitle">МЕДИА.<span>СТРАЖ</span></h1>
-              <p>Помогаем журналистам и читателям распознавать манипулятивные приёмы в медиатекстах.</p>
-            </div>
-          </section>
-
-          <section class="about-stage" id="aboutStageJournalist" aria-label="Для журналиста" hidden>
-            <div class="about-stage-shell">
-              <div class="about-demo-layout">
-                <div class="about-demo-rating">
-                  <div class="about-demo-kicker">Пример рейтинга · демонстрация</div>
-                  <div class="about-demo-publisher">Пример издания</div>
-                  <div class="about-rating-line"><strong id="aboutRatingNumber">0%</strong><span>спорных сообщений</span></div>
-                  <div class="about-rating-track" aria-hidden="true"><span id="aboutRatingFill"></span></div>
-                  <div class="about-rating-caption">Доля публикаций с найденными маркерами за 24 часа</div>
-                </div>
-                <div class="about-demo-explain">
-                  <div class="about-demo-kicker">Что показывает система</div>
-                  <p>Долю публикаций с признаками, конкретные примеры и изменения во времени.</p>
-                  <p class="about-demo-disclaimer">Найденный маркер не доказывает манипуляцию.</p>
-                  <a href="index.html">Открыть рейтинг →</a>
-                </div>
+        <div class="about-monitor-screen" id="aboutMonitorScreen" aria-label="Экран МЕДИА.СТРАЖ">
+          <section class="about-stage about-stage--intro" id="aboutStageIntro" aria-label="Как работает МЕДИА.СТРАЖ">
+            <div class="story-demo" id="aboutStory" data-step="logo" style="--story-transition:560ms;">
+              <div class="story-brand" id="aboutMainTitle">
+                <h1 class="story-brand-mark">МЕДИА.<span>СТРАЖ</span></h1>
+                <p>Анализ публикаций СМИ и выявление спорных формулировок</p>
               </div>
-            </div>
-          </section>
-
-          <section class="about-stage" id="aboutStageReader" aria-label="Для читателя" hidden>
-            <div class="about-stage-shell">
-              <div class="about-demo-layout">
-                <div class="about-demo-quote">
-                  <div class="about-demo-kicker">Фрагмент публикации · демонстрация</div>
-                  <p id="aboutReaderSentence" class="about-reader-sentence"></p>
-                  <div class="about-reader-lines" aria-hidden="true"><i></i><i></i></div>
+              <div class="story-process">
+                <div class="story-progress" aria-hidden="true">
+                  <span data-story-part="news">01 / Публикация</span>
+                  <span data-story-part="collect">02 / Сбор</span>
+                  <span data-story-part="scan">03 / Анализ</span>
+                  <span data-story-part="rating">04 / Рейтинг</span>
                 </div>
-                <div class="about-demo-explain">
-                  <div class="about-demo-kicker">Разбор формулировки</div>
-                  <div class="about-reader-note" id="aboutReaderNote" hidden>
-                    <strong>«снова пытается»</strong>
-                    <p>Оценочная формулировка. Сам по себе маркер не доказывает манипуляцию.</p>
+                <div class="story-frame story-frame--news">
+                  <div class="story-frame-top"><strong>НОВОСТНОЕ ИЗДАНИЕ</strong><span>Демонстрация</span></div>
+                  <div class="story-article">
+                    <span class="story-article-category">Экономика / Сегодня</span>
+                    <p>Экономика <span>рухнула</span> из-за <span>бездарного</span> управления</p>
+                    <div class="story-article-lines" aria-hidden="true"><i></i><i></i><i></i></div>
                   </div>
-                  <a href="method.html">Смотреть методику →</a>
                 </div>
+                <div class="story-frame story-frame--collect">
+                  <div class="story-collect-line" aria-hidden="true"><span></span></div>
+                  <span class="story-unit">МЕДИА.СТРАЖ / СБОР</span>
+                  <strong>Публикация получена</strong>
+                  <p>Сообщение поступило на анализ</p>
+                </div>
+                <div class="story-frame story-frame--scan">
+                  <div class="story-scan-head"><strong>АНАЛИЗ ФОРМУЛИРОВОК</strong><span id="storyScanPercent">0%</span></div>
+                  <div class="story-scan-progress" aria-hidden="true"><i id="storyScanFill"></i></div>
+                  <p class="story-scan-quote">Экономика <mark>рухнула</mark> из-за <mark>бездарного</mark> управления</p>
+                  <div class="story-trigger-caption">
+                    <span>Катастрофизация</span><span>Оценочная лексика</span>
+                  </div>
+                </div>
+                <div class="story-frame story-frame--rating">
+                  <span class="story-unit">РЕЙТИНГ / ДЕМОНСТРАЦИЯ</span>
+                  <div class="story-rating-main"><strong id="storyRatingNumber">0%</strong><span>публикаций с найденными признаками</span></div>
+                  <div class="story-rating-track" aria-hidden="true"><i id="storyRatingFill"></i></div>
+                  <p>Рейтинг обновлён. Найденные признаки не доказывают манипуляцию.</p>
+                </div>
+                <p class="story-status" id="aboutStoryStatus" role="status" aria-live="off">МЕДИА.СТРАЖ / Запуск</p>
+              </div>
+              <div class="story-controls" role="group" aria-label="Управление демонстрацией">
+                <button type="button" id="storySpeed" aria-label="Ускорить демонстрацию">Скорость ×1</button>
+                <button type="button" id="storyReplay">Повторить</button>
               </div>
             </div>
           </section>
 
-          <section class="about-stage" id="aboutStagePrinciples" aria-label="Принципы" hidden>
+          <section class="about-stage about-stage--principles" id="aboutStagePrinciples" aria-label="Принципы" hidden>
             <div class="about-stage-shell">
               <div class="about-principles-grid">
                 <article class="about-principle">
-                  <span class="about-principle-num">01</span>
-                  <h3>Прозрачность</h3>
-                  <p>Показываем, какие приёмы найдены в тексте.</p>
-                  <a href="method.html">Смотреть методику</a>
+                  <div class="about-principle-head"><span class="about-principle-num">01</span><h2>Прозрачность</h2></div>
+                  <p>Показываем обнаруженные маркеры и сохранённые фрагменты публикаций — не просто итоговый процент.</p>
+                  <p>Каждый пример можно оценить в контексте. Наличие маркера само по себе не доказывает манипуляцию или недостоверность.</p>
+                  <a href="method.html">Смотреть методику →</a>
                 </article>
                 <article class="about-principle">
-                  <span class="about-principle-num">02</span>
-                  <h3>Независимость</h3>
-                  <p>Развиваем проект самостоятельно и открыто.</p>
-                  <a href="help.html">Поддержать проект</a>
+                  <div class="about-principle-head"><span class="about-principle-num">02</span><h2>Независимость</h2></div>
+                  <p>Развиваем проект самостоятельно, чтобы сохранять возможность открыто анализировать материалы разных изданий.</p>
+                  <p>Поддержка проекта добровольная. Наша задача — делать результаты анализа проверяемыми и объяснимыми.</p>
+                  <a href="help.html">Поддержать проект →</a>
                 </article>
                 <article class="about-principle">
-                  <span class="about-principle-num">03</span>
-                  <h3>Динамика</h3>
-                  <p>Регулярно обновляем данные и отслеживаем изменения.</p>
-                  <a href="archive.html">Перейти к архиву</a>
+                  <div class="about-principle-head"><span class="about-principle-num">03</span><h2>Динамика</h2></div>
+                  <p>Регулярно собираем публикации и пересчитываем показатели за последние 24 часа, отслеживая изменения в медиаполе.</p>
+                  <p>Сохраняем примеры в архиве и показываем ограничения выборки, чтобы не создавать иллюзию полного охвата.</p>
+                  <a href="archive.html">Перейти к архиву →</a>
                 </article>
               </div>
             </div>
           </section>
 
-          <section class="about-stage" id="aboutStageOpportunities" aria-label="Возможности" hidden>
+          <section class="about-stage about-stage--opportunities" id="aboutStageOpportunities" aria-label="Возможности" hidden>
             <div class="about-stage-shell">
-              <div class="about-features-grid">
-                <div class="about-feature"><strong>Расширенная аналитика</strong><span>Дополнительные инструменты анализа текстов.</span></div>
-                <div class="about-feature"><strong>Экспорт результатов</strong><span>Сохранение данных для дальнейшей работы.</span></div>
-                <div class="about-feature"><strong>API — в разработке</strong><span>Планируемая интеграция с другими сервисами.</span></div>
-                <div class="about-feature"><strong>Бизнес-панель</strong><span>Упоминания, инфоповоды и подготовка материалов.</span></div>
+              <div class="about-audiences">
+                <article class="about-audience about-audience--research">
+                  <div class="about-audience-top"><span>PRO / 01</span><h2>Исследователям</h2></div>
+                  <div class="about-research-visual" aria-hidden="true">
+                    <span>Публикация СМИ</span><p>В тексте найден <mark>спорный маркер</mark></p>
+                    <div class="about-research-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                  </div>
+                  <div class="about-audience-points"><span>Автоматический анализ публикаций</span><span>Ручная проверка текста и маркеров</span><span>Фильтры и экспорт результата JSON</span></div>
+                  <a href="analysis.html">Открыть анализ →</a>
+                </article>
+                <article class="about-audience about-audience--business">
+                  <div class="about-audience-top"><span>PRO / 02</span><h2>Для бизнеса</h2></div>
+                  <div class="about-business-visual" aria-hidden="true">
+                    <div class="about-business-chart"><span>Упоминания</span><div class="about-business-columns"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+                    <div class="about-business-lines"><span>Инфоповоды</span><i></i><i></i><i></i></div>
+                  </div>
+                  <div class="about-audience-points"><span>Мониторинг упоминаний СМИ</span><span>Отраслевые темы и инфоповоды</span><span>Черновики пресс-релизов и PDF-отчёт</span></div>
+                  <a href="business.html">Открыть бизнес-панель →</a>
+                </article>
               </div>
-              <a class="about-pro-cta" href="analysis.html" data-pro-gateway aria-haspopup="dialog">Узнать о возможностях PRO</a>
             </div>
           </section>
 
-          <section class="about-stage" id="aboutStageCreator" aria-label="Создатель" hidden>
+          <section class="about-stage about-stage--creator" id="aboutStageCreator" aria-label="Создатель" hidden>
             <div class="about-stage-shell">
               <div class="about-creator-content">
                 <img class="about-author-avatar" src="about-author-avatar.png" width="180" height="180"
                      alt="Стилизованный портрет автора проекта" loading="lazy">
                 <div class="about-creator-detail">
-                  <h3>Артём Ш.</h3>
+                  <h2>Артём Ш.</h2>
                   <p>Журналист, исследователь манипуляций в медиа.</p>
                   <div class="about-creator-links">
                     <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.6l6.9 2.5L18.4 6 11.7 14l.2 6 3.6-4.2 3.7 2.8z" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg>Telegram</a>
@@ -1303,27 +1318,18 @@
             </div>
           </section>
         </div>
-        <div class="about-monitor-choices" aria-label="Каналы для аудитории">
-          <button type="button" class="about-choose" data-about-channel="journalist"
-                  aria-controls="aboutStageJournalist" aria-pressed="false">Для журналиста</button>
-          <button type="button" class="about-choose" data-about-channel="reader"
-                  aria-controls="aboutStageReader" aria-pressed="false">Для читателя</button>
-        </div>
+        <nav class="about-monitor-choices" aria-label="Разделы презентации">
+          <button type="button" class="about-choose" data-about-channel="principles" aria-controls="aboutStagePrinciples" aria-pressed="false">Принципы</button>
+          <button type="button" class="about-choose" data-about-channel="opportunities" aria-controls="aboutStageOpportunities" aria-pressed="false">Возможности</button>
+          <button type="button" class="about-choose" data-about-channel="creator" aria-controls="aboutStageCreator" aria-pressed="false">Создатель</button>
+        </nav>
       </div>
-      <nav class="about-channel-nav" aria-label="Разделы презентации">
-        <button type="button" class="about-channel-tab" data-about-channel="principles"
-                aria-controls="aboutStagePrinciples" aria-pressed="false">Принципы</button>
-        <button type="button" class="about-channel-tab" data-about-channel="opportunities"
-                aria-controls="aboutStageOpportunities" aria-pressed="false">Возможности</button>
-        <button type="button" class="about-channel-tab" data-about-channel="creator"
-                aria-controls="aboutStageCreator" aria-pressed="false">Создатель</button>
-      </nav>
     </section>
   </main>
 </div>
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261030-4"></script>
+<script defer src="about-experience.js?v=20261030-5"></script>
 </body>
 </html>
