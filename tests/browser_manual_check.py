@@ -1052,35 +1052,41 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # About: the logo starts a narrated story and three channels fill the screen.
+        # About: authored HTML film auto-plays inside the TV; original text/markers remain.
         page.goto(base + "/about.html")
         screen = page.locator("#aboutMonitorScreen")
         intro = page.locator("#aboutStageIntro")
-        story = page.locator("#aboutStory")
+        film = page.locator("#aboutFilm")
         assert intro.is_visible()
-        assert page.locator(".story-brand-mark").inner_text() == "МЕДИА.СТРАЖ"
-        assert story.get_attribute("data-step") in ("logo", "news")
+        assert film.get_attribute("data-film-status") in ("playing", "complete")
+        assert page.locator(".about-film-logo").inner_text() == "МЕДИА.СТРАЖ"
+        assert page.locator(".about-film-news p").count() == 3
+        assert page.locator(".about-film-chip").all_inner_texts() == [
+            "Ссылка на безымянных экспертов", "Эмоциональное давление", "Нагнетание угрозы"]
+        assert page.locator(".about-film-meter small b").inner_text() == "78%"
+        assert page.locator(".about-film-demo").inner_text() == "· Демонстрационный пример"
         assert page.locator(".about-stage").count() == 4
         assert page.locator('[data-about-channel]').count() == 3
         assert page.locator(".about-monitor-choices .about-choose").all_inner_texts() == [
             "Принципы", "Возможности", "Создатель"]
         assert page.locator(".about-channel-nav,.about-stage-heading,.about-side").count() == 0
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-        speed = page.locator("#storySpeed")
-        replay = page.locator("#storyReplay")
+        speed = page.locator("#aboutFilmSpeed")
+        replay = page.locator("#aboutFilmReplay")
         assert speed.inner_text() == "Скорость ×1"
         speed.click()
         assert speed.inner_text() == "Скорость ×2"
         speed.click()
         assert speed.inner_text() == "Скорость ×3"
         replay.click()
-        assert story.get_attribute("data-step") in ("logo", "news")
+        assert film.get_attribute("data-film-status") == "playing"
         page.wait_for_function(
-            'document.querySelector("#aboutStory").dataset.step === "done"', timeout=15000)
-        assert page.locator("#storyRatingNumber").inner_text() == "36%"
-        assert page.locator("#storyScanPercent").inner_text() == "100%"
+            'document.querySelector("#aboutFilm").dataset.filmStatus === "complete"', timeout=11000)
+        # Replaying resets all CSS animations, rather than only the label.
         replay.click()
-        assert story.get_attribute("data-step") == "logo"
+        assert film.get_attribute("data-film-status") == "playing"
+        assert film.evaluate(
+            'el => el.getAnimations({subtree:true}).length') >= 10
         principles = page.locator('[data-about-channel="principles"]')
         principles.click()
         assert page.locator("#aboutStagePrinciples").is_visible()
@@ -1138,7 +1144,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".story-brand-mark").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
+        assert page.locator(".about-film-logo").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1450,17 +1456,19 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#honorBoardModal, #openHonorBoard").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
             assert "support-type-reveal" in p.locator(".typing-line--second").evaluate("el => getComputedStyle(el).animationName")
-            # Mobile: three TV channels, replay and speed controls work by touch.
+            # Mobile: the supplied film remains readable and interactive.
             p.goto(base + "/about.html")
             assert p.locator("#aboutStageIntro").is_visible()
-            assert p.locator(".story-brand-mark").inner_text() == "МЕДИА.СТРАЖ"
+            assert p.locator(".about-film-logo").inner_text() == "МЕДИА.СТРАЖ"
             assert p.locator(".about-choose").count() == 3
             assert p.locator(".about-channel-tab,.about-channel-nav").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-            p.locator("#storySpeed").click()
-            assert p.locator("#storySpeed").inner_text() == "Скорость ×2"
-            p.locator("#storyReplay").click()
-            assert p.locator("#aboutStory").get_attribute("data-step") == "logo"
+            assert p.locator("#aboutFilmReplay").is_visible()
+            assert p.locator("#aboutFilmSpeed").is_visible()
+            p.locator("#aboutFilmSpeed").click()
+            assert p.locator("#aboutFilmSpeed").inner_text() == "Скорость ×2"
+            p.locator("#aboutFilmReplay").click()
+            assert p.locator("#aboutFilm").get_attribute("data-film-status") == "playing"
             for channel,stage in (
                     ("principles","aboutStagePrinciples"),
                     ("opportunities","aboutStageOpportunities"),

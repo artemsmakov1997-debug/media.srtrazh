@@ -1,6 +1,7 @@
-/* МЕДИА.СТРАЖ — interactive three-channel TV and narrated demo. */
+/* МЕДИА.СТРАЖ / about — author-supplied HTML film with three TV channels. */
 (() => {
   'use strict';
+
   const burger = document.getElementById('burgerBtn');
   const menu = document.getElementById('navLinks');
   if (burger && menu) {
@@ -29,175 +30,182 @@
     opportunities: document.getElementById('aboutStageOpportunities'),
     creator: document.getElementById('aboutStageCreator')
   };
-  const buttons = Array.from(root.querySelectorAll('[data-about-channel]'));
-  const story = document.getElementById('aboutStory');
-  const speedButton = document.getElementById('storySpeed');
-  const replayButton = document.getElementById('storyReplay');
-  const scanFill = document.getElementById('storyScanFill');
-  const scanPercent = document.getElementById('storyScanPercent');
-  const ratingFill = document.getElementById('storyRatingFill');
-  const ratingNumber = document.getElementById('storyRatingNumber');
-  const status = document.getElementById('aboutStoryStatus');
+  const buttons = [...root.querySelectorAll('[data-about-channel]')];
+  const film = document.getElementById('aboutFilm');
+  const replay = document.getElementById('aboutFilmReplay');
+  const speed = document.getElementById('aboutFilmSpeed');
+  const finale = film?.querySelector('.about-film-tag');
 
-  if (!screen || !story || !speedButton || !replayButton || !scanFill ||
-      !scanPercent || !ratingFill || !ratingNumber || !status ||
-      Object.values(stages).some(value => !value) || buttons.length !== 3) return;
+  if (!screen || Object.values(stages).some(stage => !stage) ||
+      buttons.length !== 3 || !film || !replay || !speed || !finale) return;
 
-  const channelLabels = new Map(buttons.map(b => [b,b.textContent.trim()]));
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const phases = [
-    {time:0, name:'logo',label:'МЕДИА.СТРАЖ / Запуск'},
-    {time:1500,name:'news',label:'01 / Новость опубликована на сайте издания'},
-    {time:3700,name:'collect',label:'02 / Алгоритм получает сообщение'},
-    {time:5400,name:'scan',label:'03 / Сканирование формулировок'},
-    {time:7800,name:'found',label:'03 / Найдены два спорных маркера'},
-    {time:10100,name:'rating',label:'04 / Пересчёт показателя'},
-    {time:12300,name:'done',label:'04 / Рейтинг обновлён · Демонстрационный пример'}
-  ];
-  const totalDuration = phases[phases.length - 1].time;
-  const speeds = [1,2,3];
-  let speedIndex=0;
-  let storyFrame=null;
-  let storyElapsed=0;
-  let storyAnchor=0;
-  let playing=false;
-  let activeChannel='intro';
-  let channelTimer=null;
-  let channelRevision=0;
+  const channelLabels = new Map(buttons.map(button => [button, button.textContent.trim()]));
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rates = [1, 2, 3];
+  const filmDuration = 12000;  // Original author-supplied loop: 12 seconds.
+  let rateIndex = 0;
+  let filmTimer = null;
+  let filmStart = 0;
+  let filmElapsed = 0; // Media milliseconds elapsed at the last (re)base.
+  let filmRunning = false;
+  let filmPaused = false;
+  let filmRevision = 0;
 
-  function setStoryVisual(elapsed) {
-    let phase=phases[0];
-    for (const candidate of phases) {
-      if (elapsed>=candidate.time) phase=candidate;
-      else break;
-    }
-    if (story.dataset.step!==phase.name) {
-      story.dataset.step=phase.name;
-      status.textContent=phase.label;
-    }
-    const scanProgress=Math.min(1,Math.max(0,(elapsed-5400)/(7800-5400)));
-    scanFill.style.width=Math.round(scanProgress*100)+'%';
-    scanPercent.textContent=Math.round(scanProgress*100)+'%';
-    const ratingProgress=Math.min(1,Math.max(0,(elapsed-10100)/(12300-10100)));
-    ratingFill.style.width=(ratingProgress*36).toFixed(1)+'%';
-    ratingNumber.textContent=Math.round(ratingProgress*36)+'%';
-    const phaseIndex=phases.indexOf(phase);
-    story.querySelectorAll('[data-story-part]').forEach((element,index) => {
-      const range=[1,2,3,5];
-      element.classList.toggle('is-complete',phaseIndex>range[index]);
-    });
+  let activeChannel = 'intro';
+  let channelTimer = null;
+  let channelRevision = 0;
+
+  function cancelFilmTimer() {
+    if (filmTimer !== null) clearTimeout(filmTimer);
+    filmTimer = null;
   }
-  function pauseStory() {
-    if (storyFrame!==null)cancelAnimationFrame(storyFrame);
-    storyFrame=null;
-    playing=false;
+  function filmAnimations() {
+    return film.getAnimations({subtree:true});
   }
-  function tick(now) {
-    if (!playing || activeChannel!=='intro')return;
-    const elapsed=Math.min(totalDuration,storyElapsed+(now-storyAnchor)*speeds[speedIndex]);
-    setStoryVisual(elapsed);
-    if (elapsed>=totalDuration) {
-      storyElapsed=totalDuration;
-      playing=false;
-      storyFrame=null;
-      return;
+  function playAllFilmAnimations() {
+    for (const animation of filmAnimations()) {
+      animation.playbackRate = rates[rateIndex];
+      animation.play();
     }
-    storyFrame=requestAnimationFrame(tick);
   }
-  function playFromStart() {
-    pauseStory();
-    storyElapsed=0;
-    story.style.setProperty('--story-transition',(560/speeds[speedIndex]).toFixed(0)+'ms');
-    if (reducedMotion) {
-      setStoryVisual(totalDuration);
-      return;
+  function scheduleFilmLoop(revision) {
+    cancelFilmTimer();
+    if (reduceMotion || !filmRunning || filmPaused) return;
+    const remaining = Math.max(1, (filmDuration - filmElapsed) / rates[rateIndex]);
+    filmTimer = setTimeout(() => {
+      if (revision === filmRevision && activeChannel === 'intro' && !document.hidden)
+        startFilm();
+    }, remaining);
+  }
+  function startFilm() {
+    cancelFilmTimer();
+    const revision = ++filmRevision;
+    filmRunning = true;
+    filmPaused = false;
+    filmElapsed = 0;
+    film.classList.remove('is-playing');
+    // Reflow is deliberate: every CSS keyframe must replay from the start.
+    void film.offsetWidth;
+    film.classList.add('is-playing');
+    film.dataset.filmStatus = reduceMotion ? 'complete' : 'playing';
+    if (reduceMotion) return;
+    playAllFilmAnimations();
+    filmStart = performance.now();
+    scheduleFilmLoop(revision);
+  }
+  function stopFilm() {
+    cancelFilmTimer();
+    ++filmRevision;
+    filmRunning = false;
+    filmPaused = false;
+    filmElapsed = 0;
+    film.classList.remove('is-playing');
+    film.dataset.filmStatus = 'ready';
+  }
+  function pauseFilm() {
+    if (reduceMotion || !filmRunning || filmPaused) return;
+    filmElapsed = Math.min(filmDuration,
+      filmElapsed + (performance.now() - filmStart) * rates[rateIndex]);
+    filmPaused = true;
+    cancelFilmTimer();
+    for (const animation of filmAnimations()) animation.pause();
+  }
+  function resumeFilm() {
+    if (reduceMotion || !filmRunning || !filmPaused || activeChannel !== 'intro') return;
+    filmPaused = false;
+    filmStart = performance.now();
+    playAllFilmAnimations();
+    scheduleFilmLoop(filmRevision);
+  }
+
+  speed.addEventListener('click', () => {
+    if (filmRunning && !filmPaused && !reduceMotion) {
+      filmElapsed = Math.min(filmDuration,
+        filmElapsed + (performance.now() - filmStart) * rates[rateIndex]);
+      filmStart = performance.now();
     }
-    setStoryVisual(0);
-    storyAnchor=performance.now();
-    playing=true;
-    storyFrame=requestAnimationFrame(tick);
-  }
-  function changeSpeed() {
-    if (playing) {
-      const now=performance.now();
-      storyElapsed=Math.min(totalDuration,storyElapsed+(now-storyAnchor)*speeds[speedIndex]);
-      storyAnchor=now;
+    rateIndex = (rateIndex + 1) % rates.length;
+    const next = rates[rateIndex];
+    speed.textContent = 'Скорость ×' + next;
+    speed.setAttribute('aria-label', 'Скорость воспроизведения ×' + next + '. Изменить скорость');
+    if (!reduceMotion) {
+      for (const animation of filmAnimations()) animation.playbackRate = next;
+      scheduleFilmLoop(filmRevision);
     }
-    speedIndex=(speedIndex+1)%speeds.length;
-    speedButton.textContent='Скорость ×'+speeds[speedIndex];
-    speedButton.setAttribute('aria-label','Скорость воспроизведения ×'+speeds[speedIndex]+'. Нажмите для изменения');
-    story.style.setProperty('--story-transition',(560/speeds[speedIndex]).toFixed(0)+'ms');
-    setStoryVisual(storyElapsed);
-  }
-  speedButton.addEventListener('click',changeSpeed);
-  replayButton.addEventListener('click',playFromStart);
+  });
+
+  replay.addEventListener('click', startFilm);
+
+  finale.addEventListener('animationend', event => {
+    if (event.target !== finale || event.animationName !== 'about-film-up') return;
+    if (filmRunning && activeChannel === 'intro') film.dataset.filmStatus = 'complete';
+  });
 
   function show(channel) {
-    if (!Object.prototype.hasOwnProperty.call(stages,channel))return;
-    const previous=activeChannel;
-    if (channelTimer!==null)clearTimeout(channelTimer);
-    const revision=++channelRevision;
-    const animate=previous!==channel&&!reducedMotion;
-    activeChannel=channel;
-    if (channel!=='intro')pauseStory();
-    for (const [name,stage] of Object.entries(stages)) {
-      stage.classList.remove('is-entering','is-leaving');
-      if (name===channel) {
-        stage.hidden=false;
-        stage.inert=false;
+    if (!Object.prototype.hasOwnProperty.call(stages, channel)) return;
+    const previous = activeChannel;
+    if (channelTimer !== null) clearTimeout(channelTimer);
+    const revision = ++channelRevision;
+    const animate = previous !== channel && !reduceMotion;
+    activeChannel = channel;
+    if (channel !== 'intro') stopFilm();
+
+    Object.entries(stages).forEach(([name, stage]) => {
+      stage.classList.remove('is-entering', 'is-leaving');
+      if (name === channel) {
+        stage.hidden = false;
+        stage.inert = false;
         stage.removeAttribute('aria-hidden');
-        stage.scrollTop=0;
-      } else if (animate&&name===previous) {
-        stage.hidden=false;
-        stage.inert=true;
-        stage.setAttribute('aria-hidden','true');
+        stage.scrollTop = 0;
+      } else if (animate && name === previous) {
+        stage.hidden = false;
+        stage.inert = true;
+        stage.setAttribute('aria-hidden', 'true');
         stage.classList.add('is-leaving');
       } else {
-        stage.hidden=true;
-        stage.inert=true;
-        stage.setAttribute('aria-hidden','true');
+        stage.hidden = true;
+        stage.inert = true;
+        stage.setAttribute('aria-hidden', 'true');
       }
-    }
+    });
+
     if (animate) {
       void stages[channel].offsetWidth;
       stages[channel].classList.add('is-entering');
-      channelTimer=setTimeout(() => {
-        if (channelRevision!==revision)return;
-        stages[previous].hidden=true;
+      channelTimer = setTimeout(() => {
+        if (revision !== channelRevision) return;
+        stages[previous].hidden = true;
         stages[previous].classList.remove('is-leaving');
         stages[channel].classList.remove('is-entering');
-        channelTimer=null;
-      },480);
+        channelTimer = null;
+      }, 480);
     }
     buttons.forEach(button => {
-      const selected=button.dataset.aboutChannel===channel;
-      const original=channelLabels.get(button);
-      button.textContent=selected?'Назад':original;
-      button.setAttribute('aria-pressed',String(selected));
-      button.setAttribute('aria-label',selected?'Назад — '+original:original);
+      const selected = button.dataset.aboutChannel === channel;
+      const original = channelLabels.get(button);
+      button.textContent = selected ? 'Назад' : original;
+      button.setAttribute('aria-pressed', String(selected));
+      button.setAttribute('aria-label', selected ? 'Назад — ' + original : original);
     });
-    screen.dataset.activeChannel=channel;
-    if (channel==='intro' && (previous!=='intro'||!story.dataset.step))playFromStart();
+    screen.dataset.activeChannel = channel;
+    if (channel === 'intro' && (previous !== 'intro' || !filmRunning)) startFilm();
   }
-  buttons.forEach(button => button.addEventListener('click',() => {
-    const channel=button.dataset.aboutChannel;
-    show(activeChannel===channel?'intro':channel);
+
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const channel = button.dataset.aboutChannel;
+    show(activeChannel === channel ? 'intro' : channel);
   }));
-  document.addEventListener('keydown',event => {
-    if (event.key!=='Escape'||activeChannel==='intro')return;
-    if (document.querySelector('.pro-gateway-overlay:not([hidden])'))return;
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || activeChannel === 'intro') return;
+    if (document.querySelector('.pro-gateway-overlay:not([hidden])')) return;
     show('intro');
   });
-  document.addEventListener('visibilitychange',() => {
-    if (document.hidden&&playing) {
-      storyElapsed=Math.min(totalDuration,storyElapsed+(performance.now()-storyAnchor)*speeds[speedIndex]);
-      pauseStory();
-    } else if (!document.hidden&&activeChannel==='intro'&&!playing&&storyElapsed<totalDuration&&!reducedMotion) {
-      storyAnchor=performance.now();
-      playing=true;
-      storyFrame=requestAnimationFrame(tick);
-    }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseFilm();
+    else resumeFilm();
   });
+
   show('intro');
-  playFromStart();
 })();

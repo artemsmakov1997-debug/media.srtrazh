@@ -1165,6 +1165,7 @@
   }
 </style>
   <link rel="stylesheet" href="about-experience.css?v=20261030-5">
+  <link rel="stylesheet" href="about-intro-film.css?v=20261030-1">
 </head>
 
 <body>
@@ -1201,52 +1202,34 @@
     <section class="about-experience" data-about-experience aria-label="Интерактивная презентация проекта">
       <div class="about-monitor">
         <div class="about-monitor-screen" id="aboutMonitorScreen" aria-label="Экран МЕДИА.СТРАЖ">
-          <section class="about-stage about-stage--intro" id="aboutStageIntro" aria-label="Как работает МЕДИА.СТРАЖ">
-            <div class="story-demo" id="aboutStory" data-step="logo" style="--story-transition:560ms;">
-              <div class="story-brand" id="aboutMainTitle">
-                <h1 class="story-brand-mark">МЕДИА.<span>СТРАЖ</span></h1>
-                <p>Анализ публикаций СМИ и выявление спорных формулировок</p>
+          <section class="about-stage about-stage--intro" id="aboutStageIntro" aria-label="Анимация МЕДИА.СТРАЖ">
+            <div class="about-film" id="aboutFilm" data-film-status="ready">
+              <div class="about-film-scene">
+                <div class="about-film-src">Анализ публикации <span class="about-film-demo">· Демонстрационный пример</span></div>
+                <div class="about-film-news">
+                  <p class="about-film-l1"><span class="about-film-highlight about-film-h1">Эксперты давно подтвердили</span>, что ситуация выходит из-под контроля.</p>
+                  <p class="about-film-l2">Всем уже ясно, что <span class="about-film-highlight about-film-h2">шокирующая правда скрыта</span> от общества.</p>
+                  <p class="about-film-l3">Иначе <span class="about-film-highlight about-film-h3">последствия будут необратимы</span> для каждого из нас.</p>
+                  <div class="about-film-scan" aria-hidden="true"></div>
+                </div>
+                <div class="about-film-chips" aria-label="Найденные признаки">
+                  <span class="about-film-chip about-film-c1">Ссылка на безымянных экспертов</span>
+                  <span class="about-film-chip about-film-c2">Эмоциональное давление</span>
+                  <span class="about-film-chip about-film-c3">Нагнетание угрозы</span>
+                </div>
+                <div class="about-film-meter">
+                  <small><span>Рейтинг издания · условный пример</span><b>78%</b></small>
+                  <div class="about-film-track"><div class="about-film-fill"></div></div>
+                </div>
               </div>
-              <div class="story-process">
-                <div class="story-progress" aria-hidden="true">
-                  <span data-story-part="news">01 / Публикация</span>
-                  <span data-story-part="collect">02 / Сбор</span>
-                  <span data-story-part="scan">03 / Анализ</span>
-                  <span data-story-part="rating">04 / Рейтинг</span>
-                </div>
-                <div class="story-frame story-frame--news">
-                  <div class="story-frame-top"><strong>НОВОСТНОЕ ИЗДАНИЕ</strong><span>Демонстрация</span></div>
-                  <div class="story-article">
-                    <span class="story-article-category">Экономика / Сегодня</span>
-                    <p>Экономика <span>рухнула</span> из-за <span>бездарного</span> управления</p>
-                    <div class="story-article-lines" aria-hidden="true"><i></i><i></i><i></i></div>
-                  </div>
-                </div>
-                <div class="story-frame story-frame--collect">
-                  <div class="story-collect-line" aria-hidden="true"><span></span></div>
-                  <span class="story-unit">МЕДИА.СТРАЖ / СБОР</span>
-                  <strong>Публикация получена</strong>
-                  <p>Сообщение поступило на анализ</p>
-                </div>
-                <div class="story-frame story-frame--scan">
-                  <div class="story-scan-head"><strong>АНАЛИЗ ФОРМУЛИРОВОК</strong><span id="storyScanPercent">0%</span></div>
-                  <div class="story-scan-progress" aria-hidden="true"><i id="storyScanFill"></i></div>
-                  <p class="story-scan-quote">Экономика <mark>рухнула</mark> из-за <mark>бездарного</mark> управления</p>
-                  <div class="story-trigger-caption">
-                    <span>Катастрофизация</span><span>Оценочная лексика</span>
-                  </div>
-                </div>
-                <div class="story-frame story-frame--rating">
-                  <span class="story-unit">РЕЙТИНГ / ДЕМОНСТРАЦИЯ</span>
-                  <div class="story-rating-main"><strong id="storyRatingNumber">0%</strong><span>публикаций с найденными признаками</span></div>
-                  <div class="story-rating-track" aria-hidden="true"><i id="storyRatingFill"></i></div>
-                  <p>Рейтинг обновлён. Найденные признаки не доказывают манипуляцию.</p>
-                </div>
-                <p class="story-status" id="aboutStoryStatus" role="status" aria-live="off">МЕДИА.СТРАЖ / Запуск</p>
+              <div class="about-film-end">
+                <h1 class="about-film-logo" id="aboutMainTitle">МЕДИА.<span>СТРАЖ</span></h1>
+                <div class="about-film-line" aria-hidden="true"></div>
+                <p class="about-film-tag">Анализ манипулятивных техник в СМИ</p>
               </div>
-              <div class="story-controls" role="group" aria-label="Управление демонстрацией">
-                <button type="button" id="storySpeed" aria-label="Ускорить демонстрацию">Скорость ×1</button>
-                <button type="button" id="storyReplay">Повторить</button>
+              <div class="about-film-controls" role="group" aria-label="Управление роликом">
+                <button type="button" id="aboutFilmSpeed">Скорость ×1</button>
+                <button type="button" id="aboutFilmReplay">Повторить</button>
               </div>
             </div>
           </section>
@@ -1330,6 +1313,6 @@
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261030-5"></script>
+<script defer src="about-experience.js?v=20261030-6"></script>
 </body>
 </html>
