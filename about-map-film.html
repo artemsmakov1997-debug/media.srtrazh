@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>МЕДИА.СТРАЖ — ролик с картой</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070b;--cy:#22d3ee;--red:#ef4444;--mut:#a8b0bd;--tx:#f4f7fb;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:16px}
+.stage{container-type:inline-size;position:relative;width:min(100%,960px);aspect-ratio:16/9;overflow:hidden;border-radius:20px;border:1px solid #1f2937;
+background:radial-gradient(circle at 20% 0%,rgba(34,211,238,.10),transparent 40%),radial-gradient(circle at 85% 100%,rgba(239,68,68,.09),transparent 40%),#070b14;box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.scene,.end{position:absolute;inset:0}
+.top{position:absolute;left:5cqw;top:3.6cqw;display:flex;align-items:center;gap:1.2cqw;font:700 1.45cqw Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.dot{width:1cqw;height:1cqw;border-radius:50%;background:var(--cy);box-shadow:0 0 1cqw var(--cy);animation:blink 1.2s infinite}
+.cnt{position:absolute;right:5cqw;top:2.4cqw;display:flex;align-items:center;gap:1.6cqw}
+.big{font:900 5.4cqw/1 Montserrat,sans-serif;color:var(--red);text-shadow:0 0 2cqw rgba(239,68,68,.3);letter-spacing:-.03em;min-width:7.6cqw;text-align:right}
+.lab{font-size:1.25cqw;line-height:1.35;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.lab span{color:var(--cy);font-weight:700}
+.map{position:absolute;left:5cqw;right:5cqw;top:13cqw;bottom:4cqw;width:90cqw;height:39.25cqw}
+.map svg{width:100%;height:100%;display:block;overflow:visible}
+.base{fill:rgba(34,211,238,.035);stroke:rgba(34,211,238,.5);stroke-width:1.4;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.lit{fill:rgba(34,211,238,.17);stroke:#22d3ee;stroke-width:1.6;stroke-linejoin:round}
+.grid line{stroke:rgba(148,163,184,.09);stroke-width:1}
+.core{fill:var(--red);opacity:0;filter:drop-shadow(0 0 6px rgba(239,68,68,.9))}
+.ring{fill:none;stroke:var(--red);stroke-width:2;opacity:0;transform-box:fill-box;transform-origin:center}
+.hit .core{opacity:1}
+.hit .ring{animation:ping 1.5s ease-out}
+.tick{position:absolute;left:5cqw;bottom:3.2cqw;min-height:3.6cqw;box-sizing:border-box;display:flex;align-items:center;gap:1cqw;padding:.7cqw 1.6cqw;border:1px solid var(--red);border-radius:99px;color:#fecaca;font-size:1.45cqw;font-weight:600;opacity:0;transition:opacity .25s}
+.tick.on{opacity:1}
+.tick i{width:.9cqw;height:.9cqw;border-radius:50%;background:var(--red);flex:0 0 auto}
+.end{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw;opacity:0}
+.logo{font:900 8cqw/1 Montserrat,sans-serif;letter-spacing:.08em;text-shadow:0 0 3cqw rgba(34,211,238,.25)}
+.logo span{color:var(--cy)}
+.line{width:0;height:.3cqw;background:linear-gradient(90deg,transparent,var(--cy),transparent)}
+.tag{font-size:2cqw;color:var(--mut);letter-spacing:.04em}
+.url{margin-top:.6cqw;padding:.9cqw 2.4cqw;border:1px solid rgba(34,211,238,.5);border-radius:99px;color:var(--cy);font:600 1.7cqw Inter,sans-serif;background:rgba(34,211,238,.07)}
+button{min-height:44px;padding:0 22px;border-radius:12px;border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:var(--cy);font:600 14px Inter,sans-serif;cursor:pointer}
+button:hover{background:rgba(34,211,238,.16)}
+.go .scene{animation:out .7s 7.6s both}
+.go .top{animation:up .6s .2s both}
+.go .cnt{animation:up .6s .5s both}
+.go .grid{animation:fade 1s .2s both}
+.go .base{animation:draw 2s .3s ease-out both}
+.go .end{animation:fade .8s 8.3s both}
+.go .logo{animation:pop 1.1s 8.3s cubic-bezier(.22,1,.36,1) both}
+.go .line{animation:wide 1.2s 8.6s cubic-bezier(.22,1,.36,1) both}
+.go .tag{animation:up .8s 9.1s both}
+.go .url{animation:up .8s 9.6s both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes up{from{opacity:0;transform:translateY(1.2cqw)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes out{to{opacity:0}}
+@keyframes pop{from{transform:scale(.9);letter-spacing:.3em}to{transform:scale(1);letter-spacing:.08em}}
+@keyframes wide{to{width:40cqw}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes ping{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(6)}}
+@media (prefers-reduced-motion:reduce){.go *{animation-duration:.01s!important;animation-delay:0s!important}.go .scene{display:none}}
+
+/* Embedded film: preserve the 16:9 composition on desktop; fill the portrait TV on phones. */
+html,body{width:100%;height:100%;overflow:hidden}
+body{min-height:0;height:100vh;display:flex;align-items:center;justify-content:center;gap:0;padding:0}
+.stage{width:min(100vw,177.7778vh);height:auto;aspect-ratio:16/9;max-width:none;border:0;border-radius:0;box-shadow:none}
+#replay{display:none}
+@media(max-width:680px){
+  .stage{width:100%;height:100%;aspect-ratio:auto}
+  .top{left:6%;top:7%;gap:9px;font-size:11px;letter-spacing:.12em}
+  .dot{width:7px;height:7px}
+  .cnt{top:15%;right:6%;gap:10px}
+  .big{font-size:clamp(35px,10vw,43px);min-width:65px}
+  .lab{font-size:10px;line-height:1.35}
+  .map{top:30%;left:3%;right:3%;bottom:auto;width:94%;height:45%}
+  .tick{left:6%;bottom:17%;max-width:88%;min-height:32px;padding:8px 12px;gap:8px;font-size:11px;line-height:1.35}
+  .tick i{width:7px;height:7px}
+  .end{gap:14px;padding:0 10px;box-sizing:border-box}
+  .logo{font-size:clamp(21px,7vw,33px);letter-spacing:.025em;white-space:nowrap}
+  .tag{font-size:clamp(11px,3.15vw,13px);text-align:center}
+  .url{font-size:12px;padding:8px 16px}
+  .line{height:2px}
+  .go .line{animation-name:wide-mobile}
+  @keyframes wide-mobile{to{width:70%}}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="scene">
+    <div class="top"><span class="dot"></span>Сканирование публикаций</div>
+    <div class="cnt"><div class="big" id="cnt">0</div><div class="lab">сообщений с<br><span>признаками</span></div></div>
+    <div class="map">
+      <svg viewBox="0 0 1000 547" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <clipPath id="sc"><rect id="scr" x="0" y="-20" width="0" height="600"/></clipPath>
+          <linearGradient id="tr" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee" stop-opacity="0"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".28"/></linearGradient>
+        </defs>
+        <g class="grid" id="grid"></g>
+        <path class="base" pathLength="1" d="M847 33L844 25L853 29L851 34L847 33ZM119 384L110 387L102 383L84 386L82 402L74 408L71 428L62 427L58 429L56 425L57 413L53 404L55 398L50 389L44 385L45 382L41 367L29 346L27 346L28 329L25 316L27 305L33 309L47 308L48 301L61 308L64 306L57 301L62 297L68 299L74 305L79 304L83 297L91 295L94 293L90 280L86 276L88 267L82 263L80 251L82 250L85 244L82 238L85 235L89 235L92 226L85 217L82 217L80 214L90 204L92 204L95 210L99 211L101 207L100 201L102 201L103 196L108 187L112 187L117 183L116 175L112 172L115 170L114 161L125 151L126 146L132 147L142 139L151 140L153 138L163 141L165 131L197 136L205 134L208 122L217 119L223 109L235 107L246 93L257 92L261 81L270 77L282 84L289 86L286 97L291 110L291 135L288 142L281 148L272 148L263 143L257 117L254 115L250 128L234 140L235 155L241 152L243 145L250 145L252 161L257 163L263 154L281 155L284 160L284 167L293 163L296 154L304 150L308 141L315 155L311 163L305 159L300 164L299 171L307 175L314 169L348 174L351 177L342 181L346 186L352 184L359 190L369 190L369 200L379 195L379 186L384 183L394 195L406 224L412 219L411 211L412 208L408 204L412 199L417 184L430 176L439 166L443 165L451 173L449 181L440 189L441 195L439 204L430 221L432 232L426 239L409 253L414 258L418 254L425 253L429 247L435 243L435 234L441 226L436 223L438 216L447 204L446 191L457 185L459 175L462 176L461 184L454 196L458 200L460 190L468 187L477 189L483 199L482 187L486 172L494 171L503 174L512 174L510 166L516 158L520 158L529 152L538 152L540 148L549 147L552 151L560 143L566 143L567 137L570 131L577 124L583 129L579 133L587 134L588 141L591 137L601 136L610 142L614 147L614 154L600 173L612 177L615 174L619 183L620 179L625 175L639 174L641 180L659 177L655 166L664 166L670 163L679 167L685 175L685 181L694 189L703 191L701 176L710 178L715 171L724 170L725 165L732 163L722 154L724 146L760 129L768 133L784 132L795 117L803 111L809 112L817 119L824 117L826 110L831 103L838 97L842 88L857 87L856 80L846 79L842 74L853 62L857 53L869 43L877 39L928 59L931 69L927 75L936 73L948 74L952 73L958 75L960 78L953 87L955 108L953 114L960 140L964 145L951 149L950 169L944 169L945 178L938 184L944 191L950 206L954 209L962 204L977 217L974 223L981 233L987 234L984 249L995 261L989 273L998 284L1000 301L991 297L948 269L937 254L935 243L930 239L935 228L926 190L925 173L912 158L909 165L915 175L917 197L901 191L893 206L898 234L908 236L893 258L887 251L877 257L875 268L858 279L842 297L837 332L829 375L841 370L849 375L857 374L858 365L865 361L884 367L891 376L893 391L902 405L911 426L910 450L913 460L905 512L897 526L891 530L883 527L875 542L875 547L873 545L870 539L874 536L868 521L861 511L866 503L878 500L877 484L872 470L873 463L871 450L860 461L855 470L843 476L834 466L820 462L804 464L795 453L774 431L765 429L752 430L742 434L733 439L729 448L734 450L737 457L733 462L730 479L732 484L722 496L711 494L700 498L695 494L689 494L679 506L667 510L660 515L648 515L640 516L634 509L624 504L615 503L596 509L583 503L581 493L563 488L554 482L545 496L548 505L539 514L526 510L518 509L512 502L503 501L496 496L482 500L463 510L450 511L447 502L435 501L433 495L427 491L425 482L421 478L408 479L399 468L392 473L385 434L379 421L383 418L360 423L352 420L356 414L348 405L339 405L343 391L331 382L322 384L302 379L297 381L269 369L264 371L263 382L255 381L254 385L244 386L250 401L245 406L235 398L230 400L225 388L214 380L203 379L190 349L180 341L156 340L149 346L148 334L132 340L132 344L121 347L119 359L125 364L123 375L117 379L119 384ZM549 74L554 71L558 79L564 93L563 107L557 109L549 104L545 98L544 87L541 83L549 74ZM571 101L579 109L579 115L562 121L567 102L569 100L571 101ZM692 110L700 105L715 103L719 114L708 122L704 128L693 124L690 114L692 110ZM726 99L735 95L736 102L730 105L721 105L719 101L726 99ZM717 141L717 134L721 130L728 131L731 134L726 138L717 141ZM440 28L445 29L448 32L446 35L453 33L453 38L451 39L444 38L442 39L439 39L439 34L444 32L440 28ZM72 134L66 121L64 111L70 110L78 119L79 131L72 134ZM392 120L407 116L410 111L436 108L447 112L455 110L462 111L461 118L457 121L429 121L412 126L385 141L379 151L379 165L376 164L365 154L368 148L364 140L369 134L374 134L379 128L393 124L392 120ZM889 352L899 361L907 372L918 381L941 395L927 400L934 419L950 425L956 433L945 431L946 443L938 435L931 423L921 412L917 402L907 387L895 379L884 363L887 353L880 350L882 346L889 352ZM909 22L917 25L921 23L911 21L917 7L933 0L937 7L936 16L949 20L951 23L949 28L943 31L937 38L931 37L927 42L926 48L921 50L916 47L917 54L924 54L928 59L877 39L909 22ZM854 23L853 29L843 24L845 21L851 16L853 17L854 23ZM17 273L21 273L24 283L22 288L22 294L29 302L23 303L15 295L1 289L0 283L7 281L4 270L7 270L16 275L17 273Z"/>
+        <path class="lit" clip-path="url(#sc)" d="M847 33L844 25L853 29L851 34L847 33ZM119 384L110 387L102 383L84 386L82 402L74 408L71 428L62 427L58 429L56 425L57 413L53 404L55 398L50 389L44 385L45 382L41 367L29 346L27 346L28 329L25 316L27 305L33 309L47 308L48 301L61 308L64 306L57 301L62 297L68 299L74 305L79 304L83 297L91 295L94 293L90 280L86 276L88 267L82 263L80 251L82 250L85 244L82 238L85 235L89 235L92 226L85 217L82 217L80 214L90 204L92 204L95 210L99 211L101 207L100 201L102 201L103 196L108 187L112 187L117 183L116 175L112 172L115 170L114 161L125 151L126 146L132 147L142 139L151 140L153 138L163 141L165 131L197 136L205 134L208 122L217 119L223 109L235 107L246 93L257 92L261 81L270 77L282 84L289 86L286 97L291 110L291 135L288 142L281 148L272 148L263 143L257 117L254 115L250 128L234 140L235 155L241 152L243 145L250 145L252 161L257 163L263 154L281 155L284 160L284 167L293 163L296 154L304 150L308 141L315 155L311 163L305 159L300 164L299 171L307 175L314 169L348 174L351 177L342 181L346 186L352 184L359 190L369 190L369 200L379 195L379 186L384 183L394 195L406 224L412 219L411 211L412 208L408 204L412 199L417 184L430 176L439 166L443 165L451 173L449 181L440 189L441 195L439 204L430 221L432 232L426 239L409 253L414 258L418 254L425 253L429 247L435 243L435 234L441 226L436 223L438 216L447 204L446 191L457 185L459 175L462 176L461 184L454 196L458 200L460 190L468 187L477 189L483 199L482 187L486 172L494 171L503 174L512 174L510 166L516 158L520 158L529 152L538 152L540 148L549 147L552 151L560 143L566 143L567 137L570 131L577 124L583 129L579 133L587 134L588 141L591 137L601 136L610 142L614 147L614 154L600 173L612 177L615 174L619 183L620 179L625 175L639 174L641 180L659 177L655 166L664 166L670 163L679 167L685 175L685 181L694 189L703 191L701 176L710 178L715 171L724 170L725 165L732 163L722 154L724 146L760 129L768 133L784 132L795 117L803 111L809 112L817 119L824 117L826 110L831 103L838 97L842 88L857 87L856 80L846 79L842 74L853 62L857 53L869 43L877 39L928 59L931 69L927 75L936 73L948 74L952 73L958 75L960 78L953 87L955 108L953 114L960 140L964 145L951 149L950 169L944 169L945 178L938 184L944 191L950 206L954 209L962 204L977 217L974 223L981 233L987 234L984 249L995 261L989 273L998 284L1000 301L991 297L948 269L937 254L935 243L930 239L935 228L926 190L925 173L912 158L909 165L915 175L917 197L901 191L893 206L898 234L908 236L893 258L887 251L877 257L875 268L858 279L842 297L837 332L829 375L841 370L849 375L857 374L858 365L865 361L884 367L891 376L893 391L902 405L911 426L910 450L913 460L905 512L897 526L891 530L883 527L875 542L875 547L873 545L870 539L874 536L868 521L861 511L866 503L878 500L877 484L872 470L873 463L871 450L860 461L855 470L843 476L834 466L820 462L804 464L795 453L774 431L765 429L752 430L742 434L733 439L729 448L734 450L737 457L733 462L730 479L732 484L722 496L711 494L700 498L695 494L689 494L679 506L667 510L660 515L648 515L640 516L634 509L624 504L615 503L596 509L583 503L581 493L563 488L554 482L545 496L548 505L539 514L526 510L518 509L512 502L503 501L496 496L482 500L463 510L450 511L447 502L435 501L433 495L427 491L425 482L421 478L408 479L399 468L392 473L385 434L379 421L383 418L360 423L352 420L356 414L348 405L339 405L343 391L331 382L322 384L302 379L297 381L269 369L264 371L263 382L255 381L254 385L244 386L250 401L245 406L235 398L230 400L225 388L214 380L203 379L190 349L180 341L156 340L149 346L148 334L132 340L132 344L121 347L119 359L125 364L123 375L117 379L119 384ZM549 74L554 71L558 79L564 93L563 107L557 109L549 104L545 98L544 87L541 83L549 74ZM571 101L579 109L579 115L562 121L567 102L569 100L571 101ZM692 110L700 105L715 103L719 114L708 122L704 128L693 124L690 114L692 110ZM726 99L735 95L736 102L730 105L721 105L719 101L726 99ZM717 141L717 134L721 130L728 131L731 134L726 138L717 141ZM440 28L445 29L448 32L446 35L453 33L453 38L451 39L444 38L442 39L439 39L439 34L444 32L440 28ZM72 134L66 121L64 111L70 110L78 119L79 131L72 134ZM392 120L407 116L410 111L436 108L447 112L455 110L462 111L461 118L457 121L429 121L412 126L385 141L379 151L379 165L376 164L365 154L368 148L364 140L369 134L374 134L379 128L393 124L392 120ZM889 352L899 361L907 372L918 381L941 395L927 400L934 419L950 425L956 433L945 431L946 443L938 435L931 423L921 412L917 402L907 387L895 379L884 363L887 353L880 350L882 346L889 352ZM909 22L917 25L921 23L911 21L917 7L933 0L937 7L936 16L949 20L951 23L949 28L943 31L937 38L931 37L927 42L926 48L921 50L916 47L917 54L924 54L928 59L877 39L909 22ZM854 23L853 29L843 24L845 21L851 16L853 17L854 23ZM17 273L21 273L24 283L22 288L22 294L29 302L23 303L15 295L1 289L0 283L7 281L4 270L7 270L16 275L17 273Z"/>
+        <g id="dots"></g>
+        <g id="beam" opacity="0"><rect id="trail" x="0" y="-20" width="110" height="600" fill="url(#tr)"/><rect id="bar" x="0" y="-20" width="3" height="600" fill="#22d3ee"/></g>
+      </svg>
+    </div>
+    <div class="tick" id="tick"><i></i><span id="tickTxt"></span></div>
+  </div>
+  <div class="end">
+    <div class="logo">МЕДИА.<span>СТРАЖ</span></div>
+    <div class="line"></div>
+    <div class="tag">Анализ манипулятивных техник в СМИ</div>
+    <div class="url">media-strazh.ru</div>
+  </div>
+</div>
+<button id="replay" type="button">Повторить</button>
+<script>
+var st=document.getElementById('stage'),NS='http://www.w3.org/2000/svg';
+var D=[[66, 311], [148, 225], [166, 149], [185, 257], [208, 290], [255, 166], [285, 333], [359, 402], [398, 245], [431, 425], [499, 243], [509, 425], [600, 478], [677, 472], [749, 305], [872, 449], [880, 531], [989, 272]];                       /* демо-точки: [x,y] в координатах карты */
+var PH=['Нагнетание угрозы','Эмоциональное давление','Ссылка на безымянных экспертов','Подмена тезиса','Ложная дилемма'];
+var g=document.getElementById('grid'),dg=document.getElementById('dots');
+for(var i=1;i<10;i++){var l=document.createElementNS(NS,'line');l.setAttribute('x1',i*100);l.setAttribute('x2',i*100);l.setAttribute('y1',-20);l.setAttribute('y2',580);g.appendChild(l)}
+for(var j=1;j<6;j++){var m=document.createElementNS(NS,'line');m.setAttribute('y1',j*100-20);m.setAttribute('y2',j*100-20);m.setAttribute('x1',0);m.setAttribute('x2',1000);g.appendChild(m)}
+var els=D.map(function(p){
+  var gr=document.createElementNS(NS,'g');
+  gr.innerHTML='<circle class="ring" cx="'+p[0]+'" cy="'+p[1]+'" r="5"/><circle class="core" cx="'+p[0]+'" cy="'+p[1]+'" r="5"/>';
+  dg.appendChild(gr);return gr});
+var scr=document.getElementById('scr'),beam=document.getElementById('beam'),bar=document.getElementById('bar'),trail=document.getElementById('trail');
+var cnt=document.getElementById('cnt'),tick=document.getElementById('tick'),tt=document.getElementById('tickTxt');
+var start=0,raf=0,hits=0,tmo=0,playbackRate=1,elapsed=0,paused=false;
+function frame(now){
+  var t=elapsed+(now-start)/1000*playbackRate,sx=-130;
+  if(t>=2.2&&t<=6.8){sx=1060*(t-2.2)/4.6-30}else if(t>6.8){sx=1100}
+  scr.setAttribute('width',Math.max(0,sx));
+  bar.setAttribute('x',sx);trail.setAttribute('x',sx-110);
+  beam.setAttribute('opacity',(t>=2.1&&t<6.9)?1:0);
+  for(var i=hits;i<D.length;i++){
+    if(sx>=D[i][0]){els[i].classList.add('hit');hits=i+1;
+      tt.textContent='Найден признак: '+PH[i%PH.length];tick.classList.add('on');
+      clearTimeout(tmo);tmo=setTimeout(function(){tick.classList.remove('on')},1400)}
+    else break}
+  cnt.textContent=hits*7;
+  if(t<13){raf=requestAnimationFrame(frame)}else{play()}
+}
+function animations(){return st.getAnimations({subtree:true})}
+function play(){
+  cancelAnimationFrame(raf);clearTimeout(tmo);hits=0;elapsed=0;paused=false;
+  els.forEach(function(e){e.classList.remove('hit')});tick.classList.remove('on');
+  cnt.textContent='0';scr.setAttribute('width','0');beam.setAttribute('opacity','0');
+  st.classList.remove('go');void st.offsetWidth;st.classList.add('go');
+  start=performance.now();
+  animations().forEach(function(a){a.playbackRate=playbackRate;a.play()});
+  raf=requestAnimationFrame(frame);
+}
+function changeRate(next){
+  if(![1,2,3].includes(next))return;
+  if(!paused)elapsed+=(performance.now()-start)/1000*playbackRate;
+  start=performance.now();playbackRate=next;
+  animations().forEach(function(a){a.playbackRate=playbackRate});
+}
+function pause(){
+  if(paused)return;
+  elapsed+=(performance.now()-start)/1000*playbackRate;
+  paused=true;cancelAnimationFrame(raf);clearTimeout(tmo);
+  animations().forEach(function(a){a.pause()});
+}
+function resume(){
+  if(!paused)return;
+  paused=false;start=performance.now();
+  animations().forEach(function(a){a.play()});
+  raf=requestAnimationFrame(frame);
+}
+window.addEventListener('message',function(event){
+  if(event.source!==window.parent || event.origin!==location.origin)return;
+  var command=event.data;
+  if(!command || command.type!=='media-strazh-film-control')return;
+  if(command.action==='replay')play();
+  else if(command.action==='speed')changeRate(command.value);
+  else if(command.action==='pause')pause();
+  else if(command.action==='resume')resume();
+});
+document.getElementById('replay').addEventListener('click',play);
+play();
+</script>
+</body>
+</html>

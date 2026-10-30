@@ -34,111 +34,64 @@
   const film = document.getElementById('aboutFilm');
   const replay = document.getElementById('aboutFilmReplay');
   const speed = document.getElementById('aboutFilmSpeed');
-  const finale = film?.querySelector('.about-film-tag');
+  const movie = document.getElementById('aboutFilmFrame');
 
   if (!screen || Object.values(stages).some(stage => !stage) ||
-      buttons.length !== 3 || !film || !replay || !speed || !finale) return;
+      buttons.length !== 3 || !film || !movie || !replay || !speed) return;
 
   const channelLabels = new Map(buttons.map(button => [button, button.textContent.trim()]));
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rates = [1, 2, 3];
-  const filmDuration = 12000;  // Original author-supplied loop: 12 seconds.
   let rateIndex = 0;
-  let filmTimer = null;
-  let filmStart = 0;
-  let filmElapsed = 0; // Media milliseconds elapsed at the last (re)base.
   let filmRunning = false;
-  let filmPaused = false;
-  let filmRevision = 0;
 
   let activeChannel = 'intro';
   let channelTimer = null;
   let channelRevision = 0;
 
-  function cancelFilmTimer() {
-    if (filmTimer !== null) clearTimeout(filmTimer);
-    filmTimer = null;
+  function sendFilm(action, value) {
+    if (!movie.contentWindow) return;
+    movie.contentWindow.postMessage(
+      {type: 'media-strazh-film-control', action, value},
+      window.location.origin
+    );
   }
-  function filmAnimations() {
-    return film.getAnimations({subtree:true});
-  }
-  function playAllFilmAnimations() {
-    for (const animation of filmAnimations()) {
-      animation.playbackRate = rates[rateIndex];
-      animation.play();
-    }
-  }
-  function scheduleFilmLoop(revision) {
-    cancelFilmTimer();
-    if (reduceMotion || !filmRunning || filmPaused) return;
-    const remaining = Math.max(1, (filmDuration - filmElapsed) / rates[rateIndex]);
-    filmTimer = setTimeout(() => {
-      if (revision === filmRevision && activeChannel === 'intro' && !document.hidden)
-        startFilm();
-    }, remaining);
-  }
+
   function startFilm() {
-    cancelFilmTimer();
-    const revision = ++filmRevision;
     filmRunning = true;
-    filmPaused = false;
-    filmElapsed = 0;
-    film.classList.remove('is-playing');
-    // Reflow is deliberate: every CSS keyframe must replay from the start.
-    void film.offsetWidth;
-    film.classList.add('is-playing');
-    film.dataset.filmStatus = reduceMotion ? 'complete' : 'playing';
-    if (reduceMotion) return;
-    playAllFilmAnimations();
-    filmStart = performance.now();
-    scheduleFilmLoop(revision);
+    film.dataset.filmStatus = 'playing';
+    sendFilm('replay');
+    sendFilm('speed', rates[rateIndex]);
   }
+
   function stopFilm() {
-    cancelFilmTimer();
-    ++filmRevision;
     filmRunning = false;
-    filmPaused = false;
-    filmElapsed = 0;
-    film.classList.remove('is-playing');
     film.dataset.filmStatus = 'ready';
+    sendFilm('pause');
   }
+
   function pauseFilm() {
-    if (reduceMotion || !filmRunning || filmPaused) return;
-    filmElapsed = Math.min(filmDuration,
-      filmElapsed + (performance.now() - filmStart) * rates[rateIndex]);
-    filmPaused = true;
-    cancelFilmTimer();
-    for (const animation of filmAnimations()) animation.pause();
+    if (filmRunning) sendFilm('pause');
   }
+
   function resumeFilm() {
-    if (reduceMotion || !filmRunning || !filmPaused || activeChannel !== 'intro') return;
-    filmPaused = false;
-    filmStart = performance.now();
-    playAllFilmAnimations();
-    scheduleFilmLoop(filmRevision);
+    if (filmRunning && activeChannel === 'intro') sendFilm('resume');
   }
 
   speed.addEventListener('click', () => {
-    if (filmRunning && !filmPaused && !reduceMotion) {
-      filmElapsed = Math.min(filmDuration,
-        filmElapsed + (performance.now() - filmStart) * rates[rateIndex]);
-      filmStart = performance.now();
-    }
     rateIndex = (rateIndex + 1) % rates.length;
     const next = rates[rateIndex];
     speed.textContent = 'Скорость ×' + next;
     speed.setAttribute('aria-label', 'Скорость воспроизведения ×' + next + '. Изменить скорость');
-    if (!reduceMotion) {
-      for (const animation of filmAnimations()) animation.playbackRate = next;
-      scheduleFilmLoop(filmRevision);
-    }
+    sendFilm('speed', next);
   });
 
   replay.addEventListener('click', startFilm);
 
-  finale.addEventListener('animationend', event => {
-    if (event.target !== finale || event.animationName !== 'about-film-up') return;
-    if (filmRunning && activeChannel === 'intro') film.dataset.filmStatus = 'complete';
+  movie.addEventListener('load', () => {
+    sendFilm('speed', rates[rateIndex]);
+    if (activeChannel === 'intro' && !document.hidden) startFilm();
+    else sendFilm('pause');
   });
 
   function show(channel) {
