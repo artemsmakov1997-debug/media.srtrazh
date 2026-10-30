@@ -125,3 +125,15 @@
  .about-film.is-playing .about-film-line{width:40cqw}
  .about-film-controls button{transition:none!important}
 }
+
+
+/* Keep the last animation row clear of the embedded speed/replay controls. */
+@media(min-width:681px){
+  .about-film-scene{
+    gap:clamp(8px,1.6cqw,15px);
+    padding-bottom:66px;
+  }
+  .about-film-news p{
+    margin-bottom:clamp(7px,1.2cqw,12px);
+  }
+}
