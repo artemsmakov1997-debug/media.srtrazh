@@ -45,6 +45,9 @@
   let generation = 0;
   let timeoutId = null;
   let frameId = null;
+  let channelTimer = null;
+  let channelSerial = 0;
+  const channelLabels = new Map(tabs.map(button => [button, button.textContent.trim()]));
 
   function cancel() {
     generation++;
@@ -115,14 +118,58 @@
 
   function show(name) {
     if (!Object.prototype.hasOwnProperty.call(stages, name)) return;
+    const previous = currentChannel;
     cancel();
+    if (channelTimer !== null) {
+      clearTimeout(channelTimer);
+      channelTimer = null;
+    }
+    const transaction = ++channelSerial;
+    const animate = previous !== name && !reducedMotion;
     currentChannel = name;
+
     Object.entries(stages).forEach(([key, stage]) => {
-      stage.hidden = key !== name;
-      if (key === name) stage.scrollTop = 0;
+      stage.classList.remove('is-entering', 'is-leaving');
+      if (key === name) {
+        stage.hidden = false;
+        stage.inert = false;
+        stage.removeAttribute('aria-hidden');
+        stage.scrollTop = 0;
+      } else if (animate && key === previous) {
+        stage.hidden = false;
+        stage.inert = true;
+        stage.setAttribute('aria-hidden', 'true');
+        stage.classList.add('is-leaving');
+      } else {
+        stage.hidden = true;
+        stage.inert = true;
+        stage.setAttribute('aria-hidden', 'true');
+      }
     });
+
+    if (animate) {
+      const entering = stages[name];
+      // Restart the entrance animation even during rapid channel switching.
+      void entering.offsetWidth;
+      entering.classList.add('is-entering');
+      channelTimer = setTimeout(() => {
+        if (transaction !== channelSerial) return;
+        const leaving = stages[previous];
+        if (leaving !== entering) {
+          leaving.hidden = true;
+          leaving.classList.remove('is-leaving');
+        }
+        entering.classList.remove('is-entering');
+        channelTimer = null;
+      }, 480);
+    }
+
     tabs.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.aboutChannel === name));
+      const selected = button.dataset.aboutChannel === name;
+      const original = channelLabels.get(button);
+      button.setAttribute('aria-pressed', String(selected));
+      button.textContent = selected ? 'Назад' : original;
+      button.setAttribute('aria-label', selected ? 'Назад — ' + original : original);
     });
     screen.dataset.activeChannel = name;
     const sequence = generation;
