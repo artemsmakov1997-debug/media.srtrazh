@@ -88,6 +88,12 @@
 
   replay.addEventListener('click', startFilm);
 
+  window.addEventListener('message', event => {
+    if (event.source !== movie.contentWindow || event.origin !== window.location.origin) return;
+    if (event.data?.type === 'media-strazh-film-event' && event.data.action === 'complete' &&
+        filmRunning && activeChannel === 'intro') film.dataset.filmStatus = 'complete';
+  });
+
   movie.addEventListener('load', () => {
     sendFilm('speed', rates[rateIndex]);
     if (activeChannel === 'intro' && !document.hidden) startFilm();

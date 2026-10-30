@@ -1164,7 +1164,7 @@
     .values-grid .value-card p { margin-bottom: 16px; }
   }
 </style>
-  <link rel="stylesheet" href="about-experience.css?v=20261030-5">
+  <link rel="stylesheet" href="about-experience.css?v=20261030-8">
   <link rel="stylesheet" href="about-intro-film.css?v=20261030-2">
 </head>
 
@@ -1206,7 +1206,7 @@
             <div class="about-film" id="aboutFilm" data-film-status="ready">
               <h1 class="about-film-heading">МЕДИА.<span>СТРАЖ</span></h1>
               <iframe class="about-film-frame" id="aboutFilmFrame"
-                      src="about-map-film.html?v=20261030-1"
+                      src="about-map-film.html?v=20261030-2"
                       title="МЕДИА.СТРАЖ — сканирование публикаций на карте России"
                       loading="eager"></iframe>
               <div class="about-film-controls" role="group" aria-label="Управление роликом">
@@ -1243,24 +1243,56 @@
 
           <section class="about-stage about-stage--opportunities" id="aboutStageOpportunities" aria-label="Возможности" hidden>
             <div class="about-stage-shell">
+              <div class="about-opportunities-heading">
+                <span class="about-section-index"><span class="about-live-dot"></span> ИНСТРУМЕНТЫ МЕДИА.СТРАЖ / PRO</span>
+                <h2>Видеть сигналы. <span>Принимать решения.</span></h2>
+              </div>
               <div class="about-audiences">
                 <article class="about-audience about-audience--research">
-                  <div class="about-audience-top"><span>PRO / 01</span><h2>Исследователям</h2></div>
-                  <div class="about-research-visual" aria-hidden="true">
-                    <span>Публикация СМИ</span><p>В тексте найден <mark>спорный маркер</mark></p>
-                    <div class="about-research-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                  <div class="about-audience-top"><span>01 / АНАЛИЗ ПУБЛИКАЦИЙ</span><span class="about-audience-pill">PRO</span></div>
+                  <div class="about-audience-copy">
+                    <h3>Смотрите <em>глубже заголовка.</em></h3>
+                    <p>Находите спорные маркеры и разбирайте их в контексте.</p>
                   </div>
-                  <div class="about-audience-points"><span>Автоматический анализ публикаций</span><span>Ручная проверка текста и маркеров</span><span>Фильтры и экспорт результата JSON</span></div>
-                  <a href="analysis.html">Открыть анализ →</a>
+                  <div class="about-research-visual" aria-label="Демонстрационный пример анализа публикации">
+                    <div class="about-visual-heading"><span><i></i> АНАЛИЗ ТЕКСТА</span><span>ДЕМО</span></div>
+                    <div class="about-research-example">«Эксперты предупреждают: <mark>это коснётся каждого</mark>»</div>
+                    <div class="about-research-result"><span>НАЙДЕН ПРИЗНАК</span><strong>Эмоциональное давление</strong></div>
+                    <div class="about-research-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                  </div>
+                  <div class="about-audience-points">
+                    <span>Автоанализ и ручная проверка</span>
+                    <span>Фильтры, примеры и экспорт JSON</span>
+                  </div>
+                  <a class="about-audience-action" href="analysis.html"><span>Открыть анализ</span><span class="about-action-arrow" aria-hidden="true">↗</span></a>
                 </article>
                 <article class="about-audience about-audience--business">
-                  <div class="about-audience-top"><span>PRO / 02</span><h2>Для бизнеса</h2></div>
-                  <div class="about-business-visual" aria-hidden="true">
-                    <div class="about-business-chart"><span>Упоминания</span><div class="about-business-columns"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-                    <div class="about-business-lines"><span>Инфоповоды</span><i></i><i></i><i></i></div>
+                  <div class="about-audience-top"><span>02 / МОНИТОРИНГ РЕПУТАЦИИ</span><span class="about-audience-pill">PRO</span></div>
+                  <div class="about-audience-copy">
+                    <h3>Держите репутацию <em>в поле зрения.</em></h3>
+                    <p>Следите за упоминаниями и находите поводы для коммуникации.</p>
                   </div>
-                  <div class="about-audience-points"><span>Мониторинг упоминаний СМИ</span><span>Отраслевые темы и инфоповоды</span><span>Черновики пресс-релизов и PDF-отчёт</span></div>
-                  <a href="business.html">Открыть бизнес-панель →</a>
+                  <div class="about-business-visual" aria-label="Иллюстрация панели мониторинга">
+                    <div class="about-visual-heading"><span><i></i> МЕДИАМОНИТОР</span><span>ДЕМО</span></div>
+                    <div class="about-business-dashboard">
+                      <div class="about-business-chart">
+                        <span>Динамика упоминаний</span>
+                        <div class="about-business-columns" aria-hidden="true">
+                          <i style="--h:35%"></i><i style="--h:65%"></i><i style="--h:48%"></i><i style="--h:79%"></i><i style="--h:55%"></i><i style="--h:96%"></i><i style="--h:72%"></i>
+                        </div>
+                      </div>
+                      <div class="about-business-lines">
+                        <span>В фокусе</span>
+                        <div class="about-business-signal">Упоминания <b>↗</b></div>
+                        <div class="about-business-signal">Инфоповоды <b>◉</b></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="about-audience-points">
+                    <span>Упоминания и инфоповоды</span>
+                    <span>Пресс-релизы и PDF-отчёт</span>
+                  </div>
+                  <a class="about-audience-action" href="business.html"><span>Открыть бизнес-панель</span><span class="about-action-arrow" aria-hidden="true">↗</span></a>
                 </article>
               </div>
             </div>
@@ -1268,17 +1300,34 @@
 
           <section class="about-stage about-stage--creator" id="aboutStageCreator" aria-label="Создатель" hidden>
             <div class="about-stage-shell">
-              <div class="about-creator-content">
-                <img class="about-author-avatar" src="about-author-avatar.png" width="180" height="180"
-                     alt="Стилизованный портрет автора проекта" loading="lazy">
-                <div class="about-creator-detail">
-                  <h2>Артём Ш.</h2>
-                  <p>Журналист, исследователь манипуляций в медиа.</p>
-                  <div class="about-creator-links">
-                    <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.6l6.9 2.5L18.4 6 11.7 14l.2 6 3.6-4.2 3.7 2.8z" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg>Telegram</a>
-                    <a href="mailto:artem_shmakow@vk.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="m3.5 7 8.5 6 8.5-6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>Email</a>
+              <div class="about-creator-panel">
+                <span class="about-creator-overline">АВТОР И ИДЕЙНЫЙ ВДОХНОВИТЕЛЬ / 01</span>
+                <div class="about-creator-content">
+                  <div class="about-author-avatar" role="img" aria-label="Силуэт автора проекта">
+                    <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                      <defs>
+                        <linearGradient id="authorSilhouette" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0" stop-color="#51e4f6"/><stop offset="1" stop-color="#10668b"/>
+                        </linearGradient>
+                      </defs>
+                      <circle cx="100" cy="100" r="91" fill="none" stroke="#38daed" stroke-opacity=".18"/>
+                      <circle cx="100" cy="100" r="76" fill="none" stroke="#38daed" stroke-opacity=".12" stroke-dasharray="3 8"/>
+                      <path d="M100 45c-25 0-40 19-40 44 0 29 18 47 40 47s40-18 40-47c0-25-15-44-40-44Z" fill="url(#authorSilhouette)" opacity=".92"/>
+                      <path d="M34 170c4-29 29-43 47-49 6 13 13 20 19 20s14-7 19-20c20 7 44 20 47 49" fill="url(#authorSilhouette)" opacity=".84"/>
+                      <path d="M38 171h124" stroke="#77ecf9" stroke-opacity=".3"/>
+                    </svg>
+                  </div>
+                  <div class="about-creator-detail">
+                    <span class="about-creator-small">СОЗДАТЕЛЬ ПРОЕКТА</span>
+                    <h2>Артём Ш.</h2>
+                    <p>Журналист, исследователь манипуляций в медиа.</p>
+                    <div class="about-creator-links">
+                      <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.6l6.9 2.5L18.4 6 11.7 14l.2 6 3.6-4.2 3.7 2.8z" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg>Telegram</a>
+                      <a href="mailto:artem_shmakow@vk.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="m3.5 7 8.5 6 8.5-6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>Email</a>
+                    </div>
                   </div>
                 </div>
+                <span class="about-creator-watermark" aria-hidden="true">МЕДИА.СТРАЖ</span>
               </div>
             </div>
           </section>
@@ -1295,6 +1344,6 @@
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261030-7"></script>
+<script defer src="about-experience.js?v=20261030-8"></script>
 </body>
 </html>

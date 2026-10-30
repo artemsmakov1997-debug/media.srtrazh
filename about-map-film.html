@@ -124,7 +124,7 @@ var els=D.map(function(p){
   dg.appendChild(gr);return gr});
 var scr=document.getElementById('scr'),beam=document.getElementById('beam'),bar=document.getElementById('bar'),trail=document.getElementById('trail');
 var cnt=document.getElementById('cnt'),tick=document.getElementById('tick'),tt=document.getElementById('tickTxt');
-var start=0,raf=0,hits=0,tmo=0,playbackRate=1,elapsed=0,paused=false;
+var start=0,raf=0,hits=0,tmo=0,playbackRate=1,elapsed=0,paused=false,completeNotified=false;
 function frame(now){
   var t=elapsed+(now-start)/1000*playbackRate,sx=-130;
   if(t>=2.2&&t<=6.8){sx=1060*(t-2.2)/4.6-30}else if(t>6.8){sx=1100}
@@ -137,11 +137,15 @@ function frame(now){
       clearTimeout(tmo);tmo=setTimeout(function(){tick.classList.remove('on')},1400)}
     else break}
   cnt.textContent=hits*7;
+  if(t>=10.6 && !completeNotified) {
+    completeNotified=true;
+    window.parent.postMessage({type:'media-strazh-film-event',action:'complete'},location.origin);
+  }
   if(t<13){raf=requestAnimationFrame(frame)}else{play()}
 }
 function animations(){return st.getAnimations({subtree:true})}
 function play(){
-  cancelAnimationFrame(raf);clearTimeout(tmo);hits=0;elapsed=0;paused=false;
+  cancelAnimationFrame(raf);clearTimeout(tmo);hits=0;elapsed=0;paused=false;completeNotified=false;
   els.forEach(function(e){e.classList.remove('hit')});tick.classList.remove('on');
   cnt.textContent='0';scr.setAttribute('width','0');beam.setAttribute('opacity','0');
   st.classList.remove('go');void st.offsetWidth;st.classList.add('go');

@@ -1052,19 +1052,18 @@ def pro_business_navigation_ui(browser, base, site):
         nav_support.hover()
         after_hover = nav_support.evaluate("el => ({ shadow: getComputedStyle(el).boxShadow, filter: getComputedStyle(el).filter })")
         assert before_hover != after_hover, (before_hover, after_hover)
-        # About: authored HTML film auto-plays inside the TV; original text/markers remain.
+        # About: the Russia map runs in an isolated HTML iframe.
         page.goto(base + "/about.html")
         screen = page.locator("#aboutMonitorScreen")
         intro = page.locator("#aboutStageIntro")
         film = page.locator("#aboutFilm")
+        movie = page.frame_locator("#aboutFilmFrame")
         assert intro.is_visible()
         assert film.get_attribute("data-film-status") in ("playing", "complete")
-        assert page.locator(".about-film-logo").inner_text() == "МЕДИА.СТРАЖ"
-        assert page.locator(".about-film-news p").count() == 3
-        assert page.locator(".about-film-chip").all_inner_texts() == [
-            "Ссылка на безымянных экспертов", "Эмоциональное давление", "Нагнетание угрозы"]
-        assert page.locator(".about-film-meter small b").inner_text() == "78%"
-        assert "Демонстрационный пример" in (page.locator(".about-film-demo").text_content() or "")
+        assert movie.locator("#stage .map svg").count() == 1
+        assert movie.locator("#dots").count() == 1
+        assert movie.locator(".end .logo").inner_text() == "МЕДИА.СТРАЖ"
+        assert movie.locator(".ring").count() >= 10
         assert page.locator(".about-stage").count() == 4
         assert page.locator('[data-about-channel]').count() == 3
         assert page.locator(".about-monitor-choices .about-choose").all_inner_texts() == [
@@ -1085,8 +1084,8 @@ def pro_business_navigation_ui(browser, base, site):
         # Replaying resets all CSS animations, rather than only the label.
         replay.click()
         assert film.get_attribute("data-film-status") == "playing"
-        assert film.evaluate(
-            'el => el.getAnimations({subtree:true}).length') >= 10
+        assert movie.locator("#stage.go").count() == 1
+        assert movie.locator(".ring").count() >= 10
         principles = page.locator('[data-about-channel="principles"]')
         principles.click()
         assert page.locator("#aboutStagePrinciples").is_visible()
@@ -1117,10 +1116,8 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator("#aboutStageCreator").is_visible()
         assert creator.inner_text() == "Назад"
         assert page.locator(".about-creator-links a").count() == 2
-        page.wait_for_function("""() => {
-            const img = document.querySelector('#aboutStageCreator img');
-            return img && img.complete && img.naturalWidth > 0;
-        }""")
+        assert page.locator("#aboutStageCreator .about-author-avatar svg").is_visible()
+        assert page.locator("#aboutStageCreator img").count() == 0
         creator.click()
         assert intro.is_visible()
         page.wait_for_timeout(550)
@@ -1144,30 +1141,20 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".archive-top-row, .section-subtitle, #manipCounter").count() == 0
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
-        assert page.locator(".about-film-logo").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
-        # Film geometry: all film elements stay within the screen and clear the controls.
+        assert page.frame_locator("#aboutFilmFrame").locator(".logo").count() == 1
+        # The iframe and controls stay within the TV monitor.
         page.goto(base + "/about.html")
-        page.wait_for_timeout(1100)
+        page.frame_locator("#aboutFilmFrame").locator("#stage").wait_for()
         geometry = page.evaluate("""() => {
-            const screen = document.querySelector('#aboutMonitorScreen').getBoundingClientRect();
-            const film = document.querySelector('#aboutFilm');
-            const frame = film.getBoundingClientRect();
-            const scene = film.querySelector('.about-film-scene');
-            const content = [...scene.children];
-            const controls = film.querySelector('.about-film-controls').getBoundingClientRect();
-            const boxes = content.map(el => el.getBoundingClientRect());
-            return {screenWidth:screen.width, filmWidth:frame.width, filmHeight:frame.height,
-                    controls: {top:controls.top,bottom:controls.bottom},
-                    contentBottom:Math.max(...boxes.map(b => b.bottom)),
-                    contentLeft:Math.min(...boxes.map(b => b.left)),
-                    contentRight:Math.max(...boxes.map(b => b.right)),
-                    frameLeft:frame.left,frameRight:frame.right};
+            const monitor = document.querySelector('#aboutMonitorScreen').getBoundingClientRect();
+            const film = document.querySelector('#aboutFilm').getBoundingClientRect();
+            const iframe = document.querySelector('#aboutFilmFrame').getBoundingClientRect();
+            const controls = document.querySelector('.about-film-controls').getBoundingClientRect();
+            return {monitor,film,iframe,controls};
         }""")
-        assert abs(geometry["screenWidth"] - geometry["filmWidth"]) <= 2, geometry
-        assert geometry["contentBottom"] <= geometry["controls"]["top"] + 2, geometry
-        assert geometry["contentLeft"] >= geometry["frameLeft"] - 2, geometry
-        assert geometry["contentRight"] <= geometry["frameRight"] + 2, geometry
-        assert geometry["controls"]["bottom"] <= page.locator("#aboutFilm").bounding_box()["y"] + geometry["filmHeight"] + 2
+        assert abs(geometry["monitor"]["width"] - geometry["film"]["width"]) <= 2, geometry
+        assert abs(geometry["iframe"]["width"] - geometry["film"]["width"]) <= 2, geometry
+        assert geometry["controls"]["bottom"] <= geometry["film"]["bottom"] + 2, geometry
         # Desktop methodology: all three numbers end on the same baseline.
         page.goto(base + "/method.html")
         numbers = page.locator("#pipelineGrid .pipe-num")
@@ -1491,7 +1478,7 @@ def pro_business_navigation_ui(browser, base, site):
             # Mobile: the supplied film remains readable and interactive.
             p.goto(base + "/about.html")
             assert p.locator("#aboutStageIntro").is_visible()
-            assert p.locator(".about-film-logo").inner_text() == "МЕДИА.СТРАЖ"
+            assert p.frame_locator("#aboutFilmFrame").locator(".logo").inner_text() == "МЕДИА.СТРАЖ"
             assert p.locator(".about-choose").count() == 3
             assert p.locator(".about-channel-tab,.about-channel-nav").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
@@ -1501,23 +1488,15 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#aboutFilmSpeed").inner_text() == "Скорость ×2"
             p.locator("#aboutFilmReplay").click()
             assert p.locator("#aboutFilm").get_attribute("data-film-status") == "playing"
-            # Mobile film must not crop its copy or overlay its control buttons.
+            # Mobile iframe and controls fit inside the monitor.
             film_geometry = p.evaluate("""() => {
-                const film = document.querySelector('#aboutFilm');
-                const scene = film.querySelector('.about-film-scene');
-                const bounds = film.getBoundingClientRect();
-                const children = [...scene.children].map(el => el.getBoundingClientRect());
-                const controls = film.querySelector('.about-film-controls').getBoundingClientRect();
-                return {contentBottom:Math.max(...children.map(x => x.bottom)),
-                        contentLeft:Math.min(...children.map(x => x.left)),
-                        contentRight:Math.max(...children.map(x => x.right)),
-                        controlsTop:controls.top, controlsBottom:controls.bottom,
-                        left:bounds.left,right:bounds.right,bottom:bounds.bottom};
+                const film = document.querySelector('#aboutFilm').getBoundingClientRect();
+                const frame = document.querySelector('#aboutFilmFrame').getBoundingClientRect();
+                const controls = document.querySelector('.about-film-controls').getBoundingClientRect();
+                return {film,frame,controls};
             }""")
-            assert film_geometry["contentBottom"] <= film_geometry["controlsTop"] + 2, film_geometry
-            assert film_geometry["contentLeft"] >= film_geometry["left"] - 2, film_geometry
-            assert film_geometry["contentRight"] <= film_geometry["right"] + 2, film_geometry
-            assert film_geometry["controlsBottom"] <= film_geometry["bottom"] + 2, film_geometry
+            assert abs(film_geometry["film"]["width"] - film_geometry["frame"]["width"]) <= 2, film_geometry
+            assert film_geometry["controls"]["bottom"] <= film_geometry["film"]["bottom"] + 2, film_geometry
 
             for channel,stage in (
                     ("principles","aboutStagePrinciples"),
@@ -1530,7 +1509,7 @@ def pro_business_navigation_ui(browser, base, site):
                 p.wait_for_timeout(540)
                 assert p.locator(".about-stage:visible").count() == 1
                 assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-            assert p.locator("#aboutStageCreator .about-author-avatar").is_visible()
+            assert p.locator("#aboutStageCreator .about-author-avatar svg").is_visible()
             assert p.locator("#aboutStageCreator .about-creator-links a").count() == 2
             p.locator('[data-about-channel="creator"]').click()
             assert p.locator("#aboutStageIntro").is_visible()
