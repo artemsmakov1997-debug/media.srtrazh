@@ -1062,6 +1062,11 @@ def pro_business_navigation_ui(browser, base, site):
         assert film.get_attribute("data-film-status") in ("playing", "complete")
         assert movie.locator("#stage .map svg").count() == 1
         assert movie.locator("#dots").count() == 1
+        # No 16:9 black side bars: stage must fill the iframe's viewport.
+        assert movie.locator("#stage").evaluate(
+            "el => Math.abs(el.getBoundingClientRect().width - innerWidth) <= 2")
+        assert movie.locator("#stage").evaluate(
+            "el => Math.abs(el.getBoundingClientRect().height - innerHeight) <= 2")
         assert movie.locator(".end .logo").inner_text() == "МЕДИА.СТРАЖ"
         assert movie.locator(".ring").count() >= 10
         assert page.locator(".about-stage").count() == 4
@@ -1479,6 +1484,8 @@ def pro_business_navigation_ui(browser, base, site):
             p.goto(base + "/about.html")
             assert p.locator("#aboutStageIntro").is_visible()
             assert p.frame_locator("#aboutFilmFrame").locator(".logo").inner_text() == "МЕДИА.СТРАЖ"
+            assert p.frame_locator("#aboutFilmFrame").locator("#stage").evaluate(
+                "el => Math.abs(el.getBoundingClientRect().width - innerWidth) <= 2")
             assert p.locator(".about-choose").count() == 3
             assert p.locator(".about-channel-tab,.about-channel-nav").count() == 0
             assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
