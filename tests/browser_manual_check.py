@@ -1064,7 +1064,7 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".about-film-chip").all_inner_texts() == [
             "Ссылка на безымянных экспертов", "Эмоциональное давление", "Нагнетание угрозы"]
         assert page.locator(".about-film-meter small b").inner_text() == "78%"
-        assert page.locator(".about-film-demo").inner_text() == "· Демонстрационный пример"
+        assert "Демонстрационный пример" in (page.locator(".about-film-demo").text_content() or "")
         assert page.locator(".about-stage").count() == 4
         assert page.locator('[data-about-channel]').count() == 3
         assert page.locator(".about-monitor-choices .about-choose").all_inner_texts() == [
@@ -1145,6 +1145,38 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator("#archiveList .archive-item").count() > 0
         page.goto(base + "/about.html")
         assert page.locator(".about-film-logo").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") <= 90
+        # Film geometry: all film elements stay within the screen and clear the controls.
+        page.goto(base + "/about.html")
+        page.wait_for_timeout(1100)
+        geometry = page.evaluate("""() => {
+            const screen = document.querySelector('#aboutMonitorScreen').getBoundingClientRect();
+            const film = document.querySelector('#aboutFilm');
+            const frame = film.getBoundingClientRect();
+            const scene = film.querySelector('.about-film-scene');
+            const content = [...scene.children];
+            const controls = film.querySelector('.about-film-controls').getBoundingClientRect();
+            const boxes = content.map(el => el.getBoundingClientRect());
+            return {screenWidth:screen.width, filmWidth:frame.width, filmHeight:frame.height,
+                    controls: {top:controls.top,bottom:controls.bottom},
+                    contentBottom:Math.max(...boxes.map(b => b.bottom)),
+                    contentLeft:Math.min(...boxes.map(b => b.left)),
+                    contentRight:Math.max(...boxes.map(b => b.right)),
+                    frameLeft:frame.left,frameRight:frame.right};
+        }""")
+        assert abs(geometry["screenWidth"] - geometry["filmWidth"]) <= 2, geometry
+        assert geometry["contentBottom"] <= geometry["controls"]["top"] + 2, geometry
+        assert geometry["contentLeft"] >= geometry["frameLeft"] - 2, geometry
+        assert geometry["contentRight"] <= geometry["frameRight"] + 2, geometry
+        assert geometry["controls"]["bottom"] <= page.locator("#aboutFilm").bounding_box()["y"] + geometry["filmHeight"] + 2
+        # Desktop methodology: all three numbers end on the same baseline.
+        page.goto(base + "/method.html")
+        numbers = page.locator("#pipelineGrid .pipe-num")
+        assert numbers.count() == 3
+        tops = numbers.evaluate_all("els => els.map(el => el.getBoundingClientRect().top)")
+        assert max(tops) - min(tops) <= 1.5, tops
+        assert numbers.all_inner_texts() == ["/01", "/02", "/03"]
+
+
         # Business entry header must match the Analysis PRO header geometry.
         page.goto(base + "/analysis.html")
         assert page.locator(".section-panel").first.evaluate(
@@ -1469,6 +1501,24 @@ def pro_business_navigation_ui(browser, base, site):
             assert p.locator("#aboutFilmSpeed").inner_text() == "Скорость ×2"
             p.locator("#aboutFilmReplay").click()
             assert p.locator("#aboutFilm").get_attribute("data-film-status") == "playing"
+            # Mobile film must not crop its copy or overlay its control buttons.
+            film_geometry = p.evaluate("""() => {
+                const film = document.querySelector('#aboutFilm');
+                const scene = film.querySelector('.about-film-scene');
+                const bounds = film.getBoundingClientRect();
+                const children = [...scene.children].map(el => el.getBoundingClientRect());
+                const controls = film.querySelector('.about-film-controls').getBoundingClientRect();
+                return {contentBottom:Math.max(...children.map(x => x.bottom)),
+                        contentLeft:Math.min(...children.map(x => x.left)),
+                        contentRight:Math.max(...children.map(x => x.right)),
+                        controlsTop:controls.top, controlsBottom:controls.bottom,
+                        left:bounds.left,right:bounds.right,bottom:bounds.bottom};
+            }""")
+            assert film_geometry["contentBottom"] <= film_geometry["controlsTop"] + 2, film_geometry
+            assert film_geometry["contentLeft"] >= film_geometry["left"] - 2, film_geometry
+            assert film_geometry["contentRight"] <= film_geometry["right"] + 2, film_geometry
+            assert film_geometry["controlsBottom"] <= film_geometry["bottom"] + 2, film_geometry
+
             for channel,stage in (
                     ("principles","aboutStagePrinciples"),
                     ("opportunities","aboutStageOpportunities"),

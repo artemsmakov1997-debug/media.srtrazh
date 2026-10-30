@@ -1344,6 +1344,22 @@
 </style>
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
   <link rel="stylesheet" href="method-surfaces.css?v=rating-palette-deep-20261028">
+
+<style id="method-pipeline-number-alignment">
+  /* Desktop: the three footer numerals share the same baseline regardless of text length. */
+  @media (min-width:768px) {
+    body #pipelineGrid.pipeline-grid { align-items:stretch; }
+    body #pipelineGrid.pipeline-grid > .pipeline-card {
+      display:flex;
+      flex-direction:column;
+    }
+    body #pipelineGrid .pipe-num {
+      margin-top:auto;
+      padding-top:8px;
+      flex-shrink:0;
+    }
+  }
+</style>
 </head>
 
 <body>
