@@ -1089,7 +1089,9 @@ def pro_business_navigation_ui(browser, base, site):
         # Replaying resets all CSS animations, rather than only the label.
         replay.click()
         assert film.get_attribute("data-film-status") == "playing"
-        assert movie.locator("#stage.go").count() == 1
+        # Restart is deferred over frames, avoiding a synchronous layout flush.
+        movie.locator("#stage.go").wait_for()
+        assert "void st.offsetWidth" not in (site / "about-map-film.html").read_text(encoding="utf-8")
         assert movie.locator(".ring").count() >= 10
         principles = page.locator('[data-about-channel="principles"]')
         principles.click()
