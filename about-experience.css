@@ -498,3 +498,39 @@
 }
 @media(max-width:370px){.about-stage--opportunities .about-audience{min-height:210px}.about-stage--creator .about-author-avatar{width:120px;height:120px;flex:0 0 120px}}
 @media(prefers-reduced-motion:reduce){.about-stage--opportunities .about-audience{transition:none}}
+
+
+/* Creator / Nov 2026. Exact supplied 3D portrait, unclipped, with distinct name typography. */
+.about-stage--creator .about-creator-panel{padding-top:clamp(24px,3vw,34px);padding-bottom:clamp(24px,3vw,34px)}
+.about-stage--creator .about-creator-content{gap:clamp(20px,3.4vw,42px)}
+.about-stage--creator .about-author-avatar{
+  width:clamp(185px,22vw,241px);height:auto;aspect-ratio:241 / 198;
+  flex:0 0 clamp(185px,22vw,241px);
+  display:block;overflow:visible;border:0;border-radius:0;
+  background:none;box-shadow:none;
+}
+.about-stage--creator .about-author-avatar img{
+  display:block;width:100%;height:100%;object-fit:contain;
+  border:0;border-radius:0;max-width:100%;
+}
+.about-stage--creator .about-creator-detail h2.about-creator-name{
+  margin:0 0 16px;
+  font-family:'Unbounded',Montserrat,Inter,sans-serif;
+  font-weight:600;
+  font-size:clamp(27px,3.1vw,40px);
+  line-height:1.2;
+  letter-spacing:-.055em;
+  color:#f1f9ff;
+  text-transform:none;
+}
+@media(max-width:680px){
+  .about-stage--creator .about-creator-panel{padding:18px 16px 26px}
+  .about-stage--creator .about-creator-content{gap:10px}
+  .about-stage--creator .about-author-avatar{
+    width:clamp(145px,47vw,185px);height:auto;aspect-ratio:241 / 198;
+    flex:0 0 auto;
+  }
+  .about-stage--creator .about-creator-detail h2.about-creator-name{
+    font-size:clamp(23px,6vw,30px);margin:0 0 10px;
+  }
+}

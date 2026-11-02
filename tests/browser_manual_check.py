@@ -1121,8 +1121,13 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator("#aboutStageCreator").is_visible()
         assert creator.inner_text() == "Назад"
         assert page.locator(".about-creator-links a").count() == 2
-        assert page.locator("#aboutStageCreator .about-author-avatar svg").is_visible()
-        assert page.locator("#aboutStageCreator img").count() == 0
+        portrait = page.locator("#aboutStageCreator .about-author-image")
+        assert portrait.is_visible()
+        assert portrait.get_attribute("src").startswith("about-author-3d.webp")
+        assert portrait.evaluate("img => img.complete && img.naturalWidth === 241 && img.naturalHeight === 198")
+        assert page.locator("#aboutStageCreator .about-creator-overline, #aboutStageCreator .about-creator-small").count() == 0
+        assert "Unbounded" in page.locator("#aboutStageCreator .about-creator-name").evaluate(
+            "el => getComputedStyle(el).fontFamily")
         creator.click()
         assert intro.is_visible()
         page.wait_for_timeout(550)
@@ -1516,7 +1521,8 @@ def pro_business_navigation_ui(browser, base, site):
                 p.wait_for_timeout(540)
                 assert p.locator(".about-stage:visible").count() == 1
                 assert p.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-            assert p.locator("#aboutStageCreator .about-author-avatar svg").is_visible()
+            assert p.locator("#aboutStageCreator .about-author-image").is_visible()
+            assert p.locator("#aboutStageCreator .about-author-avatar svg").count() == 0
             assert p.locator("#aboutStageCreator .about-creator-links a").count() == 2
             p.locator('[data-about-channel="creator"]').click()
             assert p.locator("#aboutStageIntro").is_visible()
