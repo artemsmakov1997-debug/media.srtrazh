@@ -534,3 +534,24 @@
     font-size:clamp(23px,6vw,30px);margin:0 0 10px;
   }
 }
+
+/* Faceless 3D creator portrait: square medallion with subtle depth and no watermark. */
+.about-stage--creator .about-author-avatar {
+  aspect-ratio: 1;
+  flex: 0 0 clamp(185px,22vw,241px);
+  width: clamp(185px,22vw,241px);
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 32px rgba(28,205,230,.13);
+}
+.about-stage--creator .about-author-avatar img {
+  width: 100%;height:100%;aspect-ratio:1;object-fit:cover;
+  border-radius:50%;
+}
+@media(max-width:680px){
+  .about-stage--creator .about-author-avatar {
+    flex:0 0 auto;
+    width:clamp(145px,47vw,185px);
+    aspect-ratio:1;
+  }
+}

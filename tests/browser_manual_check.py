@@ -1123,9 +1123,9 @@ def pro_business_navigation_ui(browser, base, site):
         assert page.locator(".about-creator-links a").count() == 2
         portrait = page.locator("#aboutStageCreator .about-author-image")
         assert portrait.is_visible()
-        assert portrait.get_attribute("src").startswith("about-author-3d.webp")
-        assert portrait.evaluate("img => img.complete && img.naturalWidth === 241 && img.naturalHeight === 198")
-        assert page.locator("#aboutStageCreator .about-creator-overline, #aboutStageCreator .about-creator-small").count() == 0
+        assert portrait.get_attribute("src").startswith("about-author-faceless.webp")
+        assert portrait.evaluate("img => img.complete && img.naturalWidth === 300 && img.naturalHeight === 300")
+        assert page.locator("#aboutStageCreator .about-creator-overline, #aboutStageCreator .about-creator-small, #aboutStageCreator .about-creator-watermark").count() == 0
         assert "Unbounded" in page.locator("#aboutStageCreator .about-creator-name").evaluate(
             "el => getComputedStyle(el).fontFamily")
         creator.click()
