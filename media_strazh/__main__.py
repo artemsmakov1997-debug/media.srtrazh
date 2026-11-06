@@ -76,6 +76,12 @@ def main():
     reanalyze = commands.add_parser("reanalyze", help="Пересчитать сохранённые тексты новой версией правил без загрузки сайтов")
     reanalyze.add_argument("--db", type=Path, default=DEFAULT_DB)
     reanalyze.add_argument("--source", action="append", choices=list(SOURCES))
+    mining = commands.add_parser("lexicon-report",
+                                 help="Отчёт по словарю на сохранённом корпусе: влияние на долю, выборка и кандидаты")
+    mining.add_argument("--db", type=Path, default=DEFAULT_DB)
+    mining.add_argument("--output", type=Path, default=Path("exports/lexicon-report"))
+    mining.add_argument("--top", type=int, default=300, help="Число слов-кандидатов в каждом списке")
+    mining.add_argument("--samples", type=int, default=200, help="Размер случайной выборки срабатываний для проверки")
     args = parser.parse_args()
     try:
         if args.command == "serve":
@@ -134,6 +140,12 @@ def main():
         elif args.command == "build-site":
             with Store(args.db) as store:
                 result = build_site(store, args.output, args.limit, args.runtime_dir)
+        elif args.command == "lexicon-report":
+            from .mining import corpus_report, write_report
+            if not args.db.is_file():
+                raise ValueError(f"База {args.db} не найдена.")
+            with Store(args.db) as store:
+                result = write_report(corpus_report(store, args.top, args.samples), args.output)
         elif args.command == "prepare-browser":
             result = prepare_runtime(args.output, args.archive)
         elif args.command in {"reextract", "reanalyze"}:

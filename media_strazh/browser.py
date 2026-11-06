@@ -17,7 +17,7 @@ RUNTIME_URL = f"https://registry.npmjs.org/pyodide/-/pyodide-{RUNTIME_VERSION}.t
 RUNTIME_INTEGRITY = "22UBuhOJawj7vKUnS7/F3xK+515LJdjiMAHoCfuS6/PbHiOrSQVnYwDe+2sbVwiOZ3sMMexdXICew6NqOMQGgA=="
 RUNTIME_FILES = ("pyodide.js", "pyodide.asm.js", "pyodide.asm.wasm",
                  "python_stdlib.zip", "pyodide-lock.json")
-ENGINE_FILES = ("__init__.py", "analysis.py", "rules.py")
+ENGINE_FILES = ("__init__.py", "analysis.py", "rules.py", "lexicon.py")
 MANIFEST = "runtime-manifest.json"
 
 

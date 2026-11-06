@@ -38,9 +38,10 @@ class CollectiveAccusationTests(unittest.TestCase):
     def test_complete_original_missed_publication_has_specific_explanations(self):
         result = analyze({'text': USER_TEXT})
         self.assertEqual(result['algorithm_version'], VERSION)
-        self.assertEqual(len(result['findings']), 13)
-        self.assertEqual({f['rule_id'] for f in result['findings']}, NEW_IDS | EXPANDED_IDS)
-        self.assertEqual(result['summary']['marker_fragments'], 13)
+        # rules-0.18.0: the lexicon adds «невиданными» (exaggeration) in this text.
+        self.assertEqual(len(result['findings']), 14)
+        self.assertEqual({f['rule_id'] for f in result['findings']}, NEW_IDS | EXPANDED_IDS | {'lex.exag.absolute'})
+        self.assertEqual(result['summary']['marker_fragments'], 14)
         self.assertFalse(result['summary']['findings_truncated'])
         for f in result['findings']:
             self.assertEqual(f['status'], 'needs_review')
