@@ -1674,11 +1674,11 @@ def analyze(document):
                     if any(match.start() < end and start < match.end() for start, end in spans):
                         continue
                     if rule.context_requirement.startswith("lexicon_") and any(
-                            start <= match.start() and match.end() <= end
+                            match.start() < end and start < match.end()
                             for (key_field, _), taken in occupied.items() if key_field == field
                             for start, end in taken):
-                        # The lexicon widens coverage; it does not re-label a
-                        # fragment already explained by another rule.
+                        # The lexicon widens coverage; it never re-labels or
+                        # straddles a fragment already found (marks cannot nest).
                         continue
                     if len(findings) >= MAX_FINDINGS:
                         truncated = True

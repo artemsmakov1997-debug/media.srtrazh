@@ -167,6 +167,19 @@ class ScopeAndGuardTests(unittest.TestCase):
         findings = analyze({"text": "Путин — убийца."})["findings"]
         self.assertEqual([f["rule_id"] for f in findings], ["dysphemism.murderer_label"])
 
+    def test_lexicon_marks_never_overlap_existing_marks(self):
+        # The interface cannot draw nested highlights (browser check, person labels).
+        for text in ("Путин — клоун, кровавый диктатор и убийца.", "Кровавый режим продолжает террор.",
+                     "Людоедская власть ввела новые запреты.", "Путин продолжает кровавую расправу с украинцами."):
+            with self.subTest(text=text):
+                spans = sorted((e["start"], e["end"]) for f in analyze({"text": text})["findings"]
+                               if f["rule_id"].startswith("lex.") for e in f["evidence"])
+                others = [(e["start"], e["end"]) for f in analyze({"text": text})["findings"]
+                          for e in f["evidence"]]
+                for start, end in spans:
+                    overlapping = [span for span in others if span[0] < end and start < span[1]]
+                    self.assertEqual(overlapping, [(start, end)])
+
 
 class CorpusCandidateTests(unittest.TestCase):
     def test_words_added_from_corpus_report(self):
