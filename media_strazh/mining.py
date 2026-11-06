@@ -40,10 +40,12 @@ STOP = set((
     "сообщила отметил отметила словам время также ранее сообщает пишет глава россии рф сша украины").split())
 PRODUCTIVE = re.compile(
     r"(?<![а-яё])(?:"
-    r"(?:укр|рус|рос|раш|пут|зел|кремл|либер|ват|амер|евр|гей|пинд|хох|кацап|бандер|киев|моск|запад|"
-    r"демшиз|соросят|навальн|z|зет)[а-яё]*(?:ист|изм|оид|ня|ят|ец|цы|ия|лог|аст|ота|нут|бот|ушк|ина)[а-яё]{0,3}"
+    # Label-like derivations only; plain country, people and institution names
+    # (Россия, украинцы, Евросоюз, национальный) are deliberately not suffixes here.
+    r"(?:укр|рус|раш|пут|зел|кремл|либер|ват|амер|гей|пинд|хох|кацап|бандер|киев|моск|запад|"
+    r"демшиз|соросят|навальн|z|зет)[а-яё]*(?:ист|изм|оид|ня|ят|лог|аст|нут|бот)[а-яё]{0,3}"
     r"|[а-яё]{3,}[-‑](?:террорист|агрессор|изго[йяи]|бензоколонк|фашист|нацист|колони|марионетк)[а-яё]*"
-    r"|(?:укро|русо|рашо|кремле|евро|пиндо|гейро|либеро|нацио)[-‑]?[а-яё]{4,}"
+    r"|(?:укро|русо|рашо|кремле|пиндо|гейро|либеро)[-‑]?[а-яё]{4,}"
     r")(?![а-яё])", re.I)
 MANIPULATION = {"needs_review", "quoted_candidate"}
 
@@ -105,7 +107,9 @@ def corpus_report(store, top=300, samples=200, seed=2026):
                 sentence = evidence["sentence"]["text"]
                 quote = evidence["quote"].casefold()
                 for word in WORD.findall(sentence):
-                    if len(word) > 3 and word.casefold() not in STOP and word.casefold() not in quote:
+                    # Capitalised words are mostly names of people and places.
+                    if (len(word) > 3 and word[0].islower() and word.casefold() not in STOP
+                            and word.casefold() not in quote):
                         key = stem(word)
                         near.add(key)
                         examples.setdefault(key, (word, sentence.strip()[:300], row["source_id"]))
@@ -121,7 +125,7 @@ def corpus_report(store, top=300, samples=200, seed=2026):
     total = len(rows) or 1
     scored = []
     for key, inside in window_stems.items():
-        if inside < 3:
+        if inside < 5:
             continue
         overall = doc_stems[key]
         # Smoothed log-odds of a stem in marked sentences vs the whole corpus.
