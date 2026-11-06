@@ -186,3 +186,29 @@ def write_report(report, output):
     return {"output": str(output), "files": ["lexicon-report.json", *tables],
             "documents": report["documents"], "groups": len(report["groups"]),
             "candidates": {key: len(value) for key, value in report["candidates"].items()}}
+
+
+def summary_markdown(report, candidates=40, samples=40):
+    """Readable job summary: visible on the Actions page without the artifact."""
+    def cell(value):
+        return str(value).replace("|", "/").replace("\n", " ")
+    lines = [f"## Отчёт по словарю {report['lexicon_version']} ({report['algorithm_version']})", "",
+             f"Публикаций в корпусе: {report['documents']}. {report['share_note']}", "",
+             "| СМИ | Публикаций | До, % | После, % | Добавил словарь |", "| --- | ---: | ---: | ---: | ---: |"]
+    for item in sorted(report["publishers"], key=lambda item: -item["documents"]):
+        lines.append(f"| {item['publisher']} | {item['documents']} | {item['share_before']} | "
+                     f"{item['share_after']} | {item['lexicon_only']} |")
+    lines += ["", "### Срабатывания по группам", "", "| Группа | Число |", "| --- | ---: |"]
+    lines += [f"| {key} | {value} |" for key, value in report["groups"].items()]
+    lines += ["", "### Случайная выборка срабатываний", "", "| Группа | Статус | Фрагмент | Предложение | Источник |",
+              "| --- | --- | --- | --- | --- |"]
+    lines += [f"| {cell(hit['group'])} | {hit['status']} | {cell(hit['quote'])} | {cell(hit['sentence'][:220])} | {hit['source']} |"
+              for hit in report["review_sample"][:samples]]
+    lines += ["", "### Кандидаты: построены как ярлыки", "", "| Слово | Публикаций | Пример |", "| --- | ---: | --- |"]
+    lines += [f"| {cell(item['word'])} | {item['documents']} | {cell(item['example'][:200])} |"
+              for item in report["candidates"]["productive"][:candidates]]
+    lines += ["", "### Кандидаты: часто рядом с маркерами", "", "| Слово | Оценка | Рядом с маркерами | Всего | Пример |",
+              "| --- | ---: | ---: | ---: | --- |"]
+    lines += [f"| {cell(item['example_word'])} | {item['score']} | {item['docs_near_markers']} | {item['docs_total']} | "
+              f"{cell(item['example'][:200])} |" for item in report["candidates"]["near_triggers"][:candidates]]
+    return "\n".join(lines) + "\n"

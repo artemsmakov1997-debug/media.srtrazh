@@ -146,6 +146,9 @@ jobs:
       - name: Lexicon report on the retained corpus
         if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
         run: python3 -m media_strazh lexicon-report --db /tmp/media-strazh-pilot.sqlite3 --output /tmp/lexicon-report
+      - name: Summarize lexicon report
+        if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
+        run: python3 -m media_strazh lexicon-summary --input /tmp/lexicon-report/lexicon-report.json --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload lexicon report
         if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
         uses: actions/upload-artifact@v4

@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from media_strazh.mining import corpus_report, stem, write_report
+from media_strazh.mining import corpus_report, stem, summary_markdown, write_report
 from media_strazh.storage import Store
 from test_rating import save_publication
 
@@ -46,6 +46,9 @@ class LexiconReportTests(unittest.TestCase):
         near = {item["stem"] for item in report["candidates"]["near_triggers"]}
         self.assertIn(stem("узурпаторы"), near)
 
+        markdown = summary_markdown(report)
+        self.assertIn("| rt | 7 |", markdown)
+        self.assertIn("lex.enemy.junta", markdown)
         summary = write_report(report, self.path / "report")
         self.assertEqual(summary["documents"], 7)
         saved = json.loads((self.path / "report" / "lexicon-report.json").read_text(encoding="utf-8"))

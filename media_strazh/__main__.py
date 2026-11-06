@@ -82,6 +82,9 @@ def main():
     mining.add_argument("--output", type=Path, default=Path("exports/lexicon-report"))
     mining.add_argument("--top", type=int, default=300, help="Число слов-кандидатов в каждом списке")
     mining.add_argument("--samples", type=int, default=200, help="Размер случайной выборки срабатываний для проверки")
+    lexicon_summary = commands.add_parser("lexicon-summary", help="Краткая сводка отчёта по словарю в Markdown")
+    lexicon_summary.add_argument("--input", type=Path, required=True)
+    lexicon_summary.add_argument("--summary", type=Path, help="Дописать в файл (например, $GITHUB_STEP_SUMMARY)")
     args = parser.parse_args()
     try:
         if args.command == "serve":
@@ -146,6 +149,14 @@ def main():
                 raise ValueError(f"База {args.db} не найдена.")
             with Store(args.db) as store:
                 result = write_report(corpus_report(store, args.top, args.samples), args.output)
+        elif args.command == "lexicon-summary":
+            from .mining import summary_markdown
+            text = summary_markdown(json.loads(args.input.read_text(encoding="utf-8")))
+            print(text)
+            if args.summary:
+                with args.summary.open("a", encoding="utf-8") as handle:
+                    handle.write(text)
+            return 0
         elif args.command == "prepare-browser":
             result = prepare_runtime(args.output, args.archive)
         elif args.command in {"reextract", "reanalyze"}:
