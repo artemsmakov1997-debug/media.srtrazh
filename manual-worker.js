@@ -17,7 +17,7 @@ async function engine() {
       }
       const directory = '/home/pyodide/media_strazh';
       pyodide.FS.mkdirTree(directory);
-      for (const name of ['__init__.py', 'analysis.py', 'rules.py']) {
+      for (const name of ['__init__.py', 'analysis.py', 'rules.py', 'lexicon.py']) {
         if (typeof bundle.files[name] !== 'string') throw new Error('Analysis source missing');
         pyodide.FS.writeFile(directory + '/' + name, bundle.files[name], {encoding: 'utf8'});
       }

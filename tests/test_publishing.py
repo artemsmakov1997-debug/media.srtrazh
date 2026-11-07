@@ -326,7 +326,7 @@ class PublishingTests(unittest.TestCase):
         self.assertFalse((target / "exports").exists())
         self.assertFalse((target / "docs").exists())
         engine = json.loads((target / "data/manual-engine.json").read_text())
-        self.assertEqual(set(engine["files"]), {"__init__.py", "analysis.py", "rules.py"})
+        self.assertEqual(set(engine["files"]), {"__init__.py", "analysis.py", "rules.py", "lexicon.py"})
         self.assertEqual(engine["algorithm_version"], VERSION)
         self.assertTrue((target / "vendor/pyodide/pyodide.asm.wasm").is_file())
         self.assertTrue((target / "vendor/pyodide/LICENSE.txt").is_file())

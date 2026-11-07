@@ -172,10 +172,10 @@ class RatingTests(unittest.TestCase):
         save_publication(self.store, 2, 'rt_telegram', text=text)
         save_publication(self.store, 3, text='В городе открылась библиотека.')
         result = self.store.article(row['id'])['analysis']
-        self.assertEqual(result['summary']['marker_fragments'], 13)
+        self.assertEqual(result['summary']['marker_fragments'], 14)
         item = self.outlet()
         self.assertEqual((item['raw_publications'], item['collected'], item['flagged'], item['score_percent']), (3, 2, 1, 50))
-        self.assertEqual(item['by_type'], {'oversimplification': 1, 'generalization': 1, 'enemy_image': 1})
+        self.assertEqual(item['by_type'], {'oversimplification': 1, 'generalization': 1, 'enemy_image': 1, 'exaggeration': 1})
         self.assertEqual(item['series'][-1]['score_percent'], 50)
 
     def test_book_numeric_checks_count_once_per_publication_and_match_chart(self):

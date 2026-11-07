@@ -8,9 +8,10 @@ import hashlib
 import json
 import re
 
+from .lexicon import LEXICON_GUARDS, LEXICON_LABELS, LEXICON_RULES
 from .rules import HISTORICAL_JUXTAPOSITION, RULES
 
-VERSION = "rules-0.17.0"
+VERSION = "rules-0.18.0"
 MAX_CHARS = 200_000
 MAX_FINDINGS = 500
 CONTEXT_MARGIN = 200
@@ -70,11 +71,15 @@ RULE_LABELS = {
     "context.unspecified_measures": "Неконкретные меры",
     "context.unattributed_decision": "Неуказанный субъект решения",
 }
+RULE_LABELS.update(LEXICON_LABELS)
 SUPPORTED = {key for key, _, supported in TAXONOMY if supported}
 
 
 COMPILED_RULES = [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in RULES
                   if rule.context_requirement not in {"historical_juxtaposition", "structural_notice", "literature_structure"}]
+# The morphological lexicon runs after hand-written rules: where both match the
+# same fragment in one category, the more specific older rule keeps the span.
+COMPILED_RULES += [(rule, re.compile(rule.pattern, re.IGNORECASE)) for rule in LEXICON_RULES]
 STRUCTURAL_NOTICES = {rule.id: rule for rule in RULES if rule.context_requirement == "structural_notice"}
 LITERATURE_NOTICES = {rule.id: rule for rule in RULES if rule.context_requirement == "literature_structure"}
 HISTORICAL_ANCHOR = re.compile(HISTORICAL_JUXTAPOSITION.pattern, re.I)
@@ -716,11 +721,46 @@ def _vocabulary_context(rule, text, start, end, sentence_span, event_context):
     raise ValueError("Неизвестный контекст словаря.")
 
 
+LEXICON_PUBLIC_WINDOW = 250
+# Public/conflict subjects that the older political context does not list.
+# Police, courts and prosecutors are deliberately absent: in crime reports
+# «убийца», «террорист» or «враг» usually have their literal sense.
+LEXICON_PUBLIC_CONTEXT = re.compile(
+    r"\b(?:ВСУ|ЗСУ|ВС\s*РФ|ВКС|ПВО|НАТО|Кремл[а-яё]*|Минобороны|Пентагон[а-яё]*|Госдеп[а-яё]*|"
+    r"арми[а-яё]*|военн[а-яё]*|войск[а-яё]*|фронт[а-яё]*|обстрел[а-яё]*|обстрелял[а-яё]*|удар[а-яё]*|"
+    r"войн[а-яё]*|СВО|спецоперац[а-яё]*|оккупац[а-яё]*|мобилизац[а-яё]*|бо[ейяю]в[а-яё]*|"
+    r"Москв[а-яё]*|Киев[а-яё]*|Донецк[а-яё]*|Луганск[а-яё]*|Белгород[а-яё]*|Курск[а-яё]*|Харьков[а-яё]*|"
+    r"Херсон[а-яё]*|Запорож[а-яё]*|Крым[а-яё]*|Одесс[а-яё]*|Мариупол[а-яё]*|Бахмут[а-яё]*|Донбасс[а-яё]*|"
+    r"митинг[а-яё]*|протест[а-яё]*|выбор[а-яё]*|санкци[а-яё]*|пропаганд[а-яё]*|оппозиционер[а-яё]*|"
+    r"мирн[а-яё]*\s+жител[а-яё]*|граждан[а-яё]*|населени[а-яё]*|"
+    r"Госдум[а-яё]*|депутат[а-яё]*|парламент[а-яё]*|Верховн[а-яё]*\s+Рад[а-яё]*|правительств[а-яё]*|"
+    r"министр[а-яё]*|губернатор[а-яё]*|президент[а-яё]*|чиновник[а-яё]*|"
+    r"Путин[а-яё]*|Зеленск[а-яё]*|Трамп[а-яё]*|Байден[а-яё]*|Макрон[а-яё]*|Лукашенк[а-яё]*|Песков[а-яё]*|"
+    r"Лавров[а-яё]*|Захаров[а-яё]*|Медведев[а-яё]*|Мерц[а-яё]*|Стармер[а-яё]*|Нетаньяху|Эрдоган[а-яё]*|"
+    r"европейц[а-яё]*|американц[а-яё]*|украинц[а-яё]*|россиян[а-яё]*)\b", re.I)
+
+
+def _lexicon_context(rule, text, start, end, event_context):
+    """Lexicon scope: homonym guard in the sentence, public subject nearby."""
+    sentence = _sentence(text, start, end)["text"]
+    guard = LEXICON_GUARDS.get(rule.id)
+    if guard and guard.search(sentence):
+        return False
+    if rule.context_requirement == "lexicon_any":
+        return True
+    nearby = text[max(0, start - LEXICON_PUBLIC_WINDOW):min(len(text), end + LEXICON_PUBLIC_WINDOW)]
+    return any(pattern.search(nearby + " " + event_context)
+               for pattern in (POLITICAL_CONTEXT, WAR_PARTICIPANT, COLLECTIVE_TARGET, PUBLIC_TARGET,
+                               LEXICON_PUBLIC_CONTEXT))
+
+
 def _rule_applies(rule, field, text, start, end, quotes=(), event_context=""):
     if field not in rule.fields:
         return False
     if not rule.context_requirement:
         return True
+    if rule.context_requirement in {"lexicon_any", "lexicon_public"}:
+        return _lexicon_context(rule, text, start, end, event_context)
     sentence_span = _sentence(text, start, end)
     sentence = sentence_span["text"]
     fragment = text[start:end]
@@ -1632,6 +1672,13 @@ def analyze(document):
                         continue
                     spans = occupied.setdefault((field, rule.category), [])
                     if any(match.start() < end and start < match.end() for start, end in spans):
+                        continue
+                    if rule.context_requirement.startswith("lexicon_") and any(
+                            match.start() < end and start < match.end()
+                            for (key_field, _), taken in occupied.items() if key_field == field
+                            for start, end in taken):
+                        # The lexicon widens coverage; it never re-labels or
+                        # straddles a fragment already found (marks cannot nest).
                         continue
                     if len(findings) >= MAX_FINDINGS:
                         truncated = True

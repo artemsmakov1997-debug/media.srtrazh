@@ -141,7 +141,7 @@ Telegram собирается из открытых веб-лент канало
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m media_strazh prepare-browser
-python3 -m media_strazh collect --db /tmp/pilot.sqlite3 --limit 2 --time-budget-seconds 900 --verbose
+python3 -m media_strazh collect --db /tmp/pilot.sqlite3 --limit 12 --time-budget-seconds 900 --verbose
 python3 -m media_strazh build-site --db /tmp/pilot.sqlite3 --output _site --limit 100
 python3 -m http.server 8002 --directory _site
 ```

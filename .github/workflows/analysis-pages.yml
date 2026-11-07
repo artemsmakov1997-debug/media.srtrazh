@@ -10,6 +10,10 @@ on:
         description: Prepare an unlabelled 240-document corpus from accumulated history
         type: boolean
         default: false
+      lexicon_report:
+        description: Lexicon report on the retained corpus (rating impact, review sample, candidate words)
+        type: boolean
+        default: false
   schedule:
     - cron: '17,47 * * * *'
 
@@ -24,7 +28,7 @@ jobs:
   build:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -59,9 +63,10 @@ jobs:
           key: media-strazh-corpus-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             media-strazh-corpus-
-      # Read-only restore: a feature benchmark never saves over main's cache.
+      # Read-only restore: a feature benchmark or a lexicon report started from
+      # another branch never saves over main's cache.
       - name: Restore history for requested benchmark
-        if: github.event_name == 'workflow_dispatch' && inputs.benchmark
+        if: github.event_name == 'workflow_dispatch' && (inputs.benchmark || (inputs.lexicon_report && github.ref != 'refs/heads/main'))
         uses: actions/cache/restore@v4
         with:
           path: /tmp/media-strazh-pilot.sqlite3
@@ -77,12 +82,15 @@ jobs:
         run: python3 -m media_strazh reextract --db /tmp/media-strazh-pilot.sqlite3 --outdated-only
       - name: Reanalyze retained publications with the current rules
         run: python3 -m media_strazh reanalyze --db /tmp/media-strazh-pilot.sqlite3
+      # 12 articles per source and run: GitHub delays frequent schedules, so in
+      # practice there are only a few runs a day. Half of the slots take the
+      # newest unseen publications, half drain the backlog (Store.due).
       - name: Collect a fresh, bounded sample
-        if: ${{ !inputs.benchmark }}
+        if: ${{ !inputs.benchmark && !(inputs.lexicon_report && github.ref != 'refs/heads/main') }}
         shell: bash
         run: |
           set +e
-          python3 -m media_strazh collect --db /tmp/media-strazh-pilot.sqlite3 --limit 2 --time-budget-seconds 900 --verbose
+          python3 -m media_strazh collect --db /tmp/media-strazh-pilot.sqlite3 --limit 12 --time-budget-seconds 900 --verbose
           collection_exit=$?
           set -e
           if [ "$collection_exit" -gt 1 ]; then
@@ -134,6 +142,19 @@ jobs:
           path: |
             /tmp/review-corpus
             /tmp/quality-report
+          retention-days: 30
+      - name: Lexicon report on the retained corpus
+        if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
+        run: python3 -m media_strazh lexicon-report --db /tmp/media-strazh-pilot.sqlite3 --output /tmp/lexicon-report
+      - name: Summarize lexicon report
+        if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
+        run: python3 -m media_strazh lexicon-summary --input /tmp/lexicon-report/lexicon-report.json --summary "$GITHUB_STEP_SUMMARY"
+      - name: Upload lexicon report
+        if: github.event_name == 'workflow_dispatch' && inputs.lexicon_report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lexicon-report-${{ github.run_id }}
+          path: /tmp/lexicon-report
           retention-days: 30
       - name: Build public site
         run: python3 -m media_strazh build-site --db /tmp/media-strazh-pilot.sqlite3 --output _site --limit 100
