@@ -39,3 +39,13 @@ class ProTests(unittest.TestCase):
   old,new=fragments(before,after)
   self.assertTrue(any(x['changed'] and '4' in x['text'] for x in new))
   self.assertTrue(any(not x['changed'] for x in new))
+
+ def test_late_edit_and_both_fields_remain_visible(self):
+  before='Неизменная строка. '*1000+' Старый срок.'
+  after=before.replace('Старый срок','Новый срок')
+  a,b=fragments(before,after)
+  self.assertTrue(any(x['changed'] and 'Новый' in x['text'] for x in b))
+  self.add(1,'tass','Первый заголовок')
+  self.add(2,'tass','Второй заголовок',time='2026-11-19T12:00:00+00:00',article=1)
+  self.db.execute("UPDATE revisions SET text='Уточнённый текст' WHERE id=2")
+  self.assertEqual({v['kind'] for v in pro_snapshot(self)['history'][0]['versions']},{'title','text'})

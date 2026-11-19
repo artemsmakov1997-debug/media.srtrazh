@@ -11,8 +11,11 @@ def words(title):
 
 def fragments(before, after):
     # Limit both computation and public reproduction. Include the first change.
-    a=re.findall(r'\s+|[^\s]+',before[:12000])
-    b=re.findall(r'\s+|[^\s]+',after[:12000])
+    prefix=0
+    while prefix<min(len(before),len(after)) and before[prefix]==after[prefix]:prefix+=1
+    offset=max(0,prefix-400)
+    a=re.findall(r'\s+|[^\s]+',before[offset:offset+12000])
+    b=re.findall(r'\s+|[^\s]+',after[offset:offset+12000])
     matcher=SequenceMatcher(None,a,b,autojunk=True)
     changes=[op for op in matcher.get_opcodes() if op[0]!='equal']
     if not changes:return [],[]
@@ -47,10 +50,12 @@ def pro_snapshot(store):
             if old['extractor_version']!=new['extractor_version']:continue
             title_changed=old['title']!=new['title'];text_changed=old['text']!=new['text']
             if not(title_changed or text_changed):continue
-            before,after=fragments(old['title'] if title_changed else old['text'],new['title'] if title_changed else new['text'])
-            if not before and not after:continue
-            pairs.append({'before':before,'after':after,'before_at':old['retrieved_at'],'after_at':new['retrieved_at'],
-                          'kind':'title' if title_changed else 'text','title':new['title'][:250]})
+            for kind,field,changed in (('title','title',title_changed),('text','text',text_changed)):
+                if not changed:continue
+                before,after=fragments(old[field],new[field])
+                if not before and not after:continue
+                pairs.append({'before':before,'after':after,'before_at':old['retrieved_at'],'after_at':new['retrieved_at'],
+                              'kind':kind,'title':new['title'][:250]})
         if pairs:history.append({'source':source.name,'source_id':source.id,'url':current['canonical_url'],
                                   'versions':pairs[-5:]})
     stories=[];used=set()
