@@ -454,7 +454,7 @@
       }
     }
     modeButtons.forEach((button,index) => {
-      button.addEventListener('click', () => { setMode(button.dataset.mode); history.replaceState(null,'','#'+button.dataset.mode); });
+      button.addEventListener('click', () => { setMode(button.dataset.mode); });
       button.addEventListener('keydown',event=>{
         let next;
         if(event.key==='ArrowRight') next=(index+1)%4;
