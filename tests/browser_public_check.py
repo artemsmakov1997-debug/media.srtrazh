@@ -64,7 +64,7 @@ def public_ui(browser, base, site):
         opportunities.click()
         assert opportunities.inner_text() == "Назад"
         assert page.locator("#aboutStageOpportunities").is_visible()
-        assert page.locator(".about-audience").count() == 2
+        assert page.locator(".about-audience").count() == 1
         assert page.locator(".about-audience--research a").get_attribute("href") == "/analysis/"
         assert "JSON" in page.locator(".about-audience--research").inner_text()
         creator = page.locator('[data-about-channel="creator"]')
