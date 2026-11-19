@@ -11,7 +11,8 @@ def pro_ui(browser,base,site):
         page.goto(base+'/analysis/')
         tabs=page.locator('.analysis-tabs [data-mode]')
         assert tabs.all_text_contents()==['Один сюжет — по-разному','История правок','Автоматический анализ','Самостоятельная проверка']
-        boxes=[tabs.nth(i).bounding_box() for i in range(4)]
+        page.evaluate('document.fonts.ready')
+        boxes=tabs.evaluate_all('els=>els.map(el=>({y:el.getBoundingClientRect().y}))')
         assert (abs(boxes[0]['y']-boxes[3]['y'])<2)==(width>720)
         for mode in ('stories','history','automatic','manual'):
             page.locator('[data-mode='+mode+']').click()
