@@ -32,3 +32,10 @@ class ProTests(unittest.TestCase):
   self.assertEqual(fragments('same','same'),([],[]))
   a,b=fragments('x'*1000,'y'*1000)
   self.assertLessEqual(sum(len(s['text']) for s in b),600)
+
+ def test_word_diff_keeps_long_unchanged_context_readable(self):
+  before=('Сохраняется обычное движение. '*30)+' Работы завершатся до конца недели.'
+  after=before.replace('до конца недели','до 4 декабря')
+  old,new=fragments(before,after)
+  self.assertTrue(any(x['changed'] and '4' in x['text'] for x in new))
+  self.assertTrue(any(not x['changed'] for x in new))

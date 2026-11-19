@@ -11,19 +11,22 @@ def words(title):
 
 def fragments(before, after):
     # Limit both computation and public reproduction. Include the first change.
-    a,b=before[:12000],after[:12000]
+    a=re.findall(r'\s+|[^\s]+',before[:12000])
+    b=re.findall(r'\s+|[^\s]+',after[:12000])
     matcher=SequenceMatcher(None,a,b,autojunk=True)
     changes=[op for op in matcher.get_opcodes() if op[0]!='equal']
     if not changes:return [],[]
     _,i,j,k,l=changes[0]
-    a0,b0=max(0,i-100),max(0,k-100)
-    a1,b1=min(len(a),max(j,i+200),a0+600),min(len(b),max(l,k+200),b0+600)
+    a0,b0=max(0,i-12),max(0,k-12)
+    a1,b1=min(len(a),max(j,i+24),a0+100),min(len(b),max(l,k+24),b0+100)
     def segments(side):
-        result=[]
+        result=[];remaining=600
         for tag,x,y,u,v in matcher.get_opcodes():
             start,end,lo,hi=(x,y,a0,a1) if side==0 else (u,v,b0,b1)
             start,end=max(start,lo),min(end,hi)
-            if end>start:result.append({'text':(a if side==0 else b)[start:end],'changed':tag!='equal'})
+            if end>start and remaining:
+                text=''.join((a if side==0 else b)[start:end])[:remaining]
+                result.append({'text':text,'changed':tag!='equal'});remaining-=len(text)
         return result
     return segments(0),segments(1)
 
