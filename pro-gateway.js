@@ -31,18 +31,7 @@
             </ul>
             <span class="pro-gateway-cta">Перейти к исследованиям</span>
           </a>
-          <a class="pro-gateway-option pro-gateway-option--business" href="business.html">
-            <div>
-              <h3>Бизнес</h3>
-              <p class="pro-gateway-audience">Предпринимателям · маркетологам · PR-командам</p>
-            </div>
-            <ul class="pro-gateway-benefits">
-              <li>Повышение узнаваемости компании через актуальную медиаповестку.</li>
-              <li>Мониторинг упоминаний и поддержка управления репутацией.</li>
-              <li>Отраслевые тренды, PR-поводы, подбор СМИ и подготовка релизов.</li>
-            </ul>
-            <span class="pro-gateway-cta">Открыть бизнес-панель</span>
-          </a>
+
         </div>
       </section>
     `;

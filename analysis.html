@@ -311,7 +311,7 @@
 <link rel="stylesheet" href="analysis-surfaces.css?v=shared-publication-ui-20261027">
 <script src="analysis-layout.js?v=visible-filters-20261024" defer></script>
 <link rel="stylesheet" href="publication-ui.css?v=20261027-1">
-</head>
+<link rel="stylesheet" href="pro-analysis.css?v=20261119"><script src="pro-analysis.js?v=20261119" defer></script></head>
 <body>
 <header class="site-header">
   <div class="header-inner">
@@ -320,18 +320,15 @@
   </div>
 </header>
 <main>
-  <div class="analysis-tabs" role="group" aria-label="Выбор режима анализа">
-    <button class="mode-card active" type="button" data-mode="automatic" aria-pressed="true">
-      <span class="mode-number">01 / АВТОМАТИЧЕСКИЙ</span>
-      <strong>Автоматический анализ</strong>
-    </button>
-    <button class="mode-card" type="button" data-mode="manual" aria-pressed="false">
-      <span class="mode-number">02 / САМОСТОЯТЕЛЬНЫЙ</span>
-      <strong>Самостоятельная проверка</strong>
-    </button>
-  </div>
-
-  <section id="automaticPanel" class="section-panel" aria-label="Автоматический анализ">
+  <div class="analysis-tabs" role="tablist" aria-label="Разделы PRO">
+<button id="tab-stories" class="mode-card" type="button" role="tab" data-mode="stories" aria-controls="storiesPanel" aria-selected="false" aria-pressed="false"><strong>Один сюжет — по-разному</strong></button>
+<button id="tab-history" class="mode-card" type="button" role="tab" data-mode="history" aria-controls="historyPanel" aria-selected="false" aria-pressed="false"><strong>История правок</strong></button>
+<button id="tab-automatic" class="mode-card active" type="button" role="tab" data-mode="automatic" aria-controls="automaticPanel" aria-selected="true" aria-pressed="true"><strong>Автоматический анализ</strong></button>
+<button id="tab-manual" class="mode-card" type="button" role="tab" data-mode="manual" aria-controls="manualPanel" aria-selected="false" aria-pressed="false"><strong>Самостоятельная проверка</strong></button>
+</div>
+<section id="storiesPanel" class="section-panel pro-panel" role="tabpanel" aria-labelledby="tab-stories" hidden><div class="section-head"><h2>Одно событие — разные подачи</h2><span class="muted">По сохранённым публикациям</span></div><p class="muted">Автоматически подобранные похожие заголовки. Совпадение события и интерпретацию акцентов нужно проверить по источникам.</p><div id="storiesContent" aria-live="polite"><p>Загрузка данных…</p></div></section>
+<section id="historyPanel" class="section-panel pro-panel" role="tabpanel" aria-labelledby="tab-history" hidden><div class="section-head"><h2>История правок публикаций</h2><span class="muted">По сохранённым публикациям</span></div><p class="muted">Время означает фиксацию версии сборщиком, а не точный момент правки редакцией. Причины изменения не устанавливаются. Показаны фрагменты вокруг первого изменения каждого поля.</p><div id="historyContent" aria-live="polite"><p>Загрузка данных…</p></div></section>
+  <section id="automaticPanel" role="tabpanel" aria-labelledby="tab-automatic" class="section-panel" aria-label="Автоматический анализ">
     <div id="filterPanel" class="analysis-filter" role="group" aria-label="Параметры отбора публикаций">
     <div class="controls" id="controls">
       <div class="control-field">
@@ -390,7 +387,7 @@
     <details id="coverageBlock" hidden><summary>Охват анализа</summary><p id="coverage" class="muted"></p></details>
   </section>
 
-  <section id="manualPanel" class="section-panel manual" aria-label="Самостоятельная проверка" hidden>
+  <section id="manualPanel" role="tabpanel" aria-labelledby="tab-manual" class="section-panel manual" aria-label="Самостоятельная проверка" hidden>
     <noscript><p class="error">Для ручного анализа включите JavaScript в браузере.</p></noscript>
     <form id="manualForm" class="manual-form" autocomplete="off">
       <label id="manualTitleLabel" for="manualTitle">Заголовок — необязательно</label>
@@ -443,12 +440,12 @@
     const modeButtons = Array.from(document.querySelectorAll('[data-mode]'));
     function setMode(mode) {
       const manual = mode === 'manual';
-      automaticPanel.hidden = manual;
-      manualPanel.hidden = !manual;
+      for (const name of ['stories','history','automatic','manual']) document.getElementById(name+'Panel').hidden = name !== mode;
       modeButtons.forEach(button => {
         const active = button.dataset.mode === mode;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
+        button.setAttribute('aria-selected', String(active));
       });
       if (manual) {
         const target = document.getElementById('manualTextEvidence').hidden
@@ -456,7 +453,19 @@
         target.focus({preventScroll:true});
       }
     }
-    modeButtons.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
+    modeButtons.forEach((button,index) => {
+      button.addEventListener('click', () => { setMode(button.dataset.mode); });
+      button.addEventListener('keydown',event=>{
+        let next;
+        if(event.key==='ArrowRight') next=(index+1)%4;
+        if(event.key==='ArrowLeft') next=(index+3)%4;
+        if(event.key==='Home') next=0;
+        if(event.key==='End') next=3;
+        if(next!==undefined){event.preventDefault();modeButtons[next].click();modeButtons[next].focus();}
+      });
+    });
+    const initial=location.hash.slice(1);
+    if(['stories','history','automatic','manual'].includes(initial)) setMode(initial);
   })();
 </script>
 <script>

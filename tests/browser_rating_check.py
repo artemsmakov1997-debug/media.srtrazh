@@ -543,9 +543,9 @@ def rating_ui(browser, base, site, errors, requests):
                 link = page.locator('.hero-nav .hero-pro-link')
                 link.click()
                 page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 2
+                assert page.locator('.pro-gateway-option').count() == 1
                 assert page.locator('.pro-gateway-option--research').get_attribute('href') == '/analysis/'
-                assert page.locator('.pro-gateway-option--business').get_attribute('href') == '/business/'
+                assert page.locator('.pro-gateway-option--business').count() == 0
                 page.keyboard.press('Escape')
                 assert link.evaluate('a => a === document.activeElement')
                 page.locator('#burgerBtn').click()
@@ -556,7 +556,7 @@ def rating_ui(browser, base, site, errors, requests):
                 desktop_pro = page.locator('.hero .hero-desktop-pro-link')
                 desktop_pro.click()
                 page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 2
+                assert page.locator('.pro-gateway-option').count() == 1
                 page.keyboard.press('Escape')
                 assert desktop_pro.evaluate('a => a === document.activeElement')
                 page.clock.install()
