@@ -6,6 +6,8 @@ def pro_ui(browser,base,site):
     for width in (375,720,1280):
         context=browser.new_context(viewport={'width':width,'height':900},has_touch=width<721,is_mobile=width<721)
         page=context.new_page();errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        assert page.request.get(base+'/business/').status==404
+        assert page.request.get(base+'/business.html').status==404
         page.goto(base+'/analysis/')
         tabs=page.locator('.analysis-tabs [data-mode]')
         assert tabs.all_text_contents()==['Один сюжет — по-разному','История правок','Автоматический анализ','Самостоятельная проверка']
@@ -22,7 +24,7 @@ def pro_ui(browser,base,site):
         # Deterministic real-schema fixture, never part of public production data.
         fixture={'schema_version':'pro-evidence-1.0','stories':[{'title':'Закрытие полос моста','items':[{'source':'Редакция','url':'https://tass.ru/test','published_at':'2026-11-19T10:00:00Z','title':'Закроют две полосы','phrases':[{'text':'Закроют','changed':True},{'text':' две полосы','changed':False}]}]}], 'history':[{'source':'Редакция','url':'https://tass.ru/test','versions':[{'before':[{'text':'все полосы','changed':True}],'after':[{'text':'две полосы','changed':True}],'before_at':'2026-11-19T10:00:00Z','after_at':'2026-11-19T11:00:00Z','kind':'title','title':'Закроют две полосы'}]}]}
         page.route('**/data/pro.json',lambda route:route.fulfill(json=fixture))
-        page.goto(base+'/analysis/#stories');page.locator('.pro-headline mark').click();assert 'не доказывает манипуляцию' in page.locator('.pro-explanation').inner_text()
+        page.goto(base+'/analysis/#stories');page.reload();page.locator('.pro-headline mark').click();assert 'не доказывает манипуляцию' in page.locator('.pro-explanation').inner_text()
         page.locator('[data-mode=history]').click();assert page.locator('.pro-version del').inner_text()=='все полосы';assert page.locator('.pro-version ins').inner_text()=='две полосы';assert 'МСК' in page.locator('.pro-revision').inner_text()
         page.select_option('#historyKind','text');assert page.locator('#historyContent .pro-empty').is_visible()
         for url in ('/','/help/','/about/'):
