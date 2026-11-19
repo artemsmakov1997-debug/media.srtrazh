@@ -545,7 +545,7 @@ def rating_ui(browser, base, site, errors, requests):
                 page.locator('.pro-gateway-dialog').wait_for(state='visible')
                 assert page.locator('.pro-gateway-option').count() == 1
                 assert page.locator('.pro-gateway-option--research').get_attribute('href') == '/analysis/'
-                assert page.locator('.pro-gateway-option--business').get_attribute('href') == '/business/'
+                assert page.locator('.pro-gateway-option--business').count() == 0
                 page.keyboard.press('Escape')
                 assert link.evaluate('a => a === document.activeElement')
                 page.locator('#burgerBtn').click()
