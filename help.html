@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=focus1">
 <link rel="manifest" href="site.webmanifest?v=focus1">
 <meta name="theme-color" content="#00c7df">
-  <meta name="description" content="Поддержите развитие МЕДИА.СТРАЖ: разовый взнос, подписка PRO для исследователей или PRO для бизнеса. Оформление подписок пока готовится." />
+  <meta name="description" content="Поддержите развитие МЕДИА.СТРАЖ: разовый взнос, подписка PRO для исследователей или PRO для архивный продукта. Оформление подписок пока готовится." />
   <meta property="og:title" content="МЕДИА.СТРАЖ — Поддержка проекта" />
   <meta property="og:description" content="Помогите независимому рейтингу российских СМИ оставаться свободным от рекламных и государственных интересов." />
   <meta property="og:type" content="website" />
@@ -1768,8 +1768,8 @@
    }
  }
 </style>
-  <link rel="stylesheet" href="pro-gateway.css?v=mobile7-center">
-  <script defer src="pro-gateway.js?v=20261012-pro3"></script>
+  <link rel="stylesheet" href="pro-gateway.css?v=20261119-pro4">
+  <script defer src="pro-gateway.js?v=20261119-pro4"></script>
   <link rel="stylesheet" href="interface-scale.css?v=20261013-2">
   <link rel="stylesheet" href="mobile-typography.css?v=mobile1">
   <link rel="stylesheet" href="support-hover.css?v=20261013-2">
@@ -1824,10 +1824,6 @@
   #supportFormats .support-choice--research {
     --plan-accent:#56d7c4; --plan-border:rgba(86,215,196,.55); --plan-surface:#101e22;
     animation-delay:2180ms;
-  }
-  #supportFormats .support-choice--business {
-    --plan-accent:#f0c27e; --plan-border:rgba(240,194,126,.56); --plan-surface:#211c1a;
-    animation-delay:2410ms;
   }
   #supportFormats .support-choice::before {
     content:""; position:absolute; display:block; top:0; left:19px; right:19px;
@@ -1898,9 +1894,6 @@
   #supportFormats .support-choice--research .support-plan-link {
     background:linear-gradient(180deg,#81ddcd,#44bba8); color:#0d2522;
   }
-  #supportFormats .support-choice--business .support-plan-link {
-    background:linear-gradient(180deg,#f0cc96,#dbad6d); color:#2c1d0f;
-  }
   #supportFormats .support-choice .support-btn:hover:not(:disabled),
   #supportFormats .support-choice .support-plan-link:hover,
   #supportFormats .support-choice .support-plan-link:focus-visible {
@@ -1965,7 +1958,6 @@
   #supportFormats .input-hint:not(:empty) { grid-row:5; }
   @media(max-width:950px) {
     #supportFormats .support-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    #supportFormats .support-choice--business { grid-column:1 / -1; }
   }
   @media(max-width:767px) {
     .hero-support { min-height:184px; padding:23px 13px !important; }
@@ -1974,7 +1966,6 @@
       letter-spacing:-.035em;
     }
     #supportFormats .support-grid { grid-template-columns:1fr; gap:13px; }
-    #supportFormats .support-choice--business { grid-column:auto; }
     #supportFormats .support-choice { padding:23px 20px 22px !important; }
     #supportFormats .support-choice-title { font-size:20px; }
     #supportFormats .support-choice-audience { min-height:0; margin-bottom:12px; }
@@ -2134,17 +2125,7 @@
         </div>
       </article>
 
-      <article class="support-card support-choice support-choice--business">
-        <h2 class="support-choice-title">Бизнес</h2>
-        <p class="support-choice-audience">Предпринимателям · маркетологам · PR-командам</p>
-        <p class="support-choice-desc">Мониторинг упоминаний компании, отраслевые тренды и PR-возможности для роста узнаваемости.</p>
-        <div class="support-choice-action">
-          <span class="support-amount-label">Стоимость подписки</span>
-          <div class="support-plan-price">Уточняется</div>
-          <a class="support-plan-link support-plan-link--business" href="business.html">Открыть бизнес-панель <span aria-hidden="true">→</span></a>
-          <p class="support-plan-status">Подписка готовится. Бизнес-обзор работает в демо-режиме.</p>
-        </div>
-      </article>
+
     </div>
   </section>
 
@@ -2235,3 +2216,4 @@
 
 </body>
 </html>
+<style>#supportFormats .support-grid{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:640px){#supportFormats .support-grid{grid-template-columns:1fr}}</style>

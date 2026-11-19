@@ -9,11 +9,11 @@ import re
 from pathlib import Path
 
 DOMAIN = "https://media-strazh.ru"
-CLEAN_ROUTES = ("about", "analysis", "archive", "business", "help", "method")
+CLEAN_ROUTES = ("about", "analysis", "archive", "help", "method")
 # Restrict rewriting to exact *quoted* page URLs rather than arbitrary text.
 _QUOTED_PAGE = re.compile(
     r"""(?P<quote>["'])(?P<slash>/?)"""
-    r"""(?P<slug>index|about|analysis|archive|business|help|method)\.html"""
+    r"""(?P<slug>index|about|analysis|archive|help|method)\.html"""
     r"""(?P<tail>[?#][^"']*)?(?P=quote)"""
 )
 
@@ -94,7 +94,7 @@ def publish_clean_routes(destination: Path) -> None:
     if sitemap.exists():
         xml = sitemap.read_text(encoding="utf-8")
         xml = re.sub(
-            rf"{re.escape(DOMAIN)}/(about|analysis|archive|business|help|method)\.html",
+            rf"{re.escape(DOMAIN)}/(about|analysis|archive|help|method)\.html",
             lambda match: f"{DOMAIN}/{match.group(1)}/", xml,
         )
         sitemap.write_text(xml, encoding="utf-8")

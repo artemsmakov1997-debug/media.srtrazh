@@ -9,7 +9,7 @@ import tempfile
 
 from .analysis import VERSION, taxonomy
 from .browser import DEFAULT_RUNTIME, engine_bundle, runtime_assets
-from .business import business_snapshot
+from .pro import pro_snapshot
 from .crossposts import VERSION_DEDUP, current_publications, group_publications
 from .rating import rating_snapshot
 from .sources import SOURCES, normalize_url, resolve_source
@@ -176,14 +176,14 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
     runtime = runtime_assets(runtime_dir)
     runtime_paths = {Path("vendor/pyodide") / name for name in runtime}
     allowed = {Path(path.name) for path in assets} | runtime_paths | {
-        Path("data/analysis.json"), Path("data/manual-engine.json"), Path("data/business.json"), Path("data/rating.json")
+        Path("data/analysis.json"), Path("data/manual-engine.json"), Path("data/pro.json"), Path("data/rating.json")
     } | {Path(slug) / "index.html" for slug in CLEAN_ROUTES}
     if destination.exists():
         for path in destination.rglob("*"):
             if path.is_symlink() or (not path.is_dir() and path.relative_to(destination) not in allowed):
                 raise ValueError("В каталоге сборки есть посторонние файлы; используйте пустой каталог.")
     report = snapshot(store, limit)  # Validate before modifying any earlier output.
-    business = business_snapshot(store)
+    pro = pro_snapshot(store)
     rating = rating_snapshot(store)
     destination.mkdir(parents=True, exist_ok=True)
     for path in assets:
@@ -195,7 +195,7 @@ def build_site(store, output, limit=100, runtime_dir=DEFAULT_RUNTIME):
         shutil.copy2(path, runtime_destination / name)
     _write_json(destination / "data" / "manual-engine.json", engine_bundle())
     _write_json(destination / "data" / "analysis.json", report)
-    _write_json(destination / "data" / "business.json", business)
+    _write_json(destination / "data" / "pro.json", pro)
     _write_json(destination / "data" / "rating.json", rating)
     return {"output": str(destination), "totals": report["totals"],
             "algorithm_version": report["algorithm_version"], "manual_analysis": True}
