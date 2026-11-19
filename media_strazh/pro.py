@@ -4,6 +4,7 @@ from datetime import datetime
 from difflib import SequenceMatcher
 import re
 from .sources import SOURCES
+from .analysis import analyze
 
 STOP = {'после','перед','через','будет','будут','который','также','этого','россии','сообщили','заявил'}
 def words(title):
@@ -32,6 +33,20 @@ def fragments(before, after):
                 result.append({'text':text,'changed':tag!='equal'});remaining-=len(text)
         return result
     return segments(0),segments(1)
+
+def headline_parts(title, common):
+    findings=analyze({'title':title,'text':'Опубликован материал.'})['findings']
+    evidence=[(e,f) for f in findings for e in f['evidence'] if e['field']=='title']
+    result=[]
+    for m in re.finditer(r'\w+|\W+',title):
+        matches=[f for e,f in evidence if e['start']<m.end() and m.start()<e['end']]
+        part={'text':m.group(),'changed':bool(matches) or m.group().lower() not in common and len(m.group())>3}
+        if matches:
+            part['explanation']=' '.join(dict.fromkeys(
+                ('Цитата или переданная речь. ' if f['status']=='quoted_candidate' else '')+
+                f['label']+': '+f['explanation'] for f in matches))
+        result.append(part)
+    return result
 
 def pro_snapshot(store):
     rows=store.db.execute('''SELECT a.id,a.source_id,r.id AS revision_id,r.title,r.text,r.canonical_url,
@@ -79,8 +94,7 @@ def pro_snapshot(store):
         common=set.intersection(*(words(r['title']) for r,s in group))
         stories.append({'title':anchor['title'][:250],'items':[{'source':s.name,'url':r['canonical_url'],
             'published_at':r['published_at'],'title':r['title'][:250],
-            'phrases':[{'text':m.group(),'changed':m.group().lower() not in common and len(m.group())>3}
-                       for m in re.finditer(r'\w+|\W+',r['title'][:250])]} for r,s in group]})
+            'phrases':headline_parts(r['title'][:250],common)} for r,s in group]})
         if len(stories)==8:break
     history.sort(key=lambda h:h['versions'][-1]['after_at'],reverse=True)
     return {'schema_version':'pro-evidence-1.0','stories':stories,'history':history[:20]}

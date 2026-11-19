@@ -1,6 +1,6 @@
 import sqlite3
 import unittest
-from media_strazh.pro import pro_snapshot,fragments
+from media_strazh.pro import pro_snapshot,fragments,headline_parts
 class ProTests(unittest.TestCase):
  def setUp(self):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
@@ -49,3 +49,9 @@ class ProTests(unittest.TestCase):
   self.add(2,'tass','Второй заголовок',time='2026-11-19T12:00:00+00:00',article=1)
   self.db.execute("UPDATE revisions SET text='Уточнённый текст' WHERE id=2")
   self.assertEqual({v['kind'] for v in pro_snapshot(self)['history'][0]['versions']},{'title','text'})
+
+ def test_headline_explanations_use_the_existing_detector(self):
+  title='Все знают: нас ждёт неминуемая катастрофа'
+  parts=headline_parts(title,set(title.lower().split()))
+  self.assertEqual(''.join(p['text'] for p in parts),title)
+  self.assertTrue(any(p.get('explanation') and p['changed'] for p in parts))
