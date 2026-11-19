@@ -29,6 +29,7 @@ def pro_ui(browser,base,site):
         page.select_option('#historyKind','text');assert page.locator('#historyContent .pro-empty').is_visible()
         for url in ('/','/help/','/about/'):
             page.goto(base+url);assert page.locator('a[href*="business"]').count()==0;assert 'Бизнес' not in page.locator('body').inner_text()
+            if not page.locator('a.pro-nav-link').is_visible():page.locator('#burgerBtn').click()
             page.locator('a.pro-nav-link').click()
             assert page.locator('.pro-gateway-option').count()==1
             assert page.locator('.pro-gateway-option--research').get_attribute('href')=='/analysis/'
