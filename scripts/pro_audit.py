@@ -31,6 +31,6 @@ from datetime import datetime,timedelta,timezone
 cutoff=(datetime.now(timezone.utc)-timedelta(days=7)).isoformat()
 counts['changed_publications_last_week']=sum(any(v['after_at']>=cutoff for v in h['versions']) for h in pro['history'])
 counts['pro_stories']=len(pro['stories'])
-counts['story_examples']=[{'topic':s.get('topic'),'titles':[i['title'][:150] for i in s['items'][:2]]} for s in pro['stories'][:2]]
+counts['story_examples']=[{'topic':s.get('topic'),'titles':[i['title'][:120] for i in s['items'][:2]]} for s in pro['stories'][:8]]
 message=json.dumps(counts,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
 print('::notice title=PRO retained corpus audit::'+message)

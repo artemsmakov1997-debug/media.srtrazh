@@ -1,6 +1,6 @@
 import sqlite3
 import unittest
-from media_strazh.pro import pro_snapshot,fragments,headline_parts
+from media_strazh.pro import pro_snapshot,fragments,headline_parts,political_topic
 class ProTests(unittest.TestCase):
  def setUp(self):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
@@ -66,3 +66,9 @@ class ProTests(unittest.TestCase):
   self.add(2,'tass','Уточнённый заголовок',time='2026-10-01T11:00:00+00:00',article=1)
   for id in range(3,1105):self.add(id,'ria','Новая одиночная публикация')
   self.assertEqual(len(pro_snapshot(self)['history']),1)
+
+ def test_topic_words_have_literal_controls(self):
+  for title in ('Как сделать правильный выбор автомобиля', 'Футболист нанёс сильный удар по воротам', 'Удар морозов обрушился на город'):
+   self.assertIsNone(political_topic(title),title)
+  self.assertIsNotNone(political_topic('Выборы президента пройдут осенью'))
+  self.assertIsNotNone(political_topic('Военные нанесли удар по аэродрому'))
