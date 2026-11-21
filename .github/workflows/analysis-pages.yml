@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
     inputs:
+      pro_audit:
+        description: Read-only audit of retained revisions for PRO
+        type: boolean
+        default: false
       benchmark:
         description: Prepare an unlabelled 240-document corpus from accumulated history
         type: boolean
@@ -25,8 +29,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  pro_audit:
+    if: github.event_name == 'workflow_dispatch' && inputs.pro_audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        with:
+          path: /tmp/media-strazh-pilot.sqlite3
+          key: pro-audit-readonly-${{ github.run_id }}
+          restore-keys: |
+            media-strazh-corpus-
+      - name: Audit retained versions without collection or publication
+        run: python3 scripts/pro_audit.py /tmp/media-strazh-pilot.sqlite3
   build:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && !inputs.pro_audit
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     steps:
