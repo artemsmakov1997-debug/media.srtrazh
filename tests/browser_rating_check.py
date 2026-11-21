@@ -259,7 +259,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero-kicker').inner_text() == 'Первый независимый рейтинг российских СМИ'
                 assert page.locator('.hero-nav a').all_inner_texts() == ['Узнать о возможностях проекта\n→']
                 assert page.locator('.hero-nav .hero-pro-link').count() == 1
-                assert page.locator('.hero-nav .hero-pro-link').get_attribute('data-pro-gateway') == ''
+                assert page.locator('.hero-nav .hero-pro-link').get_attribute('aria-haspopup') is None
                 assert page.locator('.hero-nav .hero-pro-link').evaluate(
                     'a => {const s=getComputedStyle(a), n=a.getBoundingClientRect();'
                     'const label=a.querySelector("span:first-child").getBoundingClientRect();'
@@ -305,7 +305,7 @@ def rating_ui(browser, base, site, errors, requests):
                 if width >= 1024:
                     assert page.locator('.hero .hero-desktop-pro-link').inner_text().startswith(
                         'Узнать о возможностях проекта')
-                    assert page.locator('.hero .hero-desktop-pro-link').get_attribute('data-pro-gateway') == ''
+                    assert page.locator('.hero .hero-desktop-pro-link').get_attribute('aria-haspopup') is None
                 if width >= 1024:
                     assert page.locator('.hero .hero-counter .counter-label').evaluate(
                         'el => el.innerHTML.toLowerCase().includes("публикаций<br>с признаками<br>за ")')
@@ -539,15 +539,11 @@ def rating_ui(browser, base, site, errors, requests):
                     })''')
                     example.evaluate('el => el.style.removeProperty("font-size")')
             if width == 390:
-                # The single text link opens the existing PRO chooser and restores focus.
-                link = page.locator('.hero-nav .hero-pro-link')
-                link.click()
-                page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 1
-                assert page.locator('.pro-gateway-option--research').get_attribute('href') == '/analysis/'
-                assert page.locator('.pro-gateway-option--business').count() == 0
-                page.keyboard.press('Escape')
-                assert link.evaluate('a => a === document.activeElement')
+                # PRO is an ordinary direct link, not a chooser.
+                page.locator('.hero-nav .hero-pro-link').click()
+                page.wait_for_url('**/analysis/')
+                assert page.locator('.pro-gateway-dialog').count()==0
+                page.goto(base+'/index.html')
                 page.locator('#burgerBtn').click()
                 assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'true'
                 page.keyboard.press('Escape')
@@ -555,10 +551,10 @@ def rating_ui(browser, base, site, errors, requests):
             if width == 1280:
                 desktop_pro = page.locator('.hero .hero-desktop-pro-link')
                 desktop_pro.click()
-                page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 1
-                page.keyboard.press('Escape')
-                assert desktop_pro.evaluate('a => a === document.activeElement')
+                page.wait_for_url('**/analysis/')
+                assert page.locator('.pro-gateway-dialog').count()==0
+                page.goto(base+'/index.html')
+                page.locator('#mediaGrid .media-card').first.wait_for(state='visible')
                 page.clock.install()
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])

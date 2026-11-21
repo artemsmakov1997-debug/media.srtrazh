@@ -31,7 +31,7 @@ class CleanRoutesTest(unittest.TestCase):
             self.assertIn('href="#appeal"', (site / "index.html").read_text(encoding="utf-8"))
             help_alias = (site / "help" / "index.html").read_text(encoding="utf-8")
             self.assertIn('href="/help/#supportFormats"', help_alias)
-            self.assertIn('href="/analysis/"', (site / "pro-gateway.js").read_text(encoding="utf-8"))
+            self.assertIn("link.href='/analysis/'", (site / "pro-gateway.js").read_text(encoding="utf-8"))
             self.assertNotIn('href="/business/"', (site / "pro-gateway.js").read_text(encoding="utf-8"))
             self.assertIn('location.pathname===\'/index.html\'', (site / "index.html").read_text())
             sitemap = (site / "sitemap.xml").read_text()
