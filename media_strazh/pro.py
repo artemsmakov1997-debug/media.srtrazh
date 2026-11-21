@@ -63,7 +63,7 @@ def headline_parts(title, common):
     result=[]
     for m in re.finditer(r'\w+|\W+',title):
         matches=[f for e,f in evidence if e['start']<m.end() and m.start()<e['end']]
-        part={'text':m.group(),'changed':bool(matches) or token_key(m.group()) not in common and len(m.group())>3}
+        part={'text':m.group(),'changed':bool(matches) or (token_key(m.group()) not in common and len(m.group())>3 and m.group().lower() not in STOP and bool(re.fullmatch(r'\w+',m.group())))}
         if matches:
             part['explanation']=' '.join(dict.fromkeys(
                 ('Цитата или переданная речь. ' if f['status']=='quoted_candidate' else '')+

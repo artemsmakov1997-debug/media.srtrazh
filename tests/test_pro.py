@@ -72,3 +72,7 @@ class ProTests(unittest.TestCase):
    self.assertIsNone(political_topic(title),title)
   self.assertIsNotNone(political_topic('Выборы президента пройдут осенью'))
   self.assertIsNotNone(political_topic('Военные нанесли удар по аэродрому'))
+
+ def test_stop_words_do_not_become_false_editorial_accents(self):
+  parts=headline_parts('Новости мира и спорта',{'новост','спорт'})
+  self.assertFalse(any(p['changed'] for p in parts))
