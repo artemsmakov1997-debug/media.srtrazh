@@ -71,6 +71,11 @@ def headline_parts(title, common):
         result.append(part)
     return result
 
+def revision_content(text, telegram=False):
+    # Forward-source attribution belongs to the preview wrapper, not the post.
+    if telegram:text=re.sub(r'^Forwarded from[^\n]*(?:\n|$)','',text,flags=re.I)
+    return re.sub(r'\s+',' ',text).strip()
+
 def pro_snapshot(store):
     # Select revision-bearing articles first: a global recent-row cap hid
     # older real changes behind new single-version publications.
@@ -88,11 +93,13 @@ def pro_snapshot(store):
         pairs=[]
         for old,new in zip(versions,versions[1:]):
             if old['extractor_version']!=new['extractor_version']:continue
-            title_changed=old['title']!=new['title'];text_changed=old['text']!=new['text']
+            old_title,new_title=revision_content(old['title']),revision_content(new['title'])
+            old_text,new_text=revision_content(old['text'],source.platform=='telegram'),revision_content(new['text'],source.platform=='telegram')
+            title_changed=old_title!=new_title;text_changed=old_text!=new_text
             if not(title_changed or text_changed):continue
-            for kind,field,changed in (('title','title',title_changed),('text','text',text_changed)):
+            for kind,before_content,after_content,changed in (('title',old_title,new_title,title_changed),('text',old_text,new_text,text_changed)):
                 if not changed:continue
-                before,after=fragments(old[field],new[field])
+                before,after=fragments(before_content,after_content)
                 if not before and not after:continue
                 pairs.append({'before':before,'after':after,'before_at':old['retrieved_at'],'after_at':new['retrieved_at'],
                               'kind':kind,'title':new['title'][:250]})
