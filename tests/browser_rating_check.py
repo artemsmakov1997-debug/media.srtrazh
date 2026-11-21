@@ -554,6 +554,7 @@ def rating_ui(browser, base, site, errors, requests):
                 page.wait_for_url('**/analysis/')
                 assert page.locator('.pro-gateway-dialog').count()==0
                 page.goto(base+'/index.html')
+                page.locator('#mediaGrid .media-card').first.wait_for(state='visible')
                 page.clock.install()
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])
