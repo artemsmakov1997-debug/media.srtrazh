@@ -76,3 +76,14 @@ class ProTests(unittest.TestCase):
  def test_stop_words_do_not_become_false_editorial_accents(self):
   parts=headline_parts('Новости мира и спорта',{'новост','спорт'})
   self.assertFalse(any(p['changed'] for p in parts))
+
+ def test_forward_attribution_and_spacing_are_not_publication_edits(self):
+  self.add(1,'tass_telegram','')
+  self.add(2,'tass_telegram','',time='2026-11-19T12:00:00+00:00',article=1)
+  self.db.execute("UPDATE revisions SET text=? WHERE id=1",('Forwarded from\nНовость о переговорах.  Дальше текст.',))
+  self.db.execute("UPDATE revisions SET text=? WHERE id=2",('Forwarded from Название канала\nНовость о переговорах.\nДальше текст.',))
+  self.assertEqual(pro_snapshot(self)['history'],[])
+  self.db.execute("UPDATE revisions SET text=? WHERE id=2",('Forwarded from Название канала\nНовость о завершении переговоров. Дальше текст.',))
+  v=pro_snapshot(self)['history'][0]['versions'][0]
+  self.assertNotIn('Forwarded', ''.join(x['text'] for x in v['after']))
+  self.assertIn('завершении',''.join(x['text'] for x in v['after']))
