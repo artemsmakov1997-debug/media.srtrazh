@@ -539,15 +539,11 @@ def rating_ui(browser, base, site, errors, requests):
                     })''')
                     example.evaluate('el => el.style.removeProperty("font-size")')
             if width == 390:
-                # The single text link opens the existing PRO chooser and restores focus.
-                link = page.locator('.hero-nav .hero-pro-link')
-                link.click()
-                page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 1
-                assert page.locator('.pro-gateway-option--research').get_attribute('href') == '/analysis/'
-                assert page.locator('.pro-gateway-option--business').count() == 0
-                page.keyboard.press('Escape')
-                assert link.evaluate('a => a === document.activeElement')
+                # PRO is an ordinary direct link, not a chooser.
+                page.locator('.hero-nav .hero-pro-link').click()
+                page.wait_for_url('**/analysis/')
+                assert page.locator('.pro-gateway-dialog').count()==0
+                page.goto(base+'/index.html')
                 page.locator('#burgerBtn').click()
                 assert page.locator('#burgerBtn').get_attribute('aria-expanded') == 'true'
                 page.keyboard.press('Escape')
@@ -555,10 +551,9 @@ def rating_ui(browser, base, site, errors, requests):
             if width == 1280:
                 desktop_pro = page.locator('.hero .hero-desktop-pro-link')
                 desktop_pro.click()
-                page.locator('.pro-gateway-dialog').wait_for(state='visible')
-                assert page.locator('.pro-gateway-option').count() == 1
-                page.keyboard.press('Escape')
-                assert desktop_pro.evaluate('a => a === document.activeElement')
+                page.wait_for_url('**/analysis/')
+                assert page.locator('.pro-gateway-dialog').count()==0
+                page.goto(base+'/index.html')
                 page.clock.install()
                 page.clock.fast_forward(16000)
                 assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])

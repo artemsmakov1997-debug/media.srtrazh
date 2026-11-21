@@ -9,6 +9,7 @@ def pro_ui(browser,base,site):
         assert page.request.get(base+'/business/').status==404
         assert page.request.get(base+'/business.html').status==404
         page.goto(base+'/analysis/')
+        assert page.locator('#storiesPanel .section-head').count()==0
         tabs=page.locator('.analysis-tabs [data-mode]')
         assert tabs.all_text_contents()==['Один сюжет — по-разному','История правок','Автоматический анализ','Самостоятельная проверка']
         page.evaluate('document.fonts.ready')
@@ -32,9 +33,9 @@ def pro_ui(browser,base,site):
             page.goto(base+url);assert page.locator('a[href*="business"]').count()==0;assert 'Бизнес' not in page.locator('body').inner_text()
             if not page.locator('a.pro-nav-link').is_visible():page.locator('#burgerBtn').click()
             page.locator('a.pro-nav-link').click()
-            assert page.locator('.pro-gateway-option').count()==1
-            assert page.locator('.pro-gateway-option--research').get_attribute('href')=='/analysis/'
-            page.locator('.pro-gateway-close').click()
+            page.wait_for_url('**/analysis/')
+            assert page.locator('.pro-gateway-dialog').count()==0
+            assert page.locator('.analysis-tabs').is_visible()
         assert not errors,errors
         context.close()
     assert not (site/'business.html').exists() and not (site/'business/index.html').exists()
