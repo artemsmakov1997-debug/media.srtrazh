@@ -34,3 +34,9 @@ counts['pro_stories']=len(pro['stories'])
 counts['story_examples']=[{'topic':s.get('topic'),'titles':[i['title'][:120] for i in s['items'][:2]]} for s in pro['stories'][:8]]
 message=json.dumps(counts,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
 print('::notice title=PRO retained corpus audit::'+message)
+# The same bounded public fragments that the PRO page displays, not full bodies.
+public_examples=[]
+for item in pro['history'][:5]:
+ v=item['versions'][-1]
+ public_examples.append({'source':item['source'],'url':item['url'],'kind':v['kind'],'before_at':v['before_at'],'after_at':v['after_at'],'before_fragment':''.join(x['text'] for x in v['before'])[:250],'after_fragment':''.join(x['text'] for x in v['after'])[:250]})
+print('::notice title=PRO public revision examples::'+json.dumps(public_examples,ensure_ascii=False).replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
