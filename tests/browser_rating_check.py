@@ -259,7 +259,7 @@ def rating_ui(browser, base, site, errors, requests):
                 assert page.locator('.hero-kicker').inner_text() == 'Первый независимый рейтинг российских СМИ'
                 assert page.locator('.hero-nav a').all_inner_texts() == ['Узнать о возможностях проекта\n→']
                 assert page.locator('.hero-nav .hero-pro-link').count() == 1
-                assert page.locator('.hero-nav .hero-pro-link').get_attribute('data-pro-gateway') == ''
+                assert page.locator('.hero-nav .hero-pro-link').get_attribute('aria-haspopup') is None
                 assert page.locator('.hero-nav .hero-pro-link').evaluate(
                     'a => {const s=getComputedStyle(a), n=a.getBoundingClientRect();'
                     'const label=a.querySelector("span:first-child").getBoundingClientRect();'
@@ -305,7 +305,7 @@ def rating_ui(browser, base, site, errors, requests):
                 if width >= 1024:
                     assert page.locator('.hero .hero-desktop-pro-link').inner_text().startswith(
                         'Узнать о возможностях проекта')
-                    assert page.locator('.hero .hero-desktop-pro-link').get_attribute('data-pro-gateway') == ''
+                    assert page.locator('.hero .hero-desktop-pro-link').get_attribute('aria-haspopup') is None
                 if width >= 1024:
                     assert page.locator('.hero .hero-counter .counter-label').evaluate(
                         'el => el.innerHTML.toLowerCase().includes("публикаций<br>с признаками<br>за ")')
