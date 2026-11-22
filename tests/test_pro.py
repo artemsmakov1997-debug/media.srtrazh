@@ -1,6 +1,6 @@
 import sqlite3
 import unittest
-from media_strazh.pro import pro_snapshot,fragments,headline_parts,political_topic
+from media_strazh.pro import pro_snapshot,fragments,headline_parts,political_topic,comparison_text_parts
 class ProTests(unittest.TestCase):
  def setUp(self):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
@@ -15,6 +15,25 @@ class ProTests(unittest.TestCase):
   self.add(1,'tass','Германия поддержала новые санкции против России из-за войны')
   self.add(2,'ria','Германия назвала новые санкции против России ответом на войну')
   self.assertEqual(len(pro_snapshot(self)['stories']),1)
+
+ def test_comparison_publishes_full_saved_body_and_exact_highlight_segments(self):
+  self.add(1,'tass','Германия поддержала новые санкции против России из-за войны')
+  self.add(2,'ria','Германия назвала новые санкции против России ответом на войну')
+  text='Германия поддержала новые санкции.\n'+('Дополнительный абзац. '*600)+'Конец доступного текста <script>.'
+  self.db.execute('UPDATE revisions SET text=? WHERE id=1',(text,))
+  item=next(i for i in pro_snapshot(self)['stories'][0]['items'] if i['source']=='ТАСС')
+  self.assertEqual(item['text'],text)
+  self.assertEqual(''.join(p['text'] for p in item['text_phrases']),text)
+  self.assertTrue(any(p['changed'] and p['text']=='поддержала' for p in item['text_phrases']))
+  self.assertNotIn('revision_id',item)
+
+ def test_body_comparison_marks_only_title_accents_and_preserves_text(self):
+  text='Эксперты предупредили о катастрофе.\nОбычная строка.'
+  parts=comparison_text_parts(text,[{'text':'катастрофа','changed':True,'explanation':'Прогноз требует проверки.'},{'text':'Эксперты','changed':False}])
+  self.assertEqual(''.join(p['text'] for p in parts),text)
+  marked=[p for p in parts if p['changed']]
+  self.assertEqual([p['text'] for p in marked],['катастрофе'])
+  self.assertEqual(marked[0]['explanation'],'Прогноз требует проверки.')
  def test_same_publisher_or_different_numbers_do_not_group(self):
   self.add(1,'tass','На Северном мосту закроют 2 полосы движения')
   self.add(2,'tass_telegram','На Северном мосту закроют 2 полосы движения')
