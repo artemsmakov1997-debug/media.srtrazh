@@ -51,6 +51,7 @@ jobs:
         with:
           name: analysis-interface-checks
           path: |
+            /tmp/pro-layout-checks
             /tmp/analysis-layout-checks
             /tmp/media-strazh-rating-checks
             /tmp/media-strazh-archive-checks

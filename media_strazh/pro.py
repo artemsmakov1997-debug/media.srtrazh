@@ -76,6 +76,20 @@ def revision_content(text, telegram=False):
     if telegram:text=re.sub(r'^Forwarded from[^\n]*(?:\n|$)','',text,flags=re.I)
     return re.sub(r'\s+',' ',text).strip()
 
+def comparison_text_parts(text, phrases):
+    """Highlight title-comparison vocabulary in the saved body, without inventing evidence."""
+    accents={token_key(p['text']):p.get('explanation') for p in phrases
+             if p['changed'] and re.fullmatch(r'\w+',p['text'])}
+    result=[]
+    for match in re.finditer(r'\w+|\W+',text):
+        key=token_key(match.group())
+        part={'text':match.group(),'changed':key in accents}
+        if accents.get(key):part['explanation']=accents[key]
+        if result and not part['changed'] and not result[-1]['changed']:
+            result[-1]['text']+=part['text']
+        else:result.append(part)
+    return result
+
 def pro_snapshot(store):
     # Select revision-bearing articles first: a global recent-row cap hid
     # older real changes behind new single-version publications.
@@ -105,7 +119,7 @@ def pro_snapshot(store):
                               'kind':kind,'title':new['title'][:250]})
         if pairs:history.append({'source':source.name,'source_id':source.id,'url':current['canonical_url'],
                                   'versions':pairs[-5:]})
-    latest_rows=store.db.execute('''SELECT a.source_id,r.title,r.canonical_url,r.published_at
+    latest_rows=store.db.execute('''SELECT a.source_id,r.id AS revision_id,r.title,r.canonical_url,r.published_at
         FROM articles a JOIN revisions r ON r.id=a.current_revision_id
         WHERE r.title<>'' ORDER BY r.retrieved_at DESC,r.id DESC LIMIT 4000''').fetchall()
     latest=[(r,SOURCES[r['source_id']]) for r in latest_rows
@@ -132,9 +146,16 @@ def pro_snapshot(store):
         used.update(indices)
         common=set.intersection(*(words(r['title']) for r,s in group))
         stories.append({'topic':political_topic(anchor['title']),'contrast':len(set.union(*(words(r['title']) for r,s in group))-common),'title':anchor['title'][:250],'items':[{'source':s.name,'url':r['canonical_url'],
-            'published_at':r['published_at'],'title':r['title'][:250],
+            'published_at':r['published_at'],'title':r['title'][:250],'revision_id':r['revision_id'],
             'phrases':headline_parts(r['title'][:250],common)} for r,s in group]})
         if len(stories)==40:break
     history.sort(key=lambda h:h['versions'][-1]['after_at'],reverse=True)
     stories.sort(key=lambda item:(item['contrast'],len(item['items'])),reverse=True)
+    # Publish only the bodies of the selected stories, never the full retained corpus.
+    for story in stories[:8]:
+        for item in story['items']:
+            row=store.db.execute('SELECT text FROM revisions WHERE id=?',(item.pop('revision_id'),)).fetchone()
+            text=row['text'] or ''
+            item['text']=text
+            item['text_phrases']=comparison_text_parts(text,item['phrases'])
     return {'schema_version':'pro-evidence-1.0','stories':stories[:8],'history':history[:20]}
