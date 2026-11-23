@@ -35,6 +35,10 @@
   const replay = document.getElementById('aboutFilmReplay');
   const speed = document.getElementById('aboutFilmSpeed');
   const movie = document.getElementById('aboutFilmFrame');
+  const featuresMovie = document.getElementById('aboutFeaturesFilmFrame');
+  const featuresPause = document.getElementById('aboutFeaturesPause');
+  const featuresSpeed = document.getElementById('aboutFeaturesSpeed');
+  const featuresReplay = document.getElementById('aboutFeaturesReplay');
 
   if (!screen || Object.values(stages).some(stage => !stage) ||
       buttons.length !== 3 || !film || !movie || !replay || !speed) return;
@@ -48,6 +52,36 @@
   let activeChannel = 'intro';
   let channelTimer = null;
   let channelRevision = 0;
+  let featuresPlaying = false;
+  let featuresRateIndex = 1;
+  const featuresRates = [.5, 1, 1.5, 2];
+
+  function sendFeatures(action, value) {
+    featuresMovie?.contentWindow?.postMessage(
+      {type: 'media-strazh-features-control', action, value}, window.location.origin);
+  }
+  function startFeatures(explicit = false) {
+    featuresPlaying = explicit || !reduceMotion;
+    if (featuresPause) featuresPause.textContent = featuresPlaying ? 'Пауза' : 'Продолжить';
+    sendFeatures('speed', featuresRates[featuresRateIndex]);
+    sendFeatures(explicit ? 'replay' : 'present');
+  }
+  featuresMovie?.addEventListener('load', () => {
+    if (activeChannel === 'opportunities' && !document.hidden) startFeatures();
+    else sendFeatures('pause');
+  });
+  featuresReplay?.addEventListener('click', () => startFeatures(true));
+  featuresPause?.addEventListener('click', () => {
+    featuresPlaying = !featuresPlaying;
+    featuresPause.textContent = featuresPlaying ? 'Пауза' : 'Продолжить';
+    sendFeatures(featuresPlaying ? 'resume' : 'pause');
+  });
+  featuresSpeed?.addEventListener('click', () => {
+    featuresRateIndex = (featuresRateIndex + 1) % featuresRates.length;
+    const value = featuresRates[featuresRateIndex];
+    featuresSpeed.textContent = 'Скорость ×' + value;
+    sendFeatures('speed', value);
+  });
 
   function sendFilm(action, value) {
     if (!movie.contentWindow) return;
@@ -148,6 +182,8 @@
     });
     screen.dataset.activeChannel = channel;
     if (channel === 'intro' && (previous !== 'intro' || !filmRunning)) startFilm();
+    if (channel === 'opportunities') startFeatures();
+    else { featuresPlaying = false; sendFeatures('pause'); }
   }
 
   buttons.forEach(button => button.addEventListener('click', () => {
@@ -164,6 +200,8 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) pauseFilm();
     else resumeFilm();
+    if (document.hidden) sendFeatures('pause');
+    else if (activeChannel === 'opportunities' && featuresPlaying) sendFeatures('resume');
   });
 
   show('intro');

@@ -32,6 +32,19 @@ jobs:
           python3 -m playwright install --with-deps chromium
       - name: Build a synthetic browser test site without collection
         run: python3 tests/prepare_browser_site.py --output /tmp/browser-site
+      - name: Check film and rating motion before the full browser suite
+        run: |
+          python3 - <<'PYCODE'
+          import subprocess, sys
+          for script in ('browser_about_features_check.py', 'browser_rating_check.py'):
+              result = subprocess.run([sys.executable, '-u', 'tests/' + script, '--site', '/tmp/browser-site'],
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+              print(result.stdout, end='', flush=True)
+              if result.returncode:
+                  message = result.stdout[-3000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  print('::error title=Interface preflight regression::' + message)
+                  sys.exit(result.returncode)
+          PYCODE
       - name: Check existing browser scenarios and Python/Wasm parity
         run: |
           python3 - <<'PY'
@@ -51,6 +64,7 @@ jobs:
         with:
           name: analysis-interface-checks
           path: |
+            /tmp/about-features-checks
             /tmp/pro-layout-checks
             /tmp/analysis-layout-checks
             /tmp/media-strazh-rating-checks

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>МЕДИА.СТРАЖ — возможности</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070b;--cy:#22d3ee;--red:#ef4444;--grn:#22c55e;--mut:#a8b0bd;--tx:#f4f7fb;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px}
+.stage{container-type:inline-size;position:relative;width:min(100%,960px);aspect-ratio:16/9;overflow:hidden;border-radius:20px;border:1px solid #1f2937;background:radial-gradient(circle at 20% 0%,rgba(34,211,238,.10),transparent 40%),radial-gradient(circle at 85% 100%,rgba(239,68,68,.09),transparent 40%),#070b14;box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.frame{position:absolute;inset:0;transition:opacity .7s}.frame.off{opacity:0}
+.tabs{position:absolute;left:5cqw;right:5cqw;top:3.2cqw;display:flex;gap:1.2cqw}
+.tab{flex:1;height:4.2cqw;display:flex;align-items:center;justify-content:center;border:1px solid #1f2937;border-radius:99px;background:#0b1120;color:var(--mut);font-weight:600;font-size:1.3cqw;transition:.35s}
+.tab.act{color:#fff;border-color:var(--cy);background:rgba(34,211,238,.13);box-shadow:0 0 2cqw rgba(34,211,238,.18)}
+.flt{position:absolute;left:5cqw;right:5cqw;top:9cqw;display:flex;gap:1.2cqw}
+.flt span{padding:.6cqw 1.5cqw;border:1px solid #2a3446;border-radius:1cqw;background:#0b1120;color:var(--mut);font-size:1.2cqw}
+.flt b{color:var(--tx);font-weight:600}
+.pn{position:absolute;left:5cqw;right:5cqw;top:14.5cqw;height:32.5cqw;border:1px solid #1f2937;border-radius:2cqw;background:linear-gradient(145deg,#0a0f1e,#070b14);overflow:hidden}
+.sc{position:absolute;inset:0;padding:2.4cqw 3cqw;opacity:0;transition:opacity .5s;pointer-events:none}.sc.on{opacity:1}
+[data-t],[data-g]{opacity:0;transform:translateY(.8cqw);transition:opacity .45s,transform .45s}
+[data-t].on,[data-g].on{opacity:1;transform:none}
+ins[data-t]{transform:none!important}
+[data-h]{border-radius:.5cqw;padding:.05cqw .4cqw;transition:.35s}
+[data-h].hot{background:rgba(239,68,68,.2);color:#fecaca;box-shadow:inset 0 -.2cqw 0 var(--red)}
+del[data-h].hot{text-decoration:line-through;background:none;box-shadow:none;color:#f87171}
+ins{text-decoration:none;color:var(--cy);background:rgba(34,211,238,.12);border-radius:.5cqw;padding:.05cqw .4cqw}
+.src{font:700 1.2cqw Montserrat,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:1.6cqw}
+.txt{position:relative;font-size:2.4cqw;line-height:1.55}.txt p{margin:0 0 1.2cqw}
+.scan{position:absolute;left:-1cqw;right:-1cqw;top:0;height:.3cqw;background:linear-gradient(90deg,transparent,var(--cy),transparent);box-shadow:0 0 1.6cqw var(--cy);opacity:0}
+.chips{display:flex;gap:1cqw;flex-wrap:wrap;margin-top:1.6cqw}
+.chips b{padding:.6cqw 1.5cqw;border:1px solid var(--red);border-radius:99px;color:#fecaca;font-size:1.35cqw;font-weight:600}
+.chips b.ok,.bad.ok{border-color:var(--grn);color:#bbf7d0}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:2cqw}
+.cc{padding:2cqw;border:1px solid #1f2937;border-radius:1.6cqw;background:rgba(255,255,255,.02);font-size:2.1cqw;line-height:1.5}
+.cc small{display:block;font:700 1.2cqw Montserrat,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--cy);margin-bottom:1cqw}
+.cc p{margin:0 0 1.4cqw}.cc b{display:inline-block;padding:.5cqw 1.3cqw;border:1px solid var(--red);border-radius:99px;color:#fecaca;font-size:1.25cqw}
+.cc b.ok{border-color:var(--grn);color:#bbf7d0}
+.row{display:flex;align-items:center;gap:2cqw;padding:1.5cqw 2cqw;margin-bottom:1.4cqw;border:1px solid #1f2937;border-radius:1.4cqw;background:rgba(255,255,255,.02);font-size:2.1cqw}
+.row em{font:800 1.5cqw Montserrat,sans-serif;font-style:normal;color:var(--mut);min-width:5cqw}
+.row span{flex:1}.row u{text-decoration:none;font-size:1.2cqw;color:var(--cy);letter-spacing:.08em;text-transform:uppercase}
+.inp{padding:2cqw;border:1px solid rgba(34,211,238,.4);border-radius:1.6cqw;background:rgba(34,211,238,.04)}
+.inp small{display:block;font-size:1.2cqw;color:var(--mut);margin-bottom:1cqw}
+.ty{font-size:2.4cqw;line-height:1.5;clip-path:inset(0 100% 0 0)}
+.go{display:inline-block;margin-top:1.6cqw;padding:.9cqw 2.6cqw;border-radius:1.2cqw;background:var(--cy);color:#042f3a;font-weight:700;font-size:1.5cqw}
+.cap{position:absolute;left:5cqw;right:5cqw;top:49.2cqw;text-align:center;font-size:1.65cqw;color:#cbd2dc;min-height:2.4cqw}
+.note{position:absolute;right:5cqw;bottom:1.2cqw;font-size:1cqw;color:#7f8998}
+.prog{position:absolute;left:0;bottom:0;height:.45cqw;width:0;background:linear-gradient(90deg,var(--cy),#14b8a6)}
+.end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw;pointer-events:none}
+.logo{font:900 8cqw/1 Montserrat,sans-serif;letter-spacing:.08em;text-shadow:0 0 3cqw rgba(34,211,238,.25)}.logo span{color:var(--cy)}
+.line{width:40cqw;height:.3cqw;background:linear-gradient(90deg,transparent,var(--cy),transparent)}
+.tag{font-size:2cqw;color:var(--mut);letter-spacing:.04em}
+.pro{display:flex;align-items:center;gap:1.4cqw;padding:1cqw 2.4cqw;border:1px solid #5c91a6;border-radius:1.4cqw;background:#123041;font-size:1.7cqw;font-weight:600}
+.pro i{font-style:normal;padding:.4cqw .9cqw;border:1px solid #e8b95d;border-radius:.6cqw;background:#392a13;color:#ffd98b;font-weight:800;font-size:1.3cqw;letter-spacing:.08em}
+.ctl{display:flex;gap:10px}
+button{min-height:44px;padding:0 22px;border-radius:12px;border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:var(--cy);font:600 14px Inter,sans-serif;cursor:pointer}
+button:hover{background:rgba(34,211,238,.16)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important}}
+
+/* Fit the existing TV screen, retaining the supplied film composition. */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{width:100%;height:100%;overflow:hidden}
+body{min-height:0;padding:0;gap:0}
+.stage{width:min(100vw,calc(100vh * 16 / 9));height:min(100vh,calc(100vw * 9 / 16));max-width:none;aspect-ratio:16/9;border:0;border-radius:0;box-shadow:none}
+.ctl{position:absolute;bottom:8px;z-index:3}
+.end .pro{padding:0;border:0;background:none;color:#ffd98b;font:900 10cqw/1 Montserrat,sans-serif;letter-spacing:.08em}
+.frame.off{visibility:hidden;transition:opacity .7s,visibility 0s .7s}
+@media(max-width:680px){
+ .stage{width:100%;height:100%;aspect-ratio:auto}
+ .tabs{top:12px;left:14px;right:14px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .tab{height:32px;padding:5px;font-size:10px;line-height:1.25;border-radius:9px;text-align:center}
+ .flt{top:87px;left:12px;right:12px;gap:5px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .flt span{padding:5px;font-size:8px;border-radius:5px}
+ .pn{top:112px;bottom:70px;left:12px;right:12px;height:auto;border-radius:12px}
+ .sc{padding:12px 11px}
+ .src{font-size:9px;line-height:1.4;margin-bottom:12px}
+ .txt{font-size:clamp(14px,4.3vw,18px);line-height:1.5}
+ .txt p{margin-bottom:10px}
+ .chips{gap:6px;margin-top:12px}
+ .chips b{padding:5px 7px;font-size:10px;line-height:1.3}
+ .sc[data-tab="0"]{padding:10px 9px}
+ .cmp{grid-template-columns:1fr;gap:7px}
+ .cc{padding:8px 10px;font-size:clamp(12px,3.8vw,15px);line-height:1.4;border-radius:8px}
+ .cc small{font-size:9px;margin-bottom:6px}
+ .cc p{margin-bottom:6px}
+ .cc b{font-size:9px;line-height:1.35;padding:4px 6px}
+ .row{display:block;position:relative;padding:8px 10px;margin-bottom:7px;font-size:12px;line-height:1.35;border-radius:8px}
+ .row em{display:block;font-size:9px;margin-bottom:5px}
+ .row span{display:block}
+ .row u{position:absolute;top:8px;right:10px;font-size:8px;margin:0}
+ .inp{padding:12px;border-radius:9px}
+ .inp small{font-size:10px;margin-bottom:10px}
+ .ty{font-size:clamp(15px,4.5vw,18px)}
+ .go{margin-top:12px;padding:8px 16px;font-size:12px;border-radius:8px}
+ .cap{top:auto;bottom:34px;left:16px;right:16px;font-size:11px;line-height:1.4}
+ .note{right:14px;bottom:23px;font-size:8px}
+ .end{gap:20px;padding:0 10px}
+ .logo{font-size:clamp(21px,7.3vw,37px);letter-spacing:.02em;white-space:nowrap}
+ .end .pro{font-size:clamp(42px,16vw,76px)}
+}
+
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+ <div class="frame" id="frame">
+  <div class="tabs" id="tabs"><div class="tab" data-g=".3">Сравнение публикаций</div><div class="tab" data-g=".45">История правок</div><div class="tab" data-g=".6">Автоматический анализ</div><div class="tab" data-g=".75">Самостоятельная проверка</div></div>
+  <div class="flt"><span data-g=".6"><b>Все издания</b></span><span data-g=".75"><b>Сайты и Telegram</b></span><span data-g=".9"><b>Все маркеры</b></span></div>
+  <div class="pn">
+   <div class="sc" data-s="1.2" data-tab="2" data-d="Алгоритм находит признаки и показывает фрагменты для проверки">
+    <div class="src" data-t=".1">Пример.ТВ · обновлено только что</div>
+    <div class="txt"><p><span data-h="1.0">Эксперты давно подтвердили</span>, что <span data-h="1.5">ситуация выходит из-под контроля</span>.</p><p>Если не принять меры, <span data-h="2.5">последствия будут необратимы</span> для каждого.</p><i class="scan" id="scan"></i></div>
+    <div class="chips"><b data-t="1.1">Размытый источник</b><b data-t="1.6">Преувеличение</b><b data-t="2.6">Запугивание</b><b data-t="3.1">Найдено признаков: 3</b></div>
+   </div>
+   <div class="sc" data-s="5.8" data-tab="0" data-d="Одно событие — разные формулировки в разных изданиях">
+    <div class="cmp">
+     <div class="cc" data-t=".2"><small>Пример.ТВ</small><p>На трубопроводе произошла авария, подачу тепла восстановят к вечеру</p><b class="ok" data-t="1.9">Признаков не найдено</b></div>
+     <div class="cc" data-t=".6"><small>Пример.РУ</small><p>Коммунальный <span data-h="1.3">коллапс</span>: власти <span data-h="1.7">прячут правду</span> о масштабах аварии</p><b data-t="2.3">Эмоциональная оценка · Кликбейт</b></div>
+    </div>
+   </div>
+   <div class="sc" data-s="10.4" data-tab="1" data-d="Что менялось в публикации после выхода">
+    <div class="row" data-t=".2"><em>12:04</em><span>Власти обсуждают меры поддержки отрасли</span><u>версия 1</u></div>
+    <div class="row" data-t="1"><em>12:31</em><span>Власти <del data-h="1.8">обсуждают</del><ins data-t="2">вынуждены вводить</ins> меры поддержки отрасли</span><u>версия 2</u></div>
+    <div class="row" data-t="2.3"><em>13:10</em><span>Власти <del data-h="3">вынуждены вводить</del><ins data-t="3.2">ввели</ins> меры поддержки отрасли<ins data-t="3.5">по данным министерства</ins></span><u>версия 3</u></div>
+   </div>
+   <div class="sc" data-s="15" data-tab="3" data-d="Вставьте текст и получите разбор по тем же маркерам">
+    <div class="inp" data-t=".1"><small>Вставьте текст публикации</small><div class="ty" id="ty">Все знают: <span data-h="2.7">эксперты скрывают правду</span>, и нас ждёт <span data-h="3.1">катастрофа</span>.</div></div>
+    <span class="go" data-t="1.9">Проверить</span>
+    <div class="chips"><b data-t="2.8">Размытый источник</b><b data-t="3.2">Запугивание</b></div>
+   </div>
+  </div>
+  <div class="cap" id="cap"></div>
+  <div class="note">Тексты в ролике — примеры</div>
+ </div>
+ <div class="end">
+  <div class="logo" data-g="20.4">МЕДИА.<span>СТРАЖ</span></div>
+  <div class="pro" data-g="21.3">PRO</div>
+ </div>
+ <div class="prog" id="prog"></div>
+</div>
+<div class="ctl" id="ctl"><button id="pause" type="button">Пауза</button><button id="spd" type="button">Скорость ×1</button><button id="rep" type="button">Повторить</button></div>
+<script>
+var T=26.5,t=0,last=0,speed=1,raf=0,running=false;
+var embedded=window.parent!==window,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+var scenes=$('.sc'),tabs=$('.tab'),cap=document.getElementById('cap'),scan=document.getElementById('scan'),ty=document.getElementById('ty'),prog=document.getElementById('prog'),frame=document.getElementById('frame');
+var gs=$('[data-g]');
+function cl(x){return Math.max(0,Math.min(1,x))}
+function upd(){
+  scenes.forEach(function(s){
+    var lt=t-(+s.dataset.s),on=lt>=0&&lt<4.5;
+    s.classList.toggle('on',on);
+    $('[data-t]',s).forEach(function(e){e.classList.toggle('on',lt>=+e.dataset.t)});
+    $('[data-h]',s).forEach(function(e){e.classList.toggle('hot',lt>=+e.dataset.h)});
+    if(on){
+      tabs.forEach(function(b,i){b.classList.toggle('act',i===+s.dataset.tab)});
+      if(cap.textContent!==s.dataset.d)cap.textContent=s.dataset.d;
+      if(s.contains(scan)){var p=cl((lt-.5)/2.8);scan.style.top=(p*100)+'%';scan.style.opacity=(p>0&&p<1)?1:0}
+      if(s.contains(ty)){ty.style.clipPath='inset(0 '+(100-100*cl((lt-.3)/1.5))+'% 0 0)'}
+    }
+  });
+  gs.forEach(function(e){e.classList.toggle('on',t>=+e.dataset.g)});
+  frame.classList.toggle('off',t>=19.9);
+  if(t>=19.9||t<1.1){cap.textContent=t>=19.9?'':cap.textContent;if(t<1.1)tabs.forEach(function(b){b.classList.remove('act')})}
+  prog.style.width=(100*t/T)+'%';
+}
+function loop(now){if(!running)return;var dt=Math.min(.1,(now-last)/1000);last=now;t+=dt*speed;if(t>=T)t=0;upd();raf=requestAnimationFrame(loop)}
+var spd=document.getElementById('spd'),pauseButton=document.getElementById('pause');
+function pause(){running=false;cancelAnimationFrame(raf);pauseButton.textContent='Продолжить'}
+function resume(){if(running)return;running=true;pauseButton.textContent='Пауза';last=performance.now();raf=requestAnimationFrame(loop)}
+function play(){pause();t=0;upd();resume()}
+function present(){if(reduced){pause();t=T;upd()}else play()}
+function setSpeed(v){var next=Number(v);if(![.5,1,1.5,2].includes(next))return;speed=next;spd.textContent='Скорость ×'+speed}
+document.getElementById('rep').addEventListener('click',play);
+pauseButton.addEventListener('click',function(){if(running)pause();else resume()});
+spd.addEventListener('click',function(){var a=[.5,1,1.5,2];setSpeed(a[(a.indexOf(speed)+1)%a.length])});
+window.mediaFilm={replay:play,setSpeed:setSpeed,pause:pause,resume:resume,present:present,state:function(){return {time:t,running:running,speed:speed}}};
+window.addEventListener('message',function(e){
+ if(e.source!==window.parent||e.origin!==location.origin)return;
+ var d=e.data||{};
+ if(d.type!=='media-strazh-features-control')return;
+ if(d.action==='replay')play();
+ if(d.action==='present')present();
+ if(d.action==='pause')pause();
+ if(d.action==='resume')resume();
+ if(d.action==='speed')setSpeed(d.value);
+});
+if(embedded){document.getElementById('ctl').hidden=true;pause();upd()}else present();
+</script>
+</body>
+</html>

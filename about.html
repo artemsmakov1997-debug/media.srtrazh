@@ -1165,7 +1165,7 @@
   }
 </style>
   <link rel="stylesheet" href="about-experience.css?v=20261119-pro4">
-  <link rel="stylesheet" href="about-intro-film.css?v=20261030-2">
+  <link rel="stylesheet" href="about-intro-film.css?v=20261123-features">
 </head>
 
 <body>
@@ -1242,31 +1242,15 @@
           </section>
 
           <section class="about-stage about-stage--opportunities" id="aboutStageOpportunities" aria-label="Возможности" hidden>
-            <div class="about-stage-shell">
-              <div class="about-opportunities-heading">
-                <span class="about-section-index"><span class="about-live-dot"></span> ИНСТРУМЕНТЫ МЕДИА.СТРАЖ / PRO</span>
-                <h2>Видеть сигналы. <span>Принимать решения.</span></h2>
-              </div>
-              <div class="about-audiences">
-                <article class="about-audience about-audience--research">
-                  <div class="about-audience-top"><span>01 / АНАЛИЗ ПУБЛИКАЦИЙ</span><span class="about-audience-pill">PRO</span></div>
-                  <div class="about-audience-copy">
-                    <h3>Смотрите <em>глубже заголовка.</em></h3>
-                    <p>Находите спорные маркеры и разбирайте их в контексте.</p>
-                  </div>
-                  <div class="about-research-visual" aria-label="Демонстрационный пример анализа публикации">
-                    <div class="about-visual-heading"><span><i></i> АНАЛИЗ ТЕКСТА</span><span>ДЕМО</span></div>
-                    <div class="about-research-example">«Эксперты предупреждают: <mark>это коснётся каждого</mark>»</div>
-                    <div class="about-research-result"><span>НАЙДЕН ПРИЗНАК</span><strong>Эмоциональное давление</strong></div>
-                    <div class="about-research-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-                  </div>
-                  <div class="about-audience-points">
-                    <span>Автоанализ и ручная проверка</span>
-                    <span>Фильтры, примеры и экспорт JSON</span>
-                  </div>
-                  <a class="about-audience-action" href="analysis.html"><span>Открыть анализ</span><span class="about-action-arrow" aria-hidden="true">↗</span></a>
-                </article>
-
+            <div class="about-film" id="aboutFeaturesFilm">
+              <iframe class="about-film-frame" id="aboutFeaturesFilmFrame"
+                      src="about-features-film.html?v=20261123-1"
+                      title="Возможности МЕДИА.СТРАЖ PRO — демонстрационный ролик"
+                      loading="eager"></iframe>
+              <div class="about-film-controls" role="group" aria-label="Управление роликом о возможностях">
+                <button type="button" id="aboutFeaturesPause">Пауза</button>
+                <button type="button" id="aboutFeaturesSpeed">Скорость ×1</button>
+                <button type="button" id="aboutFeaturesReplay">Повторить</button>
               </div>
             </div>
           </section>
@@ -1305,6 +1289,6 @@
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261030-8"></script>
+<script defer src="about-experience.js?v=20261123-features"></script>
 </body>
 </html>
