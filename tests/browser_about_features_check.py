@@ -75,3 +75,25 @@ def features_ui(browser, base):
         assert frame.locator('#stage').evaluate('()=>window.mediaFilm.state().running')
     finally:context.close()
     print('Capabilities film: four scenes, final logo/PRO, controls, mobile layout, paused hidden channel and reduced motion passed',flush=True)
+
+
+if __name__=='__main__':
+    import argparse
+    import functools
+    import http.server
+    import shutil
+    import threading
+    from playwright.sync_api import sync_playwright
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--site',required=True,type=Path)
+    args=parser.parse_args()
+    class Quiet(http.server.SimpleHTTPRequestHandler):
+        def log_message(self,*args):pass
+    server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(args.site)))
+    threading.Thread(target=server.serve_forever,daemon=True).start()
+    try:
+        with sync_playwright() as p:
+            browser=p.chromium.launch(executable_path=shutil.which('chromium') or None,args=['--no-sandbox'])
+            features_ui(browser,f'http://127.0.0.1:{server.server_port}')
+            browser.close()
+    finally:server.shutdown();server.server_close()
