@@ -9,3 +9,10 @@
 .about-film-controls button:focus-visible{outline:2px solid #9ef8ff;outline-offset:3px}
 @media(max-width:680px){.about-film-controls{right:10px;bottom:10px;gap:6px}.about-film-controls button{min-height:36px;padding:7px 10px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.about-film-controls button{transition:none}}
+
+/* The capabilities film replaces the old audience cards in this channel. */
+.about-stage--opportunities{padding:0!important;overflow:hidden}
+#aboutFeaturesFilmFrame{height:calc(100% - 52px)}
+#aboutFeaturesFilm .about-film-controls{left:10px;right:10px;bottom:6px;justify-content:flex-end;flex-wrap:wrap}
+#aboutFeaturesFilm .about-film-controls button{min-height:40px}
+@media(max-width:680px){#aboutFeaturesFilm .about-film-controls{gap:5px}#aboutFeaturesFilm .about-film-controls button{padding:7px 9px;font-size:10px}}

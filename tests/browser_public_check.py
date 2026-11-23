@@ -64,9 +64,9 @@ def public_ui(browser, base, site):
         opportunities.click()
         assert opportunities.inner_text() == "Назад"
         assert page.locator("#aboutStageOpportunities").is_visible()
-        assert page.locator(".about-audience").count() == 1
-        assert page.locator(".about-audience--research a").get_attribute("href") == "/analysis/"
-        assert "JSON" in page.locator(".about-audience--research").inner_text()
+        assert page.locator("#aboutStageOpportunities .about-audience, #aboutStageOpportunities .about-stage-shell").count() == 0
+        assert page.frame_locator("#aboutFeaturesFilmFrame").locator("#stage").is_visible()
+        assert page.locator("#aboutFeaturesReplay").is_visible()
         creator = page.locator('[data-about-channel="creator"]')
         creator.click()
         assert page.locator("#aboutStageCreator").is_visible()
@@ -178,3 +178,6 @@ def public_ui(browser, base, site):
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
     finally:
         context.close()
+
+    from browser_about_features_check import features_ui
+    features_ui(browser, base)
