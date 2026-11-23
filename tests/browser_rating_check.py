@@ -593,11 +593,19 @@ def rating_ui(browser, base, site, errors, requests):
             assert 0 <= gap <= 16, gap
             # CSS opacity transitions legitimately take ~280 ms after class
             # changes. Wait for the settled state; fail only if it stays hidden.
-            page.wait_for_function(
-                '() => { const el = document.querySelector(".media-card.is-active"); '
-                'return el && parseFloat(getComputedStyle(el).opacity) > .999; }',
-                timeout=2500)
-            assert first.evaluate('el => getComputedStyle(el).animationName === "none"')
+            page.evaluate('document.fonts.ready')
+            try:
+                page.wait_for_function(
+                    '() => { const el = document.querySelector(".media-grid.is-mobile-slider .media-card.is-active"); '
+                    'return el && parseFloat(getComputedStyle(el).opacity) > .999 && '
+                    'getComputedStyle(el).animationName.split(",").every(name => name.trim() === "none"); }',
+                    timeout=2500)
+            except Exception as error:
+                state = first.evaluate('el => ({animation:getComputedStyle(el).animationName, '
+                    'opacity:getComputedStyle(el).opacity,grid:el.parentElement.className, '
+                    'viewport:innerWidth,mobile:matchMedia("(max-width:767px)").matches})')
+                raise AssertionError((width, "Mobile card did not settle", state)) from error
+            assert first.evaluate('el => getComputedStyle(el).animationName.split(",").every(name => name.trim() === "none")')
             assert page.locator('.media-grid .media-card.is-active').count() == 1
             # Pre-laid but invisible letters must prevent reflow while typing.
             example = page.locator('#heroExampleText')
