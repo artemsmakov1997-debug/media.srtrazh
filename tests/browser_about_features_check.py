@@ -21,6 +21,7 @@ def features_ui(browser, base):
             page.locator('[data-about-channel=opportunities]').click()
             wait_playing(True);page.clock.run_for(700)
             assert state()['running']
+            stage.evaluate('()=>document.fonts.ready')
             assert not page.locator('#aboutStageOpportunities .about-audience').count()
             assert movie.locator('.flt').inner_text()=='Все издания\nСайты и Telegram\nВсе маркеры'
             assert movie.locator('#ctl').is_hidden()
