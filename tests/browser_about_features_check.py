@@ -4,7 +4,7 @@ from pathlib import Path
 
 def features_ui(browser, base):
     output=Path('/tmp/about-features-checks');output.mkdir(exist_ok=True)
-    for width in (320,390,768,1280):
+    for width in (320,390,768,1280,1920):
         context=browser.new_context(viewport={'width':width,'height':1000},is_mobile=width<681,has_touch=width<681)
         errors=[]
         try:
@@ -23,7 +23,12 @@ def features_ui(browser, base):
             assert state()['running']
             stage.evaluate('()=>document.fonts.ready')
             assert not page.locator('#aboutStageOpportunities .about-audience').count()
-            assert movie.locator('.flt').inner_text()=='Все издания\nСайты и Telegram\nВсе маркеры'
+            assert movie.locator('.flt').count()==0
+            for removed in ('Все издания','Сайты и Telegram','Все маркеры'):
+                assert removed not in movie.locator('body').inner_text()
+            assert stage.evaluate('el=>{const r=el.getBoundingClientRect();return Math.abs(r.left)<1&&Math.abs(r.top)<1&&Math.abs(r.width-innerWidth)<1&&Math.abs(r.height-innerHeight)<1}')
+            assert page.locator('#aboutFeaturesFilmFrame').evaluate('el=>{const r=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect();return Math.abs(r.width-p.width)<1&&Math.abs(r.height-p.height)<1&&Math.abs(r.left-p.left)<1&&Math.abs(r.top-p.top)<1}')
+            assert movie.locator('.end .pro').evaluate('el=>parseFloat(getComputedStyle(el).fontSize)<=42')
             assert movie.locator('#ctl').is_hidden()
             assert movie.locator('.end').inner_text()=='МЕДИА.СТРАЖ\nPRO'
             page.locator('#aboutFeaturesPause').click();wait_playing(False);page.clock.run_for(100)
@@ -47,10 +52,12 @@ def features_ui(browser, base):
                 if name!='final':
                     metrics=movie.locator('.sc.on').evaluate('el=>({height:el.clientHeight,scroll:el.scrollHeight})')
                     assert metrics['scroll']<=metrics['height']+2,(width,name,metrics)
+                    bounds=movie.locator('.sc.on').evaluate('el=>{const p=el.parentElement.getBoundingClientRect();return [...el.children].map(c=>{const r=c.getBoundingClientRect();return {top:r.top-p.top,bottom:p.bottom-r.bottom,left:r.left-p.left,right:p.right-r.right}})}')
+                    assert all(min(b.values())>=-1 for b in bounds),(width,name,bounds)
                 else:
                     assert movie.locator('.frame').evaluate('el=>getComputedStyle(el).visibility')=='hidden'
                     assert movie.locator('.end .pro').evaluate('el=>getComputedStyle(el).opacity')=='1'
-                if width in (390,1280):
+                if width in (390,1280,1920):
                     page.screenshot(path=str(output/f'features-{name}-{width}.png'),full_page=True,animations='disabled')
             page.locator('[data-about-channel=creator]').click();page.clock.run_for(800)
             paused=state()['time'];page.clock.run_for(800)
@@ -74,7 +81,7 @@ def features_ui(browser, base):
         page.wait_for_function("()=>document.querySelector('#aboutFeaturesFilmFrame').contentWindow.mediaFilm.state().running")
         assert frame.locator('#stage').evaluate('()=>window.mediaFilm.state().running')
     finally:context.close()
-    print('Capabilities film: four scenes, final logo/PRO, controls, mobile layout, paused hidden channel and reduced motion passed',flush=True)
+    print('Capabilities film: full-frame geometry, removed filters, smaller PRO, four scenes, controls, mobile layout and reduced motion passed',flush=True)
 
 
 if __name__=='__main__':
