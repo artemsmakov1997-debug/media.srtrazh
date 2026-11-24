@@ -15,3 +15,6 @@
 #aboutFeaturesFilm .about-film-controls{left:10px;right:10px;bottom:10px;justify-content:flex-end;flex-wrap:wrap}
 #aboutFeaturesFilm .about-film-controls button{min-height:40px}
 @media(max-width:680px){#aboutFeaturesFilm .about-film-controls{gap:5px}#aboutFeaturesFilm .about-film-controls button{padding:7px 9px;font-size:10px}}
+
+/* Only the capabilities iframe contains interactive scene selectors. */
+#aboutFeaturesFilmFrame{pointer-events:auto}
