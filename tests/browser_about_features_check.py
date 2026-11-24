@@ -59,6 +59,72 @@ def features_ui(browser, base):
                     assert movie.locator('.end .pro').evaluate('el=>getComputedStyle(el).opacity')=='1'
                 if width in (390,1280,1920):
                     page.screenshot(path=str(output/f'features-{name}-{width}.png'),full_page=True,animations='disabled')
+            # Actual clicks/taps must reach the iframe, and restart the chosen scene.
+            assert page.locator('#aboutFeaturesFilmFrame').evaluate('el=>getComputedStyle(el).pointerEvents')=='auto'
+            page.locator('#aboutFeaturesReplay').click();page.clock.run_for(1000)
+            demos=movie.locator('#tabs button')
+            assert demos.all_text_contents()==['Сравнение публикаций','История правок','Автоматический анализ','Самостоятельная проверка']
+            def wait_demo(mode,start):
+                page.wait_for_function("""expected=>{
+                    const s=document.querySelector('#aboutFeaturesFilmFrame').contentWindow.mediaFilm.state();
+                    return s.selected===expected.mode&&s.running&&s.time>=expected.start&&s.time<expected.start+.75;
+                }""",arg={'mode':mode,'start':start})
+            def activate_demo(target):
+                assert target.is_visible() and target.is_enabled()
+                if width<681:
+                    target.tap()
+                    return
+                # FrameLocator's click coordinates ignore the about page's 80%
+                # CSS zoom in Chromium. Send a real mouse click at the visual
+                # centre, scaling child viewport coordinates into the iframe.
+                outer=page.locator('#aboutFeaturesFilmFrame').bounding_box()
+                rect=target.evaluate('el=>({r:el.getBoundingClientRect().toJSON(),w:innerWidth,h:innerHeight})')
+                x=outer['x']+(rect['r']['x']+rect['r']['width']/2)*outer['width']/rect['w']
+                y=outer['y']+(rect['r']['y']+rect['r']['height']/2)*outer['height']/rect['h']
+                assert page.evaluate('p=>document.elementFromPoint(p.x,p.y)?.id',{'x':x,'y':y})=='aboutFeaturesFilmFrame'
+                page.mouse.click(x,y)
+            for mode,start in [('comparison',5.8),('history',10.4),('automatic',1.2),('manual',15)]:
+                target=movie.locator(f'button[data-demo={mode}]')
+                activate_demo(target)
+                wait_demo(mode,start)
+                assert target.get_attribute('aria-pressed')=='true'
+                assert movie.locator('.sc.on').get_attribute('id')==target.get_attribute('aria-controls')
+                assert movie.locator('.sc.on').get_attribute('data-demo')==mode
+                page.wait_for_function("document.querySelector('#aboutFeaturesPause').textContent==='Пауза'")
+                page.clock.run_for(2400)
+                assert state()['finished'] and not state()['running']
+                assert abs(state()['time']-(start+4.5-.001))<.01
+                assert movie.locator('#frame').get_attribute('class')=='frame'
+                page.wait_for_function("document.querySelector('#aboutFeaturesPause').textContent==='Продолжить'")
+                end_time=state()['time'];page.clock.run_for(600)
+                assert state()['time']==end_time and movie.locator('.sc.on').get_attribute('data-demo')==mode
+            # Continue repeats a completed selected scene; a repeated click restarts it.
+            page.locator('#aboutFeaturesPause').click();wait_demo('manual',15)
+            page.clock.run_for(900)
+            activate_demo(movie.locator('button[data-demo=manual]'));wait_demo('manual',15)
+            # A system pause must preserve user intent for visibility restoration.
+            page.wait_for_function("document.querySelector('#aboutFeaturesPause').textContent==='Пауза'")
+            page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))")
+            wait_playing(False)
+            paused_time=state()['time'];page.clock.run_for(600)
+            assert state()['time']==paused_time
+            page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'))")
+            wait_playing(True)
+            assert state()['selected']=='manual'
+            # Keyboard activation and directional controls stay inside the player.
+            movie.locator('button[data-demo=history]').focus()
+            movie.locator('button[data-demo=history]').press('Enter');wait_demo('history',10.4)
+            movie.locator('button[data-demo=history]').press('ArrowLeft');wait_demo('comparison',5.8)
+            movie.locator('button[data-demo=comparison]').press('End');wait_demo('manual',15)
+            movie.locator('button[data-demo=manual]').press('Home');wait_demo('comparison',5.8)
+            movie.locator('button[data-demo=automatic]').focus()
+            movie.locator('button[data-demo=automatic]').press('Space');wait_demo('automatic',1.2)
+            # Escape inside the now-interactive iframe returns to the intro channel.
+            movie.locator('button[data-demo=automatic]').press('Escape')
+            page.wait_for_function("document.querySelector('#aboutMonitorScreen').dataset.activeChannel==='intro'")
+            assert page.locator('[data-about-channel=opportunities]').evaluate('el=>el===document.activeElement')
+            page.locator('[data-about-channel=opportunities]').click();wait_playing(True);page.clock.run_for(700)
+            assert state()['selected'] is None
             page.locator('[data-about-channel=creator]').click();page.clock.run_for(800)
             paused=state()['time'];page.clock.run_for(800)
             assert not state()['running'] and abs(state()['time']-paused)<.01
@@ -80,8 +146,10 @@ def features_ui(browser, base):
         page.locator('#aboutFeaturesReplay').click()
         page.wait_for_function("()=>document.querySelector('#aboutFeaturesFilmFrame').contentWindow.mediaFilm.state().running")
         assert frame.locator('#stage').evaluate('()=>window.mediaFilm.state().running')
+        frame.locator('button[data-demo=history]').click()
+        page.wait_for_function("()=>document.querySelector('#aboutFeaturesFilmFrame').contentWindow.mediaFilm.state().selected==='history'")
     finally:context.close()
-    print('Capabilities film: full-frame geometry, removed filters, smaller PRO, four scenes, controls, mobile layout and reduced motion passed',flush=True)
+    print('Capabilities film: full-frame geometry, removed filters, smaller PRO, four scenes, clickable selectors, keyboard, scene replay, mobile layout and reduced motion passed',flush=True)
 
 
 if __name__=='__main__':

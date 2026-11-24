@@ -82,6 +82,18 @@
     featuresSpeed.textContent = 'Скорость ×' + value;
     sendFeatures('speed', value);
   });
+  window.addEventListener('message', event => {
+    if (event.source !== featuresMovie?.contentWindow || event.origin !== window.location.origin ||
+        event.data?.type !== 'media-strazh-features-event' || activeChannel !== 'opportunities') return;
+    if (event.data.action === 'state' && typeof event.data.running === 'boolean') {
+      featuresPlaying = event.data.running;
+      if (featuresPause) featuresPause.textContent = featuresPlaying ? 'Пауза' : 'Продолжить';
+    }
+    if (event.data.action === 'back') {
+      show('intro');
+      buttons.find(button => button.dataset.aboutChannel === 'opportunities')?.focus();
+    }
+  });
 
   function sendFilm(action, value) {
     if (!movie.contentWindow) return;

@@ -15,7 +15,10 @@ body{display:flex;align-items:stretch;justify-content:stretch}
 .frame{position:absolute;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:10px;padding:clamp(14px,2.5cqw,28px);padding-bottom:68px;transition:opacity .7s}
 .frame.off{opacity:0;visibility:hidden;transition:opacity .7s,visibility 0s .7s}
 .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;min-width:0}
-.tab{display:flex;align-items:center;justify-content:center;min-height:38px;padding:6px 10px;border:1px solid #1f2937;border-radius:99px;background:#0b1120;color:var(--mut);font-size:clamp(10px,1.3cqw,14px);font-weight:600;line-height:1.3;text-align:center;transition:.35s}
+.tab{cursor:pointer;appearance:none;display:flex;align-items:center;justify-content:center;min-height:38px;padding:6px 10px;border:1px solid #1f2937;border-radius:99px;background:#0b1120;color:var(--mut);font-size:clamp(10px,1.3cqw,14px);font-weight:600;line-height:1.3;text-align:center;transition:.35s}
+.tab:hover{border-color:#317d91;background:#102630}
+.tab:focus-visible{outline:2px solid #9ef8ff;outline-offset:3px}
+.tab:not(.on){visibility:hidden}
 .tab.act{color:#fff;border-color:var(--cy);background:rgba(34,211,238,.13);box-shadow:0 0 16px rgba(34,211,238,.18)}
 .pn{position:relative;min-height:0;min-width:0;border:1px solid #1f2937;border-radius:16px;background:linear-gradient(145deg,#0a0f1e,#070b14);overflow:hidden}
 .sc{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(12px,2cqw,24px);opacity:0;transition:opacity .5s;pointer-events:none}
@@ -91,25 +94,30 @@ button:hover{background:#103b4c}
 <body>
 <div class="stage" id="stage">
  <div class="frame" id="frame">
-  <div class="tabs" id="tabs"><div class="tab" data-g=".3">Сравнение публикаций</div><div class="tab" data-g=".45">История правок</div><div class="tab" data-g=".6">Автоматический анализ</div><div class="tab" data-g=".75">Самостоятельная проверка</div></div>
+  <div class="tabs" id="tabs" role="group" aria-label="Демонстрации разделов">
+   <button class="tab" type="button" aria-controls="demo-comparison" data-demo="comparison" data-g=".3" aria-pressed="false">Сравнение публикаций</button>
+   <button class="tab" type="button" aria-controls="demo-history" data-demo="history" data-g=".45" aria-pressed="false">История правок</button>
+   <button class="tab" type="button" aria-controls="demo-automatic" data-demo="automatic" data-g=".6" aria-pressed="false">Автоматический анализ</button>
+   <button class="tab" type="button" aria-controls="demo-manual" data-demo="manual" data-g=".75" aria-pressed="false">Самостоятельная проверка</button>
+  </div>
   <div class="pn">
-   <div class="sc" data-s="1.2" data-tab="2" data-d="Алгоритм находит признаки и показывает фрагменты для проверки">
+   <div class="sc" data-s="1.2" data-tab="2" id="demo-automatic" data-demo="automatic" data-d="Алгоритм находит признаки и показывает фрагменты для проверки">
     <div class="src" data-t=".1">Пример.ТВ · обновлено только что</div>
     <div class="txt"><p><span data-h="1.0">Эксперты давно подтвердили</span>, что <span data-h="1.5">ситуация выходит из-под контроля</span>.</p><p>Если не принять меры, <span data-h="2.5">последствия будут необратимы</span> для каждого.</p><i class="scan" id="scan"></i></div>
     <div class="chips"><b data-t="1.1">Размытый источник</b><b data-t="1.6">Преувеличение</b><b data-t="2.6">Запугивание</b><b data-t="3.1">Найдено признаков: 3</b></div>
    </div>
-   <div class="sc" data-s="5.8" data-tab="0" data-d="Одно событие — разные формулировки в разных изданиях">
+   <div class="sc" data-s="5.8" data-tab="0" id="demo-comparison" data-demo="comparison" data-d="Одно событие — разные формулировки в разных изданиях">
     <div class="cmp">
      <div class="cc" data-t=".2"><small>Пример.ТВ</small><p>На трубопроводе произошла авария, подачу тепла восстановят к вечеру</p><b class="ok" data-t="1.9">Признаков не найдено</b></div>
      <div class="cc" data-t=".6"><small>Пример.РУ</small><p>Коммунальный <span data-h="1.3">коллапс</span>: власти <span data-h="1.7">прячут правду</span> о масштабах аварии</p><b data-t="2.3">Эмоциональная оценка · Кликбейт</b></div>
     </div>
    </div>
-   <div class="sc" data-s="10.4" data-tab="1" data-d="Что менялось в публикации после выхода">
+   <div class="sc" data-s="10.4" data-tab="1" id="demo-history" data-demo="history" data-d="Что менялось в публикации после выхода">
     <div class="row" data-t=".2"><em>12:04</em><span>Власти обсуждают меры поддержки отрасли</span><u>версия 1</u></div>
     <div class="row" data-t="1"><em>12:31</em><span>Власти <del data-h="1.8">обсуждают</del><ins data-t="2">вынуждены вводить</ins> меры поддержки отрасли</span><u>версия 2</u></div>
     <div class="row" data-t="2.3"><em>13:10</em><span>Власти <del data-h="3">вынуждены вводить</del><ins data-t="3.2">ввели</ins> меры поддержки отрасли<ins data-t="3.5">по данным министерства</ins></span><u>версия 3</u></div>
    </div>
-   <div class="sc" data-s="15" data-tab="3" data-d="Вставьте текст и получите разбор по тем же маркерам">
+   <div class="sc" data-s="15" data-tab="3" id="demo-manual" data-demo="manual" data-d="Вставьте текст и получите разбор по тем же маркерам">
     <div class="inp" data-t=".1"><small>Вставьте текст публикации</small><div class="ty" id="ty">Все знают: <span data-h="2.7">эксперты скрывают правду</span>, и нас ждёт <span data-h="3.1">катастрофа</span>.</div></div>
     <span class="go" data-t="1.9">Проверить</span>
     <div class="chips"><b data-t="2.8">Размытый источник</b><b data-t="3.2">Запугивание</b></div>
@@ -126,7 +134,7 @@ button:hover{background:#103b4c}
 </div>
 <div class="ctl" id="ctl"><button id="pause" type="button">Пауза</button><button id="spd" type="button">Скорость ×1</button><button id="rep" type="button">Повторить</button></div>
 <script>
-var T=26.5,t=0,last=0,speed=1,raf=0,running=false;
+var T=26.5,t=0,last=0,speed=1,raf=0,running=false,selectedScene=null,sceneFinished=false;
 var embedded=window.parent!==window,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 var $=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
 var scenes=$('.sc'),tabs=$('.tab'),cap=document.getElementById('cap'),scan=document.getElementById('scan'),ty=document.getElementById('ty'),prog=document.getElementById('prog'),frame=document.getElementById('frame');
@@ -135,11 +143,11 @@ function cl(x){return Math.max(0,Math.min(1,x))}
 function upd(){
   scenes.forEach(function(s){
     var lt=t-(+s.dataset.s),on=lt>=0&&lt<4.5;
-    s.classList.toggle('on',on);
+    s.classList.toggle('on',on);s.setAttribute('aria-hidden',String(!on));
     $('[data-t]',s).forEach(function(e){e.classList.toggle('on',lt>=+e.dataset.t)});
     $('[data-h]',s).forEach(function(e){e.classList.toggle('hot',lt>=+e.dataset.h)});
     if(on){
-      tabs.forEach(function(b,i){b.classList.toggle('act',i===+s.dataset.tab)});
+      tabs.forEach(function(b,i){var active=i===+s.dataset.tab;b.classList.toggle('act',active);b.setAttribute('aria-pressed',String(active))});
       if(cap.textContent!==s.dataset.d)cap.textContent=s.dataset.d;
       if(s.contains(scan)){var p=cl((lt-.5)/2.8);scan.style.top=(p*100)+'%';scan.style.opacity=(p>0&&p<1)?1:0}
       if(s.contains(ty)){ty.style.clipPath='inset(0 '+(100-100*cl((lt-.3)/1.5))+'% 0 0)'}
@@ -147,20 +155,57 @@ function upd(){
   });
   gs.forEach(function(e){e.classList.toggle('on',t>=+e.dataset.g)});
   frame.classList.toggle('off',t>=19.9);
-  if(t>=19.9||t<1.1){cap.textContent=t>=19.9?'':cap.textContent;if(t<1.1)tabs.forEach(function(b){b.classList.remove('act')})}
-  prog.style.width=(100*t/T)+'%';
+  if(t>=19.9||t<1.1){cap.textContent=t>=19.9?'':cap.textContent;if(t<1.1)tabs.forEach(function(b){b.classList.remove('act');b.setAttribute('aria-pressed','false')})}
+  prog.style.width=(selectedScene?(sceneFinished?100:100*cl((t-(+selectedScene.dataset.s))/4.5)):100*t/T)+'%';
 }
-function loop(now){if(!running)return;var dt=Math.min(.1,(now-last)/1000);last=now;t+=dt*speed;if(t>=T)t=0;upd();raf=requestAnimationFrame(loop)}
+function sendState(){
+ if(embedded)window.parent.postMessage({type:'media-strazh-features-event',action:'state',running:running,finished:sceneFinished},location.origin);
+}
+function loop(now){
+ if(!running)return;
+ var dt=Math.min(.1,(now-last)/1000);last=now;t+=dt*speed;
+ if(selectedScene&&t>=+selectedScene.dataset.s+4.5){
+  t=+selectedScene.dataset.s+4.5-.001;sceneFinished=true;upd();pause(true);return;
+ }
+ if(t>=T)t=0;
+ upd();raf=requestAnimationFrame(loop);
+}
 var spd=document.getElementById('spd'),pauseButton=document.getElementById('pause');
-function pause(){running=false;cancelAnimationFrame(raf);pauseButton.textContent='Продолжить'}
-function resume(){if(running)return;running=true;pauseButton.textContent='Пауза';last=performance.now();raf=requestAnimationFrame(loop)}
-function play(){pause();t=0;upd();resume()}
-function present(){if(reduced){pause();t=T;upd()}else play()}
+function pause(announce){running=false;cancelAnimationFrame(raf);pauseButton.textContent='Продолжить';if(announce)sendState()}
+function resume(announce){
+ if(running)return;
+ if(sceneFinished&&selectedScene){t=+selectedScene.dataset.s;sceneFinished=false;upd()}
+ running=true;pauseButton.textContent='Пауза';last=performance.now();raf=requestAnimationFrame(loop);if(announce)sendState();
+}
+function play(){pause();selectedScene=null;sceneFinished=false;t=0;upd();resume()}
+function present(){if(reduced){pause();selectedScene=null;sceneFinished=false;t=T;upd()}else play()}
+function showScene(mode){
+ var scene=scenes.find(function(s){return s.dataset.demo===mode});
+ if(!scene)return;
+ pause();selectedScene=scene;sceneFinished=false;t=+scene.dataset.s;upd();resume();sendState();
+}
+tabs.forEach(function(button,index){
+ button.addEventListener('click',function(){showScene(button.dataset.demo)});
+ button.addEventListener('keydown',function(event){
+  var next;
+  if(event.key==='ArrowRight')next=(index+1)%tabs.length;
+  if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;
+  if(event.key==='Home')next=0;
+  if(event.key==='End')next=tabs.length-1;
+  if(next!==undefined){event.preventDefault();tabs[next].focus();tabs[next].click()}
+ });
+});
+document.getElementById('tabs').addEventListener('focusin',function(event){
+ if(!this.contains(event.relatedTarget)&&running)pause(true);
+});
+document.addEventListener('keydown',function(event){
+ if(event.key==='Escape'&&embedded){event.preventDefault();window.parent.postMessage({type:'media-strazh-features-event',action:'back'},location.origin)}
+});
 function setSpeed(v){var next=Number(v);if(![.5,1,1.5,2].includes(next))return;speed=next;spd.textContent='Скорость ×'+speed}
 document.getElementById('rep').addEventListener('click',play);
-pauseButton.addEventListener('click',function(){if(running)pause();else resume()});
+pauseButton.addEventListener('click',function(){if(running)pause(true);else resume(true)});
 spd.addEventListener('click',function(){var a=[.5,1,1.5,2];setSpeed(a[(a.indexOf(speed)+1)%a.length])});
-window.mediaFilm={replay:play,setSpeed:setSpeed,pause:pause,resume:resume,present:present,state:function(){return {time:t,running:running,speed:speed}}};
+window.mediaFilm={replay:play,setSpeed:setSpeed,pause:pause,resume:resume,present:present,showScene:showScene,state:function(){return {time:t,running:running,speed:speed,selected:selectedScene?selectedScene.dataset.demo:null,finished:sceneFinished}}};
 window.addEventListener('message',function(e){
  if(e.source!==window.parent||e.origin!==location.origin)return;
  var d=e.data||{};
