@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>МЕДИА.СТРАЖ — создатель</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070b;--cy:#22d3ee;--mut:#a8b0bd;--tx:#f4f7fb;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px}
+.stage{container-type:inline-size;position:relative;width:min(100%,960px);aspect-ratio:16/9;overflow:hidden;border-radius:20px;border:1px solid #1f2937;background:radial-gradient(circle at 22% 50%,rgba(34,211,238,.16),transparent 38%),radial-gradient(circle at 95% 0%,rgba(239,68,68,.06),transparent 40%),#070b14;box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.frame{position:absolute;inset:0;transition:opacity .7s}.frame.off{opacity:0}
+.lbl{position:absolute;left:5cqw;top:3.4cqw;display:flex;align-items:center;gap:1.2cqw;font:700 1.35cqw Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.lbl i{width:1cqw;height:1cqw;border-radius:50%;background:var(--cy);box-shadow:0 0 1cqw var(--cy);animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.25}}
+.av{position:absolute;left:9cqw;top:10.5cqw;width:35cqw;height:35cqw}
+.av svg{width:100%;height:100%;display:block;overflow:visible}
+.info{position:absolute;left:47cqw;right:5cqw;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:2cqw}
+.nm{font:900 6.4cqw/1.05 Montserrat,sans-serif;letter-spacing:-.03em;text-shadow:0 0 3cqw rgba(34,211,238,.2);clip-path:inset(0 100% 0 0)}
+.rl{font-size:2.2cqw;line-height:1.4;color:#bfe4ee;max-width:40cqw}
+.ch{display:flex;gap:1.4cqw}
+.ch span{display:inline-flex;align-items:center;gap:1cqw;padding:1cqw 2.2cqw;border:1px solid rgba(34,211,238,.45);border-radius:99px;background:rgba(18,48,65,.75);font-weight:700;font-size:1.6cqw}
+.ch svg{width:1.8cqw;height:1.8cqw;stroke:#e8fbff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+[data-g]{opacity:0;transform:translateY(.9cqw);transition:opacity .55s,transform .55s}[data-g].on{opacity:1;transform:none}
+.prog{position:absolute;left:0;bottom:0;height:.45cqw;width:0;background:linear-gradient(90deg,var(--cy),#14b8a6)}
+.end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw;pointer-events:none}
+.logo{font:900 8cqw/1 Montserrat,sans-serif;letter-spacing:.08em;text-shadow:0 0 3cqw rgba(34,211,238,.25)}.logo span{color:var(--cy)}
+.line{width:40cqw;height:.3cqw;background:linear-gradient(90deg,transparent,var(--cy),transparent)}
+.tg{font-size:2cqw;color:var(--mut);letter-spacing:.04em}
+.ctl{display:flex;gap:10px}
+button{min-height:44px;padding:0 22px;border-radius:12px;border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:var(--cy);font:600 14px Inter,sans-serif;cursor:pointer}
+button:hover{background:rgba(34,211,238,.16)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important}}
+</style>
+<link rel="stylesheet" href="about-section-films.css?v=20261126">
+</head>
+<body data-film="creator" data-poster="8">
+<div class="stage" id="stage">
+ <div class="frame" id="frame">
+  <div class="lbl"><i></i>Создатель</div>
+  <div class="creator-layout">
+  <div class="av" id="av" data-g=".3">
+   <div class="author-mesh" id="fg"><canvas id="authorMeshCanvas" role="img" aria-label="Объёмный бирюзовый бюст автора: 3D-модель с освещением"></canvas><div class="avatar-scan" id="scn"></div></div>
+   <svg viewBox="0 0 200 200" aria-hidden="true">
+    <circle cx="100" cy="100" r="98" fill="rgba(34,211,238,.06)"/>
+
+    <circle id="r1" cx="100" cy="100" r="89" fill="none" stroke="#22d3ee" stroke-width="1.6" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 100 100)"/>
+    <circle id="r2" cx="100" cy="100" r="94" fill="none" stroke="rgba(34,211,238,.45)" stroke-width="1" stroke-dasharray="2 6"/>
+    <g id="tk"></g>
+   </svg>
+  </div>
+  <div class="info">
+   <div class="nm" id="nm">Артём Ш.</div>
+   <div class="rl" data-g="4.4">Журналист, исследователь манипуляций в медиа.</div>
+   <div class="ch" data-g="5.4">
+    <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.5l6 2.2 2.2 6L21 3Zm0 0L9 12.7"/></svg>Telegram</a>
+    <a href="mailto:artem_shmakow@vk.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>Email</a>
+   </div>
+  </div>
+  </div>
+ </div>
+ <div class="end">
+  <div class="logo" data-g="11.6">МЕДИА.<span>СТРАЖ</span></div>
+  <div class="line" data-g="12"></div>
+  <div class="tg" data-g="12.5">Анализ манипулятивных техник в СМИ</div>
+ </div>
+ <div class="prog" id="prog"></div>
+</div>
+<div class="ctl" id="ctl"><button id="pause" type="button">Пауза</button><button id="spd" type="button">Скорость ×1</button><button id="rep" type="button">Повторить</button></div>
+<script src="about-author-model.js?v=20261126"></script>
+<script>
+var T=16,t=0,speed=1,NS='http://www.w3.org/2000/svg';
+var $=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+var tk=document.getElementById('tk'),ticks=[];
+for(var i=0;i<24;i++){var a=i*15*Math.PI/180,s=Math.sin(a),c=Math.cos(a),l=document.createElementNS(NS,'line');
+ l.setAttribute('x1',100+s*97);l.setAttribute('y1',100-c*97);l.setAttribute('x2',100+s*100.5);l.setAttribute('y2',100-c*100.5);
+ l.setAttribute('stroke','#334155');l.setAttribute('stroke-width','1.6');l.setAttribute('stroke-linecap','round');tk.appendChild(l);ticks.push(l)}
+var r1=document.getElementById('r1'),r2=document.getElementById('r2'),fg=document.getElementById('fg'),scn=document.getElementById('scn'),nm=document.getElementById('nm'),frame=document.getElementById('frame'),prog=document.getElementById('prog'),gs=$('[data-g]');
+function cl(x){return Math.max(0,Math.min(1,x))}
+function upd(){
+  r1.style.strokeDashoffset=1-cl((t-.4)/1.6);
+  r2.setAttribute('transform','rotate('+(t*12)+' 100 100)');
+  fg.style.opacity=cl((t-1.4)/1.2);
+  if(t<10.8)window.authorBust3D?.render(t);
+  var p=cl((t-1.2)/2.4);scn.style.top=(p*100)+'%';scn.style.opacity=(p>0&&p<1)?.9:0;
+  ticks.forEach(function(l,i){var on=t>=1+i*.1;l.setAttribute('stroke',on?'#22d3ee':'#334155')});
+  nm.style.clipPath='inset(0 '+(100-100*cl((t-3)/1.2))+'% 0 0)';
+  gs.forEach(function(e){e.classList.toggle('on',t>=+e.dataset.g)});
+  frame.classList.toggle('off',t>=10.8);
+  prog.style.width=(100*t/T)+'%';
+}
+</script>
+<script src="about-section-film.js?v=20261126"></script>
+</body>
+</html>

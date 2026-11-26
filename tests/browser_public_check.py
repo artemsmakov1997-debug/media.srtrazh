@@ -48,18 +48,12 @@ def public_ui(browser, base, site):
         principles.click()
         assert page.locator("#aboutStagePrinciples").is_visible()
         assert principles.inner_text() == "Назад"
-        assert page.locator(".about-principle").count() == 3
-        assert page.locator(".about-principle-head h2").all_inner_texts() == [
-            "Прозрачность", "Независимость", "Динамика"]
-        assert page.locator(".about-principle a").evaluate_all(
-            'links => links.map(a => a.getAttribute("href"))') == [
-                "/method/", "/help/", "/archive/"]
+        principles_movie = page.frame_locator("#aboutPrinciplesFilmFrame")
+        assert principles_movie.locator("#stage").is_visible()
+        assert principles_movie.locator(".sc").count() == 5
+        assert page.locator("#aboutPrinciplesReplay").is_visible()
         page.wait_for_timeout(550)
         assert page.locator(".about-stage:visible").count() == 1
-        grid = page.locator(".about-principles-grid").bounding_box()
-        monitor = screen.bounding_box()
-        assert grid["width"] >= monitor["width"] * .72, (grid,monitor)
-        assert grid["height"] >= monitor["height"] * .65, (grid,monitor)
         opportunities = page.locator('[data-about-channel="opportunities"]')
         opportunities.click()
         assert opportunities.inner_text() == "Назад"
@@ -71,14 +65,13 @@ def public_ui(browser, base, site):
         creator.click()
         assert page.locator("#aboutStageCreator").is_visible()
         assert creator.inner_text() == "Назад"
-        assert page.locator(".about-creator-links a").count() == 2
-        portrait = page.locator("#aboutStageCreator .about-author-image")
-        assert portrait.is_visible()
-        assert portrait.get_attribute("src").startswith("about-author-faceless.webp")
-        assert portrait.evaluate("img => img.complete && img.naturalWidth === 300 && img.naturalHeight === 300")
-        assert page.locator("#aboutStageCreator .about-creator-overline, #aboutStageCreator .about-creator-small, #aboutStageCreator .about-creator-watermark").count() == 0
-        assert "Unbounded" in page.locator("#aboutStageCreator .about-creator-name").evaluate(
-            "el => getComputedStyle(el).fontFamily")
+        creator_movie = page.frame_locator("#aboutCreatorFilmFrame")
+        assert creator_movie.locator("#authorMeshCanvas").count() == 1
+        assert creator_movie.locator("#authorMeshCanvas").get_attribute("data-model-kind") == "3d-mesh"
+        assert creator_movie.locator(".ch a").evaluate_all(
+            'links => links.map(a => a.getAttribute("href"))') == [
+                "https://t.me/iznankamedia", "mailto:artem_shmakow@vk.com"]
+        assert page.locator("#aboutCreatorReplay").is_visible()
         creator.click()
         assert intro.is_visible()
         page.wait_for_timeout(550)
@@ -181,3 +174,6 @@ def public_ui(browser, base, site):
 
     from browser_about_features_check import features_ui
     features_ui(browser, base)
+
+    from browser_about_section_films_check import section_films_ui
+    section_films_ui(browser, base)

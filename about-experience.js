@@ -55,6 +55,45 @@
   let featuresPlaying = false;
   let featuresRateIndex = 1;
   const featuresRates = [.5, 1, 1.5, 2];
+  function sectionFilm(channel, capital) {
+    const frame = document.getElementById('about' + capital + 'FilmFrame');
+    const pause = document.getElementById('about' + capital + 'Pause');
+    const speed = document.getElementById('about' + capital + 'Speed');
+    const replay = document.getElementById('about' + capital + 'Replay');
+    let playing = false, rateIndex = 1;
+    const send = (action, value) => frame?.contentWindow?.postMessage(
+      {type:'media-strazh-' + channel + '-control',action,value},location.origin);
+    const start = (explicit = false) => {
+      playing = explicit || !reduceMotion;
+      if (pause) pause.textContent = playing ? 'Пауза' : 'Продолжить';
+      send('speed',featuresRates[rateIndex]); send(explicit ? 'replay' : 'present');
+    };
+    frame?.addEventListener('load',() => {
+      if (activeChannel === channel && !document.hidden) start(); else send('pause');
+    });
+    pause?.addEventListener('click',() => {
+      playing = !playing; pause.textContent = playing ? 'Пауза' : 'Продолжить'; send(playing ? 'resume' : 'pause');
+    });
+    speed?.addEventListener('click',() => {
+      rateIndex = (rateIndex + 1) % featuresRates.length;
+      speed.textContent = 'Скорость ×' + featuresRates[rateIndex];send('speed',featuresRates[rateIndex]);
+    });
+    replay?.addEventListener('click',() => start(true));
+    window.addEventListener('message',event => {
+      if (event.source !== frame?.contentWindow || event.origin !== location.origin ||
+          event.data?.type !== 'media-strazh-' + channel + '-event' || activeChannel !== channel) return;
+      if (event.data.action === 'state' && typeof event.data.running === 'boolean') {
+        playing = event.data.running;if (pause) pause.textContent = playing ? 'Пауза' : 'Продолжить';
+      }
+      if (event.data.action === 'back') {
+        show('intro'); buttons.find(button => button.dataset.aboutChannel === channel)?.focus();
+      }
+    });
+    return {channel,start,stop(){playing=false;send('pause');},visibility(){
+      if(document.hidden)send('pause');else if(activeChannel===channel&&playing)send('resume');
+    }};
+  }
+  const sectionFilms = [sectionFilm('principles','Principles'),sectionFilm('creator','Creator')];
 
   function sendFeatures(action, value) {
     featuresMovie?.contentWindow?.postMessage(
@@ -196,6 +235,7 @@
     if (channel === 'intro' && (previous !== 'intro' || !filmRunning)) startFilm();
     if (channel === 'opportunities') startFeatures();
     else { featuresPlaying = false; sendFeatures('pause'); }
+    sectionFilms.forEach(player => player.channel === channel ? player.start() : player.stop());
   }
 
   buttons.forEach(button => button.addEventListener('click', () => {
@@ -214,6 +254,7 @@
     else resumeFilm();
     if (document.hidden) sendFeatures('pause');
     else if (activeChannel === 'opportunities' && featuresPlaying) sendFeatures('resume');
+    sectionFilms.forEach(player => player.visibility());
   });
 
   show('intro');
