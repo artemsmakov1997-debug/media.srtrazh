@@ -18,3 +18,9 @@
 
 /* Only the capabilities iframe contains interactive scene selectors. */
 #aboutFeaturesFilmFrame{pointer-events:auto}
+
+/* The supplied principles/creator films share the full-frame player. */
+.about-stage--principles,.about-stage--creator{padding:0!important;overflow:hidden}
+#aboutPrinciplesFilmFrame,#aboutCreatorFilmFrame{pointer-events:auto}
+#aboutPrinciplesFilm .about-film-controls,#aboutCreatorFilm .about-film-controls{left:10px;right:10px;bottom:10px;justify-content:flex-end;flex-wrap:wrap}
+@media(max-width:680px){#aboutPrinciplesFilm .about-film-controls,#aboutCreatorFilm .about-film-controls{gap:5px}#aboutPrinciplesFilm .about-film-controls button,#aboutCreatorFilm .about-film-controls button{font-size:10px;padding:7px 9px}}

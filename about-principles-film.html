@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>МЕДИА.СТРАЖ — принципы</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070b;--cy:#22d3ee;--red:#ef4444;--yel:#eab308;--mut:#a8b0bd;--tx:#f4f7fb;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px}
+.stage{container-type:inline-size;position:relative;width:min(100%,960px);aspect-ratio:16/9;overflow:hidden;border-radius:20px;border:1px solid #1f2937;background:radial-gradient(circle at 20% 0%,rgba(34,211,238,.10),transparent 40%),radial-gradient(circle at 85% 100%,rgba(239,68,68,.08),transparent 40%),#070b14;box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.frame{position:absolute;inset:0;transition:opacity .7s}.frame.off{opacity:0}
+.lbl{position:absolute;left:5cqw;top:3.4cqw;font:700 1.35cqw Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.dots{position:absolute;right:5cqw;top:3.4cqw;display:flex;gap:.9cqw}
+.dots i{width:1.1cqw;height:1.1cqw;border-radius:50%;background:#1f2937;transition:.35s}.dots i.act{width:3.2cqw;border-radius:99px;background:var(--cy);box-shadow:0 0 1.4cqw rgba(34,211,238,.4)}
+.art{position:absolute;left:5cqw;right:5cqw;top:8cqw;height:34cqw}
+.sc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s}.sc.on{opacity:1}
+[data-t],[data-g]{opacity:0;transform:translateY(.8cqw);transition:opacity .45s,transform .45s}
+[data-t].on,[data-g].on{opacity:1;transform:none}
+svg [data-t]{transform:none}
+.ttl{position:absolute;left:5cqw;right:5cqw;top:44cqw;text-align:center;font:800 3.2cqw Montserrat,sans-serif;letter-spacing:-.02em;transition:opacity .3s}
+.ttl span{color:var(--cy)}
+.cap{position:absolute;left:8cqw;right:8cqw;top:49.2cqw;text-align:center;font-size:1.6cqw;color:#cbd2dc;line-height:1.4}
+.prog{position:absolute;left:0;bottom:0;height:.45cqw;width:0;background:linear-gradient(90deg,var(--cy),#14b8a6)}
+.dial{width:34cqw;height:34cqw}
+.dial .tk{stroke:#334155;stroke-width:2;stroke-linecap:round;transition:.3s}.dial .tk.on{stroke:var(--cy);filter:drop-shadow(0 0 2px #22d3ee)}
+.dial [data-t].tk{opacity:1}
+.dial .hd{stroke:var(--red);stroke-width:2.4;stroke-linecap:round}
+.dial text{font:900 30px Montserrat,sans-serif;fill:#f4f7fb;text-anchor:middle}
+.mk{display:grid;grid-template-columns:repeat(4,auto);gap:1.2cqw;justify-content:center}
+.mk b{padding:.9cqw 1.8cqw;border:1px solid rgba(34,211,238,.45);border-radius:99px;background:rgba(34,211,238,.07);color:#bff4fc;font-size:1.55cqw;font-weight:600;white-space:nowrap}
+.ind{width:34cqw;height:34cqw}
+.ind .lk{stroke:#475569;stroke-width:1.4;stroke-dasharray:3 3;transition:.5s}.ind .lk.cut{stroke-opacity:0}
+.ind .nd{fill:#64748b;transition:.7s}.ind .nd.cut{opacity:.12;transform:translate(var(--x),var(--y))}
+.ind .core{fill:rgba(34,211,238,.1);stroke:var(--cy);stroke-width:2.4}
+.ind .rg{fill:none;stroke:var(--cy);stroke-width:1.2;opacity:0;transition:opacity .8s}.ind .rg.on{opacity:.8}
+.ind [data-t]{opacity:0}.ind [data-t].on{opacity:1}
+.stack{position:relative;width:46cqw;height:26cqw}
+.cd{position:absolute;width:30cqw;height:15cqw;padding:1.8cqw;box-sizing:border-box;border:1px solid #2a3446;border-radius:1.6cqw;background:linear-gradient(145deg,#0d1424,#080c16);box-shadow:0 1cqw 3cqw rgba(0,0,0,.5)}
+.cd s{display:block;height:.9cqw;margin-bottom:1.1cqw;border-radius:99px;background:#1f2937}.cd s:nth-child(2){width:80%}.cd s:nth-child(3){width:55%}
+.cd s.r{background:rgba(239,68,68,.55)}
+.cd em{position:absolute;right:1.5cqw;bottom:1.2cqw;font-style:normal;padding:.4cqw 1cqw;border:1px solid var(--red);border-radius:99px;color:#fecaca;font-size:1.1cqw;font-weight:600}
+.ap{width:56cqw;display:flex;flex-direction:column;gap:1.6cqw}
+.ap .bx{padding:2cqw;border:1px solid #1f2937;border-radius:1.6cqw;background:rgba(255,255,255,.02);font-size:2.1cqw;line-height:1.5}
+[data-h]{border-radius:.5cqw;padding:.05cqw .4cqw;transition:.35s}
+[data-h].hot{background:rgba(239,68,68,.2);color:#fecaca;box-shadow:inset 0 -.2cqw 0 var(--red)}
+.pl{display:inline-flex;align-items:center;gap:1cqw;padding:.9cqw 1.8cqw;border:1px solid var(--yel);border-radius:1.2cqw;background:rgba(234,179,8,.08);color:#fde68a;font-size:1.5cqw;font-weight:600;width:fit-content}
+.bt{width:fit-content;padding:1cqw 2.6cqw;border-radius:1.2cqw;background:var(--cy);color:#042f3a;font-weight:700;font-size:1.6cqw}
+.end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw;pointer-events:none}
+.logo{font:900 8cqw/1 Montserrat,sans-serif;letter-spacing:.08em;text-shadow:0 0 3cqw rgba(34,211,238,.25)}.logo span{color:var(--cy)}
+.line{width:40cqw;height:.3cqw;background:linear-gradient(90deg,transparent,var(--cy),transparent)}
+.tg{font-size:2cqw;color:var(--mut);letter-spacing:.04em}
+.ctl{display:flex;gap:10px}
+button{min-height:44px;padding:0 22px;border-radius:12px;border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:var(--cy);font:600 14px Inter,sans-serif;cursor:pointer}
+button:hover{background:rgba(34,211,238,.16)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important}}
+</style>
+<link rel="stylesheet" href="about-section-films.css?v=20261126">
+</head>
+<body data-film="principles" data-poster="21.5">
+<div class="stage" id="stage" tabindex="0">
+ <div class="frame" id="frame">
+  <div class="lbl">Принципы</div>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="art">
+   <div class="sc" data-s="1" data-i="0" data-ti="Регулярный <span>мониторинг</span>" data-d="Сборщик проверяет доступные публикации СМИ по расписанию">
+    <svg class="dial" viewBox="0 0 200 200"><g id="tk"></g><line class="hd" id="hd" x1="100" y1="100" x2="100" y2="34"/><circle cx="100" cy="100" r="4" fill="#ef4444"/><text x="100" y="156">СМИ</text></svg>
+   </div>
+   <div class="sc" data-s="5.2" data-i="1" data-ti="Прозрачная <span>методика</span>" data-d="Категории признаков опубликованы в открытой методике">
+    <div class="mk" id="mk"></div>
+   </div>
+   <div class="sc" data-s="9.4" data-i="2" data-ti="<span>Независимость</span>" data-d="Независимый проект: оценку строит алгоритм по открытой методике">
+    <svg class="ind" viewBox="0 0 200 200"><g id="lks"></g><circle class="rg" id="rg" cx="100" cy="100" r="34" data-t="3"/><circle class="core" cx="100" cy="100" r="22"/><g id="nds"></g></svg>
+   </div>
+   <div class="sc" data-s="13.6" data-i="3" data-ti="Открытый <span>архив</span>" data-d="Архив хранит реальные публикации из той же подборки, что и анализ">
+    <div class="stack" id="stk"></div>
+   </div>
+   <div class="sc" data-s="17.8" data-i="4" data-ti="Честные <span>ограничения</span>" data-d="Анализ пилотный: если издание не согласно с результатом, оно может направить апелляцию">
+    <div class="ap">
+     <div class="bx" data-t=".2">…и <span data-h="1.2">последствия будут необратимы</span> для всех.</div>
+     <div class="pl" data-t="1.6">Пилотный анализ: алгоритм может ошибаться</div>
+     <div class="bt" data-t="2.8">Направить апелляцию</div>
+    </div>
+   </div>
+  </div>
+  <div class="ttl" id="ttl"></div>
+  <div class="cap" id="cap"></div>
+ </div>
+ <div class="end">
+  <div class="logo" data-g="22.5">МЕДИА.<span>СТРАЖ</span></div>
+  <div class="line" data-g="22.9"></div>
+  <div class="tg" data-g="23.4">Прозрачная методика · независимость · открытый архив</div>
+ </div>
+ <div class="prog" id="prog"></div>
+</div>
+<div class="ctl" id="ctl"><button id="pause" type="button">Пауза</button><button id="spd" type="button">Скорость ×1</button><button id="rep" type="button">Повторить</button></div>
+<script>
+var T=27.5,t=0,speed=1,NS='http://www.w3.org/2000/svg';
+var $=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+function mk(tag,at,p){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);p.appendChild(e);return e}
+/* циферблат */
+var tk=document.getElementById('tk'),ticks=[];
+for(var i=0;i<24;i++){var a=i*15*Math.PI/180,s=Math.sin(a),c=Math.cos(a);
+ var l=mk('line',{'class':'tk','x1':100+s*80,'y1':100-c*80,'x2':100+s*92,'y2':100-c*92},tk);l.dataset.at=.2+i*.1;ticks.push(l)}
+/* маркеры методики */
+var M=['Запугивание','Эмоциональная оценка','Образ врага','Преувеличение','Обобщение','Ссылка на авторитет','Размытый источник','Выборочный контекст','Упрощение','Псевдостатистика','Кликбейт','Эвфемизмы и дисфемизмы'];
+M.forEach(function(n,i){var b=document.createElement('b');b.textContent=n;b.dataset.t=(.2+i*.22).toFixed(2);document.getElementById('mk').appendChild(b)});
+/* независимость */
+var lks=document.getElementById('lks'),nds=document.getElementById('nds');
+for(var j=0;j<6;j++){var a2=(j*60+30)*Math.PI/180,sx=Math.sin(a2),cy=-Math.cos(a2),X=100+sx*74,Y=100+cy*74;
+ var ln=mk('line',{'class':'lk','x1':100+sx*22,'y1':100+cy*22,'x2':X,'y2':Y},lks);ln.dataset.h=(1+j*.28).toFixed(2);
+ var nd=mk('circle',{'class':'nd','cx':X,'cy':Y,'r':8},nds);nd.dataset.h=(1.1+j*.28).toFixed(2);nd.style.setProperty('--x',(sx*26)+'px');nd.style.setProperty('--y',(cy*26)+'px')}
+/* архив */
+var stk=document.getElementById('stk');
+for(var k=0;k<6;k++){var d=document.createElement('div');d.className='cd';d.dataset.t=(.2+k*.35).toFixed(2);
+ d.style.left=(k*6)+'%';d.style.top=(k*6)+'%';d.innerHTML='<s></s><s'+(k==5?' class="r"':'')+'></s><s></s>'+(k==5?'<em>Запугивание</em>':'');stk.appendChild(d)}
+var scenes=$('.sc'),dots=$('#dots i'),ttl=document.getElementById('ttl'),cap=document.getElementById('cap'),prog=document.getElementById('prog'),frame=document.getElementById('frame'),hd=document.getElementById('hd'),rg=document.getElementById('rg');
+var gs=$('[data-g]');
+function upd(){
+  scenes.forEach(function(s){
+    var lt=t-(+s.dataset.s),on=lt>=0&&lt<4.4;
+    s.classList.toggle('on',on);
+    $('[data-t]',s).forEach(function(e){e.classList.toggle('on',lt>=+e.dataset.t)});
+    $('[data-h]',s).forEach(function(e){e.classList.toggle('hot',lt>=+e.dataset.h);if(e.classList.contains('lk')||e.classList.contains('nd'))e.classList.toggle('cut',lt>=+e.dataset.h)});
+    if(on){
+      dots.forEach(function(x,i){x.classList.toggle('act',i===+s.dataset.i)});
+      if(ttl.innerHTML!==s.dataset.ti){ttl.innerHTML=s.dataset.ti;cap.textContent=s.dataset.d}
+      if(s.dataset.i==='0'){ticks.forEach(function(l){l.classList.toggle('on',lt>=+l.dataset.at)});hd.setAttribute('transform','rotate('+(lt*85)+' 100 100)')}
+    }
+  });
+  gs.forEach(function(e){e.classList.toggle('on',t>=+e.dataset.g)});
+  var off=t>=22;frame.classList.toggle('off',off);
+  if(off){ttl.innerHTML='';cap.textContent=''}
+  if(t<1)dots.forEach(function(x){x.classList.remove('act')});
+  prog.style.width=(100*t/T)+'%';
+}
+</script>
+<script src="about-section-film.js?v=20261126"></script>
+</body>
+</html>

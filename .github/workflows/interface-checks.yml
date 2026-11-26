@@ -36,7 +36,7 @@ jobs:
         run: |
           python3 - <<'PYCODE'
           import subprocess, sys
-          for script in ('browser_about_features_check.py', 'browser_rating_check.py'):
+          for script in ('browser_about_features_check.py', 'browser_about_section_films_check.py', 'browser_rating_check.py'):
               result = subprocess.run([sys.executable, '-u', 'tests/' + script, '--site', '/tmp/browser-site'],
                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
               print(result.stdout, end='', flush=True)
@@ -65,6 +65,7 @@ jobs:
           name: analysis-interface-checks
           path: |
             /tmp/about-features-checks
+            /tmp/about-section-films-checks
             /tmp/pro-layout-checks
             /tmp/analysis-layout-checks
             /tmp/media-strazh-rating-checks

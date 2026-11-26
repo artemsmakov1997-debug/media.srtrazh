@@ -1165,7 +1165,7 @@
   }
 </style>
   <link rel="stylesheet" href="about-experience.css?v=20261119-pro4">
-  <link rel="stylesheet" href="about-intro-film.css?v=20261124-scenes">
+  <link rel="stylesheet" href="about-intro-film.css?v=20261126-sections">
 </head>
 
 <body>
@@ -1217,26 +1217,14 @@
           </section>
 
           <section class="about-stage about-stage--principles" id="aboutStagePrinciples" aria-label="Принципы" hidden>
-            <div class="about-stage-shell">
-              <div class="about-principles-grid">
-                <article class="about-principle">
-                  <div class="about-principle-head"><span class="about-principle-num">01</span><h2>Прозрачность</h2></div>
-                  <p>Показываем обнаруженные маркеры и сохранённые фрагменты публикаций — не просто итоговый процент.</p>
-                  <p>Каждый пример можно оценить в контексте. Наличие маркера само по себе не доказывает манипуляцию или недостоверность.</p>
-                  <a href="method.html">Смотреть методику →</a>
-                </article>
-                <article class="about-principle">
-                  <div class="about-principle-head"><span class="about-principle-num">02</span><h2>Независимость</h2></div>
-                  <p>Развиваем проект самостоятельно, чтобы сохранять возможность открыто анализировать материалы разных изданий.</p>
-                  <p>Поддержка проекта добровольная. Наша задача — делать результаты анализа проверяемыми и объяснимыми.</p>
-                  <a href="help.html">Поддержать проект →</a>
-                </article>
-                <article class="about-principle">
-                  <div class="about-principle-head"><span class="about-principle-num">03</span><h2>Динамика</h2></div>
-                  <p>Регулярно собираем публикации и пересчитываем показатели за последние 24 часа, отслеживая изменения в медиаполе.</p>
-                  <p>Сохраняем примеры в архиве и показываем ограничения выборки, чтобы не создавать иллюзию полного охвата.</p>
-                  <a href="archive.html">Перейти к архиву →</a>
-                </article>
+            <div class="about-film" id="aboutPrinciplesFilm">
+              <iframe class="about-film-frame" id="aboutPrinciplesFilmFrame"
+                      src="about-principles-film.html?v=20261126"
+                      title="МЕДИА.СТРАЖ — ролик о принципах" loading="eager"></iframe>
+              <div class="about-film-controls" role="group" aria-label="Управление роликом о принципах">
+                <button type="button" id="aboutPrinciplesPause">Пауза</button>
+                <button type="button" id="aboutPrinciplesSpeed">Скорость ×1</button>
+                <button type="button" id="aboutPrinciplesReplay">Повторить</button>
               </div>
             </div>
           </section>
@@ -1256,23 +1244,14 @@
           </section>
 
           <section class="about-stage about-stage--creator" id="aboutStageCreator" aria-label="Создатель" hidden>
-            <div class="about-stage-shell">
-              <div class="about-creator-panel">
-                <div class="about-creator-content">
-                  <div class="about-author-avatar">
-                    <img class="about-author-image" src="about-author-faceless.webp?v=20261102-3"
-                         alt="Безликий трёхмерный бирюзовый бюст в неоновом круге" width="300" height="300"
-                         loading="eager" decoding="async">
-                  </div>
-                  <div class="about-creator-detail">
-                    <h2 class="about-creator-name">Артём Ш.</h2>
-                    <p>Журналист, исследователь манипуляций в медиа.</p>
-                    <div class="about-creator-links">
-                      <a href="https://t.me/iznankamedia" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.6l6.9 2.5L18.4 6 11.7 14l.2 6 3.6-4.2 3.7 2.8z" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linejoin="round"/></svg>Telegram</a>
-                      <a href="mailto:artem_shmakow@vk.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="m3.5 7 8.5 6 8.5-6" stroke="currentColor" fill="none" stroke-width="1.6"/></svg>Email</a>
-                    </div>
-                  </div>
-                </div>
+            <div class="about-film" id="aboutCreatorFilm">
+              <iframe class="about-film-frame" id="aboutCreatorFilmFrame"
+                      src="about-creator-film.html?v=20261126"
+                      title="МЕДИА.СТРАЖ — ролик о создателе" loading="eager"></iframe>
+              <div class="about-film-controls" role="group" aria-label="Управление роликом о создателе">
+                <button type="button" id="aboutCreatorPause">Пауза</button>
+                <button type="button" id="aboutCreatorSpeed">Скорость ×1</button>
+                <button type="button" id="aboutCreatorReplay">Повторить</button>
               </div>
             </div>
           </section>
@@ -1289,6 +1268,6 @@
 
 <footer class="about-footer">© 2026 Проект «МЕДИА.СТРАЖ»</footer>
 
-<script defer src="about-experience.js?v=20261124-scenes"></script>
+<script defer src="about-experience.js?v=20261126-sections"></script>
 </body>
 </html>
