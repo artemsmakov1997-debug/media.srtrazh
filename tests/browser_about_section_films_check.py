@@ -114,7 +114,7 @@ def section_films_ui(browser, base):
             assert frame.locator('#frame').evaluate('el=>!el.classList.contains("off")')
             page.locator('#about' + capital + 'Replay').click()
             page.wait_for_function('id=>document.getElementById(id).contentWindow.mediaFilm.state().running', arg=iframe_id)
-            frame.locator('body').press('Escape')
+            frame.locator('#stage').press('Escape')
             page.wait_for_function("document.querySelector('#aboutMonitorScreen').dataset.activeChannel==='intro'")
             assert page.locator('[data-about-channel=' + name + ']').evaluate('el=>el===document.activeElement')
     finally:

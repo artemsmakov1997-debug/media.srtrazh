@@ -4,6 +4,7 @@
 html,body{width:100%;height:100%;overflow:hidden}
 body{min-height:0;padding:0;gap:0}
 .stage{width:100%;height:100%;max-width:none;aspect-ratio:auto;container-type:size;border:0;border-radius:0;box-shadow:none}
+.stage:focus-visible{outline:2px solid #9ef8ff;outline-offset:-3px}
 .frame{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:10px;padding:clamp(14px,2.5cqw,28px);padding-bottom:68px}
 .frame.off{visibility:hidden;transition:opacity .7s,visibility 0s .7s}
 .lbl{position:static;font-size:clamp(10px,1.3cqw,14px);line-height:1.3}
