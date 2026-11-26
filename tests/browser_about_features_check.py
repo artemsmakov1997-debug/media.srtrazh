@@ -40,12 +40,16 @@ def features_ui(browser, base):
             assert state()['speed']==1.5
             page.locator('#aboutFeaturesSpeed').click();page.clock.run_for(100)
             assert state()['speed']==2
-            page.locator('#aboutFeaturesReplay').click();page.clock.run_for(100)
-            assert state()['time']<.4
+            page.locator('#aboutFeaturesReplay').click()
+            page.wait_for_function("()=>{const s=document.querySelector('#aboutFeaturesFilmFrame').contentWindow.mediaFilm.state();return s.running&&s.selected===null&&s.time<.75}")
             for moment,name in ((4.6,'automatic'),(9.3,'comparison'),(14.5,'revisions'),(19.1,'manual'),(23.8,'final')):
                 delta=max(0,moment-state()['time'])
                 page.clock.run_for(round(delta*1000/2))
-                assert abs(state()['time']-moment)<.15,state()
+                # Keep the sampled scene still during layout reads/screenshots;
+                # real time also passes between calls to the installed clock.
+                stage.evaluate('()=>window.mediaFilm.pause()')
+                sampled=state()
+                assert abs(sampled['time']-moment)<.35,sampled
                 stage.evaluate('el=>el.getAnimations({subtree:true}).forEach(a=>{if(Number.isFinite(a.effect.getComputedTiming().endTime))a.finish()})')
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert stage.evaluate('()=>document.documentElement.scrollWidth<=innerWidth+1')
@@ -59,6 +63,7 @@ def features_ui(browser, base):
                     assert movie.locator('.end .pro').evaluate('el=>getComputedStyle(el).opacity')=='1'
                 if width in (390,1280,1920):
                     page.screenshot(path=str(output/f'features-{name}-{width}.png'),full_page=True,animations='disabled')
+                stage.evaluate('()=>window.mediaFilm.resume()')
             # Actual clicks/taps must reach the iframe, and restart the chosen scene.
             assert page.locator('#aboutFeaturesFilmFrame').evaluate('el=>getComputedStyle(el).pointerEvents')=='auto'
             page.locator('#aboutFeaturesReplay').click();page.clock.run_for(1000)
