@@ -375,7 +375,8 @@ def rating_ui(browser, base, site, errors, requests):
                 'return {justify:s.justifyContent,align:s.textAlign,border:s.borderTopWidth,'
                 'background:s.backgroundImage,before:getComputedStyle(v,"::before").content,'
                 'height:el.offsetHeight};}')
-            assert (headline_style['justify'] == 'flex-start' and headline_style['align'] == 'left' and
+            # Recent Chromium exposes the equivalent flow-relative CSSOM name.
+            assert (headline_style['justify'] in ('flex-start', 'flow-start') and headline_style['align'] == 'left' and
                     headline_style['border'] == '0px' and headline_style['background'] != 'none' and
                     headline_style['before'] != 'none' and headline_style['height'] >= 50), (width, headline_style)
             assert card.locator('.small-graph, .rating-progress').count() == 0

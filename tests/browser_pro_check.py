@@ -92,7 +92,7 @@ def pro_ui(browser,base,site):
         assert page.locator('#historyPanel .section-head').count()==0
         page.locator('[data-mode=history]').click();assert page.locator('.pro-version del').inner_text()=='все полосы';assert page.locator('.pro-version ins').inner_text()=='две полосы';assert 'МСК' in page.locator('.pro-revision').inner_text()
         actions=page.locator('.pro-revision .pro-source-actions')
-        assert actions.evaluate("el=>{const s=getComputedStyle(el),a=el.querySelector('a').getBoundingClientRect(),r=el.getBoundingClientRect();return s.justifyContent==='flex-end'&&parseFloat(s.paddingTop)>=20&&Math.abs(a.right-r.right)<2}")
+        assert actions.evaluate("el=>{const s=getComputedStyle(el),a=el.querySelector('a').getBoundingClientRect(),r=el.getBoundingClientRect();return ['flex-end','flow-end'].includes(s.justifyContent)&&parseFloat(s.paddingTop)>=20&&Math.abs(a.right-r.right)<2}")
         if width in (390,1280):page.screenshot(path=str(output/f'history-{width}.png'),full_page=True)
         page.select_option('#historyKind','text');assert page.locator('#historyContent .pro-empty').is_visible()
         for url in ('/','/help/','/about/'):
