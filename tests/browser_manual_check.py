@@ -1187,6 +1187,8 @@ def main():
             new_media_filters_ui(browser, base, site, errors, requests)
             from browser_pro_check import pro_ui
             pro_ui(browser, base, site)
+            from browser_photo_context_check import photo_ui
+            photo_ui(browser, base)
             from browser_public_check import public_ui
             public_ui(browser, base, site)
             from browser_rating_check import rating_ui

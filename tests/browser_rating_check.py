@@ -172,7 +172,10 @@ def rating_ui(browser, base, site, errors, requests):
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
             page.route('**/data/rating.json', lambda route: route.fulfill(json=fixture))
-            page.goto(base + '/index.html')
+            # Inspect the finished canonical page, not an intermediate legacy
+            # document while /index.html is being replaced with /.
+            page.goto(base + '/')
+            page.evaluate('document.fonts.ready')
             page.locator('.media-card').first.wait_for()
             assert page.locator('#dailyCounterValue').inner_text() == str(fixture['totals']['flagged'])
             assert page.locator('#dailyCounterMobile').inner_text() == str(fixture['totals']['flagged'])
@@ -367,11 +370,15 @@ def rating_ui(browser, base, site, errors, requests):
                 'x.right+3<=y.left && x.width>=a.width*.3 && y.width>=a.width*.3 && '
                 'Math.abs(x.top-y.top)<2 && y.right<=a.right+2 : '
                 'Math.abs(x.width-a.width)<2 && getComputedStyle(full).display==="none"; }')
-            assert card.locator('.rating-headline').evaluate(
+            headline_style = card.locator('.rating-headline').evaluate(
                 'el => {const s=getComputedStyle(el), v=el.querySelector(".rating-score");'
-                'return s.justifyContent==="flex-start" && s.textAlign==="left" && '
-                's.borderTopWidth==="0px" && s.backgroundImage!=="none" && '
-                'getComputedStyle(v,"::before").content!=="none" && el.offsetHeight>=50;}')
+                'return {justify:s.justifyContent,align:s.textAlign,border:s.borderTopWidth,'
+                'background:s.backgroundImage,before:getComputedStyle(v,"::before").content,'
+                'height:el.offsetHeight};}')
+            # Recent Chromium exposes the equivalent flow-relative CSSOM name.
+            assert (headline_style['justify'] in ('flex-start', 'flow-start') and headline_style['align'] == 'left' and
+                    headline_style['border'] == '0px' and headline_style['background'] != 'none' and
+                    headline_style['before'] != 'none' and headline_style['height'] >= 50), (width, headline_style)
             assert card.locator('.small-graph, .rating-progress').count() == 0
             assert card.locator('.rating-legal-info, .media-top-badges, .media-level-badge, .rating-caption-row').count() == 0
             assert card.locator('.media-name').evaluate('el => getComputedStyle(el).whiteSpace === "nowrap"')
