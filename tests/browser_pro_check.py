@@ -1,4 +1,4 @@
-"""Four PRO tabs, real-data rendering contracts and retired public routes."""
+"""Five PRO tabs, real-data rendering contracts and retired public routes."""
 from pathlib import Path
 import json
 
@@ -11,17 +11,19 @@ def pro_ui(browser,base,site):
         page.goto(base+'/analysis/')
         assert page.locator('#storiesPanel .section-head').count()==0
         tabs=page.locator('.analysis-tabs [data-mode]')
-        assert tabs.all_text_contents()==['Сравнение публикаций','История правок','Автоматический анализ','Самостоятельная проверка']
+        assert tabs.all_text_contents()==['Сравнение публикаций','История правок','Автоматический анализ','Самостоятельная проверка','Фото и контекст']
         page.evaluate('document.fonts.ready')
         boxes=tabs.evaluate_all('els=>els.map(el=>({y:el.getBoundingClientRect().y}))')
         assert (abs(boxes[0]['y']-boxes[3]['y'])<2)==(width>720)
-        for mode in ('stories','history','automatic','manual'):
+        for mode in ('stories','history','automatic','manual','photo'):
             page.locator('[data-mode='+mode+']').click()
             assert page.locator('#'+mode+'Panel').is_visible()
-            assert sum(page.locator('#'+name+'Panel').is_visible() for name in ('stories','history','automatic','manual'))==1
+            assert sum(page.locator('#'+name+'Panel').is_visible() for name in ('stories','history','automatic','manual','photo'))==1
             assert page.locator('[data-mode='+mode+']').get_attribute('aria-selected')=='true'
         page.locator('[data-mode=stories]').click();page.locator('#storiesContent .pro-empty, #storiesContent .pro-story').first.wait_for()
         page.locator('[data-mode=stories]').press('ArrowRight');assert page.locator('#historyPanel').is_visible()
+        page.locator('[data-mode=history]').press('End');assert page.locator('#photoPanel').is_visible()
+        page.locator('[data-mode=photo]').press('ArrowRight');assert page.locator('#storiesPanel').is_visible()
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
         # Deterministic real-schema fixture, never part of public production data.
         items=[]
@@ -103,4 +105,4 @@ def pro_ui(browser,base,site):
         assert not errors,errors
         context.close()
     assert not (site/'business.html').exists() and not (site/'business/index.html').exists()
-    print('Four PRO tabs, responsive layout, data, diffs, filters, navigation and removed routes passed')
+    print('Five PRO tabs, responsive layout, data, diffs, filters, navigation and removed routes passed')

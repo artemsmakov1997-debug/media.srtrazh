@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Анализ публикаций — МЕДИА.СТРАЖ</title>
-  <meta name="description" content="Автоматический анализ публикаций СМИ и самостоятельная проверка текстов.">
+  <meta name="description" content="Сравнение публикаций СМИ, история правок, анализ текстов и локальная проверка фото и подписей в МЕДИА.СТРАЖ PRO.">
 <link rel="icon" type="image/svg+xml" sizes="any" href="favicon.svg?v=focus1">
 <link rel="icon" type="image/x-icon" href="favicon.ico?v=focus1">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=focus1">
@@ -311,7 +311,10 @@
 <link rel="stylesheet" href="analysis-surfaces.css?v=shared-publication-ui-20261027">
 <script src="analysis-layout.js?v=visible-filters-20261024" defer></script>
 <link rel="stylesheet" href="publication-ui.css?v=20261027-1">
-<link rel="stylesheet" href="pro-analysis.css?v=20261122"><script src="pro-analysis.js?v=20261122" defer></script></head>
+<link rel="stylesheet" href="pro-analysis.css?v=20261122"><script src="pro-analysis.js?v=20261122" defer></script>
+<link rel="stylesheet" href="photo-context.css?v=20261128">
+<script src="photo-context-core.js?v=20261128" defer></script>
+<script src="photo-context.js?v=20261128" defer></script></head>
 <body>
 <header class="site-header">
   <div class="header-inner">
@@ -325,6 +328,7 @@
 <button id="tab-history" class="mode-card" type="button" role="tab" data-mode="history" aria-controls="historyPanel" aria-selected="false" aria-pressed="false"><strong>История правок</strong></button>
 <button id="tab-automatic" class="mode-card active" type="button" role="tab" data-mode="automatic" aria-controls="automaticPanel" aria-selected="true" aria-pressed="true"><strong>Автоматический анализ</strong></button>
 <button id="tab-manual" class="mode-card" type="button" role="tab" data-mode="manual" aria-controls="manualPanel" aria-selected="false" aria-pressed="false"><strong>Самостоятельная проверка</strong></button>
+<button id="tab-photo" class="mode-card" type="button" role="tab" data-mode="photo" aria-controls="photoPanel" aria-selected="false" aria-pressed="false"><strong>Фото и контекст</strong></button>
 </div>
 <section id="storiesPanel" class="section-panel pro-panel" role="tabpanel" aria-labelledby="tab-stories" hidden><div id="storiesContent" aria-live="polite"><p>Загрузка данных…</p></div></section>
 <section id="historyPanel" class="section-panel pro-panel" role="tabpanel" aria-labelledby="tab-history" hidden><div id="historyContent" aria-live="polite"><p>Загрузка данных…</p></div></section>
@@ -421,6 +425,42 @@
       </div>
     </section>
   </section>
+  <section id="photoPanel" class="section-panel pro-panel photo-panel" role="tabpanel" aria-labelledby="tab-photo" hidden>
+    <header class="section-head"><h2>Фото и контекст</h2><span class="photo-badge">Локальный пилот</span></header>
+    <p class="photo-intro">Проверьте подпись к фото и сравните его с другим кадром. Если найдётся общая область, система покажет возможное кадрирование.</p>
+    <p class="photo-scope">Содержание кадра, эмоции людей и намерения редакции автоматически не определяются. Фото остаются на вашем устройстве. Результат не влияет на рейтинг СМИ.</p>
+    <noscript><p class="error">Для проверки фото включите JavaScript в браузере.</p></noscript>
+    <form id="photoForm" autocomplete="off">
+      <div class="photo-upload-grid">
+        <div class="photo-upload-card">
+          <div class="photo-upload-heading"><label for="photoFile">Фото из публикации</label></div>
+          <input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photoFileHint" required>
+          <p id="photoFileHint" class="photo-hint">JPEG, PNG или WebP · до 12 МБ и 24 мегапикселей.</p>
+          <figure id="photoPublicationPreview" class="photo-preview" hidden><img alt="Загруженное фото из публикации"><figcaption></figcaption></figure>
+          <p id="photoPublicationError" class="error" role="alert" hidden></p>
+        </div>
+        <div class="photo-upload-card">
+          <div class="photo-upload-heading"><label for="photoReference">Фото для сравнения — необязательно</label><button id="photoRemoveReference" class="photo-text-button" type="button" hidden>Убрать</button></div>
+          <input id="photoReference" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photoReferenceHint">
+          <p id="photoReferenceHint" class="photo-hint">Добавьте исходник или другой снимок того же события.</p>
+          <figure id="photoReferencePreview" class="photo-preview" hidden><div class="photo-reference-image"><img alt="Загруженное фото для сравнения"><div class="photo-crop-box" hidden aria-hidden="true"></div></div><figcaption></figcaption></figure>
+          <p id="photoReferenceError" class="error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="photo-caption-field"><label for="photoCaption">Подпись и текст публикации — необязательно</label><textarea id="photoCaption" maxlength="20000" rows="5" placeholder="Вставьте подпись к фото и текст, который его сопровождает…" aria-describedby="photoCaptionHint"></textarea><p id="photoCaptionHint" class="photo-hint">До 20 000 символов. Текст внутри картинки нужно вставить сюда отдельно.</p></div>
+      <details class="photo-context-fields"><summary>Добавить сведения о публикации</summary><div class="photo-context-grid"><div><label for="photoSource">Ссылка на публикацию — необязательно</label><input id="photoSource" type="url" maxlength="2048" placeholder="https://…" aria-describedby="photoSourceHint"><p id="photoSourceHint" class="photo-hint">Сохраняется в отчёте. Страница по ссылке не загружается.</p></div><div><label for="photoPublished">Дата публикации — если известна</label><input id="photoPublished" type="date"></div></div></details>
+      <div class="photo-actions"><button id="photoSubmit" class="button" type="submit">Проверить фото и подпись</button><button id="photoReset" class="button secondary" type="reset">Очистить</button><span id="photoState" role="status" aria-live="polite"></span></div>
+      <p id="photoError" class="error" role="alert" hidden></p>
+    </form>
+    <section id="photoResult" class="photo-result" aria-labelledby="photoResultTitle" hidden>
+      <header class="section-head"><h2 id="photoResultTitle" tabindex="-1">Результат проверки</h2><button id="photoDownload" class="pro-button" type="button">Скачать отчёт JSON</button></header>
+      <div id="photoFacts" class="photo-facts"></div>
+      <article id="photoComparison" class="photo-evidence-card"></article>
+      <section class="photo-caption-result" aria-labelledby="photoCaptionTitle"><h3 id="photoCaptionTitle">Признаки в подписи</h3><p id="photoCaptionStatus" class="muted"></p><div id="photoCaptionEvidence" class="photo-caption-evidence" hidden></div><div id="photoCueNote" class="photo-cue-note" role="status" aria-live="polite" hidden></div><div id="photoCaptionFindings"></div></section>
+      <section class="photo-review" aria-labelledby="photoReviewTitle"><h3 id="photoReviewTitle">Что проверить по источнику</h3><ul><li>Совпадают ли событие, место и дата съёмки с описанием публикации?</li><li>Что видно на других кадрах той же серии? Меняют ли они впечатление от выбранного фото?</li><li>Что осталось за границами кадра и сопоставимы ли ракурсы сравниваемых снимков?</li><li>Подтверждаются ли подпись и заявления об обработке первоисточником?</li></ul><div id="photoSourceLink"></div></section>
+      <p class="photo-limitations">Найденные признаки требуют проверки; они не доказывают манипуляцию, намерение автора или ложность фактов. Отсутствие признаков не подтверждает нейтральность или подлинность фото. Метаданные могут отсутствовать или быть изменены.</p>
+    </section>
+  </section>
 </main>
 <div id="automaticModal" class="auto-modal-overlay" hidden>
   <div class="auto-modal" role="dialog" aria-modal="true" aria-labelledby="automaticModalTitle">
@@ -440,13 +480,15 @@
     const modeButtons = Array.from(document.querySelectorAll('[data-mode]'));
     function setMode(mode) {
       const manual = mode === 'manual';
-      for (const name of ['stories','history','automatic','manual']) document.getElementById(name+'Panel').hidden = name !== mode;
+      for (const button of modeButtons) document.getElementById(button.dataset.mode+'Panel').hidden = button.dataset.mode !== mode;
       modeButtons.forEach(button => {
         const active = button.dataset.mode === mode;
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', String(active));
         button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
       });
+      document.dispatchEvent(new CustomEvent('pro:modechange', {detail: mode}));
       if (manual) {
         const target = document.getElementById('manualTextEvidence').hidden
           ? document.getElementById('manualTitle') : document.getElementById('manualTextEvidence');
@@ -457,15 +499,15 @@
       button.addEventListener('click', () => { setMode(button.dataset.mode); });
       button.addEventListener('keydown',event=>{
         let next;
-        if(event.key==='ArrowRight') next=(index+1)%4;
-        if(event.key==='ArrowLeft') next=(index+3)%4;
+        if(event.key==='ArrowRight') next=(index+1)%modeButtons.length;
+        if(event.key==='ArrowLeft') next=(index+modeButtons.length-1)%modeButtons.length;
         if(event.key==='Home') next=0;
-        if(event.key==='End') next=3;
+        if(event.key==='End') next=modeButtons.length-1;
         if(next!==undefined){event.preventDefault();modeButtons[next].click();modeButtons[next].focus();}
       });
     });
     const initial=location.hash.slice(1);
-    if(['stories','history','automatic','manual'].includes(initial)) setMode(initial);
+    setMode(modeButtons.some(button => button.dataset.mode === initial) ? initial : 'automatic');
   })();
 </script>
 <script>
