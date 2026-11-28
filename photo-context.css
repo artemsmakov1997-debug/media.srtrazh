@@ -1,5 +1,6 @@
 /* The fifth PRO tool keeps the existing graphite surfaces and restrained accents. */
 .analysis-tabs{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.analysis-tabs .mode-card strong{overflow-wrap:anywhere}
 .mode-card[data-mode=photo]{border-color:#729fc7;background:#101a25}
 .mode-card[data-mode=photo]:hover{border-color:#b0d4f3;background:#152739}
 .mode-card[data-mode=photo].active{border-color:#a0c9ef;background:#182c3d;box-shadow:inset 0 0 0 1px #729fc755}
@@ -57,6 +58,11 @@
 .photo-review li+li{margin-top:8px}
 .photo-review a{display:inline-flex;align-items:center;min-height:44px;font-size:14px}
 .photo-limitations{margin:20px 0 0;color:#a8b9c9;font-size:13px;line-height:1.8}
+@media(min-width:721px) and (max-width:1023px){
+ .analysis-tabs{gap:8px}
+ .analysis-tabs .mode-card{padding:12px 6px}
+ .analysis-tabs .mode-card strong{font-size:12px;line-height:1.45}
+}
 @media(max-width:720px){
  .analysis-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
  .mode-card[data-mode=photo]{grid-column:1/-1;min-height:60px}

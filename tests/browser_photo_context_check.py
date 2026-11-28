@@ -41,6 +41,7 @@ def photo_ui(browser, base):
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.on('request', lambda request: requests.append((request.method, request.url, request.post_data)))
         page.goto(base + '/analysis/#photo')
+        page.evaluate('document.fonts.ready')
         assert page.locator('#photoPanel').is_visible()
         assert page.locator('[data-mode=photo]').get_attribute('aria-selected') == 'true'
         caption = '⚡ Фото, которое никогда не опубликуют официальные российские каналы. Потому что оно реальное, а не пропущенное через 200 фильтров. <script>window.photoLeak=1</script>'
