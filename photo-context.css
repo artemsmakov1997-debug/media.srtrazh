@@ -21,6 +21,7 @@
 .photo-hint{margin:9px 0 0;color:#a5b6c7;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .photo-preview{margin:16px 0 0}
 .photo-preview img{display:block;width:100%;height:auto;border:1px solid #314351;border-radius:5px}
+.photo-preview>img,.photo-reference-image{width:min(100%,calc(360px * var(--photo-ratio,1.333)));margin-inline:auto}
 .photo-preview figcaption{margin-top:10px;color:#b6cadb;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
 .photo-reference-image{position:relative}
 .photo-crop-box{position:absolute;border:2px solid #62e1f2;box-shadow:0 0 0 1px #07141c;pointer-events:none}
@@ -53,6 +54,7 @@
 .photo-cue-note{padding:14px;margin-top:12px;background:#0a1c26;border-left:2px solid #6cddeb;border-radius:4px;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
 .photo-cue-note strong{display:block;color:#95eaf4;margin-bottom:6px;font-size:13px}
 .photo-cue-note p{margin:0}
+.photo-cue-note section+section{margin-top:12px;padding-top:12px;border-top:1px solid #2a4554}
 .photo-finding-list{margin:14px 0 0;padding-left:22px;color:#c1d1df;font-size:13px;line-height:1.8}
 .photo-review ul{margin:12px 0;padding-left:21px;color:#bdcddc;font-size:14px;line-height:1.8}
 .photo-review li+li{margin-top:8px}
@@ -69,6 +71,7 @@
  .photo-upload-grid,.photo-context-grid{grid-template-columns:1fr;gap:12px}
  .photo-panel{padding:16px}
  .photo-panel .section-head h2{font-size:20px}
+ .photo-panel input:not([type=file]),.photo-panel textarea{font-size:16px}
  .photo-upload-card,.photo-evidence-card,.photo-caption-result,.photo-review{padding:14px}
  .photo-upload-heading{flex-wrap:wrap;gap:4px}
  .photo-facts{grid-template-columns:1fr;gap:8px}

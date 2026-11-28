@@ -84,6 +84,7 @@
       const preview = el('photo' + names[role] + 'Preview');
       preview.querySelector('img').src = record.url;
       const m = record.summary;
+      preview.style.setProperty('--photo-ratio', String(m.width / m.height));
       preview.querySelector('figcaption').textContent = `${m.file_name} · ${m.format} · ${m.width} × ${m.height} · ${sizeLabel(m.bytes)}`;
       preview.hidden = false;
     } catch (error) {

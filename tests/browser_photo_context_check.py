@@ -127,6 +127,14 @@ def photo_ui(browser, base):
             page.locator('#photoReference').set_input_files(upload('full-source.png', full))
             page.locator('#photoReferencePreview').wait_for(); page.locator('#photoSubmit').click(); page.locator('#photoResult').wait_for()
             assert page.locator('#photoComparison h3').inner_text() == 'Найдена возможная общая область', label
+        # Tall photos stay compact; the reference frame uses the image's true box.
+        portrait = png(80, 400)
+        page.locator('#photoFile').set_input_files(upload('portrait.png', portrait))
+        page.locator('#photoReference').set_input_files(upload('portrait-reference.png', portrait))
+        page.locator('#photoPublicationPreview').wait_for(); page.locator('#photoReferencePreview').wait_for()
+        for selector in ('#photoPublicationPreview img', '#photoReferencePreview .photo-reference-image'):
+            box = page.locator(selector).bounding_box()
+            assert box['height'] <= 361 and abs(box['width'] / box['height'] - .2) < .01, (selector, box)
         # A renamed SVG is rejected by its actual bytes, never inserted as markup.
         page.locator('#photoFile').set_input_files(upload('disguised.png', b'<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>'))
         page.locator('#photoPublicationError').wait_for()
